@@ -5,27 +5,33 @@ import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 
 import {makeSpeechSynthesisDriver} from './speech_synthesis'
+import SpeechSynthesisAction from './SpeechSynthesisAction'
 
 function main(sources) {
   const vdom$ = xs.of((<div>Hello world!</div>));
   const synth$ = xs.create();
-  setTimeout(() => {synth$.shamefullySendNext(new SpeechSynthesisUtterance('Hello world'))}, 1);
-  setTimeout(() => {synth$.shamefullySendNext(null)}, 501);
-  setTimeout(() => {synth$.shamefullySendNext(new SpeechSynthesisUtterance('Jello world'))}, 1001);
+  setTimeout(() => {synth$.shamefullySendNext({text: 'Hello world'});}, 1);
+  setTimeout(() => {synth$.shamefullySendNext(null);}, 501);
+  setTimeout(() => {synth$.shamefullySendNext({text: 'Jello world'});}, 1001);
 
-  sources.SpeechSynthesis.events('start').addListener({
-    next: data => console.log('start', data),
+  const speechSynthesis = SpeechSynthesisAction({
+    goal: synth$,
+    SpeechSynthesis: sources.SpeechSynthesis,
   });
-  sources.SpeechSynthesis.events('end').addListener({
-    next: data => console.log('end', data),
+
+  speechSynthesis.result.addListener({
+    next: data => console.warn('result', data),
   });
-  sources.SpeechSynthesis.events('error').addListener({
-    next: data => console.log('error', data),
+  speechSynthesis.status.addListener({
+    next: data => console.warn('status', data),
+  });
+  speechSynthesis.value.addListener({
+    next: data => console.warn('value', data),
   });
 
   return {
     DOM: vdom$,
-    SpeechSynthesis: synth$,
+    SpeechSynthesis: speechSynthesis.value,
   };
 }
 
