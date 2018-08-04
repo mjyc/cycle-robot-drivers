@@ -8,9 +8,11 @@ export function makeSpeechSynthesisDriver() {
   return function speechSynthesisDriver(sink$) {
     sink$.addListener({
       next: (utterance) => {
-        // if (SpeechSynthesisUtterance)
-        console.log(typeof utterance);
-        synthesis.speak(utterance);
+        if (!utterance) {
+          synthesis.cancel();
+        } else {
+          synthesis.speak(utterance);
+        }
       }
     });
 
