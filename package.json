@@ -1,0 +1,25 @@
+{
+  "name": "cycle-web-speech-api-drivers",
+  "version": "0.0.0",
+  "author": "Michael Jae-Yoon Chung",
+  "license": "MIT",
+  "dependencies": {
+    "@cycle/dom": "^20.4.0",
+    "snabbdom": "^0.7.1",
+    "snabbdom-pragma": "^2.7.0",
+    "xstream": "^11.7.0"
+  },
+  "devDependencies": {
+    "@types/webspeechapi": "0.0.29",
+    "clean-webpack-plugin": "^0.1.19",
+    "copy-webpack-plugin": "^4.5.2",
+    "ts-loader": "^3.5.0",
+    "typescript": "^2.9.2",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.1"
+  },
+  "scripts": {
+    "build": "webpack",
+    "start": "webpack-dev-server"
+  }
+}
