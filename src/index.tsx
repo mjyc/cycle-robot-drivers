@@ -12,7 +12,8 @@ function main(sources) {
   const synth$ = xs.create();
   setTimeout(() => {synth$.shamefullySendNext({text: 'Hello world'});}, 1);
   setTimeout(() => {synth$.shamefullySendNext({text: 'Jello world'});}, 500);
-  setTimeout(() => {synth$.shamefullySendNext(null);}, 2500);
+  setTimeout(() => {synth$.shamefullySendNext(null);}, 1000);
+  // setTimeout(() => {synth$.shamefullySendNext(null);}, 2500);
 
   const speechSynthesis = SpeechSynthesisAction({
     goal: synth$,

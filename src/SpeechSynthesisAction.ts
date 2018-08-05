@@ -148,13 +148,17 @@ function SpeechSynthesisAction(sources) {
     .filter(state => (state.status === Status.PENDING
       || state.status === ExtraStatus.PREEMPTING))
     .map(state => state.goal);
-  const status$ = state$
+  const stateStatusChanged$ = state$
     .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .compose(pairwise)
     .filter(pair => (pair[1].status !== pair[0].status))
     .map(pair => pair[1]);
-  const result$ = state$
-    .drop(1)
+  const status$ = stateStatusChanged$
+    .map(state => ({
+      goal_id: state.goal_id,
+      status: state.status,
+    }))
+  const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED
         || state.status === Status.PREEMPTED
         || state.status === Status.ABORTED))
