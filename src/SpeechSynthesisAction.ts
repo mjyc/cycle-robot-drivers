@@ -82,7 +82,13 @@ function SpeechSynthesisAction(sources) {
         }
       }
     } else if (state.status === Status.PENDING) {
-      if (action.type === 'START') {
+      if (action.type === 'GOAL') {
+        return {
+          ...state,
+          status: ExtraStatus.PREEMPTING,
+          newGoal: (action.value as Goal)
+        }
+      } else if (action.type === 'START') {
         return {
           ...state,
           status: Status.ACTIVE,
@@ -95,7 +101,14 @@ function SpeechSynthesisAction(sources) {
         }
       }
     } else if (state.status === Status.ACTIVE) {
-      if (action.type === 'END') {
+      if (action.type === 'GOAL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+          newGoal: (action.value as Goal)
+        }
+      } else if (action.type === 'END') {
         return {
           ...state,
           status: Status.SUCCEEDED,
@@ -110,9 +123,15 @@ function SpeechSynthesisAction(sources) {
       }
     } else if (state.status === ExtraStatus.PREEMPTING) {
       if (action.type === 'END') {
+        if (state.newGoal) {
+          setTimeout(() => {
+            goal$.shamefullySendNext({type: 'GOAL', value: state.newGoal});
+          }, 1);
+        }
         return {
           ...state,
           status: Status.PREEMPTED,
+          newGoal: null,
         }
       }
     }
