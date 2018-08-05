@@ -87,6 +87,12 @@ function SpeechSynthesisAction(sources) {
           ...state,
           status: Status.ACTIVE,
         };
+      } else if (action.type === 'CANCEL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+        }
       }
     } else if (state.status === Status.ACTIVE) {
       if (action.type === 'END') {
@@ -94,6 +100,19 @@ function SpeechSynthesisAction(sources) {
           ...state,
           status: Status.SUCCEEDED,
           result: action.value,
+        }
+      } else if (action.type === 'CANCEL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+        }
+      }
+    } else if (state.status === ExtraStatus.PREEMPTING) {
+      if (action.type === 'END') {
+        return {
+          ...state,
+          status: Status.PREEMPTED,
         }
       }
     }
@@ -107,9 +126,11 @@ function SpeechSynthesisAction(sources) {
   // Prepare outgoing streams
   const value$ = state$
     .drop(1)
-    .filter(state => (state.status === Status.PENDING))
+    .filter(state => (state.status === Status.PENDING
+      || state.status === ExtraStatus.PREEMPTING))
     .map(state => state.goal);
   const status$ = state$
+    .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .compose(pairwise)
     .filter(pair => (pair[1].status !== pair[0].status))
     .map(pair => pair[1]);
