@@ -182,4 +182,8 @@ const IsolatedSpeechSynthesisAction = function(sources) {
   return isolate(SpeechSynthesisAction)(sources);
 };
 
-export default IsolatedSpeechSynthesisAction;
+
+export {
+  SpeechSynthesisAction,
+  IsolatedSpeechSynthesisAction,
+};

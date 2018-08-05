@@ -1,11 +1,12 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import delay from 'xstream/extra/delay'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
+import {
+  makeSpeechSynthesisDriver,
+  IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
+} from '@cycle-robot-drivers/speech'
 
-import {makeSpeechSynthesisDriver} from './speech_synthesis'
-import SpeechSynthesisAction from './SpeechSynthesisAction'
 
 function main(sources) {
   const vdom$ = xs.of((<div>Hello world!</div>));
