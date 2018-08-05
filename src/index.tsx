@@ -11,8 +11,8 @@ function main(sources) {
   const vdom$ = xs.of((<div>Hello world!</div>));
   const synth$ = xs.create();
   setTimeout(() => {synth$.shamefullySendNext({text: 'Hello world'});}, 1);
-  setTimeout(() => {synth$.shamefullySendNext(null);}, 501);
-  setTimeout(() => {synth$.shamefullySendNext({text: 'Jello world'});}, 1001);
+  // setTimeout(() => {synth$.shamefullySendNext({text: 'Jello world'});}, 500);
+  // setTimeout(() => {synth$.shamefullySendNext(null);}, 1500);
 
   const speechSynthesis = SpeechSynthesisAction({
     goal: synth$,
