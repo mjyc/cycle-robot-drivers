@@ -3,8 +3,9 @@ import pairwise from 'xstream/extra/pairwise'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
-import {GoalID, Goal, GoalStatus, Status, Result} from './types'
-import {initGoal} from './utils'
+import {
+  GoalID, Goal, GoalStatus, Status, Result, initGoal
+} from '@cycle-robot-drivers/action'
 
 
 function SpeechSynthesisAction(sources) {

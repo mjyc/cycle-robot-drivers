@@ -1,14 +1,9 @@
 {
-  "name": "@cycle-robot-drivers/speech",
+  "name": "@cycle-robot-drivers/action",
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
-  "dependencies": {
-    "@cycle/isolate": "^3.4.0",
-    "@cycle/run": "^4.4.0",
-    "@cycle-robot-drivers/action": "file:../action",
-    "xstream": "^11.7.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.2",
