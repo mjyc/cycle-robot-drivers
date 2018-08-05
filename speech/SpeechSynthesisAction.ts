@@ -1,10 +1,9 @@
 import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
 import pairwise from 'xstream/extra/pairwise'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
-import {GoalID, Goal, GoalStatus, Status} from './types'
+import {GoalID, Goal, GoalStatus, Status, Result} from './types'
 import {initGoal} from './utils'
 
 
@@ -151,13 +150,13 @@ function SpeechSynthesisAction(sources) {
   const stateStatusChanged$ = state$
     .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .compose(pairwise)
-    .filter(pair => (pair[1].status !== pair[0].status))
-    .map(pair => pair[1]);
+    .filter(([prevState, curState]) => (curState.status !== prevState.status))
+    .map(([prevState, curState]) => curState);
   const status$ = stateStatusChanged$
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
-    }))
+    } as GoalStatus))
   const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED
         || state.status === Status.PREEMPTED
@@ -168,7 +167,7 @@ function SpeechSynthesisAction(sources) {
         status: state.status,
       },
       result: state.result,
-    }));
+    } as Result));
 
 
   return {
