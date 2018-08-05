@@ -22,9 +22,6 @@ module.exports = {
       test: /\.tsx?$/,
       exclude: /node_modules/,
       use: {loader: 'ts-loader'}
-    }, {
-      test: /\.ogg$/,
-      use: {loader: 'file-loader'}
     }]
   },
   devtool: 'inline-source-map',

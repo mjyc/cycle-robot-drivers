@@ -1,0 +1,17 @@
+{
+  "name": "@cycle-robot-drivers/action",
+  "version": "0.0.0",
+  "author": "Michael Jae-Yoon Chung",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "clean-webpack-plugin": "^0.1.19",
+    "copy-webpack-plugin": "^4.5.2",
+    "ts-loader": "^3.5.0",
+    "typescript": "^2.9.2",
+    "webpack": "^3.10.0"
+  },
+  "scripts": {
+    "build": "webpack"
+  }
+}

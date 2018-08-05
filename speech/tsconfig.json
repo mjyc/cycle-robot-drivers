@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "declaration": true,
+    "target": "es5",
+    "moduleResolution": "node",
+    "alwaysStrict": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "formatCodeOptions": {
+    "indentSize": 2,
+    "tabSize": 2
+  }
+}
