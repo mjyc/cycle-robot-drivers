@@ -10,10 +10,11 @@ import SpeechSynthesisAction from './SpeechSynthesisAction'
 function main(sources) {
   const vdom$ = xs.of((<div>Hello world!</div>));
   const synth$ = xs.create();
-  setTimeout(() => {synth$.shamefullySendNext({text: 'Hello world'});}, 1);
-  setTimeout(() => {synth$.shamefullySendNext({text: 'Jello world'});}, 500);
+  setTimeout(() => {synth$.shamefullySendNext({text: 'Hello'});}, 1);
+  setTimeout(() => {synth$.shamefullySendNext({text: 'World'});}, 200);
   setTimeout(() => {synth$.shamefullySendNext(null);}, 1000);
-  // setTimeout(() => {synth$.shamefullySendNext(null);}, 2500);
+  setTimeout(() => {synth$.shamefullySendNext({text: 'Jello'});}, 1500);
+  setTimeout(() => {synth$.shamefullySendNext(null);}, 2500);
 
   const speechSynthesis = SpeechSynthesisAction({
     goal: synth$,
