@@ -9,7 +9,7 @@ import {
 
 function main(sources) {
   const sbub$ = xs.create();
-  setTimeout(() => {
+  window.onload = () => {
     setTimeout(() => {
       sbub$.shamefullySendNext({type: 'message', value: 'Hello'});
     }, 1);
@@ -25,7 +25,7 @@ function main(sources) {
     }, 500);
     // you must click a button here
     setTimeout(() => {sbub$.shamefullySendNext(null);}, 2000);
-  }, 1000);
+  };
 
   const speechbubbleAction = SpeechbubbleAction({
     goal: sbub$,
