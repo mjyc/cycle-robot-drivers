@@ -8,21 +8,31 @@ import {
 } from '@cycle-robot-drivers/sound'
 
 
-
 function main(sources) {
   const vdom$ = xs.of((<div>Cycle.js AudioPlayerAction component demo</div>));
+  const audio$ = xs.create();
+  setTimeout(() => audio$.shamefullySendNext({
+    src: require("../public/snd/IWohoo1.ogg")
+  }), 1);
+  // test overwriting the current goal
+  setTimeout(() => audio$.shamefullySendNext({
+    src: require("../public/snd/IWohoo2.ogg")
+  }), 500);
+  setTimeout(() => audio$.shamefullySendNext(null), 1000);
+  setTimeout(() => audio$.shamefullySendNext({
+    src: require("../public/snd/IWohoo3.ogg")
+  }), 2000);
+  // test calling cancel on done; cancel must do nothing
+  setTimeout(() => audio$.shamefullySendNext(null), 4000);
 
-  const audio$ = xs.of({src: require("../public/snd/IWohoo1.ogg")});
-
-  ['abort', 'error', 'ended', 'loadeddata'].map((eventName) => {
-    sources.AudioPlayer.events(eventName).addListener({
-      next: data => console.warn(eventName, data),
-    });
-  })
+  const audioPlayerAction = AudioPlayerAction({
+    goal: audio$,
+    AudioPlayer: sources.AudioPlayer,
+  });
 
   return {
     DOM: vdom$,
-    AudioPlayer: audio$,
+    AudioPlayer: audioPlayerAction.value,
   };
 }
 
