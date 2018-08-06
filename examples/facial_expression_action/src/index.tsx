@@ -1,6 +1,5 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-// import fromEvent from 'xstream/extra/fromEvent'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
@@ -20,15 +19,14 @@ function main(sources) {
   const fexp$ = xs.create();
   window.onload = () => {
     setTimeout(() => fexp$.shamefullySendNext({type: 'happy'}), 1);
+    // test overwriting the current goal
+    setTimeout(() => fexp$.shamefullySendNext({type: 'sad'}), 100);
+    // test canceling an active goal
+    setTimeout(() => {fexp$.shamefullySendNext(null);}, 500);
+    // test calling cancel on done; cancel must do nothing
+    setTimeout(() => fexp$.shamefullySendNext({type: 'confused'}), 1000);
+    setTimeout(() => fexp$.shamefullySendNext(null), 2500);
   };
-  // const fexp$ = fromEvent(window, 'load').map(data => {
-  //   // console.log();
-  //   return {type: 'happy'};
-  // });
-  // setTimeout(() => fexp$.shamefullySendNext({type: 'happy'}), 1);
-  // sources.DOM.select('.face').events('').addListener({
-  //   next: data => console.warn('vdom', data),
-  // });
 
   sources.FacialExpressionAction.result.addListener({
     next: data => console.warn('result', data),
