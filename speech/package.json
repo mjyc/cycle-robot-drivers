@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
-  "src": "src/index.ts",
+  "main": "src/index.ts",
   "dependencies": {
     "@cycle/isolate": "3.4.0",
     "@cycle/run": "4.4.0",
