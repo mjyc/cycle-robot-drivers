@@ -2,7 +2,11 @@ import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
-import {makeAudioPlayerDriver} from '@cycle-robot-drivers/sound'
+import {
+  makeAudioPlayerDriver,
+  IsolatedAudioPlayerAction as AudioPlayerAction,
+} from '@cycle-robot-drivers/sound'
+
 
 
 function main(sources) {
