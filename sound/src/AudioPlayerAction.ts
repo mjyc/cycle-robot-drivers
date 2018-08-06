@@ -3,7 +3,9 @@ import dropRepeats from 'xstream/extra/dropRepeats'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
-import {Goal, GoalStatus, Status, initGoal} from '@cycle-robot-drivers/action'
+import {
+  Goal, GoalStatus, Status, initGoal,
+} from '@cycle-robot-drivers/action'
 
 
 function AudioPlayerAction(sources) {
