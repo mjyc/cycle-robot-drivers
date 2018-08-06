@@ -1,36 +1,22 @@
-import xs from 'xstream'
+import {Stream} from 'xstream'
+import fromEvent from 'xstream/extra/fromEvent'
 import {adapt} from '@cycle/run/lib/adapt'
 
+
+class AudioSource {
+  constructor(
+    private _audio: HTMLAudioElement,
+  ) {}
+
+  events(eventType: string): Stream<Event> {
+    return adapt(fromEvent(this._audio, eventType));
+  }
+}
 
 export function makeAudioPlayerDriver() {
   const audio = new Audio();
 
   return function audioPlayerDriver(sink$) {
-    // keys are a subset of events of HTMLAudioElement; see
-    //   https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement
-    let events = {
-      'abort': null,
-      'error': null,
-      'ended': null,
-      'loadeddata': null,
-    };
-    Object.keys(events).map(type => {      let eventListener = null;
-      events[type] = xs.create({
-        start: listener => {
-          eventListener = (event) => {
-            listener.next(event);
-          };
-
-        },
-        stop: () => {
-          if (eventListener) {
-            audio.removeEventListener(type, eventListener);
-            eventListener = null;
-          }
-        },
-      });
-    });
-
     sink$.addListener({
       next: (props) => {
         if (!props) {
@@ -48,9 +34,6 @@ export function makeAudioPlayerDriver() {
       }
     });
 
-    Object.keys(events).map(type => {
-      events[type] = adapt(events[type]);
-    });
-    return events;
+    return new AudioSource(audio);
   }
 }

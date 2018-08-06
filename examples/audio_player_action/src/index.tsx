@@ -10,9 +10,9 @@ function main(sources) {
 
   const audio$ = xs.of({src: require("../public/snd/IWohoo1.ogg")});
 
-  ['abort', 'error', 'ended', 'loadeddata'].map((key) => {
-    sources.AudioPlayer[key].addListener({
-      next: data => console.warn('ended', data),
+  ['abort', 'error', 'ended', 'loadeddata'].map((eventName) => {
+    sources.AudioPlayer.events(eventName).addListener({
+      next: data => console.warn(eventName, data),
     });
   })
 
