@@ -1,11 +1,11 @@
 import Snabbdom from 'snabbdom-pragma';
-import {Observable} from 'rxjs/Observable';
 import xs from 'xstream'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
-import {Goal, GoalStatus, Status} from './types'
-import {initGoal} from './utils'
+import {
+  Goal, GoalStatus, Status, initGoal,
+} from '@cycle-robot-drivers/action'
 
 
 function SpeechbubbleAction(sources) {
@@ -15,9 +15,7 @@ function SpeechbubbleAction(sources) {
     value: Goal | string,
   };
 
-  const goal$ = (
-    (sources.goal instanceof Observable) ? xs.from(sources.goal) : sources.goal
-  ).map(goal => {
+  const goal$ = xs.fromObservable(sources.goal).map(goal => {
     if (goal === null) {
       return {
         type: 'CANCEL',
@@ -31,9 +29,7 @@ function SpeechbubbleAction(sources) {
     }
   });
   let click$ = sources.DOM.select('.choices').events('click', {preventDefault: true});
-  click$ = (
-    click$ instanceof Observable ? xs.from(click$) : click$
-  ).map((event: Event) => {
+  click$ = xs.fromObservable(click$).map((event: Event) => {
     return {
       type: 'CLICK',
       value: (event.target as HTMLButtonElement).textContent,
