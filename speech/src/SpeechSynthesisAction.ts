@@ -4,7 +4,7 @@ import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  GoalID, Goal, GoalStatus, Status, Result, initGoal
+  GoalID, Goal, GoalStatus, Status, Result, initGoal, generateGoalID,
 } from '@cycle-robot-drivers/action'
 
 
@@ -55,13 +55,9 @@ function SpeechSynthesisAction(sources) {
     newGoal: Goal,
   };
 
-  const now = new Date();
   const initialState: State = {
     goal: null,
-    goal_id: {
-      stamp: now,
-      id: `${Math.random().toString(36).substring(2)}-${now.getTime()}`,
-    },
+    goal_id: generateGoalID(),
     status: Status.SUCCEEDED,
     result: null,
     newGoal: null,
