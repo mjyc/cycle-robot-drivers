@@ -1,10 +1,10 @@
 {
-  "name": "speech_synthesis_action",
+  "name": "speech_recognition_action",
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "dependencies": {
-    "@cycle-robot-drivers/speech": "file:../../speech",
+    "@cycle-robot-drivers/speech": "file:../../../speech",
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
     "snabbdom": "0.7.1",
@@ -12,6 +12,7 @@
     "xstream": "11.7.0"
   },
   "devDependencies": {
+    "@types/webspeechapi": "0.0.29",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.2",
     "ts-loader": "^3.5.0",

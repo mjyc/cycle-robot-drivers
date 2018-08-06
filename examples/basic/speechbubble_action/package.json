@@ -1,10 +1,10 @@
 {
-  "name": "sound_player_action",
+  "name": "speechbubble_action",
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "dependencies": {
-    "@cycle-robot-drivers/sound": "file:../../sound",
+    "@cycle-robot-drivers/face": "file:../../../face",
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
     "snabbdom": "0.7.1",
@@ -12,10 +12,8 @@
     "xstream": "11.7.0"
   },
   "devDependencies": {
-    "@types/node": "^10.5.6",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.2",
-    "file-loader": "^1.1.11",
     "ts-loader": "^3.5.0",
     "typescript": "^2.9.2",
     "webpack": "^3.10.0",

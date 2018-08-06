@@ -1,10 +1,10 @@
 {
-  "name": "facial_expression_action",
+  "name": "pose_detection",
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "dependencies": {
-    "@cycle-robot-drivers/face": "file:../../face",
+    "@cycle-robot-drivers/vision": "file:../../../vision",
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
     "snabbdom": "0.7.1",
@@ -12,6 +12,7 @@
     "xstream": "11.7.0"
   },
   "devDependencies": {
+    "@types/node": "^10.5.6",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.2",
     "ts-loader": "^3.5.0",
