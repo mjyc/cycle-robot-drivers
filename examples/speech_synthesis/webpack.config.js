@@ -7,7 +7,6 @@ module.exports = {
   output: {
     path: __dirname + '/dist',
     filename: 'bundle.js',
-    libraryTarget: 'commonjs',
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.jsx','.js'],
@@ -15,7 +14,7 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin('dist'),
     new CopyWebpackPlugin([
-      {from: 'index.html'}
+      {from: 'index.html'},
     ]),
   ],
   module: {
@@ -23,11 +22,11 @@ module.exports = {
       test: /\.tsx?$/,
       exclude: /node_modules/,
       use: {loader: 'ts-loader'},
-    }]
+    }],
   },
   devtool: 'inline-source-map',
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     port: 9000,
-  }
+  },
 };

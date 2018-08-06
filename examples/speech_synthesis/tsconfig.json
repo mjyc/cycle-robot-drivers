@@ -2,10 +2,6 @@
   "compilerOptions": {
     "removeComments": true,
     "preserveConstEnums": true,
-    "sourceMap": true,
-    "declaration": true,
-    "target": "es5",
-    "moduleResolution": "node",
     "jsx": "react",
     "reactNamespace": "Snabbdom",
     "alwaysStrict": true,
