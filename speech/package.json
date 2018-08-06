@@ -3,20 +3,18 @@
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
+  "main": "lib/index.js",
   "dependencies": {
-    "@cycle/isolate": "^3.4.0",
-    "@cycle/run": "^4.4.0",
     "@cycle-robot-drivers/action": "file:../action",
-    "xstream": "^11.7.0"
+    "@cycle/isolate": "3.4.0",
+    "@cycle/run": "4.4.0",
+    "xstream": "11.7.0"
   },
   "devDependencies": {
-    "clean-webpack-plugin": "^0.1.19",
-    "copy-webpack-plugin": "^4.5.2",
-    "ts-loader": "^3.5.0",
-    "typescript": "^2.9.2",
-    "webpack": "^3.10.0"
+    "@types/node": "^10.5.6",
+    "typescript": "^2.9.2"
   },
   "scripts": {
-    "build": "webpack"
+    "build": "tsc"
   }
 }

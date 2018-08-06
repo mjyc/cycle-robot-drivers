@@ -6,7 +6,8 @@ module.exports = {
   entry: __dirname + '/index.ts',
   output: {
     path: __dirname + '/dist',
-    filename: 'index.js'
+    filename: 'index.js',
+    libraryTarget: 'commonjs'
   },
   resolve: {
     extensions: ['.ts', '.js']

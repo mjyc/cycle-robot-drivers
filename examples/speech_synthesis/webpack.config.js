@@ -6,10 +6,11 @@ module.exports = {
   entry: __dirname + '/src/index.tsx',
   output: {
     path: __dirname + '/dist',
-    filename: 'bundle.js'
+    filename: 'bundle.js',
+    libraryTarget: 'commonjs',
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.jsx','.js']
+    extensions: ['.tsx', '.ts', '.jsx','.js'],
   },
   plugins: [
     new CleanWebpackPlugin('dist'),
@@ -21,12 +22,12 @@ module.exports = {
     rules: [{
       test: /\.tsx?$/,
       exclude: /node_modules/,
-      use: {loader: 'ts-loader'}
+      use: {loader: 'ts-loader'},
     }]
   },
   devtool: 'inline-source-map',
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     port: 9000,
-  },
+  }
 };
