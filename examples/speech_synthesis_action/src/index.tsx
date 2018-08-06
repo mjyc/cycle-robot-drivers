@@ -17,24 +17,24 @@ function main(sources) {
   setTimeout(() => {synth$.shamefullySendNext({text: 'Jello'});}, 1500);
   setTimeout(() => {synth$.shamefullySendNext(null);}, 2500);
 
-  const speechSynthesis = SpeechSynthesisAction({
+  const speechSynthesisAction = SpeechSynthesisAction({
     goal: synth$,
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
-  speechSynthesis.result.addListener({
+  speechSynthesisAction.result.addListener({
     next: data => console.warn('result', data),
   });
-  speechSynthesis.status.addListener({
+  speechSynthesisAction.status.addListener({
     next: data => console.warn('status', data),
   });
-  speechSynthesis.value.addListener({
+  speechSynthesisAction.value.addListener({
     next: data => console.warn('value', data),
   });
 
   return {
     DOM: vdom$,
-    SpeechSynthesis: speechSynthesis.value,
+    SpeechSynthesis: speechSynthesisAction.value,
   };
 }
 
