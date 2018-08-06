@@ -26,14 +26,14 @@ function main(sources) {
     SpeechRecognition: sources.SpeechRecognition,
   });
 
-  speechRecognitionAction.result.addListener({
-    next: data => console.warn('result', data),
+  speechRecognitionAction.value.addListener({
+    next: data => console.warn('value', data),
   });
   speechRecognitionAction.status.addListener({
     next: data => console.warn('status', data),
   });
-  speechRecognitionAction.value.addListener({
-    next: data => console.warn('value', data),
+  speechRecognitionAction.result.addListener({
+    next: data => console.warn('result', data),
   });
 
   return {

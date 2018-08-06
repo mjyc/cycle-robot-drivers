@@ -25,14 +25,14 @@ function main(sources) {
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
-  speechSynthesisAction.result.addListener({
-    next: data => console.warn('result', data),
+  speechSynthesisAction.value.addListener({
+    next: data => console.warn('value', data),
   });
   speechSynthesisAction.status.addListener({
     next: data => console.warn('status', data),
   });
-  speechSynthesisAction.value.addListener({
-    next: data => console.warn('value', data),
+  speechSynthesisAction.result.addListener({
+    next: data => console.warn('result', data),
   });
 
   return {

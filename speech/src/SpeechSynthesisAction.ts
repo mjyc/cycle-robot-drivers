@@ -76,6 +76,9 @@ function SpeechSynthesisAction(sources) {
           status: Status.PENDING,
           result: null,
         }
+      } else if (action.type === 'CANCEL') {
+        console.debug('Ignore cancel in done states');
+        return state;
       }
     } else if (state.status === Status.PENDING) {
       if (action.type === 'GOAL') {
@@ -145,16 +148,19 @@ function SpeechSynthesisAction(sources) {
     .filter(state => (state.status === Status.PENDING
       || state.status === ExtraStatus.PREEMPTING))
     .map(state => state.goal);
+
   const stateStatusChanged$ = state$
     .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .compose(pairwise)
     .filter(([prevState, curState]) => (curState.status !== prevState.status))
     .map(([prevState, curState]) => curState);
+
   const status$ = stateStatusChanged$
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
     } as GoalStatus))
+
   const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED
         || state.status === Status.PREEMPTED
