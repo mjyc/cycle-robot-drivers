@@ -1,0 +1,13 @@
+{
+  "name": "@cycle-robot-drivers/sound",
+  "version": "0.0.0",
+  "author": "Michael Jae-Yoon Chung",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@cycle/isolate": "3.4.0",
+    "@cycle/run": "4.4.0",
+    "@cycle-robot-drivers/action": "file:../action",
+    "xstream": "11.7.0"
+  }
+}
