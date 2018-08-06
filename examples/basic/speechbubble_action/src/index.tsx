@@ -32,11 +32,11 @@ function main(sources) {
     DOM: sources.DOM,
   });
 
-  speechbubbleAction.result.addListener({
-    next: data => console.warn('result', data),
-  });
   speechbubbleAction.status.addListener({
     next: data => console.warn('status', data),
+  });
+  speechbubbleAction.result.addListener({
+    next: data => console.warn('result', data),
   });
 
   const vdom$ = speechbubbleAction.DOM.map((speechbubble) => {
