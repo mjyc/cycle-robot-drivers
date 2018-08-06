@@ -85,6 +85,7 @@ function SpeechSynthesisAction(sources) {
       if (action.type === 'GOAL') {
         return {
           ...state,
+          goal: null,
           status: ExtraStatus.PREEMPTING,
           newGoal: (action.value as Goal)
         }
