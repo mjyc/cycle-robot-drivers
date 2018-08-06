@@ -12,8 +12,10 @@
     "xstream": "11.7.0"
   },
   "devDependencies": {
+    "@types/node": "^10.5.6",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.2",
+    "file-loader": "^1.1.11",
     "ts-loader": "^3.5.0",
     "typescript": "^2.9.2",
     "webpack": "^3.10.0",
