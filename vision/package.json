@@ -1,0 +1,19 @@
+{
+  "name": "@cycle-robot-drivers/vision",
+  "version": "0.0.0",
+  "author": "Michael Jae-Yoon Chung",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@cycle/isolate": "3.4.0",
+    "@cycle/run": "4.4.0",
+    "@cycle-robot-drivers/action": "file:../action",
+    "@tensorflow-models/posenet": "0.1.2",
+    "@tensorflow/tfjs": "0.11.4",
+    "dat.gui": "^0.7.2",
+    "snabbdom": "^0.7.1",
+    "snabbdom-pragma": "^2.7.0",
+    "stats.js": "^0.17.0",
+    "xstream": "11.7.0"
+  }
+}
