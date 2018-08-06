@@ -4,7 +4,7 @@ export {
   IsolatedSpeechSynthesisAction,
 } from './SpeechSynthesisAction'
 export {makeSpeechRecognitionDriver} from './speech_recognition'
-// export {
-//   SpeechRecognitionAction,
-//   IsolatedSpeechRecognitionAction,
-// } from './SpeechRecognitionAction'
+export {
+  SpeechRecognitionAction,
+  IsolatedSpeechRecognitionAction,
+} from './SpeechRecognitionAction'
