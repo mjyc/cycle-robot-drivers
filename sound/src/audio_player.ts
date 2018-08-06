@@ -8,8 +8,8 @@ class AudioSource {
     private _audio: HTMLAudioElement,
   ) {}
 
-  events(eventType: string): Stream<Event> {
-    return adapt(fromEvent(this._audio, eventType));
+  events(eventName: string): Stream<Event> {
+    return adapt(fromEvent(this._audio, eventName));
   }
 }
 

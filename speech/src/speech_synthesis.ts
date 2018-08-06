@@ -8,8 +8,8 @@ class UtteranceSource {
     private _utterance: SpeechSynthesisUtterance,
   ) {}
 
-  events(eventType: string): Stream<Event> {
-    return adapt(fromEvent(this._utterance, eventType));
+  events(eventName: string): Stream<Event> {
+    return adapt(fromEvent(this._utterance, eventName));
   }
 }
 

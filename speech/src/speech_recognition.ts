@@ -8,8 +8,8 @@ class RecognitionSource {
     private _recognition: SpeechRecognition,
   ) {}
 
-  events(eventType: string): Stream<Event> {
-    return adapt(fromEvent(this._recognition, eventType));
+  events(eventName: string): Stream<Event> {
+    return adapt(fromEvent(this._recognition, eventName));
   }
 }
 
