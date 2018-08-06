@@ -9,7 +9,7 @@ import {
 
 
 function main(sources) {
-  const vdom$ = xs.of((<div>Hello world!</div>));
+  const vdom$ = xs.of((<div>Cycle.js SpeechSynthesisAction component demo</div>));
   const synth$ = xs.create();
   setTimeout(() => {synth$.shamefullySendNext({text: 'Hello'});}, 1);
   setTimeout(() => {synth$.shamefullySendNext({text: 'World'});}, 200);
