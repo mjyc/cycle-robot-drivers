@@ -14,7 +14,7 @@ export enum Status {
   PREEMPTED = 2,
   SUCCEEDED = 3,
   ABORTED = 4,
-  PREEMPTING = 6,  // TODO: remove after refactoring action components
+  PREEMPTING = 6,
 }
 
 export type GoalStatus = {
