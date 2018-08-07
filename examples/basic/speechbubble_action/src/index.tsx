@@ -4,6 +4,7 @@ import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   IsolatedSpeechbubbleAction as SpeechbubbleAction,
+  TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/face'
 
 
@@ -27,7 +28,7 @@ function main(sources) {
     setTimeout(() => {sbub$.shamefullySendNext(null);}, 2000);
   };
 
-  const speechbubbleAction = SpeechbubbleAction({
+  const speechbubbleAction = TwoSpeechbubblesAction({
     goal: sbub$,
     DOM: sources.DOM,
   });
