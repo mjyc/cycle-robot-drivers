@@ -6,7 +6,7 @@
     "reactNamespace": "Snabbdom",
     "alwaysStrict": true,
     "allowSyntheticDefaultImports": true,
-    "lib": ["dom", "es5", "scripthost", "es2015.core"]
+    "lib": ["dom", "es5", "scripthost", "es2015.core", "es2015.promise"]
   },
   "formatCodeOptions": {
     "indentSize": 2,
