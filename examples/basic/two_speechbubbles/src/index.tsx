@@ -5,10 +5,6 @@ import {makeDOMDriver} from '@cycle/dom';
 import {
   TwoSpeechbubbles,
 } from '@cycle-robot-drivers/face'
-import {
-  makeAudioPlayerDriver,
-  IsolatedAudioPlayerAction as AudioPlayerAction,
-} from '@cycle-robot-drivers/sound'
 
 
 function main(sources) {
@@ -36,17 +32,12 @@ function main(sources) {
     DOM: sources.DOM,
   });
 
-
-  const audio$ = xs.create();
-  setTimeout(() => audio$.shamefullySendNext({
-    src: require("../public/snd/IWohoo1.ogg")
-  }), 1);
-
-  const audioPlayerAction = AudioPlayerAction({
-    goal: audio$,
-    AudioPlayer: sources.AudioPlayer,
+  speechbubbleAction.status.addListener({
+    next: data => console.warn('status', data),
   });
-
+  speechbubbleAction.result.addListener({
+    next: data => console.warn('result', data),
+  });
 
   const vdom$ = speechbubbleAction.DOM.map((speechbubble) => {
     return (
@@ -58,11 +49,9 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    AudioPlayer: audioPlayerAction.value,
   };
 }
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  AudioPlayer: makeAudioPlayerDriver(),
 });
