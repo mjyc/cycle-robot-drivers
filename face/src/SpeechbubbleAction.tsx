@@ -9,7 +9,7 @@ import {
 } from '@cycle-robot-drivers/action'
 
 
-function SpeechbubbleAction(sources) {
+export function SpeechbubbleAction(sources) {
   // Create action stream
   type Action = {
     type: string,
@@ -155,12 +155,6 @@ function SpeechbubbleAction(sources) {
   };
 }
 
-const IsolatedSpeechbubbleAction = function(sources) {
+export function IsolatedSpeechbubbleAction(sources) {
   return isolate(SpeechbubbleAction)(sources);
-};
-
-
-export {
-  SpeechbubbleAction,
-  IsolatedSpeechbubbleAction,
 };

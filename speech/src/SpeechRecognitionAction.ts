@@ -8,7 +8,7 @@ import {
 } from '@cycle-robot-drivers/action'
 
 
-function SpeechRecognitionAction(sources) {
+export function SpeechRecognitionAction(sources) {
   // Create action stream
   type Action = {
     type: string,
@@ -227,12 +227,6 @@ function SpeechRecognitionAction(sources) {
   };
 }
 
-const IsolatedSpeechRecognitionAction = function(sources) {
+export function IsolatedSpeechRecognitionAction(sources) {
   return isolate(SpeechRecognitionAction)(sources);
-};
-
-
-export {
-  SpeechRecognitionAction,
-  IsolatedSpeechRecognitionAction,
 };

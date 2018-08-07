@@ -8,7 +8,7 @@ import {
 } from '@cycle-robot-drivers/action'
 
 
-function SpeechSynthesisAction(sources) {
+export function SpeechSynthesisAction(sources) {
   // Create action stream
   type Action = {
     type: string,
@@ -181,12 +181,6 @@ function SpeechSynthesisAction(sources) {
   };
 }
 
-const IsolatedSpeechSynthesisAction = function(sources) {
+export function IsolatedSpeechSynthesisAction(sources) {
   return isolate(SpeechSynthesisAction)(sources);
-};
-
-
-export {
-  SpeechSynthesisAction,
-  IsolatedSpeechSynthesisAction,
 };
