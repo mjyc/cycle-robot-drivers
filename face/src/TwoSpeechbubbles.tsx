@@ -3,7 +3,7 @@ import xs from 'xstream'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
-import {initGoal, generateGoalID} from '@cycle-robot-drivers/action'
+import {Status, initGoal, generateGoalID} from '@cycle-robot-drivers/action'
 import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction'
 
 export function TwoSpeechbubbles(sources) {
@@ -18,7 +18,7 @@ export function TwoSpeechbubbles(sources) {
             type: 'message',
             value: goal.value,
           },
-        }, null];
+        }, null, goal.type];
       case 'ASK_QUESTION':
         return [{
           goal_id,
@@ -32,20 +32,47 @@ export function TwoSpeechbubbles(sources) {
             type: 'choices',
             value: goal.value[1],
           },
-        }];
+        }, goal.type];
     }
   });
+  const firstGoal$ = goals$.map(goal => goal[0]);
+  const secondGoal$ = goals$.map(goal => goal[1]);
+  const type$ = goals$.map(goal => goal[2]);
 
   const firstSources = {
     ...sources,
-    goal: goals$.map(goal => goal[0]),
+    goal: firstGoal$,
   };
   const secondSource = {
     ...sources,
-    goal: goals$.map(goal => goal[1]),
+    goal: secondGoal$,
   };
   const firstSink = IsolatedSpeechbubbleAction(firstSources);
   const secondSink = IsolatedSpeechbubbleAction(secondSource);
+
+  const result$ = xs.merge(
+    xs.combine(type$, firstGoal$, firstSink.status)
+      .map(([type, goal, status]) => {
+        if (type === 'DISPLAY_MESSAGE'
+          && (goal as any).goal_id.id === (status as any).goal_id.id
+          && (status as any).status === Status.ACTIVE) {
+          return {
+            status,
+            result: true,
+          }
+        }
+      }),
+    xs.combine(type$, secondGoal$, secondSink.result)
+      .map(([type, goal, result]) => {
+        if (type === "ASK_QUESTION"
+          && (goal as any).goal_id.id === (result as any).status.goal_id.id
+          && ((result as any).status.status === Status.SUCCEEDED
+              || (result as any).status.status === Status.PREEMPTED
+              || (result as any).status.status === Status.ABORTED)) {
+          return result;
+        }
+      }),
+  ).filter(result => !!result);
 
   return {
     DOM: adapt(xs.combine(firstSink.DOM, secondSink.DOM).map(([fdom, sdom]) => (
@@ -59,6 +86,6 @@ export function TwoSpeechbubbles(sources) {
       </div>
     ))),
     status: adapt(firstSink.status),
-    result: adapt(firstSink.result),
+    result: adapt(result$),
   };
 }
