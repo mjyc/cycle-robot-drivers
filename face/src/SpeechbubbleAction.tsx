@@ -61,11 +61,12 @@ export function SpeechbubbleAction(sources) {
         || state.status === Status.PREEMPTED
         || state.status === Status.ABORTED) {
       if (action.type === 'GOAL') {
+        const goal = (action.value as Goal);
         return {
           ...state,
-          goal_id: (action.value as Goal).goal_id,
-          goal: (action.value as Goal).goal,
-          status: Status.ACTIVE,
+          goal_id: goal.goal_id,
+          goal: goal.goal,
+          status: goal.goal.type === 'MESSAGE' ? Status.SUCCEEDED : Status.ACTIVE,
           result: null,
         }
       } else if (action.type === 'CANCEL') {
@@ -125,7 +126,9 @@ export function SpeechbubbleAction(sources) {
 
   const stateStatusChanged$ = state$
     .compose(pairwise)
-    .filter(([prevState, curState]) => (curState.status !== prevState.status))
+    .filter(([prevState, curState]) => (curState.status !== prevState.status
+      || curState.goal_id.id !== prevState.goal_id.id
+    ))
     .map(([prevState, curState]) => curState);
 
   const status$ = stateStatusChanged$
