@@ -137,6 +137,6 @@ export function AudioPlayerAction(sources) {
   };
 }
 
-function IsolatedAudioPlayerAction(sources) {
+export function IsolatedAudioPlayerAction(sources) {
   return isolate(AudioPlayerAction)(sources);
 };
