@@ -62,11 +62,6 @@ export function SpeechbubbleAction(sources) {
         || state.status === Status.ABORTED) {
       if (action.type === 'GOAL') {
         const goal = (action.value as Goal);
-        if (goal.goal.type === 'MESSAGE') {
-          setTimeout(() => {
-            goal$.shamefullySendNext({type: 'DONE', value: true});
-          }, 0);
-        }
         return {
           ...state,
           goal_id: goal.goal_id,
@@ -100,12 +95,6 @@ export function SpeechbubbleAction(sources) {
           goal: null,
           status: Status.PREEMPTED,
         }
-      } else if (action.type === 'DONE') {
-        return {
-          ...state,
-          goal: (action.value as boolean),
-          status: Status.SUCCEEDED,
-        }
       }
     }
     console.warn(
@@ -117,9 +106,7 @@ export function SpeechbubbleAction(sources) {
   // Prepare outgoing streams
   const vdom$ = state$.map((state: State) => {
     const innerDOM = (() => {
-      if (state.status === Status.ACTIVE
-          || (state.status === Status.SUCCEEDED
-              && state.goal && state.goal.type === 'MESSAGE')) {
+      if (state.status === Status.ACTIVE) {
         switch (state.goal.type) {
           case 'MESSAGE':
             return (<span>{state.goal.value}</span>);

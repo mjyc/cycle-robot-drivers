@@ -38,19 +38,15 @@ export function TwoSpeechbubbles(sources) {
         }, goal.type];
     }
   });
-  const firstGoal$ = goals$.map(goal => goal[0]);
-  // const secondGoal$ = goals$.map(goal => goal[1]);
-  const secondGoal$ = xs.of(null);
-  const type$ = goals$.map(goal => goal[2]);
 
   // Create sub-components
   const firstSources = {
     ...sources,
-    goal: firstGoal$,
+    goal: goals$.map(goal => goal[0]),
   };
   const secondSource = {
     ...sources,
-    goal: secondGoal$,
+    goal: goals$.map(goal => goal[1]),
   };
   const firstSink = IsolatedSpeechbubbleAction(firstSources);
   const secondSink = IsolatedSpeechbubbleAction(secondSource);
@@ -60,27 +56,30 @@ export function TwoSpeechbubbles(sources) {
   //   next: data => {},
   // });
 
-  type$.addListener({
-    next: data => {console.error('type$', data);},
-  });
-  firstGoal$.addListener({
-    next: data => {console.error('firstGoal$', data);},
-  });
-  firstSink.result.addListener({
-    next: data => {console.error('firstSink.result', data);},
+  // type$.addListener({
+  //   next: data => {console.error('type$', data);},
+  // });
+  // firstGoal$.addListener({
+  //   next: data => {console.error('firstGoal$', data);},
+  // });
+  // firstSink.result.addListener({
+  //   next: data => {console.error('firstSink.result', data);},
+  // });
+  goals$.addListener({
+    next: data => {console.error('goals$', data);},
   });
 
   // Prepare outgoing streams
   const result$ = xs.merge(
     // xs.combine(type$, firstGoal$, firstSink.status)
-    xs.combine(type$, firstGoal$, firstSink.result)
-      .map(([type, goal, result]) => {
-        if (type === 'DISPLAY_MESSAGE'
-            && (goal as any).goal_id.id === (result as any).status.goal_id.id
+    xs.combine(goals$, firstSink.result)
+      .map(([goals, result]) => {
+        if (goals[2] === 'DISPLAY_MESSAGE'
+            && (goals[0] as any).goal_id.id === (result as any).status.goal_id.id
             && ((result as any).status.status === Status.SUCCEEDED
                 || (result as any).status.status === Status.PREEMPTED
                 || (result as any).status.status === Status.ABORTED)) {
-          console.log('type, goal, result:', type, goal, result);
+          console.log('type, goal, result:', goals[2], goals[0], result);
           return result;
         }
       }),
@@ -95,10 +94,10 @@ export function TwoSpeechbubbles(sources) {
       //     }
       //   }
       // }),
-    xs.combine(type$, secondGoal$, secondSink.result)
-      .map(([type, goal, result]) => {
-        if (type === 'ASK_QUESTION'
-            && (goal as any).goal_id.id === (result as any).status.goal_id.id
+    xs.combine(goals$, secondSink.result)
+      .map(([goals, result]) => {
+        if (goals[2] === 'ASK_QUESTION'
+            && (goals[1] as any).goal_id.id === (result as any).status.goal_id.id
             && ((result as any).status.status === Status.SUCCEEDED
                 || (result as any).status.status === Status.PREEMPTED
                 || (result as any).status.status === Status.ABORTED)) {
