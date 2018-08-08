@@ -106,7 +106,9 @@ export function SpeechbubbleAction(sources) {
   // Prepare outgoing streams
   const vdom$ = state$.map((state: State) => {
     const innerDOM = (() => {
-      if (state.status === Status.ACTIVE) {
+      if (state.status === Status.ACTIVE
+          || (state.status === Status.SUCCEEDED
+              && state.goal && state.goal.type === 'MESSAGE')) {
         switch (state.goal.type) {
           case 'MESSAGE':
             return (<span>{state.goal.value}</span>);
