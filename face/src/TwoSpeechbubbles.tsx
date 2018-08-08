@@ -15,7 +15,7 @@ export function TwoSpeechbubbles(sources) {
     }
     const goal_id = generateGoalID();
     switch (goal.type) {
-      case 'DISPLAY_MESSAGE':
+      case 'SET_MESSAGE':
         return [{
           goal_id,
           goal: {
@@ -43,7 +43,9 @@ export function TwoSpeechbubbles(sources) {
   // Create sub-components
   const firstSources = {
     ...sources,
-    goal: goals$.map(goal => goal[0]),
+    goal: goals$.map(goal => {
+      return goal[0];
+    }),
   };
   const secondSource = {
     ...sources,
@@ -52,15 +54,11 @@ export function TwoSpeechbubbles(sources) {
   const firstSink = IsolatedSpeechbubbleAction(firstSources);
   const secondSink = IsolatedSpeechbubbleAction(secondSource);
 
-  // secondSink.result.addListener({
-  //   next: data => {console.error('secondSink.result', data);},
-  // });
-
   // Prepare outgoing streams
   const result$ = xs.merge(
     xs.combine(goals$, firstSink.status)
       .map(([goals, status]) => {
-        if (goals[2] === 'DISPLAY_MESSAGE'
+        if (goals[2] === 'SET_MESSAGE'
             && (goals[0] as any).goal_id.id === (status as any).goal_id.id
             && (status as any).status === Status.ACTIVE) {
           return {
@@ -70,18 +68,17 @@ export function TwoSpeechbubbles(sources) {
         }
       }),
     xs.combine(goals$.compose(pairwise), secondSink.result)
-      .map(([goals, result]) => {
-        console.log('goals, result', goals, result);
-        if (!goals[1][0]  // current action is cancel
-            && (goals[0][1] as any).goal_id.id === (result as any).status.goal_id.id
-            && (result as any).status.status === Status.PREEMPTED) {
-          return result;
-        }
-        if (goals[1][2] === 'ASK_QUESTION'
-            && (goals[1][1] as any).goal_id.id === (result as any).status.goal_id.id
-            && ((result as any).status.status === Status.SUCCEEDED
-                || (result as any).status.status === Status.PREEMPTED
-                || (result as any).status.status === Status.ABORTED)) {
+      .map(([pair, result]) => {
+        const [prevGoals, curGoals] = (pair as [any, any]);
+        const curGoalType = curGoals[2];
+        if ((!curGoalType  // cancel (null) case
+             && (prevGoals[1] as any).goal_id.id === (result as any).status.goal_id.id
+             && (result as any).status.status === Status.PREEMPTED)
+            || (curGoalType === 'ASK_QUESTION'
+                && (curGoals[1] as any).goal_id.id === (result as any).status.goal_id.id
+                && ((result as any).status.status === Status.SUCCEEDED
+                    || (result as any).status.status === Status.PREEMPTED
+                    || (result as any).status.status === Status.ABORTED))) {
           return result;
         }
       }),

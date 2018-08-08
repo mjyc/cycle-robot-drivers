@@ -11,11 +11,11 @@ function main(sources) {
   const sbub$ = xs.create();
   window.onload = () => {
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'DISPLAY_MESSAGE', value: 'Hello'});
+      sbub$.shamefullySendNext({type: 'SET_MESSAGE', value: 'Hello'});
     }, 1);
     // test overwriting the current goal
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'DISPLAY_MESSAGE', value: 'World'});
+      sbub$.shamefullySendNext({type: 'SET_MESSAGE', value: 'World'});
     }, 500);
     // test canceling an active goal
     setTimeout(() => {sbub$.shamefullySendNext(null);}, 1000);
@@ -28,7 +28,6 @@ function main(sources) {
     }, 1500);
     // you must click a button here
     setTimeout(() => {sbub$.shamefullySendNext(null);}, 4000);
-    setTimeout(() => {sbub$.shamefullySendNext(null);}, 4500);
   };
 
   const speechbubbles = TwoSpeechbubbles({
