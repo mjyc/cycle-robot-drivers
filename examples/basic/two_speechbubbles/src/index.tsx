@@ -11,20 +11,23 @@ function main(sources) {
   const sbub$ = xs.create();
   window.onload = () => {
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'DISPLAY_MESSAGE', value: 'Hello'});
+      sbub$.shamefullySendNext({type: 'display_message', value: 'Hello'});
     }, 1);
     // test overwriting the current goal
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'ASK_QUESTION', value: ['Jello', ['Hello', 'World!']]});
-    }, 1000);
-    // // test canceling an active goal
-    // setTimeout(() => {sbub$.shamefullySendNext(null);}, 200);
-    // // test calling cancel on done; cancel must do nothing
-    // setTimeout(() => {
-    //   sbub$.shamefullySendNext({type: 'choices', value: ['Hello', 'World!']});
-    // }, 500);
-    // // you must click a button here
-    // setTimeout(() => {sbub$.shamefullySendNext(null);}, 2000);
+      sbub$.shamefullySendNext({type: 'display_message', value: 'World'});
+    }, 500);
+    // test canceling an active goal
+    setTimeout(() => {sbub$.shamefullySendNext(null);}, 1000);
+    // test calling cancel on done; cancel must do nothing
+    setTimeout(() => {
+      sbub$.shamefullySendNext({
+        type: 'ask_question',
+        value: ['Hey', ['Hey']],
+      });
+    }, 1500);
+    // you must click a button here
+    setTimeout(() => {sbub$.shamefullySendNext(null);}, 7000);
   };
 
   const speechbubbles = TwoSpeechbubbles({

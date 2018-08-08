@@ -7,11 +7,14 @@ import {Status, initGoal, generateGoalID} from '@cycle-robot-drivers/action'
 import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction'
 
 export function TwoSpeechbubbles(sources) {
-
+  // Process incoming streams
   const goals$ = sources.goal.map(goal => {
+    if (!goal) {
+      return [null, null, null];
+    }
     const goal_id = generateGoalID();
     switch (goal.type) {
-      case 'DISPLAY_MESSAGE':
+      case 'display_message':
         return [{
           goal_id,
           goal: {
@@ -19,7 +22,7 @@ export function TwoSpeechbubbles(sources) {
             value: goal.value,
           },
         }, null, goal.type];
-      case 'ASK_QUESTION':
+      case 'ask_question':
         return [{
           goal_id,
           goal: {
@@ -39,6 +42,7 @@ export function TwoSpeechbubbles(sources) {
   const secondGoal$ = goals$.map(goal => goal[1]);
   const type$ = goals$.map(goal => goal[2]);
 
+  // Create sub-components
   const firstSources = {
     ...sources,
     goal: firstGoal$,
@@ -50,6 +54,7 @@ export function TwoSpeechbubbles(sources) {
   const firstSink = IsolatedSpeechbubbleAction(firstSources);
   const secondSink = IsolatedSpeechbubbleAction(secondSource);
 
+  // Prepare outgoing streams
   const result$ = xs.merge(
     xs.combine(type$, firstGoal$, firstSink.status)
       .map(([type, goal, status]) => {
