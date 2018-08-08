@@ -40,7 +40,6 @@ function main(sources) {
   });
 
   const vdom$ = speechbubbles.DOM.map((sdom) => {
-    console.log('sdom', sdom);
     return (
       <div>
         {sdom}
