@@ -15,19 +15,21 @@ function main(sources) {
     }, 1);
     // test overwriting the current goal
     setTimeout(() => {
+      console.log('==========before');
       sbub$.shamefullySendNext({type: 'DISPLAY_MESSAGE', value: 'World'});
+      console.log('==========after');
     }, 500);
-    // test canceling an active goal
-    setTimeout(() => {sbub$.shamefullySendNext(null);}, 1000);
-    // test calling cancel on done; cancel must do nothing
-    setTimeout(() => {
-      sbub$.shamefullySendNext({
-        type: 'ASK_QUESTION',
-        value: ['Hey', ['Hey']],
-      });
-    }, 1500);
-    // you must click a button here
-    setTimeout(() => {sbub$.shamefullySendNext(null);}, 7000);
+    // // test canceling an active goal
+    // setTimeout(() => {sbub$.shamefullySendNext(null);}, 1000);
+    // // test calling cancel on done; cancel must do nothing
+    // setTimeout(() => {
+    //   sbub$.shamefullySendNext({
+    //     type: 'ASK_QUESTION',
+    //     value: ['Hey', ['Hey']],
+    //   });
+    // }, 1500);
+    // // you must click a button here
+    // setTimeout(() => {sbub$.shamefullySendNext(null);}, 7000);
   };
 
   const speechbubbles = TwoSpeechbubbles({

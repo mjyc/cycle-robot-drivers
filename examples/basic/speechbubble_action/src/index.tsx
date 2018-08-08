@@ -22,7 +22,7 @@ function main(sources) {
     // test calling cancel on done; cancel must do nothing
     setTimeout(() => {
       sbub$.shamefullySendNext({type: 'CHOICE', value: ['Hello', 'World!']});
-    }, 500);
+    }, 1000);
     // you must click a button here
     setTimeout(() => {sbub$.shamefullySendNext(null);}, 2000);
   };

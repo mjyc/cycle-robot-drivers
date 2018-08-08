@@ -13,7 +13,7 @@ export function SpeechbubbleAction(sources) {
   // Create action stream
   type Action = {
     type: string,
-    value: Goal | string,
+    value: Goal | string | boolean,
   };
 
   const goal$ = xs.fromObservable(sources.goal).map(goal => {
@@ -62,11 +62,16 @@ export function SpeechbubbleAction(sources) {
         || state.status === Status.ABORTED) {
       if (action.type === 'GOAL') {
         const goal = (action.value as Goal);
+        if (goal.goal.type === 'MESSAGE') {
+          setTimeout(() => {
+            goal$.shamefullySendNext({type: 'DONE', value: true});
+          }, 0);
+        }
         return {
           ...state,
           goal_id: goal.goal_id,
           goal: goal.goal,
-          status: goal.goal.type === 'MESSAGE' ? Status.SUCCEEDED : Status.ACTIVE,
+          status: Status.ACTIVE,
           result: null,
         }
       } else if (action.type === 'CANCEL') {
@@ -94,6 +99,12 @@ export function SpeechbubbleAction(sources) {
           ...state,
           goal: null,
           status: Status.PREEMPTED,
+        }
+      } else if (action.type === 'DONE') {
+        return {
+          ...state,
+          goal: (action.value as boolean),
+          status: Status.SUCCEEDED,
         }
       }
     }
@@ -128,9 +139,7 @@ export function SpeechbubbleAction(sources) {
 
   const stateStatusChanged$ = state$
     .compose(pairwise)
-    .filter(([prevState, curState]) => (curState.status !== prevState.status
-      || curState.goal_id.id !== prevState.goal_id.id
-    ))
+    .filter(([prevState, curState]) => (curState.status !== prevState.status))
     .map(([prevState, curState]) => curState);
 
   const status$ = stateStatusChanged$

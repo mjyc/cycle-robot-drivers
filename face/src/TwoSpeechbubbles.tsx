@@ -39,7 +39,8 @@ export function TwoSpeechbubbles(sources) {
     }
   });
   const firstGoal$ = goals$.map(goal => goal[0]);
-  const secondGoal$ = goals$.map(goal => goal[1]);
+  // const secondGoal$ = goals$.map(goal => goal[1]);
+  const secondGoal$ = xs.of(null);
   const type$ = goals$.map(goal => goal[2]);
 
   // Create sub-components
@@ -54,25 +55,46 @@ export function TwoSpeechbubbles(sources) {
   const firstSink = IsolatedSpeechbubbleAction(firstSources);
   const secondSink = IsolatedSpeechbubbleAction(secondSource);
 
-  // IMPORTANT! Without this, error occurs
+  // // IMPORTANT! Without this, error occurs
+  // type$.addListener({
+  //   next: data => {},
+  // });
+
   type$.addListener({
-    next: data => {},
+    next: data => {console.error('type$', data);},
+  });
+  firstGoal$.addListener({
+    next: data => {console.error('firstGoal$', data);},
+  });
+  firstSink.result.addListener({
+    next: data => {console.error('firstSink.result', data);},
   });
 
   // Prepare outgoing streams
   const result$ = xs.merge(
-    xs.combine(type$, firstGoal$, firstSink.status)
-      .map(([type, goal, status]) => {
-        // console.log('type, goal, status', type, goal, status);
+    // xs.combine(type$, firstGoal$, firstSink.status)
+    xs.combine(type$, firstGoal$, firstSink.result)
+      .map(([type, goal, result]) => {
         if (type === 'DISPLAY_MESSAGE'
-            && (goal as any).goal_id.id === (status as any).goal_id.id
-            && (status as any).status === Status.ACTIVE) {
-          return {
-            status,
-            result: true,
-          }
+            && (goal as any).goal_id.id === (result as any).status.goal_id.id
+            && ((result as any).status.status === Status.SUCCEEDED
+                || (result as any).status.status === Status.PREEMPTED
+                || (result as any).status.status === Status.ABORTED)) {
+          console.log('type, goal, result:', type, goal, result);
+          return result;
         }
       }),
+      // .map(([type, goal, status]) => {
+      //   // console.log('type, goal, status', type, goal, status);
+      //   if (type === 'DISPLAY_MESSAGE'
+      //       && (goal as any).goal_id.id === (status as any).goal_id.id
+      //       && (status as any).status === Status.ACTIVE) {
+      //     return {
+      //       status,
+      //       result: true,
+      //     }
+      //   }
+      // }),
     xs.combine(type$, secondGoal$, secondSink.result)
       .map(([type, goal, result]) => {
         if (type === 'ASK_QUESTION'
