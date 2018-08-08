@@ -15,8 +15,8 @@ function main(sources) {
     }, 1);
     // test overwriting the current goal
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'ASK_QUESTION', value: ['Hello', ['Hello', 'World!']]});
-    }, 100);
+      sbub$.shamefullySendNext({type: 'ASK_QUESTION', value: ['Jello', ['Hello', 'World!']]});
+    }, 1000);
     // // test canceling an active goal
     // setTimeout(() => {sbub$.shamefullySendNext(null);}, 200);
     // // test calling cancel on done; cancel must do nothing
@@ -40,6 +40,7 @@ function main(sources) {
   });
 
   const vdom$ = speechbubbles.DOM.map((sdom) => {
+    console.log('sdom', sdom);
     return (
       <div>
         {sdom}
