@@ -15,7 +15,7 @@ function main(sources) {
   // test overwriting the current goal
   setTimeout(() => synth$.shamefullySendNext({text: 'World'}), 200);
   // test canceling an active goal
-  setTimeout(() => synth$.shamefullySendNext(null), 1000);
+  setTimeout(() => synth$.shamefullySendNext(null), 500);
   setTimeout(() => synth$.shamefullySendNext({text: 'Jello'}), 1500);
   // test calling cancel on done; cancel must do nothing
   setTimeout(() => synth$.shamefullySendNext(null), 2500);
