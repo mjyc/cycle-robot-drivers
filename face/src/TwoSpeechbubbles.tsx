@@ -1,5 +1,6 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream'
+import pairwise from 'xstream/extra/pairwise'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
@@ -51,53 +52,33 @@ export function TwoSpeechbubbles(sources) {
   const firstSink = IsolatedSpeechbubbleAction(firstSources);
   const secondSink = IsolatedSpeechbubbleAction(secondSource);
 
-  // // IMPORTANT! Without this, error occurs
-  // type$.addListener({
-  //   next: data => {},
+  // secondSink.result.addListener({
+  //   next: data => {console.error('secondSink.result', data);},
   // });
-
-  // type$.addListener({
-  //   next: data => {console.error('type$', data);},
-  // });
-  // firstGoal$.addListener({
-  //   next: data => {console.error('firstGoal$', data);},
-  // });
-  // firstSink.result.addListener({
-  //   next: data => {console.error('firstSink.result', data);},
-  // });
-  goals$.addListener({
-    next: data => {console.error('goals$', data);},
-  });
 
   // Prepare outgoing streams
   const result$ = xs.merge(
-    // xs.combine(type$, firstGoal$, firstSink.status)
-    xs.combine(goals$, firstSink.result)
-      .map(([goals, result]) => {
+    xs.combine(goals$, firstSink.status)
+      .map(([goals, status]) => {
         if (goals[2] === 'DISPLAY_MESSAGE'
-            && (goals[0] as any).goal_id.id === (result as any).status.goal_id.id
-            && ((result as any).status.status === Status.SUCCEEDED
-                || (result as any).status.status === Status.PREEMPTED
-                || (result as any).status.status === Status.ABORTED)) {
-          console.log('type, goal, result:', goals[2], goals[0], result);
-          return result;
+            && (goals[0] as any).goal_id.id === (status as any).goal_id.id
+            && (status as any).status === Status.ACTIVE) {
+          return {
+            status,
+            result: true,
+          }
         }
       }),
-      // .map(([type, goal, status]) => {
-      //   // console.log('type, goal, status', type, goal, status);
-      //   if (type === 'DISPLAY_MESSAGE'
-      //       && (goal as any).goal_id.id === (status as any).goal_id.id
-      //       && (status as any).status === Status.ACTIVE) {
-      //     return {
-      //       status,
-      //       result: true,
-      //     }
-      //   }
-      // }),
-    xs.combine(goals$, secondSink.result)
+    xs.combine(goals$.compose(pairwise), secondSink.result)
       .map(([goals, result]) => {
-        if (goals[2] === 'ASK_QUESTION'
-            && (goals[1] as any).goal_id.id === (result as any).status.goal_id.id
+        console.log('goals, result', goals, result);
+        if (!goals[1][0]  // current action is cancel
+            && (goals[0][1] as any).goal_id.id === (result as any).status.goal_id.id
+            && (result as any).status.status === Status.PREEMPTED) {
+          return result;
+        }
+        if (goals[1][2] === 'ASK_QUESTION'
+            && (goals[1][1] as any).goal_id.id === (result as any).status.goal_id.id
             && ((result as any).status.status === Status.SUCCEEDED
                 || (result as any).status.status === Status.PREEMPTED
                 || (result as any).status.status === Status.ABORTED)) {
