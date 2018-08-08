@@ -22,7 +22,7 @@ function main(sources) {
     // test calling cancel on done; cancel must do nothing
     setTimeout(() => {
       sbub$.shamefullySendNext({
-        type: 'ask_question',
+        type: 'ASK_QUESTION',
         value: ['Hey', ['Hey']],
       });
     }, 1500);
@@ -35,9 +35,6 @@ function main(sources) {
     DOM: sources.DOM,
   });
 
-  speechbubbles.status.addListener({
-    next: data => console.warn('status', data),
-  });
   speechbubbles.result.addListener({
     next: data => console.warn('result', data),
   });

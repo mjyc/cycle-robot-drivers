@@ -22,7 +22,7 @@ export function TwoSpeechbubbles(sources) {
             value: goal.value,
           },
         }, null, goal.type];
-      case 'ask_question':
+      case 'ASK_QUESTION':
         return [{
           goal_id,
           goal: {
@@ -54,13 +54,19 @@ export function TwoSpeechbubbles(sources) {
   const firstSink = IsolatedSpeechbubbleAction(firstSources);
   const secondSink = IsolatedSpeechbubbleAction(secondSource);
 
+  // IMPORTANT! Without this, error occurs
+  type$.addListener({
+    next: data => {},
+  });
+
   // Prepare outgoing streams
   const result$ = xs.merge(
     xs.combine(type$, firstGoal$, firstSink.status)
       .map(([type, goal, status]) => {
+        // console.log('type, goal, status', type, goal, status);
         if (type === 'DISPLAY_MESSAGE'
-          && (goal as any).goal_id.id === (status as any).goal_id.id
-          && (status as any).status === Status.ACTIVE) {
+            && (goal as any).goal_id.id === (status as any).goal_id.id
+            && (status as any).status === Status.ACTIVE) {
           return {
             status,
             result: true,
@@ -69,11 +75,11 @@ export function TwoSpeechbubbles(sources) {
       }),
     xs.combine(type$, secondGoal$, secondSink.result)
       .map(([type, goal, result]) => {
-        if (type === "ASK_QUESTION"
-          && (goal as any).goal_id.id === (result as any).status.goal_id.id
-          && ((result as any).status.status === Status.SUCCEEDED
-              || (result as any).status.status === Status.PREEMPTED
-              || (result as any).status.status === Status.ABORTED)) {
+        if (type === 'ASK_QUESTION'
+            && (goal as any).goal_id.id === (result as any).status.goal_id.id
+            && ((result as any).status.status === Status.SUCCEEDED
+                || (result as any).status.status === Status.PREEMPTED
+                || (result as any).status.status === Status.ABORTED)) {
           return result;
         }
       }),
@@ -90,7 +96,6 @@ export function TwoSpeechbubbles(sources) {
         </div>
       </div>
     ))),
-    status: adapt(firstSink.status),
     result: adapt(result$),
   };
 }
