@@ -11,11 +11,11 @@ function main(sources) {
   const sbub$ = xs.create();
   window.onload = () => {
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'display_message', value: 'Hello'});
+      sbub$.shamefullySendNext({type: 'DISPLAY_MESSAGE', value: 'Hello'});
     }, 1);
     // test overwriting the current goal
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'display_message', value: 'World'});
+      sbub$.shamefullySendNext({type: 'DISPLAY_MESSAGE', value: 'World'});
     }, 500);
     // test canceling an active goal
     setTimeout(() => {sbub$.shamefullySendNext(null);}, 1000);

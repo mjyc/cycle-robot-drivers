@@ -14,11 +14,11 @@ export function TwoSpeechbubbles(sources) {
     }
     const goal_id = generateGoalID();
     switch (goal.type) {
-      case 'display_message':
+      case 'DISPLAY_MESSAGE':
         return [{
           goal_id,
           goal: {
-            type: 'message',
+            type: 'MESSAGE',
             value: goal.value,
           },
         }, null, goal.type];
@@ -26,13 +26,13 @@ export function TwoSpeechbubbles(sources) {
         return [{
           goal_id,
           goal: {
-            type: 'message',
+            type: 'MESSAGE',
             value: goal.value[0],
           },
         }, {
           goal_id,
           goal: {
-            type: 'choices',
+            type: 'CHOICE',
             value: goal.value[1],
           },
         }, goal.type];

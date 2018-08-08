@@ -29,7 +29,7 @@ export function SpeechbubbleAction(sources) {
       }
     }
   });
-  let click$ = sources.DOM.select('.choices').events('click', {
+  let click$ = sources.DOM.select('.choice').events('click', {
     preventDefault: true
   });
   click$ = xs.fromObservable(click$).map((event: Event) => {
@@ -109,12 +109,12 @@ export function SpeechbubbleAction(sources) {
     const innerDOM = (() => {
       if (state.status === Status.ACTIVE) {
         switch (state.goal.type) {
-          case 'message':
+          case 'MESSAGE':
             return (<span>{state.goal.value}</span>);
-          case 'choices':
+          case 'CHOICE':
             return (
               <span>{state.goal.value.map((text) => (
-                <button className="choices">{text}</button>
+                <button className="choice">{text}</button>
               ))}</span>
             );
         }

@@ -15,17 +15,17 @@ function main(sources) {
   const sbub$ = xs.create();
   window.onload = () => {
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'message', value: 'Hello'});
+      sbub$.shamefullySendNext({type: 'MESSAGE', value: 'Hello'});
     }, 1);
     // test overwriting the current goal
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'message', value: 'World!'});
+      sbub$.shamefullySendNext({type: 'MESSAGE', value: 'World!'});
     }, 100);
     // test canceling an active goal
     setTimeout(() => {sbub$.shamefullySendNext(null);}, 200);
     // test calling cancel on done; cancel must do nothing
     setTimeout(() => {
-      sbub$.shamefullySendNext({type: 'choices', value: ['Hello', 'World!']});
+      sbub$.shamefullySendNext({type: 'CHOICE', value: ['Hello', 'World!']});
     }, 500);
     // you must click a button here
     setTimeout(() => {sbub$.shamefullySendNext(null);}, 2000);
