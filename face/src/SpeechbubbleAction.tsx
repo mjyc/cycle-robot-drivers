@@ -75,10 +75,8 @@ export function SpeechbubbleAction(sources) {
     } else if (state.status === Status.ACTIVE) {
       if (action.type === 'GOAL') {
         setTimeout(() => {
-          goal$.shamefullySendNext({
-            type: 'GOAL', value: (action.value as Goal)
-          });
-        }, 1);
+          goal$.shamefullySendNext(action);
+        }, 0);
         return {
           ...state,
           goal: null,

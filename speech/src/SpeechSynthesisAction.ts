@@ -126,7 +126,7 @@ export function SpeechSynthesisAction(sources) {
         if (state.newGoal) {
           setTimeout(() => {
             goal$.shamefullySendNext({type: 'GOAL', value: state.newGoal});
-          }, 1);
+          }, 0);
         }
         return {
           ...state,
