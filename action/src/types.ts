@@ -9,12 +9,12 @@ export type Goal = {
 };
 
 export enum Status {
-  PENDING = 0,
-  ACTIVE = 1,
-  PREEMPTED = 2,
-  SUCCEEDED = 3,
-  ABORTED = 4,
-  PREEMPTING = 6,
+  PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  PREEMPTED = 'PREEMPTED',
+  SUCCEEDED = 'SUCCEEDED',
+  ABORTED = 'ABORTED',
+  PREEMPTING = 'PREEMPTING',
 }
 
 export type GoalStatus = {
