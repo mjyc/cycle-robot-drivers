@@ -5,5 +5,8 @@
   "license": "MIT",
   "main": "src/cjs/index.js",
   "module": "lib/es6/index.js",
-  "types": "lib/cjs/index.d.ts"
+  "types": "lib/cjs/index.d.ts",
+  "scripts": {
+    "test": "../node_modules/.bin/jest --testEnvironment node"
+  }
 }
