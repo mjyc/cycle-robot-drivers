@@ -3,10 +3,22 @@
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
-  "main": "src/index.ts",
+  "main": "lib/index.js",
   "dependencies": {
     "@cycle/isolate": "3.4.0",
     "@cycle/run": "4.4.0",
     "xstream": "11.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^10.5.7",
+    "@types/webspeechapi": "0.0.29",
+    "browserify": "^16.2.2",
+    "del-cli": "^1.1.0",
+    "typescript": "^2.9.2"
+  },
+  "scripts": {
+    "prebrowserify": "del -f lib && mkdirp lib dist && tsc",
+    "browserify": "browserify lib/index.js -o dist/main.js",
+    "start": ""
   }
 }
