@@ -5,11 +5,11 @@ import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  GoalID, Goal, Status, Result, initGoal, generateGoalID,
+  GoalID, Goal, Status, GoalStatus, Result, initGoal, generateGoalID,
 } from '@cycle-robot-drivers/action'
 import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction'
 
-export function TwoSpeechbubbles(sources) {
+export function TwoSpeechbubblesAction(sources) {
   const firstGoal$ = xs.create();
   const secondGoal$ = xs.create();
 
@@ -28,21 +28,21 @@ export function TwoSpeechbubbles(sources) {
     value: any,
   }
 
+  const goal$ = sources.goal.map(goal => {
+    if (!goal) {
+      return {
+        type: 'CANCEL',
+        value: null,
+      };
+    } else {
+      return {
+        type: 'GOAL',
+        value: (goal as any).goal_id ? goal : initGoal(goal),
+      };
+    }
+  });
   const action$ = xs.merge(
-    sources.goal.map(goal => {
-      if (!goal) {
-        return {
-          type: 'CANCEL',
-          value: null,
-        };
-      } else {
-        return {
-          type: 'GOAL',
-          value: (goal as any).goal_id ? goal : initGoal(goal),
-        }
-      }
-    }),
-    first.result.map(result => ({type: 'FIRST_RESULT', value: result})),
+    goal$,
     second.result.map(result => ({type: 'SECOND_RESULT', value: result})),
   );
 
@@ -80,11 +80,22 @@ export function TwoSpeechbubbles(sources) {
         return state;
       }
     } else if (state.status === Status.ACTIVE) {
-      if (action.type === 'FIRST_RESULT') {
-        if (state.goal.type === 'SET_MESSAGE') {
+      if (action.type === 'GOAL') {
+        setTimeout(() => {
+          goal$.shamefullySendNext(action);
+        }, 0);
+        return {
+          ...state,
+          goal: null,
+          status: Status.PREEMPTED,
+        };
+      } else if (action.type === 'SECOND_RESULT') {
+        if (state.goal.type === 'ASK_QUESTION') {
           return {
             ...state,
-            status: (action.value as Result),
+            goal: null,
+            status: Status.SUCCEEDED,
+            result: (action.value as Result),
           };
         }
       } else if (action.type === 'CANCEL') {
@@ -92,7 +103,7 @@ export function TwoSpeechbubbles(sources) {
           ...state,
           goal: null,
           status: Status.PREEMPTED,
-        }
+        };
       }
     }
     console.warn(
@@ -101,6 +112,7 @@ export function TwoSpeechbubbles(sources) {
     return state;
   }, initialState);
 
+  // Prepare outgoing streams
   const stateStatusChanged$ = state$
     .compose(pairwise)
     .filter(([prevState, curState]) => (
@@ -132,6 +144,7 @@ export function TwoSpeechbubbles(sources) {
         };
     };
   }));
+
   secondGoal$.imitate(stateStatusChanged$.map(state => {
     if (!state.goal) {
       return null;
@@ -150,9 +163,6 @@ export function TwoSpeechbubbles(sources) {
     };
   }));
 
-  stateStatusChanged$.addListener({next: data => console.log(data.goal)});
-  // stateStatusChanged$.addListener({next: data => console.log(data)});
-
   return {
     DOM: adapt(xs.combine(first.DOM, second.DOM).map(([fdom, sdom]) => (
       <div>
@@ -164,6 +174,26 @@ export function TwoSpeechbubbles(sources) {
         </div>
       </div>
     ))),
-    result: adapt(xs.create()),
+    status: stateStatusChanged$
+      .map(state => ({
+        goal_id: state.goal_id,
+        status: state.status,
+      } as GoalStatus)),
+    result: adapt(stateStatusChanged$
+      .filter(state => (state.status === Status.SUCCEEDED
+        || state.status === Status.PREEMPTED
+        || state.status === Status.ABORTED))
+      .map(state => ({
+        status: {
+          goal_id: state.goal_id,
+          status: state.status,
+        },
+        result: state.result,
+      } as Result))
+    ),
   };
 }
+
+export function IsolatedTwoSpeechbubblesAction(sources) {
+  return isolate(TwoSpeechbubblesAction)(sources);
+};

@@ -3,4 +3,7 @@ export {
   SpeechbubbleAction,
   IsolatedSpeechbubbleAction,
 } from './SpeechbubbleAction'
-export {TwoSpeechbubbles} from './TwoSpeechbubbles'
+export {
+  TwoSpeechbubblesAction,
+  IsolatedTwoSpeechbubblesAction,
+} from './TwoSpeechbubbles'

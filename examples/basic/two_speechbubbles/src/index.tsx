@@ -3,7 +3,7 @@ import xs from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
-  TwoSpeechbubbles,
+  TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/face'
 
 
@@ -30,11 +30,14 @@ function main(sources) {
     setTimeout(() => {sbub$.shamefullySendNext(null);}, 4000);
   };
 
-  const speechbubbles = TwoSpeechbubbles({
+  const speechbubbles = TwoSpeechbubblesAction({
     goal: sbub$,
     DOM: sources.DOM,
   });
 
+  speechbubbles.status.addListener({
+    next: data => console.warn('status', data),
+  });
   speechbubbles.result.addListener({
     next: data => console.warn('result', data),
   });
