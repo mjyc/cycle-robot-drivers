@@ -3,9 +3,59 @@ import pairwise from 'xstream/extra/pairwise'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
-import {
-  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal,
-} from '@cycle-robot-drivers/action'
+// import {
+//   GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal,
+// } from '@cycle-robot-drivers/action'
+
+export type GoalID = {
+  stamp: Date,
+  id: string,
+};
+
+export type Goal = {
+  goal_id: GoalID,
+  goal: any,
+};
+
+export enum Status {
+  PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  PREEMPTED = 'PREEMPTED',
+  SUCCEEDED = 'SUCCEEDED',
+  ABORTED = 'ABORTED',
+  PREEMPTING = 'PREEMPTING',
+}
+
+export type GoalStatus = {
+  goal_id: GoalID,
+  status: Status,
+};
+
+export type Result = {
+  status: GoalStatus,
+  result: any,
+};
+
+
+export function generateGoalID(): GoalID {
+  const now = new Date();
+  return {
+    stamp: now,
+    id: `${Math.random().toString(36).substring(2)}-${now.getTime()}`,
+  };
+}
+
+export function initGoal(goal: any): Goal {
+  return {
+    goal_id: generateGoalID(),
+    goal,
+  }
+}
+
+export function isEqualGoalID(first: GoalID, second: GoalID) {
+  return (first.stamp === second.stamp && first.id === second.id);
+}
+
 
 
 export function SpeechSynthesisAction(sources) {

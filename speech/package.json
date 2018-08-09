@@ -7,7 +7,6 @@
   "dependencies": {
     "@cycle/isolate": "3.4.0",
     "@cycle/run": "4.4.0",
-    "@cycle-robot-drivers/action": "file:../action",
     "xstream": "11.7.0"
   }
 }
