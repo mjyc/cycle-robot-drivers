@@ -1,5 +1,9 @@
-import {sum} from '../src/utils'
+import {generateGoalID, isEqual} from '../src/utils'
 
-test('adds 1 + 2 to equal 3', () => {
-  expect(sum(1, 2)).toBe(3);
+describe('isEqual', () => {
+  test('returns true for two GoalIDs with the same property values', () => {
+    const goalId1 = generateGoalID();
+    const goalId2 = {...goalId1};
+    expect(isEqual(goalId1, goalId2)).toBe(true);
+  });
 });

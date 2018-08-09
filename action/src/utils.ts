@@ -19,7 +19,3 @@ export function initGoal(goal: any): Goal {
 export function isEqual(first: GoalID, second: GoalID) {
   return (first.stamp === second.stamp && first.id === second.id);
 }
-
-export function sum(a, b) {
-  return a + b;
-}
