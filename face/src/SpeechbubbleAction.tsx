@@ -26,7 +26,7 @@ export function SpeechbubbleAction(sources) {
       return {
         type: 'GOAL',
         value: (goal as any).goal_id ? goal : initGoal(goal),
-      }
+      };
     }
   });
   let click$ = sources.DOM.select('.choice').events('click', {
@@ -36,7 +36,7 @@ export function SpeechbubbleAction(sources) {
     return {
       type: 'CLICK',
       value: (event.target as HTMLButtonElement).textContent,
-    }
+    };
   });
   const action$ = xs.merge(goal$, click$);
 
@@ -68,7 +68,7 @@ export function SpeechbubbleAction(sources) {
           goal: goal.goal,
           status: Status.ACTIVE,
           result: null,
-        }
+        };
       } else if (action.type === 'CANCEL') {
         console.debug('Ignore cancel in done states');
         return state;
@@ -82,19 +82,19 @@ export function SpeechbubbleAction(sources) {
           ...state,
           goal: null,
           status: Status.PREEMPTED,
-        }
+        };
       } else if (action.type === 'CLICK') {
         return {
           ...state,
           status: Status.SUCCEEDED,
           result: (action.value as string),
-        }
+        };
       } else if (action.type === 'CANCEL') {
         return {
           ...state,
           goal: null,
           status: Status.PREEMPTED,
-        }
+        };
       }
     }
     console.warn(
