@@ -9,5 +9,5 @@ export {
 export {
   generateGoalID,
   initGoal,
-  isEqualGoalID,
+  isEqual,
 } from './utils';

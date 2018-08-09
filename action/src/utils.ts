@@ -16,6 +16,6 @@ export function initGoal(goal: any): Goal {
   }
 }
 
-export function isEqualGoalID(first: GoalID, second: GoalID) {
+export function isEqual(first: GoalID, second: GoalID) {
   return (first.stamp === second.stamp && first.id === second.id);
 }
