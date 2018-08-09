@@ -12,7 +12,6 @@
     "xstream": "11.7.0"
   },
   "devDependencies": {
-    "@types/webspeechapi": "0.0.29",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.2",
     "ts-loader": "^3.5.0",

@@ -1,24 +1,5 @@
 {
-  "compilerOptions": {
-    "removeComments": true,
-    "preserveConstEnums": true,
-    "sourceMap": true,
-    "declaration": true,
-    "jsx": "react",
-    "reactNamespace": "Snabbdom",
-    "alwaysStrict": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es5",
-    "outDir": "lib/",
-  },
-  "exclude": [
-    "src/SpeechRecognitionAction.ts",
-    "src/speech_recognition.ts"
-  ],
-  "formatCodeOptions": {
-    "indentSize": 2,
-    "tabSize": 2
-  },
+  "extends": "../tsconfig.common.json",
   "files": [
     "src/index.ts"
   ]

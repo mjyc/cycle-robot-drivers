@@ -5,7 +5,7 @@ TSC=$(BINDIR)/tsc
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action
+PACKAGES := action speech
 
 all:
 	@echo $(foo)
@@ -28,10 +28,14 @@ lib:
 	else \
 		rm -rf $(ARG)/lib/; \
 		mkdir -p $(ARG)/lib; \
-		$(TSC) --project $(ARG) --outDir $(ARG)/lib; \
+		$(TSC) --project $(ARG) --module commonjs --outDir $(ARG)/lib/cjs ;\
+		$(TSC) --project $(ARG) --module es6 --outDir $(ARG)/lib/es6 ;\
 		echo "✓ Compiled TypeScript to lib\n"; \
 	fi
 
 # catch and do nothing
 action:
+	@:
+
+speech:
 	@:
