@@ -5,7 +5,8 @@ import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  GoalID, Goal, Status, GoalStatus, Result, initGoal, generateGoalID,
+  GoalID, Goal, Status, GoalStatus, Result,
+  generateGoalID, initGoal, isEqualGoalID,
 } from '@cycle-robot-drivers/action'
 import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction'
 
@@ -117,7 +118,7 @@ export function TwoSpeechbubblesAction(sources) {
     .compose(pairwise)
     .filter(([prevState, curState]) => (
       curState.status !== prevState.status
-      || curState.goal_id.id !== prevState.goal_id.id
+      || !isEqualGoalID(curState.goal_id, prevState.goal_id)
      ))
     .map(([prevState, curState]) => curState);
 
