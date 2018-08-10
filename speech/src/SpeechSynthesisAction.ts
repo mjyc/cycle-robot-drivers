@@ -149,6 +149,8 @@ export function SpeechSynthesisAction(sources) {
       || state.status === ExtraStatus.PREEMPTING))
     .map(state => state.goal);
 
+  value$.addListener({next: data => console.log("=====value", data)});
+
   const stateStatusChanged$ = state$
     .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .compose(pairwise)
