@@ -2,10 +2,6 @@ module.exports = {
   transform: {
     "^.+\\.tsx?$": "ts-jest",
   },
-  "transformIgnorePatterns": [
-    "<rootDir>/node_modules/(?!@cycle)",
-    "<rootDir>/node_modules/(?!@cycle-robot-drivers)"
-  ],
   testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
   moduleFileExtensions: [
     "ts",
@@ -15,10 +11,14 @@ module.exports = {
     "json",
     "node"
   ],
+  moduleNameMapper: {
+    '^@cycle-robot-drivers\\/([^/]+)': '<rootDir>/../$1/src'
+  },
   testEnvironment: "node",
   globals: {
     "ts-jest": {
-      tsConfigFile: "<rootDir>/tsconfig.json"
+      tsConfigFile: "<rootDir>/tsconfig.json",
+      enableTsDiagnostics: true
     }
   }
 };
