@@ -4,11 +4,11 @@ import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  GoalID, Goal, GoalStatus, Status, Result, initGoal, generateGoalID,
+  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal,
 } from '@cycle-robot-drivers/action'
 
 
-function SpeechSynthesisAction(sources) {
+export function SpeechSynthesisAction(sources) {
   // Create action stream
   type Action = {
     type: string,
@@ -76,6 +76,9 @@ function SpeechSynthesisAction(sources) {
           status: Status.PENDING,
           result: null,
         }
+      } else if (action.type === 'CANCEL') {
+        console.debug('Ignore cancel in done states');
+        return state;
       }
     } else if (state.status === Status.PENDING) {
       if (action.type === 'GOAL') {
@@ -123,7 +126,7 @@ function SpeechSynthesisAction(sources) {
         if (state.newGoal) {
           setTimeout(() => {
             goal$.shamefullySendNext({type: 'GOAL', value: state.newGoal});
-          }, 1);
+          }, 0);
         }
         return {
           ...state,
@@ -145,16 +148,19 @@ function SpeechSynthesisAction(sources) {
     .filter(state => (state.status === Status.PENDING
       || state.status === ExtraStatus.PREEMPTING))
     .map(state => state.goal);
+
   const stateStatusChanged$ = state$
     .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .compose(pairwise)
     .filter(([prevState, curState]) => (curState.status !== prevState.status))
     .map(([prevState, curState]) => curState);
+
   const status$ = stateStatusChanged$
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
     } as GoalStatus))
+
   const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED
         || state.status === Status.PREEMPTED
@@ -175,12 +181,6 @@ function SpeechSynthesisAction(sources) {
   };
 }
 
-const IsolatedSpeechSynthesisAction = function(sources) {
+export function IsolatedSpeechSynthesisAction(sources) {
   return isolate(SpeechSynthesisAction)(sources);
-};
-
-
-export {
-  SpeechSynthesisAction,
-  IsolatedSpeechSynthesisAction,
 };

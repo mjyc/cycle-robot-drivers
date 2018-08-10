@@ -8,7 +8,7 @@ import {
 } from '@cycle-robot-drivers/action'
 
 
-function AudioPlayerAction(sources) {
+export function AudioPlayerAction(sources) {
   // Create action stream
   type Action = {
     type: string,
@@ -137,12 +137,6 @@ function AudioPlayerAction(sources) {
   };
 }
 
-const IsolatedAudioPlayerAction = function(sources) {
+export function IsolatedAudioPlayerAction(sources) {
   return isolate(AudioPlayerAction)(sources);
-};
-
-
-export {
-  AudioPlayerAction,
-  IsolatedAudioPlayerAction,
 };

@@ -7,6 +7,8 @@ export {
 } from './types';
 
 export {
-  initGoal,
   generateGoalID,
+  initGoal,
+  isEqual,
+  powerup,
 } from './utils';

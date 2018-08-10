@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "declaration": true,
+    "alwaysStrict": true,
+    "target": "es5",
+    "outDir": "lib/",
+  },
+  "formatCodeOptions": {
+    "indentSize": 2,
+    "tabSize": 2
+  },
+  "files": [
+    "src/index.ts"
+  ]
+}

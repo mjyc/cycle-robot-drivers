@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "jsx": "react",
+    "reactNamespace": "Snabbdom",
+    "alwaysStrict": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "formatCodeOptions": {
+    "indentSize": 2,
+    "tabSize": 2
+  }
+}

@@ -3,5 +3,24 @@
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
-  "main": "src/index.ts"
+  "main": "src/cjs/index.js",
+  "module": "lib/es6/index.js",
+  "types": "lib/cjs/index.d.ts",
+  "scripts": {
+    "test": "../node_modules/.bin/jest --testEnvironment node"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  }
 }
