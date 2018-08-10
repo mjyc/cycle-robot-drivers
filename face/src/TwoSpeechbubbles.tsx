@@ -46,15 +46,21 @@ function main(sources) {
   });
   const action$ = xs.merge(
     goal$,
+    first.result.map(result => ({type: 'FIRST_RESULT', value: result})),
     second.result.map(result => ({type: 'SECOND_RESULT', value: result})),
   );
 
   // Update the state
+  enum ExtraStatus {
+    PREEMPTING = 'PREEMPTING',
+  };
+  type ExtendedStatus = Status | ExtraStatus;
   type State = {
     goal_id: GoalID,
     goal: any,
-    status: Status,
+    status: ExtendedStatus,
     result: any,
+    newGoal: Goal,
   };
 
   const initialState: State = {
@@ -62,6 +68,7 @@ function main(sources) {
     goal_id: generateGoalID(),
     status: Status.SUCCEEDED,
     result: null,
+    newGoal: null,
   };
 
   const state$ = action$.fold((state: State, action: Action) => {
@@ -84,14 +91,15 @@ function main(sources) {
       }
     } else if (state.status === Status.ACTIVE) {
       if (action.type === 'GOAL') {
-        setTimeout(() => {
-          goal$.shamefullySendNext(action);
-        }, 0);
         return {
           ...state,
           goal: null,
-          status: Status.PREEMPTED,
+          status: ExtraStatus.PREEMPTING,
+          newGoal: (action.value as Goal)
         };
+      } else if (action.type === 'FIRST_RESULT') {
+        console.debug('Ignore FIRST_RESULT in active state');
+        return state;
       } else if (action.type === 'SECOND_RESULT') {
         if (state.goal.type === 'ASK_QUESTION') {
           return {
@@ -100,12 +108,31 @@ function main(sources) {
             status: Status.SUCCEEDED,
             result: (action.value as Result),
           };
+        } else {
+          console.debug('Ignore SECOND_RESULT in active & !ask_question state');
+        return state;
         }
       } else if (action.type === 'CANCEL') {
         return {
           ...state,
           goal: null,
+          status: ExtraStatus.PREEMPTING,
+        };
+      }
+    } else if (state.status === ExtraStatus.PREEMPTING) {
+      if ((action.type === 'FIRST_RESULT' || action.type === 'SECOND_RESULT')
+          && (action.value as Result).status.status === Status.PREEMPTED) {
+        if (state.newGoal) {
+          setTimeout(() => {
+            goal$.shamefullySendNext({type: 'GOAL', value: state.newGoal});
+          }, 0);
+        }
+        return {
+          ...state,
+          goal: null,
           status: Status.PREEMPTED,
+          result: (action.value as Result),  // null
+          newGoal: null,
         };
       }
     }
@@ -125,6 +152,7 @@ function main(sources) {
     .map(([prevState, curState]) => curState);
 
   const status$ = stateStatusChanged$
+    .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
