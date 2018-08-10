@@ -36,8 +36,9 @@ const createToStatusFnc = (goal_id) => {
 };
 
 const createToGoalFnc = (goal_ids: GoalID[], goals: any[]) => {
-  if (goal_ids.length !== goals.length)
+  if (goal_ids.length !== goals.length) {
     throw new Error('goal_ids.length !== goals.length');
+  }
   return (num) => {
     return goal_ids[num] ? {
       goal_id: goal_ids[num],
@@ -60,7 +61,7 @@ describe('SpeechSynthesisAction', () => {
     }
     const expectedValueStr$ =  Time.diagram(`-x---|`);
     const expectedStatusStr$ = Time.diagram(`-das-|`);
-    const expectedResultStr$ = Time.diagram(`---x-|`);
+    const expectedResultStr$ = Time.diagram(`---s-|`);
 
     // update strings to proper inputs
     const goal = {text: 'Hello'};
@@ -72,13 +73,10 @@ describe('SpeechSynthesisAction', () => {
     });
     const expectedValue$ = expectedValueStr$.mapTo(goal);
     const expectedStatus$ = expectedStatusStr$.map(str => toStatus(str));
-    const expectedResult$ = expectedResultStr$.mapTo({
-      status: {
-        goal_id,
-        status: Status.SUCCEEDED
-      },
+    const expectedResult$ = expectedResultStr$.map(str => ({
+      status: toStatus(str),
       result: 'x',
-    });
+    }));
 
 
     const speechSynthesisAction = SpeechSynthesisAction({
@@ -101,18 +99,20 @@ describe('SpeechSynthesisAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalNum$ =           Time.diagram(`-0--1---|`);
+    const goalNum$ =           Time.diagram(`-0--1----|`);
     const events = {
-      start:                   Time.diagram(`--x--x--|`),
-      end:                     Time.diagram(`----x-x-|`),
-      error:                   Time.diagram(`--------|`),
+      start:                   Time.diagram(`--x---x--|`),
+      end:                     Time.diagram(`-----x-x-|`),
+      error:                   Time.diagram(`---------|`),
     };
     const expecteds = [{
-      value:                   Time.diagram(`-0--x---|`),
-      status:                  Time.diagram(`-da-p---|`),
+      value:                   Time.diagram(`-0--x----|`),
+      status:                  Time.diagram(`-da--p---|`),
+      result:                  Time.diagram(`-----p---|`),
     }, {
-      value:                   Time.diagram(`----1---|`),
-      status:                  Time.diagram(`----das-|`),
+      value:                   Time.diagram(`-----1---|`),
+      status:                  Time.diagram(`-----das-|`),
+      result:                  Time.diagram(`-------s-|`),
     }];
 
     // update strings to proper inputs
@@ -124,10 +124,14 @@ describe('SpeechSynthesisAction', () => {
       expected.value = expected.value.map(num => goals[num]);
       const toStatus = createToStatusFnc(goal_ids[i]);
       expected.status = expected.status.map(str => toStatus(str));
+      expected.result = expected.result.map(str => ({
+        status: toStatus(str),
+        result: toStatus(str).status === 'PREEMPTED' ? null : 'x',
+      }));
     });
     const expectedValue$ = xs.merge(expecteds[0].value, expecteds[1].value);
     const expectedStatus$ = xs.merge(expecteds[0].status, expecteds[1].status);
-    // const expectedResult$ = xs.merge(expecteds[0].status, expecteds[1].status);
+    const expectedResult$ = xs.merge(expecteds[0].result, expecteds[1].result);
 
 
     const speechSynthesisAction = SpeechSynthesisAction({
@@ -139,12 +143,9 @@ describe('SpeechSynthesisAction', () => {
       }
     });
 
-    speechSynthesisAction.result.addListener({
-      next: data => console.log('result', data)
-    });
-
     Time.assertEqual(speechSynthesisAction.value, expectedValue$);
     Time.assertEqual(speechSynthesisAction.status, expectedStatus$);
+    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
 
     Time.run(done);
   });
