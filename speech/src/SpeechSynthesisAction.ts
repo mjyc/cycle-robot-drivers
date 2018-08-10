@@ -24,7 +24,7 @@ export function SpeechSynthesisAction(sources) {
     } else {
       return {
         type: 'GOAL',
-        value: initGoal(goal),
+        value: (goal as any).goal_id ? goal : initGoal(goal),
       }
     }
   });

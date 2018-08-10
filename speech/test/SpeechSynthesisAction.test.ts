@@ -1,36 +1,59 @@
 import {mockTimeSource} from '@cycle/time';
+import {
+  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal,
+} from '@cycle-robot-drivers/action'
 import {SpeechSynthesisAction} from '../src/SpeechSynthesisAction';
 
 describe('SpeechSynthesisAction', () => {
-  it('xxx', (done) => {
+  it('emits status and results', (done) => {
     const Time = mockTimeSource();
 
-    // const addClick$      = Time.diagram(`---x--x-------x--x--|`);
-    // const subtractClick$ = Time.diagram(`---------x----------|`);
-    // const expectedCount$ = Time.diagram(`0--1--2--1----2--3--|`);
-
-    // const DOM = mockDOMSource({
-    //   '.add': {
-    //     click: addClick$
-    //   },
-
-    //   '.subtract': {
-    //     click: subtractClick$
-    //   },
-    // });
-
-    const sendGoal$ =   Time.diagram(`---x---|`);
+    const goalT$ =           Time.diagram(`---x-------|`);
     const events = {
-      start:            Time.diagram(`----x--|`),
-      end:              Time.diagram(`-----x-|`),
-      error:              Time.diagram(`-----x-|`),
+      start:                 Time.diagram(`----x------|`),
+      end:                   Time.diagram(`-----x-----|`),
+      error:                 Time.diagram(`-----------|`),
     }
-    sendGoal$.mapTo({text: 'Hello'});
+    const expectedStatusT$ = Time.diagram(`---pas-----|`);
+    const expectedResultT$ = Time.diagram(`-----x-----|`);
 
+    const goal_id = generateGoalID();
+    const goal$ = goalT$.map(trigger => {
+      return {
+        goal_id,
+        goal: {text: 'Hello world!'}
+      }
+    });
+    const expectedStatus$ = expectedStatusT$.map(trigger => {
+      switch (trigger) {
+        case 'p':
+          return {
+            goal_id,
+            status: Status.PENDING
+          }
+        case 'a':
+          return {
+            goal_id,
+            status: Status.ACTIVE
+          }
+        case 's':
+          return {
+            goal_id,
+            status: Status.SUCCEEDED
+          }
+      }
+    });
+    const expectedResult$ = expectedResultT$.mapTo({
+      status: {
+        goal_id,
+        status: Status.SUCCEEDED
+      },
+      result: 'x',
+    });
 
 
     const speechSynthesisAction = SpeechSynthesisAction({
-      goal: sendGoal$,
+      goal: goal$,
       SpeechSynthesis: {
         events: (eventName) => {
           return events[eventName];
@@ -38,13 +61,12 @@ describe('SpeechSynthesisAction', () => {
       }
     });
 
-    speechSynthesisAction.result.addListener({
-      next: data => console.warn('result', data),
+    speechSynthesisAction.value.addListener({
+      next: data => console.warn('value', data),
     });
 
-    // const count$ = counter.DOM.map(vtree => select('.count', vtree)[0].text);
-
-    // Time.assertEqual(count$, expectedCount$);
+    Time.assertEqual(speechSynthesisAction.status, expectedStatus$);
+    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
 
     Time.run(done);
   });
