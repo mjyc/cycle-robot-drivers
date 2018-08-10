@@ -1,7 +1,11 @@
 module.exports = {
   transform: {
-    "^.+\\.tsx?$": "ts-jest"
+    "^.+\\.tsx?$": "ts-jest",
   },
+  "transformIgnorePatterns": [
+    "<rootDir>/node_modules/(?!@cycle)",
+    "<rootDir>/node_modules/(?!@cycle-robot-drivers)"
+  ],
   testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
   moduleFileExtensions: [
     "ts",
