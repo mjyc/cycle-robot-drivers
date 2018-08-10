@@ -6,21 +6,23 @@ import isolate from '@cycle/isolate';
 
 import {
   GoalID, Goal, Status, GoalStatus, Result,
-  generateGoalID, initGoal, isEqual,
+  generateGoalID, initGoal, isEqual, powerup,
 } from '@cycle-robot-drivers/action'
 import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction'
 
-export function TwoSpeechbubblesAction(sources) {
-  const firstGoal$ = xs.create();
-  const secondGoal$ = xs.create();
+function main(sources) {
+  sources.proxies = {
+    firstGoal: xs.create(),
+    secondGoal: xs.create(),
+  };
 
   const first = IsolatedSpeechbubbleAction({
     DOM: sources.DOM,
-    goal: firstGoal$,
+    goal: sources.proxies.firstGoal,
   });
   const second = IsolatedSpeechbubbleAction({
     DOM: sources.DOM,
-    goal: secondGoal$,
+    goal: sources.proxies.secondGoal,
   });
 
   // Process incoming streams
@@ -122,47 +124,66 @@ export function TwoSpeechbubblesAction(sources) {
      ))
     .map(([prevState, curState]) => curState);
 
-  firstGoal$.imitate(stateStatusChanged$.map(state => {
-    if (!state.goal) {
-      return null;
-    }
-    switch (state.goal.type) {
-      case 'SET_MESSAGE':
-        return {
-          goal_id: state.goal_id,
-          goal: {
-            type: 'MESSAGE',
-            value: state.goal.value,
-          },
-        };
-      case 'ASK_QUESTION':
-        return {
-          goal_id: state.goal_id,
-          goal: {
-            type: 'MESSAGE',
-            value: state.goal.value[0],
-          },
-        };
-    };
-  }));
+  const status$ = stateStatusChanged$
+    .map(state => ({
+      goal_id: state.goal_id,
+      status: state.status,
+    } as GoalStatus));
 
-  secondGoal$.imitate(stateStatusChanged$.map(state => {
-    if (!state.goal) {
-      return null;
-    }
-    switch (state.goal.type) {
-      case 'SET_MESSAGE':
-        return null;
-      case 'ASK_QUESTION':
-        return {
-          goal_id: state.goal_id,
-          goal: {
-            type: 'CHOICE',
-            value: state.goal.value[1],
-          },
+  const result$ = stateStatusChanged$
+    .filter(state => (state.status === Status.SUCCEEDED
+      || state.status === Status.PREEMPTED
+      || state.status === Status.ABORTED))
+    .map(state => ({
+      status: {
+        goal_id: state.goal_id,
+        status: state.status,
+      },
+      result: state.result,
+    } as Result));
+
+  const targets = {
+    firstGoal: stateStatusChanged$.map(state => {
+        if (!state.goal) {
+          return null;
+        }
+        switch (state.goal.type) {
+          case 'SET_MESSAGE':
+            return {
+              goal_id: state.goal_id,
+              goal: {
+                type: 'MESSAGE',
+                value: state.goal.value,
+              },
+            };
+          case 'ASK_QUESTION':
+            return {
+              goal_id: state.goal_id,
+              goal: {
+                type: 'MESSAGE',
+                value: state.goal.value[0],
+              },
+            };
         };
-    };
-  }));
+      }),
+    secondGoal: stateStatusChanged$.map(state => {
+      if (!state.goal) {
+        return null;
+      }
+      switch (state.goal.type) {
+        case 'SET_MESSAGE':
+          return null;
+        case 'ASK_QUESTION':
+          return {
+            goal_id: state.goal_id,
+            goal: {
+              type: 'CHOICE',
+              value: state.goal.value[1],
+            },
+          };
+      };
+    }),
+  };
 
   return {
     DOM: adapt(xs.combine(first.DOM, second.DOM).map(([fdom, sdom]) => (
@@ -175,24 +196,14 @@ export function TwoSpeechbubblesAction(sources) {
         </div>
       </div>
     ))),
-    status: stateStatusChanged$
-      .map(state => ({
-        goal_id: state.goal_id,
-        status: state.status,
-      } as GoalStatus)),
-    result: adapt(stateStatusChanged$
-      .filter(state => (state.status === Status.SUCCEEDED
-        || state.status === Status.PREEMPTED
-        || state.status === Status.ABORTED))
-      .map(state => ({
-        status: {
-          goal_id: state.goal_id,
-          status: state.status,
-        },
-        result: state.result,
-      } as Result))
-    ),
+    status: adapt(status$),
+    result: adapt(result$),
+    targets: targets,
   };
+}
+
+export function TwoSpeechbubblesAction(sources) {
+  return powerup(main, (proxy, target) => proxy.imitate(target))(sources);
 }
 
 export function IsolatedTwoSpeechbubblesAction(sources) {

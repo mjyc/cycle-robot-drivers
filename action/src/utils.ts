@@ -19,3 +19,13 @@ export function initGoal(goal: any): Goal {
 export function isEqual(first: GoalID, second: GoalID) {
   return (first.stamp === second.stamp && first.id === second.id);
 }
+
+export function powerup(main, connect) {
+  return (sources) => {
+    const sinks = main(sources);
+    Object.keys(sources.proxies).map(key => {
+      connect(sources.proxies[key], sinks.targets[key]);
+    });
+    return sinks;
+  };
+}
