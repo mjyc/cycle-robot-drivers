@@ -16,17 +16,8 @@ function main(sources) {
     goal: goalProxy$,
     SpeechSynthesis: sources.SpeechSynthesis,
   });
-  speechSynthesisAction.value.addListener({
-    next: data => console.warn('value', data),
-  });
-  speechSynthesisAction.status.addListener({
-    next: data => console.warn('status', data),
-  });
-  speechSynthesisAction.result.addListener({
-    next: data => console.warn('result', data),
-  });
 
-  const state$ = xs.combine(
+  const params$ = xs.combine(
     sources.DOM.select('#text').events('focusout')
       .map(ev => (ev.target as HTMLInputElement).value)
       .startWith(''),
@@ -36,36 +27,60 @@ function main(sources) {
     sources.DOM.select('#pitch').events('input')
       .map(ev => parseFloat((ev.target as HTMLInputElement).value))
       .startWith(1),
-  ).map(([text, rate, pitch]) => ({text, rate, pitch})).remember()
+  ).map(([text, rate, pitch]) => ({text, rate, pitch})).remember();
 
+  // send goals to the action
+  goalProxy$.imitate(
+    sources.DOM.select('#play').events('click')
+      .mapTo(params$.take(1))
+      .flatten()
+  );
 
-  goalProxy$.imitate(sources.DOM.select('#play').events('click')
-      .mapTo(state$.take(1))
-      .flatten());
-    //.addListener({next: data => console.log('click', data)})
+  // update the state
+  const state$ = xs.combine(
+    params$,
+    speechSynthesisAction.status.startWith(null),
+    speechSynthesisAction.result.startWith(null),
+  ).map(([params, status, result]) => {
+    return {
+      ...params,
+      status,
+      result,
+    }
+  });
 
-
-  const vdom$ = state$.debug(s => console.log('s4vdom', s)).map(s => (
+  const vdom$ = state$.map(s => (
     <div>
       <h1>Cycle.js SpeechSynthesisAction component demo</h1>
+
       <div>
-        <span className="label">Text</span>
-        <input id="text" type="text"></input>
+        <div>
+          <span className="label">Text</span>
+          <input id="text" type="text"></input>
+        </div>
+        <div>
+          <span className="label">Rate</span>
+          <input id="rate"
+            type="range" min="0.5" max="2" value={s.rate} step="0.1"></input>
+          <span>{s.rate}</span>
+        </div>
+        <div>
+          <span className="label">Pitch</span>
+          <input id="pitch"
+            type="range" min="0" max="2" value={s.pitch} step="0.1"></input>
+          <span>{s.pitch}</span>
+        </div>
       </div>
-      <div>
-        <span className="label">Rate</span>
-        <input id="rate"
-          type="range" min="0.5" max="2" value={s.rate} step="0.1"></input>
-        <span>{s.rate}</span>
-      </div>
-      <div>
-        <span className="label">Pitch</span>
-        <input id="pitch"
-          type="range" min="0" max="2" value={s.pitch} step="0.1"></input>
-        <span>{s.pitch}</span>
-      </div>
+
       <div>
         <button id="play">Speak</button>
+      </div>
+
+      <div>
+        <div>
+          <pre>"status": {JSON.stringify(s.status, null, 2)}</pre>
+          <pre>"result": {JSON.stringify(s.result, null, 2)}</pre>
+        </div>
       </div>
     </div>
   ));
