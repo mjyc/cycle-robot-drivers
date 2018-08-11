@@ -12,6 +12,7 @@
     "xstream": "11.7.0"
   },
   "scripts": {
-    "start": "../../../node_modules/.bin/webpack-dev-server"
+    "start": "../../../node_modules/.bin/webpack-dev-server ./src/index.tsx",
+    "start:demo": "../../../node_modules/.bin/webpack-dev-server ./src/demo.tsx"
   }
 }
