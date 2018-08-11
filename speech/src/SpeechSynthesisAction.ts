@@ -4,7 +4,7 @@ import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal,
+  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
 
@@ -159,14 +159,16 @@ export function SpeechSynthesisAction(sources) {
   const stateStatusChanged$ = state$
     .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .compose(pairwise)
-    .filter(([prevState, curState]) => (curState.status !== prevState.status))
-    .map(([prevState, curState]) => curState);
+    .filter(([prev, cur]) => (
+      cur.status !== prev.status || !isEqual(cur.goal_id, prev.goal_id)
+    ))
+    .map(([prev, cur]) => cur);
 
   const status$ = stateStatusChanged$
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
-    } as GoalStatus))
+    } as GoalStatus));
 
   const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED
