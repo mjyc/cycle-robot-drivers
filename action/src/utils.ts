@@ -26,6 +26,7 @@ export function powerup(main, connect) {
     Object.keys(sources.proxies).map(key => {
       connect(sources.proxies[key], sinks.targets[key]);
     });
-    return sinks;
+    const {targets, ...sinksNoTargets} = sinks;
+    return sinksNoTargets;
   };
 }
