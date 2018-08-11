@@ -13,11 +13,11 @@ function main(sources) {
   const recog$ = xs.create();
   setTimeout(() => recog$.shamefullySendNext({}), 1);
   // test overwriting the current goal
-  setTimeout(() => recog$.shamefullySendNext({}), 100);
+  setTimeout(() => recog$.shamefullySendNext({}), 500);
   // test canceling an active goal
-  setTimeout(() => recog$.shamefullySendNext(null), 500);
+  setTimeout(() => recog$.shamefullySendNext(null), 1000);
   // test calling cancel on done; cancel must do nothing
-  setTimeout(() => recog$.shamefullySendNext({}), 1000);
+  setTimeout(() => recog$.shamefullySendNext({}), 2000);
   // you must say something here
   setTimeout(() => recog$.shamefullySendNext(null), 7000);
 

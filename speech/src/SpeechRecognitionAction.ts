@@ -98,7 +98,6 @@ export function SpeechRecognitionAction(sources) {
           goal_id: state.status.goal_id,
           status: Status.PREEMPTING,
         };
-        statusListener && statusListener.next(status);
       } else if (action.type === 'GOAL') {
         goal = (action.value as Goal);
         status = {
