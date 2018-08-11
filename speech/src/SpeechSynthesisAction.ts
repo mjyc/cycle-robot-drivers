@@ -44,7 +44,7 @@ export function SpeechSynthesisAction(sources) {
 
   // Create state stream
   enum ExtraStatus {
-    PREEMPTING = 6,
+    PREEMPTING = 'PREEMPTING',
   };
   type ExtendedStatus = Status | ExtraStatus;
   type State = {
