@@ -123,15 +123,22 @@ export function SpeechSynthesisAction(sources) {
       }
     } else if (state.status === ExtraStatus.PREEMPTING) {
       if (action.type === 'END') {
-        if (state.newGoal) {
-          setTimeout(() => {
-            goal$.shamefullySendNext({type: 'GOAL', value: state.newGoal});
-          }, 0);
-        }
-        return {
+        const preemptedState = {
           ...state,
           status: Status.PREEMPTED,
           newGoal: null,
+        }
+        if (state.newGoal) {
+          state$.shamefullySendNext(preemptedState);
+          return {
+            goal_id: state.newGoal.goal_id,
+            goal: state.newGoal.goal,
+            status: Status.PENDING,
+            result: null,
+            newGoal: null,
+          }
+        } else {
+          return preemptedState;
         }
       }
     }
@@ -148,8 +155,6 @@ export function SpeechSynthesisAction(sources) {
     .filter(state => (state.status === Status.PENDING
       || state.status === ExtraStatus.PREEMPTING))
     .map(state => state.goal);
-
-  value$.addListener({next: data => console.log("=====value", data)});
 
   const stateStatusChanged$ = state$
     .filter(state => state.status !== ExtraStatus.PREEMPTING)
