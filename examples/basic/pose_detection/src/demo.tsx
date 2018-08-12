@@ -6,15 +6,27 @@ import {makePoseDetectionDriver} from '@cycle-robot-drivers/vision'
 
 
 function main(sources) {
-  const vdom$ = sources.PoseDetection.DOM.map(poseDetectionOutput => (
+  const styles = {code: {"background-color": "#f6f8fa"}}
+  const vdom$ = xs.combine(
+    sources.PoseDetection.poses.startWith([]),
+    sources.PoseDetection.DOM,
+  ).map(([p, d]) => (
     <div>
-      {poseDetectionOutput}
+      <h1>PoseDetection component demo</h1>
+
+      <div>
+        {d}
+      </div>
+
+      <div>
+        <h3>Driver outputs</h3>
+        <div>
+          <pre style={styles.code}>"poses": {JSON.stringify(p, null, 2)}
+          </pre>
+        </div>
+      </div>
     </div>
   ));
-
-  sources.PoseDetection.poses.addListener({
-    next: data => console.warn('result', data),
-  });
 
   return {
     DOM: vdom$,
