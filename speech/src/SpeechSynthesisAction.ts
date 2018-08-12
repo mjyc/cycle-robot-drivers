@@ -77,7 +77,7 @@ export function SpeechSynthesisAction(sources) {
           result: null,
         }
       } else if (action.type === 'CANCEL') {
-        console.debug('Ignore cancel in done states');
+        console.debug('Ignore CANCEL in DONE states');
         return state;
       }
     } else if (state.status === Status.PENDING) {

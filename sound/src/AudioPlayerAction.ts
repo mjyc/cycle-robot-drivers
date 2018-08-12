@@ -74,7 +74,7 @@ export function AudioPlayerAction(sources) {
           newGoal: null,
         };
       } else if (action.type === 'CANCEL') {
-        console.debug('Ignore cancel in done states');
+        console.debug('Ignore CANCEL in DONE states');
         return state;
       }
     } else if (state.status === Status.ACTIVE) {

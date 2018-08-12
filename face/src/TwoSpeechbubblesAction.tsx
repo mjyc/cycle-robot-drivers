@@ -86,7 +86,7 @@ function main(sources) {
           newGoal: null,
         };
       } else if (action.type === 'CANCEL') {
-        console.debug('Ignore cancel in done states');
+        console.debug('Ignore CANCEL in DONE states');
         return state;
       }
     } else if (state.status === Status.ACTIVE) {
@@ -98,7 +98,7 @@ function main(sources) {
           newGoal: (action.value as Goal)
         };
       } else if (action.type === 'FIRST_RESULT') {
-        console.debug('Ignore FIRST_RESULT in active state');
+        console.debug('Ignore FIRST_RESULT in ACTIVE state');
         return state;
       } else if (action.type === 'SECOND_RESULT') {
         if (state.goal.type === 'ASK_QUESTION') {
@@ -109,7 +109,7 @@ function main(sources) {
             result: (action.value as Result).result,
           };
         } else {
-          console.debug('Ignore SECOND_RESULT in active & !ask_question state');
+          console.debug('Ignore SECOND_RESULT in ACTIVE & !ASK_QUESTION state');
         return state;
         }
       } else if (action.type === 'CANCEL') {
