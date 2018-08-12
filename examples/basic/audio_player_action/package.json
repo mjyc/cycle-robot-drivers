@@ -12,7 +12,7 @@
     "xstream": "11.7.0"
   },
   "devDependencies": {
-    "@types/node": "^10.5.6"
+    "@types/node": "^10.5.8"
   },
   "scripts": {
     "start": "../../../node_modules/.bin/webpack-dev-server ./src/index.tsx --config ../../../webpack.config.common.js",

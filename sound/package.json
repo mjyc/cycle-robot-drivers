@@ -13,7 +13,8 @@
     "xstream": "11.7.0"
   },
   "devDependencies": {
-    "@cycle/time": "^0.15.0"
+    "@cycle/time": "^0.15.0",
+    "@types/node": "^10.5.7"
   },
   "scripts": {
     "test": "../node_modules/.bin/jest --config ../jest.config.common.js --rootDir ./"
