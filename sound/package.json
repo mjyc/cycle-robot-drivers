@@ -3,11 +3,19 @@
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
-  "main": "src/index.ts",
+  "main": "src/cjs/index.js",
+  "module": "lib/es6/index.js",
+  "types": "lib/cjs/index.d.ts",
   "dependencies": {
     "@cycle/isolate": "3.4.0",
     "@cycle/run": "4.4.0",
     "@cycle-robot-drivers/action": "file:../action",
     "xstream": "11.7.0"
+  },
+  "devDependencies": {
+    "@cycle/time": "^0.15.0"
+  },
+  "scripts": {
+    "test": "../node_modules/.bin/jest --config ../jest.config.common.js --rootDir ./"
   }
 }
