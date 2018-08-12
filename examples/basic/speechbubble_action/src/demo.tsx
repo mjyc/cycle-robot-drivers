@@ -77,7 +77,7 @@ function main(sources) {
       </div>
 
       <div>
-        <h3>Action outputs</h3>
+        <h3>Controls</h3>
         <div>
           <button id="play">Play</button>
           <button id="cancel">Cancel</button>

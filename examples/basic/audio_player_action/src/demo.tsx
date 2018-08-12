@@ -47,27 +47,37 @@ function main(sources) {
     }
   });
 
+  const styles = {code: {"background-color": "#f6f8fa"}}
   const vdom$ = state$.map(s => (
     <div>
-      <h1>Cycle.js AudioPlayerAction component demo</h1>
+      <h1>AudioPlayerAction component demo</h1>
 
       <div>
-        <select id="src">{files.map(file => (file === s.src ? (
-          <option selected value={file}>{file}</option>
-        ) : (
-          <option value={file}>{file}</option>
-        )))}</select>
-      </div>
-
-      <div>
-        <button id="play">Play</button>
-        <button id="cancel">Cancel</button>
-      </div>
-
-      <div>
+        <h3>Action inputs</h3>
         <div>
-          <pre>"status": {JSON.stringify(s.status, null, 2)}</pre>
-          <pre>"result": {JSON.stringify(s.result, null, 2)}</pre>
+          <select id="src">{files.map(file => (file === s.src ? (
+            <option selected value={file}>{file}</option>
+          ) : (
+            <option value={file}>{file}</option>
+          )))}</select>
+       </div>
+      </div>
+
+      <div>
+        <h3>Controls</h3>
+        <div>
+          <button id="play">Play</button>
+          <button id="cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div>
+        <h3>Action outputs</h3>
+        <div>
+          <pre style={styles.code}>"status": {JSON.stringify(s.status, null, 2)}
+          </pre>
+          <pre style={styles.code}>"result": {JSON.stringify(s.result, null, 2)}
+          </pre>
         </div>
       </div>
     </div>
