@@ -32,6 +32,9 @@ export function AudioPlayerAction(sources) {
     sources.AudioPlayer.events('ended').map(
       event => ({type: 'ENDED', value: event})
     ),
+    sources.AudioPlayer.events('pause').map(
+      event => ({type: 'PAUSE', value: event})
+    ),
   );
   const action$ = xs.merge(goal$, events$);
 
@@ -75,7 +78,14 @@ export function AudioPlayerAction(sources) {
         return state;
       }
     } else if (state.status === Status.ACTIVE) {
-      if (action.type === 'ENDED') {
+      if (action.type === 'GOAL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+          newGoal: (action.value as Goal)
+        }
+      } else if (action.type === 'ENDED') {
         return {
           ...state,
           status: Status.SUCCEEDED,
@@ -89,7 +99,7 @@ export function AudioPlayerAction(sources) {
         }
       }
     } else if (state.status === ExtraStatus.PREEMPTING) {
-      if (action.type === 'ENDED') {
+      if (action.type === 'ENDED' || action.type === 'PAUSE') {
         const preemptedState = {
           ...state,
           status: Status.PREEMPTED,
@@ -125,7 +135,6 @@ export function AudioPlayerAction(sources) {
     .map(([prev, cur]) => cur);
 
   const value$ = stateStatusChanged$
-    .debug(data => console.warn('======value', data))
     .filter(state => (state.status === Status.ACTIVE
       || state.status === ExtraStatus.PREEMPTING))
     .map(state => state.goal);
