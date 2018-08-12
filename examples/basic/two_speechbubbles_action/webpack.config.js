@@ -3,7 +3,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 module.exports = {
-  entry: __dirname + '/src/index.tsx',
+  // entry: __dirname + '/src/index.tsx',  // set in package.json
   output: {
     path: __dirname + '/dist',
     filename: 'bundle.js',
