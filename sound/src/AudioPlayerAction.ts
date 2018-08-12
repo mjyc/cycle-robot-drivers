@@ -97,6 +97,9 @@ export function AudioPlayerAction(sources) {
           goal: null,
           status: ExtraStatus.PREEMPTING,
         }
+      } else if (action.type === 'PAUSE') {
+        console.debug('Ignore pause in ACTIVE states; used ENDED instead');
+        return state;
       }
     } else if (state.status === ExtraStatus.PREEMPTING) {
       if (action.type === 'ENDED' || action.type === 'PAUSE') {
