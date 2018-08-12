@@ -27,8 +27,11 @@ function main(sources) {
 
   // send goals to the action
   goalProxy$.imitate(
-    sources.DOM.select('#play').events('click')
-      .mapTo(src$.map(src => ({src})).take(1)).flatten()
+    xs.merge(
+      sources.DOM.select('#play').events('click')
+        .mapTo(src$.map(src => ({src})).take(1)).flatten(),
+      sources.DOM.select('#cancel').events('click').mapTo(null),
+    )
   );
 
   // update the state
@@ -54,7 +57,11 @@ function main(sources) {
         ) : (
           <option value={file}>{file}</option>
         )))}</select>
+      </div>
+
+      <div>
         <button id="play">Play</button>
+        <button id="cancel">Cancel</button>
       </div>
 
       <div>

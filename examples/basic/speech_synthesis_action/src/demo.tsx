@@ -31,8 +31,11 @@ function main(sources) {
 
   // send goals to the action
   goalProxy$.imitate(
-    sources.DOM.select('#play').events('click')
-      .mapTo(params$.take(1)).flatten()
+    xs.merge(
+      sources.DOM.select('#play').events('click')
+        .mapTo(params$.take(1)).flatten(),
+      sources.DOM.select('#cancel').events('click').mapTo(null),
+    )
   );
 
   // update the state
@@ -73,6 +76,7 @@ function main(sources) {
 
       <div>
         <button id="play">Speak</button>
+        <button id="cancel">Cancel</button>
       </div>
 
       <div>
