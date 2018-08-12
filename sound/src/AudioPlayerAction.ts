@@ -67,11 +67,11 @@ export function AudioPlayerAction(sources) {
         || state.status === Status.ABORTED) {
       if (action.type === 'GOAL') {
         return {
-          ...state,
           goal_id: (action.value as Goal).goal_id,
           goal: (action.value as Goal).goal,
           status: Status.ACTIVE,
           result: null,
+          newGoal: null,
         };
       } else if (action.type === 'CANCEL') {
         console.debug('Ignore cancel in done states');
@@ -104,7 +104,7 @@ export function AudioPlayerAction(sources) {
           ...state,
           status: Status.PREEMPTED,
           newGoal: null,
-        }
+        };
         if (state.newGoal) {
           state$.shamefullySendNext(preemptedState);
           return {
@@ -113,7 +113,7 @@ export function AudioPlayerAction(sources) {
             status: Status.ACTIVE,
             result: null,
             newGoal: null,
-          }
+          };
         } else {
           return preemptedState;
         }

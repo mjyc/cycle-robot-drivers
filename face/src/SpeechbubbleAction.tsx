@@ -5,7 +5,7 @@ import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal,
+  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
 
@@ -63,7 +63,6 @@ export function SpeechbubbleAction(sources) {
       if (action.type === 'GOAL') {
         const goal = (action.value as Goal);
         return {
-          ...state,
           goal_id: goal.goal_id,
           goal: goal.goal,
           status: Status.ACTIVE,
@@ -75,13 +74,17 @@ export function SpeechbubbleAction(sources) {
       }
     } else if (state.status === Status.ACTIVE) {
       if (action.type === 'GOAL') {
-        setTimeout(() => {
-          goal$.shamefullySendNext(action);
-        }, 0);
-        return {
+        state$.shamefullySendNext({
           ...state,
           goal: null,
           status: Status.PREEMPTED,
+        });
+        const goal = (action.value as Goal);
+        return {
+          goal_id: goal.goal_id,
+          goal: goal.goal,
+          status: Status.ACTIVE,
+          result: null,
         };
       } else if (action.type === 'CLICK') {
         return {
@@ -126,15 +129,16 @@ export function SpeechbubbleAction(sources) {
 
   const stateStatusChanged$ = state$
     .compose(pairwise)
-    .filter(([prevState, curState]) => (curState.status !== prevState.status))
-    .map(([prevState, curState]) => curState);
+    .filter(([prev, cur]) => (
+      cur.status !== prev.status || !isEqual(cur.goal_id, prev.goal_id)
+    ))
+    .map(([prev, cur]) => cur);
 
   const status$ = stateStatusChanged$
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
     } as GoalStatus))
-
   const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED
         || state.status === Status.PREEMPTED

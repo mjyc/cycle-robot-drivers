@@ -79,11 +79,11 @@ function main(sources) {
       if (action.type === 'GOAL') {
         const goal = (action.value as Goal);
         return {
-          ...state,
           goal_id: goal.goal_id,
           goal: goal.goal,
           status: Status.ACTIVE,
           result: null,
+          newGoal: null,
         };
       } else if (action.type === 'CANCEL') {
         console.debug('Ignore cancel in done states');
@@ -106,7 +106,7 @@ function main(sources) {
             ...state,
             goal: null,
             status: Status.SUCCEEDED,
-            result: (action.value as Result),
+            result: (action.value as Result).result,
           };
         } else {
           console.debug('Ignore SECOND_RESULT in active & !ask_question state');
@@ -122,18 +122,23 @@ function main(sources) {
     } else if (state.status === ExtraStatus.PREEMPTING) {
       if ((action.type === 'FIRST_RESULT' || action.type === 'SECOND_RESULT')
           && (action.value as Result).status.status === Status.PREEMPTED) {
-        if (state.newGoal) {
-          setTimeout(() => {
-            goal$.shamefullySendNext({type: 'GOAL', value: state.newGoal});
-          }, 0);
-        }
-        return {
+        const preemptedState = {
           ...state,
-          goal: null,
           status: Status.PREEMPTED,
-          result: (action.value as Result),  // null
+          result: (action.value as Result).result,  // null
           newGoal: null,
         };
+        if (state.newGoal) {
+          state$.shamefullySendNext(preemptedState);
+          return {
+            goal_id: state.newGoal.goal_id,
+            goal: state.newGoal.goal,
+            status: Status.ACTIVE,
+            result: null,
+            newGoal: null,
+          };
+        }
+        return preemptedState;
       }
     }
     console.warn(
