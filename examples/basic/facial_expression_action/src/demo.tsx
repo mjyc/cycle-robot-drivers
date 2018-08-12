@@ -3,45 +3,37 @@ import xs from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
-  IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
+  makeFacialExpressionActionDriver,
 } from '@cycle-robot-drivers/face'
 
-const types = ['SET_MESSAGE', 'ASK_QUESTION'];
+const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
 
 
 function main(sources) {
-  const goalProxy$ = xs.create();
-  const speechbubbleAction = TwoSpeechbubblesAction({
-    goal: goalProxy$,
-    DOM: sources.DOM,
-  });
-
   const params$ = xs.combine(
     sources.DOM.select('#type').events('change')
       .map(ev => (ev.target as HTMLInputElement).value)
       .startWith(types[0]),
-    sources.DOM.select('#value').events('focusout')
+    sources.DOM.select('#duration').events('input')
       .map(ev => {
         const value = (ev.target as HTMLInputElement).value;
         try { return JSON.parse(value); } catch { return value; }
       })
-      .startWith(''),
-  ).map(([type, value]) => ({type, value})).remember();
+      .startWith(1000),
+  ).map(([type, duration]) => ({type, duration})).remember();
 
   // send goals to the action
-  goalProxy$.imitate(
-    xs.merge(
-      sources.DOM.select('#start').events('click')
-        .mapTo(params$.take(1)).flatten(),
-      sources.DOM.select('#cancel').events('click').mapTo(null),
-    )
+  const goal$ = xs.merge(
+    sources.DOM.select('#start').events('click')
+      .mapTo(params$.take(1)).flatten(),
+    sources.DOM.select('#cancel').events('click').mapTo(null),
   );
 
   // update the state
   const state$ = xs.combine(
     params$,
-    speechbubbleAction.status.startWith(null),
-    speechbubbleAction.result.startWith(null),
+    sources.FacialExpressionAction.status.startWith(null),
+    sources.FacialExpressionAction.result.startWith(null),
   ).map(([params, status, result]) => {
     return {
       ...params,
@@ -51,26 +43,28 @@ function main(sources) {
   });
 
   const styles = {code: {"background-color": "#f6f8fa"}}
-  const vdom$ = xs.combine(state$, speechbubbleAction.DOM).map(([s, b]) => (
+  const vdom$ = xs.combine(state$, sources.FacialExpressionAction.DOM).map(([s, f]) => (
     <div>
-      <h1>TwoSpeechbubblesAction component demo</h1>
+      <h1>FacalExpressionAction driver demo</h1>
 
       <div>
-        {b}
+        {f}
       </div>
 
       <div>
         <h3>Action inputs</h3>
         <div>
-          <select id="type">{types.map(type => (type === s.type ? (
-            <option selected value={type}>{type}</option>
-          ) : (
-            <option value={type}>{type}</option>
-          )))}</select>
-          <input id="value"></input>
-          <div><small>Try <code style={styles.code}>
-          ["Do you want cookie or ice cream?", ["Cookie", "Ice cream", "Both"]]
-          </code> for ASK_CHOICE</small></div>
+          <div>
+            <select id="type">{types.map(type => (type === s.type ? (
+              <option selected value={type}>{type}</option>
+            ) : (
+              <option value={type}>{type}</option>
+            )))}</select>
+          </div>
+          <span className="label">Duration</span>
+          <input id="duration"
+            type="range" min="100" max="10000" value={s.duration} step="1">
+          </input><span> {s.duration}ms</span>
         </div>
       </div>
 
@@ -95,10 +89,12 @@ function main(sources) {
   ));
 
   return {
+    FacialExpressionAction: goal$,
     DOM: vdom$,
   };
 }
 
 run(main, {
   DOM: makeDOMDriver('#app'),
+  FacialExpressionAction: makeFacialExpressionActionDriver(),
 });

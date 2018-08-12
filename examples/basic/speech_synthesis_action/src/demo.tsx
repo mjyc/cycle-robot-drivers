@@ -32,7 +32,7 @@ function main(sources) {
   // send goals to the action
   goalProxy$.imitate(
     xs.merge(
-      sources.DOM.select('#play').events('click')
+      sources.DOM.select('#start').events('click')
         .mapTo(params$.take(1)).flatten(),
       sources.DOM.select('#cancel').events('click').mapTo(null),
     )
@@ -51,42 +51,53 @@ function main(sources) {
     }
   });
 
+  const styles = {code: {"background-color": "#f6f8fa"}}
   const vdom$ = state$.map(s => (
     <div>
-      <h1>Cycle.js SpeechSynthesisAction component demo</h1>
+      <h1>SpeechSynthesisAction component demo</h1>
 
       <div>
+        <h3>Action inputs</h3>
         <div>
-          <span className="label">Text</span>
-          <input id="text" type="text"></input>
-        </div>
-        <div>
-          <span className="label">Rate</span>
-          <input id="rate"
-            type="range" min="0.5" max="2" value={s.rate} step="0.1"></input>
-          <span>{s.rate}</span>
-        </div>
-        <div>
-          <span className="label">Pitch</span>
-          <input id="pitch"
-            type="range" min="0" max="2" value={s.pitch} step="0.1"></input>
-          <span>{s.pitch}</span>
+          <div>
+            <span className="label">Text</span>
+            <input id="text" type="text"></input>
+          </div>
+          <div>
+            <span className="label">Rate</span>
+            <input id="rate"
+              type="range" min="0.5" max="2" value={s.rate} step="0.1"></input>
+            <span>{s.rate}</span>
+          </div>
+          <div>
+            <span className="label">Pitch</span>
+            <input id="pitch"
+              type="range" min="0" max="2" value={s.pitch} step="0.1"></input>
+            <span>{s.pitch}</span>
+          </div>
         </div>
       </div>
 
       <div>
-        <button id="play">Speak</button>
-        <button id="cancel">Cancel</button>
+        <h3>Controls</h3>
+        <div>
+          <button id="start">Start</button>
+          <button id="cancel">Cancel</button>
+        </div>
       </div>
 
       <div>
+        <h3>Action outputs</h3>
         <div>
-          <pre>"status": {JSON.stringify(s.status, null, 2)}</pre>
-          <pre>"result": {JSON.stringify(s.result, null, 2)}</pre>
+          <pre style={styles.code}>"status": {JSON.stringify(s.status, null, 2)}
+          </pre>
+          <pre style={styles.code}>"result": {JSON.stringify(s.result, null, 2)}
+          </pre>
         </div>
       </div>
     </div>
   ));
+
   return {
     DOM: vdom$,
     SpeechSynthesis: speechSynthesisAction.value,

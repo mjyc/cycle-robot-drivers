@@ -11,7 +11,7 @@ import {
 
 
 function main(sources) {
-  const goal$ = sources.DOM.select('#listen').events('click').mapTo({})
+  const goal$ = sources.DOM.select('#start').events('click').mapTo({})
   const speechRecognitionAction = SpeechRecognitionAction({
     goal: goal$,
     SpeechRecognition: sources.SpeechRecognition,
@@ -27,22 +27,30 @@ function main(sources) {
     }
   });
 
+  const styles = {code: {"background-color": "#f6f8fa"}}
   const vdom$ = state$.map(s => (
     <div>
-      <h1>Cycle.js SpeechRecognitionAction component demo</h1>
+      <h1>SpeechRecognitionAction component demo</h1>
 
       <div>
-        <button id="listen">Listen</button>
+        <h3>Controls</h3>
+        <div>
+          <button id="start">Start</button>
+        </div>
       </div>
 
       <div>
+        <h3>Action outputs</h3>
         <div>
-          <pre>"status": {JSON.stringify(s.status, null, 2)}</pre>
-          <pre>"result": {JSON.stringify(s.result, null, 2)}</pre>
+          <pre style={styles.code}>"status": {JSON.stringify(s.status, null, 2)}
+          </pre>
+          <pre style={styles.code}>"result": {JSON.stringify(s.result, null, 2)}
+          </pre>
         </div>
       </div>
     </div>
   ));
+
   return {
     DOM: vdom$,
     SpeechRecognition: speechRecognitionAction.value,

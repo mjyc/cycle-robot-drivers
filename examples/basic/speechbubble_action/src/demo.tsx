@@ -31,7 +31,7 @@ function main(sources) {
   // send goals to the action
   goalProxy$.imitate(
     xs.merge(
-      sources.DOM.select('#play').events('click')
+      sources.DOM.select('#start').events('click')
         .mapTo(params$.take(1)).flatten(),
       sources.DOM.select('#cancel').events('click').mapTo(null),
     )
@@ -49,8 +49,6 @@ function main(sources) {
       result,
     }
   });
-
-  speechbubbleAction.DOM.debug(data => console.warn('dom', data));
 
   const styles = {code: {"background-color": "#f6f8fa"}}
   const vdom$ = xs.combine(state$, speechbubbleAction.DOM).map(([s, b]) => (
@@ -79,7 +77,7 @@ function main(sources) {
       <div>
         <h3>Controls</h3>
         <div>
-          <button id="play">Play</button>
+          <button id="start">Start</button>
           <button id="cancel">Cancel</button>
         </div>
       </div>
@@ -95,6 +93,7 @@ function main(sources) {
       </div>
     </div>
   ));
+
   return {
     DOM: vdom$,
   };
