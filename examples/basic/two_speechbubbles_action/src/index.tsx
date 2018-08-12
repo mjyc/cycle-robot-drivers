@@ -45,6 +45,7 @@ function main(sources) {
   const vdom$ = speechbubbles.DOM.map((sdom) => {
     return (
       <div>
+        <div>TwoSpeechbubblesAction component test</div>
         {sdom}
       </div>
     );

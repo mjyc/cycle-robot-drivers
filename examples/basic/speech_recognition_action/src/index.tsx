@@ -9,7 +9,7 @@ import {
 
 
 function main(sources) {
-  const vdom$ = xs.of((<div>SpeechRecognitionAction component demo</div>));
+  const vdom$ = xs.of((<div>SpeechRecognitionAction component test</div>));
   const recog$ = xs.create();
   setTimeout(() => recog$.shamefullySendNext({}), 1);
   // test overwriting the current goal
