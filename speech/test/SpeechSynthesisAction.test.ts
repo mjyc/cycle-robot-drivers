@@ -211,7 +211,7 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-    it('does nothing on cancel after preempted', (done) => {
+  it('does nothing on cancel after preempted', (done) => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
