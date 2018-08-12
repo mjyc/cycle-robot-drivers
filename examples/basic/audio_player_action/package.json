@@ -12,10 +12,16 @@
     "xstream": "11.7.0"
   },
   "devDependencies": {
-    "@types/node": "^10.5.8"
+    "@types/node": "^10.5.8",
+    "clean-webpack-plugin": "^0.1.19",
+    "copy-webpack-plugin": "^4.5.2",
+    "file-loader": "^1.1.11",
+    "ts-loader": "^3.5.0",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.1"
   },
   "scripts": {
-    "start": "../../../node_modules/.bin/webpack-dev-server ./src/index.tsx --config ../../../webpack.config.common.js",
-    "start:demo": "../../../node_modules/.bin/webpack-dev-server ./src/demo.tsx --config ../../../webpack.config.common.js"
+    "start": "webpack-dev-server ./src/index.tsx",
+    "start:demo": "webpack-dev-server ./src/demo.tsx"
   }
 }
