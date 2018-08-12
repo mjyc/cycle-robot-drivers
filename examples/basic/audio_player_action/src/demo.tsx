@@ -7,39 +7,64 @@ import {
   IsolatedAudioPlayerAction as AudioPlayerAction,
 } from '@cycle-robot-drivers/sound'
 
+const files = [
+  require('../public/snd/IWohoo1.ogg'),
+  require('../public/snd/IWohoo2.ogg'),
+  require('../public/snd/IWohoo3.ogg'),
+];
+
 
 function main(sources) {
-  const vdom$ = xs.of((<div>Cycle.js AudioPlayerAction component demo</div>));
-  const audio$ = xs.create();
-  setTimeout(() => audio$.shamefullySendNext({
-    src: require("../public/snd/IWohoo1.ogg")
-  }), 1);
-  // test overwriting the current goal
-  setTimeout(() => audio$.shamefullySendNext({
-    src: require("../public/snd/IWohoo2.ogg")
-  }), 100);
-  setTimeout(() => audio$.shamefullySendNext(null), 1000);
-  setTimeout(() => audio$.shamefullySendNext({
-    src: require("../public/snd/IWohoo3.ogg")
-  }), 2000);
-  // test calling cancel on done; cancel must do nothing
-  setTimeout(() => audio$.shamefullySendNext(null), 4000);
-
+  const goalProxy$ = xs.create();
   const audioPlayerAction = AudioPlayerAction({
-    goal: audio$,
+    goal: goalProxy$,
     AudioPlayer: sources.AudioPlayer,
   });
 
-  audioPlayerAction.value.addListener({
-    next: data => console.warn('value', data),
-  });
-  audioPlayerAction.status.addListener({
-    next: data => console.warn('status', data),
-  });
-  audioPlayerAction.result.addListener({
-    next: data => console.warn('result', data),
+  const src$ = sources.DOM.select('#src').events('change')
+    .map(ev => (ev.target as HTMLInputElement).value)
+    .startWith(files[0]);
+
+  // send goals to the action
+  goalProxy$.imitate(
+    sources.DOM.select('#play').events('click')
+      .mapTo(src$.map(src => ({src})).take(1)).flatten()
+  );
+
+  // update the state
+  const state$ = xs.combine(
+    src$,
+    audioPlayerAction.status.startWith(null),
+    audioPlayerAction.result.startWith(null),
+  ).map(([src, status, result]) => {
+    return {
+      src,
+      status,
+      result,
+    }
   });
 
+  const vdom$ = state$.map(s => (
+    <div>
+      <h1>Cycle.js AudioPlayerAction component demo</h1>
+
+      <div>
+        <select id="src">{files.map(file => (file === s.src ? (
+          <option selected value={file}>{file}</option>
+        ) : (
+          <option value={file}>{file}</option>
+        )))}</select>
+        <button id="play">Play</button>
+      </div>
+
+      <div>
+        <div>
+          <pre>"status": {JSON.stringify(s.status, null, 2)}</pre>
+          <pre>"result": {JSON.stringify(s.result, null, 2)}</pre>
+        </div>
+      </div>
+    </div>
+  ));
   return {
     DOM: vdom$,
     AudioPlayer: audioPlayerAction.value,

@@ -32,8 +32,7 @@ function main(sources) {
   // send goals to the action
   goalProxy$.imitate(
     sources.DOM.select('#play').events('click')
-      .mapTo(params$.take(1))
-      .flatten()
+      .mapTo(params$.take(1)).flatten()
   );
 
   // update the state
