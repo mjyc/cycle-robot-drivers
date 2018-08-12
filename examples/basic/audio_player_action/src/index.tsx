@@ -9,7 +9,7 @@ import {
 
 
 function main(sources) {
-  const vdom$ = xs.of((<div>Cycle.js AudioPlayerAction component demo</div>));
+  const vdom$ = xs.of((<div>AudioPlayerAction component test</div>));
   const audio$ = xs.create();
   setTimeout(() => audio$.shamefullySendNext({
     src: require("../public/snd/IWohoo1.ogg")
@@ -17,7 +17,7 @@ function main(sources) {
   // test overwriting the current goal
   setTimeout(() => audio$.shamefullySendNext({
     src: require("../public/snd/IWohoo2.ogg")
-  }), 500);
+  }), 100);
   setTimeout(() => audio$.shamefullySendNext(null), 1000);
   setTimeout(() => audio$.shamefullySendNext({
     src: require("../public/snd/IWohoo3.ogg")
@@ -28,6 +28,16 @@ function main(sources) {
   const audioPlayerAction = AudioPlayerAction({
     goal: audio$,
     AudioPlayer: sources.AudioPlayer,
+  });
+
+  audioPlayerAction.value.addListener({
+    next: data => console.warn('value', data),
+  });
+  audioPlayerAction.status.addListener({
+    next: data => console.warn('status', data),
+  });
+  audioPlayerAction.result.addListener({
+    next: data => console.warn('result', data),
   });
 
   return {

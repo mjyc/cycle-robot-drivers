@@ -6,4 +6,4 @@ export {
 export {
   TwoSpeechbubblesAction,
   IsolatedTwoSpeechbubblesAction,
-} from './TwoSpeechbubbles'
+} from './TwoSpeechbubblesAction'

@@ -1,5 +1,6 @@
 import xs from 'xstream'
 import dropRepeats from 'xstream/extra/dropRepeats'
+import pairwise from 'xstream/extra/pairwise'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
@@ -70,7 +71,7 @@ export function SpeechRecognitionAction(sources) {
   type State = {
     goal: Goal,
     status: GoalStatus,
-    result: Result,
+    result: any,
   };
 
   const initialState: State = {
@@ -97,7 +98,6 @@ export function SpeechRecognitionAction(sources) {
           goal_id: state.status.goal_id,
           status: Status.PREEMPTING,
         };
-        statusListener && statusListener.next(status);
       } else if (action.type === 'GOAL') {
         goal = (action.value as Goal);
         status = {
@@ -127,10 +127,7 @@ export function SpeechRecognitionAction(sources) {
                && state.status.status === Status.ACTIVE) {
       return {
         ...state,
-        result: {
-          status: state.status,
-          result: (action.value as SpeechRecognitionEvent),
-        }
+        result: (action.value as SpeechRecognitionEvent),
       }
     } else if (action.type === 'ERROR'
                && state.status.status === Status.ACTIVE) {
@@ -141,10 +138,7 @@ export function SpeechRecognitionAction(sources) {
       return {
         ...state,
         status,
-        result: {
-          status,
-          result: (action.value as SpeechRecognitionError),
-        }
+        result: (action.value as SpeechRecognitionError),
       }
     } else if (action.type === 'END'
                && state.status.status === Status.ACTIVE) {
@@ -165,10 +159,7 @@ export function SpeechRecognitionAction(sources) {
                && state.status.status === Status.PREEMPTING) {
       return {
         ...state,
-        result: {
-          status: state.status,
-          result: (action.value as SpeechRecognitionError),
-        }
+        result: (action.value as SpeechRecognitionError),
       }
     } else if (action.type === 'END'
                && state.status.status === Status.PREEMPTING) {
@@ -182,9 +173,12 @@ export function SpeechRecognitionAction(sources) {
         result: state.result,
       });
       if (state.goal) { // the goal was canceled due to an arrival of a new goal
-        status.goal_id = state.goal.goal_id;
-        status.status = Status.PENDING;
-        statusListener && statusListener.next(status);
+        // status.goal_id = state.goal.goal_id;
+        // status.status = Status.PENDING;
+        statusListener && statusListener.next({
+          goal_id: state.goal.goal_id,
+          status: Status.PENDING,
+        });
       }
       return {
         ...state,
@@ -211,14 +205,16 @@ export function SpeechRecognitionAction(sources) {
     }
   }, initialState);
 
-  // Create output stream
-  const value$ = state$.map(state => {
+  const stateChange$ = state$.compose(pairwise)
+    .filter(([prev, cur]) => (cur.status.status !== prev.status.status))
+    .map(([prev, cur]) => cur);
+  const value$ = stateChange$.map((state: State) => {
     if (state.status.status === Status.PREEMPTING) {
       return null;  // cancel signal
-    } else if (state.goal) {
+    } else if (state.status.status === Status.PENDING) {
       return state.goal.goal;
     }
-  }).compose(dropRepeats());
+  }).filter(value => typeof value !== 'undefined');
 
   return {
     value: value$,

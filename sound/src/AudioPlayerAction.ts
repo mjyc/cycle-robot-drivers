@@ -1,10 +1,10 @@
 import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
+import pairwise from 'xstream/extra/pairwise'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  Goal, GoalStatus, Status, initGoal,
+  GoalID, Goal, GoalStatus, Status, Result, initGoal, generateGoalID, isEqual,
 } from '@cycle-robot-drivers/action'
 
 
@@ -24,7 +24,7 @@ export function AudioPlayerAction(sources) {
     } else {
       return {
         type: 'GOAL',
-        value: initGoal(goal),
+        value: (goal as any).goal_id ? goal : initGoal(goal),
       }
     }
   });
@@ -32,103 +32,133 @@ export function AudioPlayerAction(sources) {
     sources.AudioPlayer.events('ended').map(
       event => ({type: 'ENDED', value: event})
     ),
+    sources.AudioPlayer.events('pause').map(
+      event => ({type: 'PAUSE', value: event})
+    ),
   );
   const action$ = xs.merge(goal$, events$);
 
-  // Create status stream
-  let _status = null;
-  const status$ = xs.createWithMemory({
-    start: listener => {
-      _status = listener;
-    },
-    stop: () => {
-      _status = null;
-    },
-  });
-
-  // Create result stream
-  let _result = null;
-  const result$ = xs.create({
-    start: listener => {
-      _result = listener;
-    },
-    stop: () => {
-      _result = null;
-    },
-  });
 
   // Create state stream
+  enum ExtraStatus {
+    PREEMPTING = 'PREEMPTING',
+  };
+  type ExtendedStatus = Status | ExtraStatus;
   type State = {
-    goal: Goal,
-    status: GoalStatus,
+    goal_id: GoalID,
+    goal: any,
+    status: ExtendedStatus,
+    result: any,
+    newGoal: Goal,
   };
 
   const initialState: State = {
     goal: null,
-    status: {
-      goal_id: {
-        stamp: new Date,
-        id: ''
-      },
-      status: Status.SUCCEEDED,
-    },
+    goal_id: generateGoalID(),
+    status: Status.SUCCEEDED,
+    result: null,
+    newGoal: null,
   };
 
   const state$ = action$.fold((state: State, action: Action): State => {
-    console.debug('AudioPlayer state', state, 'action', action);
-    if (action.type === 'GOAL' || action.type === 'CANCEL') {
-      let goal: Goal = state.goal;
-      let status: GoalStatus = state.status;
-      if (state.status.status === Status.ACTIVE) {  // preempt the goal
-        status = {
-          goal_id: state.status.goal_id,
-          status: Status.PREEMPTED,
-        };
-        _status && _status.next(status);
-        _result && _result.next({
-          status: Status.PREEMPTED,
-          result: null,
-        });
-      }
-      if (action.type === 'GOAL') { // send a new goal
-        goal = (action.value as Goal);
-        status = {
-          goal_id: goal.goal_id,
+    console.debug('state', state, 'action', action);
+    if (state.status === Status.SUCCEEDED
+        || state.status === Status.PREEMPTED
+        || state.status === Status.ABORTED) {
+      if (action.type === 'GOAL') {
+        return {
+          goal_id: (action.value as Goal).goal_id,
+          goal: (action.value as Goal).goal,
           status: Status.ACTIVE,
+          result: null,
+          newGoal: null,
         };
-        _status && _status.next(status);
+      } else if (action.type === 'CANCEL') {
+        console.debug('Ignore CANCEL in DONE states');
+        return state;
       }
-      return {
-        goal,
-        status,
+    } else if (state.status === Status.ACTIVE) {
+      if (action.type === 'GOAL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+          newGoal: (action.value as Goal)
+        }
+      } else if (action.type === 'ENDED') {
+        return {
+          ...state,
+          status: Status.SUCCEEDED,
+          result: action.value,
+        }
+      } else if (action.type === 'CANCEL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+        }
+      } else if (action.type === 'PAUSE') {
+        console.debug('Ignore pause in ACTIVE states; used ENDED instead');
+        return state;
       }
-    } else if (action.type === 'ENDED' && state.status.status === Status.ACTIVE) {
-      const status: GoalStatus = {
-        goal_id: state.status.goal_id,
-        status: Status.SUCCEEDED,
-      };
-      _status && _status.next(status);
-      _result && _result.next({
-        status: status,
-        result: action.value,
-      });
-      return {
-        ...state,
-        status,
+    } else if (state.status === ExtraStatus.PREEMPTING) {
+      if (action.type === 'ENDED' || action.type === 'PAUSE') {
+        const preemptedState = {
+          ...state,
+          status: Status.PREEMPTED,
+          newGoal: null,
+        };
+        if (state.newGoal) {
+          state$.shamefullySendNext(preemptedState);
+          return {
+            goal_id: state.newGoal.goal_id,
+            goal: state.newGoal.goal,
+            status: Status.ACTIVE,
+            result: null,
+            newGoal: null,
+          };
+        } else {
+          return preemptedState;
+        }
       }
-    } else {
-      console.warn(`returning "state" as is for action.type: ${action.type}`);
-      return state;
     }
+    console.warn(
+      `Unhandled state.status ${state.status} action.type ${action.type}`
+    );
+    return state;
   }, initialState);
 
-  const value$ = state$.map(state => {
-    if (state.status.status === Status.PREEMPTING) {
-      return null;  // cancel signal
-    } else if (state.goal) {
-      return state.goal.goal;
-    }
-  }).compose(dropRepeats());
+
+  // Prepare outgoing streams
+  const stateStatusChanged$ = state$
+    .compose(pairwise)
+    .filter(([prev, cur]) => (
+      cur.status !== prev.status || !isEqual(cur.goal_id, prev.goal_id)
+    ))
+    .map(([prev, cur]) => cur);
+
+  const value$ = stateStatusChanged$
+    .filter(state => (state.status === Status.ACTIVE
+      || state.status === ExtraStatus.PREEMPTING))
+    .map(state => state.goal);
+  const status$ = stateStatusChanged$
+    .filter(state => state.status !== ExtraStatus.PREEMPTING)
+    .map(state => ({
+      goal_id: state.goal_id,
+      status: state.status,
+    } as GoalStatus));
+  const result$ = stateStatusChanged$
+    .filter(state => (state.status === Status.SUCCEEDED
+        || state.status === Status.PREEMPTED
+        || state.status === Status.ABORTED))
+    .map(state => ({
+      status: {
+        goal_id: state.goal_id,
+        status: state.status,
+      },
+      result: state.result,
+    } as Result));
+
 
   return {
     value: adapt(value$),

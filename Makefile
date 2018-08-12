@@ -5,7 +5,7 @@ TSC=$(BINDIR)/tsc
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action speech
+PACKAGES := action face speech sound vision
 
 all:
 	@echo $(foo)
@@ -37,5 +37,14 @@ lib:
 action:
 	@:
 
+face:
+	@:
+
+sound:
+	@:
+
 speech:
+	@:
+
+vision:
 	@:

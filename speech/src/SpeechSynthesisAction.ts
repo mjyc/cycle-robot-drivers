@@ -4,7 +4,7 @@ import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal,
+  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
 
@@ -24,7 +24,7 @@ export function SpeechSynthesisAction(sources) {
     } else {
       return {
         type: 'GOAL',
-        value: initGoal(goal),
+        value: (goal as any).goal_id ? goal : initGoal(goal),
       }
     }
   });
@@ -44,7 +44,7 @@ export function SpeechSynthesisAction(sources) {
 
   // Create state stream
   enum ExtraStatus {
-    PREEMPTING = 6,
+    PREEMPTING = 'PREEMPTING',
   };
   type ExtendedStatus = Status | ExtraStatus;
   type State = {
@@ -77,7 +77,7 @@ export function SpeechSynthesisAction(sources) {
           result: null,
         }
       } else if (action.type === 'CANCEL') {
-        console.debug('Ignore cancel in done states');
+        console.debug('Ignore CANCEL in DONE states');
         return state;
       }
     } else if (state.status === Status.PENDING) {
@@ -123,15 +123,22 @@ export function SpeechSynthesisAction(sources) {
       }
     } else if (state.status === ExtraStatus.PREEMPTING) {
       if (action.type === 'END') {
-        if (state.newGoal) {
-          setTimeout(() => {
-            goal$.shamefullySendNext({type: 'GOAL', value: state.newGoal});
-          }, 0);
-        }
-        return {
+        const preemptedState = {
           ...state,
           status: Status.PREEMPTED,
           newGoal: null,
+        }
+        if (state.newGoal) {
+          state$.shamefullySendNext(preemptedState);
+          return {
+            goal_id: state.newGoal.goal_id,
+            goal: state.newGoal.goal,
+            status: Status.PENDING,
+            result: null,
+            newGoal: null,
+          }
+        } else {
+          return preemptedState;
         }
       }
     }
@@ -152,14 +159,16 @@ export function SpeechSynthesisAction(sources) {
   const stateStatusChanged$ = state$
     .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .compose(pairwise)
-    .filter(([prevState, curState]) => (curState.status !== prevState.status))
-    .map(([prevState, curState]) => curState);
+    .filter(([prev, cur]) => (
+      cur.status !== prev.status || !isEqual(cur.goal_id, prev.goal_id)
+    ))
+    .map(([prev, cur]) => cur);
 
   const status$ = stateStatusChanged$
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
-    } as GoalStatus))
+    } as GoalStatus));
 
   const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED

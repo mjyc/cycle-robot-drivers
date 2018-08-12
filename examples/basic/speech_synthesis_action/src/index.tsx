@@ -9,7 +9,7 @@ import {
 
 
 function main(sources) {
-  const vdom$ = xs.of((<div>Cycle.js SpeechSynthesisAction component demo</div>));
+  const vdom$ = xs.of((<div>SpeechSynthesisAction component test</div>));
   const synth$ = xs.create();
   setTimeout(() => synth$.shamefullySendNext({text: 'Hello'}), 1);
   // test overwriting the current goal

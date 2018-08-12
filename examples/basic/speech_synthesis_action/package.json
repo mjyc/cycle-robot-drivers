@@ -14,12 +14,13 @@
   "devDependencies": {
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.2",
+    "file-loader": "^1.1.11",
     "ts-loader": "^3.5.0",
-    "typescript": "^2.9.2",
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.11.1"
   },
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server ./src/index.tsx",
+    "start:demo": "webpack-dev-server ./src/demo.tsx"
   }
 }

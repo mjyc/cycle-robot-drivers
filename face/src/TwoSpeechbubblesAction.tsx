@@ -79,14 +79,14 @@ function main(sources) {
       if (action.type === 'GOAL') {
         const goal = (action.value as Goal);
         return {
-          ...state,
           goal_id: goal.goal_id,
           goal: goal.goal,
           status: Status.ACTIVE,
           result: null,
+          newGoal: null,
         };
       } else if (action.type === 'CANCEL') {
-        console.debug('Ignore cancel in done states');
+        console.debug('Ignore CANCEL in DONE states');
         return state;
       }
     } else if (state.status === Status.ACTIVE) {
@@ -98,7 +98,7 @@ function main(sources) {
           newGoal: (action.value as Goal)
         };
       } else if (action.type === 'FIRST_RESULT') {
-        console.debug('Ignore FIRST_RESULT in active state');
+        console.debug('Ignore FIRST_RESULT in ACTIVE state');
         return state;
       } else if (action.type === 'SECOND_RESULT') {
         if (state.goal.type === 'ASK_QUESTION') {
@@ -106,10 +106,10 @@ function main(sources) {
             ...state,
             goal: null,
             status: Status.SUCCEEDED,
-            result: (action.value as Result),
+            result: (action.value as Result).result,
           };
         } else {
-          console.debug('Ignore SECOND_RESULT in active & !ask_question state');
+          console.debug('Ignore SECOND_RESULT in ACTIVE & !ASK_QUESTION state');
         return state;
         }
       } else if (action.type === 'CANCEL') {
@@ -122,18 +122,23 @@ function main(sources) {
     } else if (state.status === ExtraStatus.PREEMPTING) {
       if ((action.type === 'FIRST_RESULT' || action.type === 'SECOND_RESULT')
           && (action.value as Result).status.status === Status.PREEMPTED) {
-        if (state.newGoal) {
-          setTimeout(() => {
-            goal$.shamefullySendNext({type: 'GOAL', value: state.newGoal});
-          }, 0);
-        }
-        return {
+        const preemptedState = {
           ...state,
-          goal: null,
           status: Status.PREEMPTED,
-          result: (action.value as Result),  // null
+          result: (action.value as Result).result,  // null
           newGoal: null,
         };
+        if (state.newGoal) {
+          state$.shamefullySendNext(preemptedState);
+          return {
+            goal_id: state.newGoal.goal_id,
+            goal: state.newGoal.goal,
+            status: Status.ACTIVE,
+            result: null,
+            newGoal: null,
+          };
+        }
+        return preemptedState;
       }
     }
     console.warn(

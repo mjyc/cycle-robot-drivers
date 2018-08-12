@@ -1,5 +1,5 @@
 {
-  "name": "speechbubble_action",
+  "name": "two_speechbubbles_action",
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -20,6 +20,7 @@
     "webpack-dev-server": "^2.11.1"
   },
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server ./src/index.tsx",
+    "start:demo": "webpack-dev-server ./src/demo.tsx"
   }
 }
