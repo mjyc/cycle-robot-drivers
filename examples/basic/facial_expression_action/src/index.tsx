@@ -11,7 +11,7 @@ function main(sources) {
   const vdom$ = sources.FacialExpressionAction.DOM.map((face) => {
     return (
       <div>
-        <div>FacialExpressionAction driver test</div>
+        <p>FacialExpressionAction driver test</p>
         {face}
       </div>
     );

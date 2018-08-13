@@ -9,7 +9,7 @@ import {
 
 
 function main(sources) {
-  const vdom$ = xs.of((<div>AudioPlayerAction component test</div>));
+  const vdom$ = xs.of((<p>AudioPlayerAction component test</p>));
   const audio$ = xs.create();
   setTimeout(() => audio$.shamefullySendNext({
     src: require("../public/snd/IWohoo1.ogg")
