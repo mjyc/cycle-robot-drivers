@@ -173,21 +173,20 @@ export function SpeechRecognitionAction(sources) {
 
 
   // Prepare outgoing streams
-  const value$ = state$
-    .drop(1)
-    .filter(state => (state.status === Status.PENDING
-      || state.status === ExtraStatus.PREEMPTING))
-    .map(state => state.goal);
-
   const stateStatusChanged$ = state$
-    .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .compose(pairwise)
     .filter(([prev, cur]) => (
       cur.status !== prev.status || !isEqual(cur.goal_id, prev.goal_id)
     ))
     .map(([prev, cur]) => cur);
 
+  const value$ = stateStatusChanged$
+    .filter(state => (state.status === Status.PENDING
+      || state.status === ExtraStatus.PREEMPTING))
+    .map(state => state.goal);
+
   const status$ = stateStatusChanged$
+    .filter(state => state.status !== ExtraStatus.PREEMPTING)
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
