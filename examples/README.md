@@ -2,9 +2,9 @@
 
 A collection of small Cycle.js apps demonstrating cycle-robot-drivers usage.
 
-There are three folders:
+The three folders contains apps with different purposes:
 
-1. [basic](./basic) contains apps demonstrating usage of a single action
+1. [basic](./basic): apps demonstrating usage of a single action
 2. [intermediate](./intermediate) WIP
 3. [advanced](./advanced) WIP
 
