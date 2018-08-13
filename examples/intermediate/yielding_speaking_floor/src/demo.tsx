@@ -1,6 +1,5 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import fromEvent from 'xstream/extra/fromEvent'
 import delay from 'xstream/extra/delay'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
@@ -11,10 +10,24 @@ import {
   IsolatedSpeechRecognitionAction as SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech'
 
+const sentences = [
+  "Did you know Steve Jobs said Stay Hungry. Stay Foolish?",
+  "Did you know Pablo Picasso said Good Artists Copy, Great Artists Steal?",
+  "Did you know Paul Graham said Argue with idiots, and you become an idiot?",
+  "Did you know Oscar Wilde said Be yourself; everyone else is already taken?",
+  "Did you know Leonardo Da Vinci said Simplicity is the ultimate sophistication?"
+];
+
 
 function main(sources) {
+  const goals$ = xs.merge(
+    xs.of({text: sentences[Math.floor(Math.random()*5)], rate: 0.75}),
+    sources.SpeechRecognition.events('soundstart').debug(data => console.log('soundstart', data)).mapTo(null),
+    sources.SpeechRecognition.events('speechstart').debug(data => console.log('speechstart', data)).mapTo(null),
+  );
+
   const speechSynthesisAction = SpeechSynthesisAction({
-    goal: xs.of({text: 'say something say something say something say something say something say something', rate: 0.5}),
+    goal: goals$,
     SpeechSynthesis: sources.SpeechSynthesis,
   });
   const goal$ = xs.merge(
@@ -22,7 +35,7 @@ function main(sources) {
     sources.DOM.select('#cancel').events('click').mapTo(null),
   );
   const speechRecognitionAction = SpeechRecognitionAction({
-    goal: goal$,  // xs.of({}),
+    goal: xs.of({}).compose(delay(500)),
     SpeechRecognition: sources.SpeechRecognition,
   });
 
@@ -62,7 +75,7 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    // SpeechSynthesis: speechSynthesisAction.value,
+    SpeechSynthesis: speechSynthesisAction.value,
     SpeechRecognition: speechRecognitionAction.value,
   };
 }
