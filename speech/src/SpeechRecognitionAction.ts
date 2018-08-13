@@ -12,7 +12,7 @@ export function SpeechRecognitionAction(sources) {
   // Create action stream
   type Action = {
     type: string,
-    value: Goal | SpeechRecognitionError | SpeechRecognition | Event | string,
+    value: Goal | SpeechRecognitionError | SpeechRecognitionEvent | string,
   };
 
   const goal$ = xs.fromObservable(sources.goal).map(goal => {
