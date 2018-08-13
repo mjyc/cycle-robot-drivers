@@ -1,11 +1,10 @@
 import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
 import pairwise from 'xstream/extra/pairwise'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  Goal, GoalStatus, Status, Result, initGoal,
+  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
 
@@ -13,7 +12,7 @@ export function SpeechRecognitionAction(sources) {
   // Create action stream
   type Action = {
     type: string,
-    value: Goal | SpeechRecognitionError | SpeechRecognition | SpeechRecognitionEvent | Event,
+    value: Goal | SpeechRecognitionError | SpeechRecognition | Event | string,
   };
 
   const goal$ = xs.fromObservable(sources.goal).map(goal => {
@@ -46,178 +45,169 @@ export function SpeechRecognitionAction(sources) {
   const action$ = xs.merge(goal$, events$);
 
   // Create status stream
-  let statusListener = null;
-  const status$ = xs.createWithMemory({
-    start: listener => {
-      statusListener = listener;
-    },
-    stop: () => {
-      statusListener = null;
-    },
-  });
-
-  // Create result stream
-  let resultListener = null;
-  const result$ = xs.create({
-    start: listener => {
-      resultListener = listener;
-    },
-    stop: () => {
-      resultListener = null;
-    },
-  });
-
-  // Create state stream
+  enum ExtraStatus {
+    PREEMPTING = 'PREEMPTING',
+  };
+  type ExtendedStatus = Status | ExtraStatus;
   type State = {
-    goal: Goal,
-    status: GoalStatus,
+    goal_id: GoalID,
+    goal: any,
+    status: ExtendedStatus,
     result: any,
+    newGoal: Goal,
   };
 
   const initialState: State = {
     goal: null,
-    status: {
-      goal_id: {
-        stamp: new Date,
-        id: ''
-      },
-      status: Status.SUCCEEDED,
-    },
+    goal_id: generateGoalID(),
+    status: Status.SUCCEEDED,
     result: null,
+    newGoal: null,
   };
 
   const state$ = action$.fold((state: State, action: Action): State => {
-    console.debug('SpeechSynthesis state', state, 'action', action);
-    if (action.type === 'GOAL' || action.type === 'CANCEL') {
-      let goal: Goal = state.goal;
-      let status: GoalStatus = state.status;
-      if (state.status.status === Status.PENDING
-          || state.status.status === Status.ACTIVE) {  // preempt the goal
-        goal = (action.value as Goal); // null or a new goal (queuing)
-        status = {
-          goal_id: state.status.goal_id,
-          status: Status.PREEMPTING,
-        };
-      } else if (action.type === 'GOAL') {
-        goal = (action.value as Goal);
-        status = {
-          goal_id: goal.goal_id,
+    console.debug('state', state, 'action', action);
+    if (state.status === Status.SUCCEEDED
+        || state.status === Status.PREEMPTED
+        || state.status === Status.ABORTED) {
+      if (action.type === 'GOAL') {
+        return {
+          ...state,
+          goal_id: (action.value as Goal).goal_id,
+          goal: (action.value as Goal).goal,
           status: Status.PENDING,
+          result: null,
+        }
+      } else if (action.type === 'CANCEL') {
+        console.debug('Ignore CANCEL in DONE states');
+        return state;
+      }
+    } else if (state.status === Status.PENDING) {
+      if (action.type === 'GOAL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+          newGoal: (action.value as Goal)
+        }
+      } else if (action.type === 'START') {
+        return {
+          ...state,
+          status: Status.ACTIVE,
         };
-        statusListener && statusListener.next(status);
-      } // else cancel called when no goal is pending or running, then do nothing
-      return {
-        ...state,
-        goal,
-        status,
-        result: null,
-      };
-    } else if (action.type === 'START' && state.status.status === Status.PENDING) {
-      const status: GoalStatus = {
-        goal_id: state.status.goal_id,
-        status: Status.ACTIVE,
-      };
-      statusListener && statusListener.next(status);
-      return {
-        ...state,
-        status,
-        result: null,
+      } else if (action.type === 'CANCEL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+        }
       }
-    } else if (action.type === 'RESULT'
-               && state.status.status === Status.ACTIVE) {
-      return {
-        ...state,
-        result: (action.value as SpeechRecognitionEvent),
+    } else if (state.status === Status.ACTIVE) {
+      if (action.type === 'GOAL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+          newGoal: (action.value as Goal)
+        }
+      } else if (action.type === 'RESULT') {
+        const event = (action.value as SpeechRecognitionEvent);
+        const last = event.results.length - 1;
+        const result = event.results[last][0].transcript;
+        return {
+          ...state,
+          result,
+        }
+      } else if (action.type === 'ERROR') {
+        const event = (action.value as SpeechRecognitionError);
+        return {
+          ...state,
+          result: event.error,  // "no-speech"
+        }
+      } else if (action.type === 'END') {
+        // set result to '' when ended without hearing anything
+        return {
+          ...state,
+          status: Status.SUCCEEDED,
+          result: state.result ? state.result : '',
+        }
+      } else if (action.type === 'CANCEL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+        }
       }
-    } else if (action.type === 'ERROR'
-               && state.status.status === Status.ACTIVE) {
-      const status = {
-        goal_id: state.status.goal_id,
-        status: null,  // aborting
+    } else if (state.status === ExtraStatus.PREEMPTING) {
+      if (action.type === 'END') {
+        const preemptedState = {
+          ...state,
+          status: Status.PREEMPTED,
+          newGoal: null,
+        }
+        if (state.newGoal) {
+          state$.shamefullySendNext(preemptedState);
+          return {
+            goal_id: state.newGoal.goal_id,
+            goal: state.newGoal.goal,
+            status: Status.PENDING,
+            result: null,
+            newGoal: null,
+          }
+        } else {
+          return preemptedState;
+        }
+      } else if (action.type === 'ERROR') {
+        console.debug('Ignore ERROR in PREEMPTING state');
+        return state;
+      } else if (action.type === 'START') {
+        throw Error('Cannot start recognition while trying to preempt it; ' +
+          'probably sent two goals too close to each other');
       }
-      return {
-        ...state,
-        status,
-        result: (action.value as SpeechRecognitionError),
-      }
-    } else if (action.type === 'END'
-               && state.status.status === Status.ACTIVE) {
-      const status: GoalStatus = {
-        goal_id: state.status.goal_id,
-        status: Status.SUCCEEDED,
-      };
-      statusListener && statusListener.next(status);
-      resultListener && resultListener.next({
-        status: status,
-        result: state.result,
-      });
-      return {
-        ...state,
-        status,
-      }
-    } else if (action.type === 'ERROR'
-               && state.status.status === Status.PREEMPTING) {
-      return {
-        ...state,
-        result: (action.value as SpeechRecognitionError),
-      }
-    } else if (action.type === 'END'
-               && state.status.status === Status.PREEMPTING) {
-      let status: GoalStatus = {
-        goal_id: state.status.goal_id,
-        status: Status.PREEMPTED,
-      };
-      statusListener && statusListener.next(status);
-      resultListener && resultListener.next({
-        status,
-        result: state.result,
-      });
-      if (state.goal) { // the goal was canceled due to an arrival of a new goal
-        // status.goal_id = state.goal.goal_id;
-        // status.status = Status.PENDING;
-        statusListener && statusListener.next({
-          goal_id: state.goal.goal_id,
-          status: Status.PENDING,
-        });
-      }
-      return {
-        ...state,
-        status,
-      }
-    } else if (action.type === 'END'
-               && state.status.status === null) {  // aborting
-      const status: GoalStatus = {
-        goal_id: state.status.goal_id,
-        status: Status.ABORTED,
-      };
-      statusListener && statusListener.next(status);
-      resultListener && resultListener.next({
-        status,
-        result: state.result,
-      });
-      return {
-        ...state,
-        status,
-      }
-    } else {
-      console.warn(`returning "state" as is for action.type: ${action.type}`);
-      return state;
     }
+    console.warn(
+      `Unhandled state.status ${state.status} action.type ${action.type}`
+    );
+    return state;
   }, initialState);
 
-  const stateChange$ = state$.compose(pairwise)
-    .filter(([prev, cur]) => (cur.status.status !== prev.status.status))
+
+  // Prepare outgoing streams
+  const value$ = state$
+    .drop(1)
+    .filter(state => (state.status === Status.PENDING
+      || state.status === ExtraStatus.PREEMPTING))
+    .map(state => state.goal);
+
+  const stateStatusChanged$ = state$
+    .filter(state => state.status !== ExtraStatus.PREEMPTING)
+    .compose(pairwise)
+    .filter(([prev, cur]) => (
+      cur.status !== prev.status || !isEqual(cur.goal_id, prev.goal_id)
+    ))
     .map(([prev, cur]) => cur);
-  const value$ = stateChange$.map((state: State) => {
-    if (state.status.status === Status.PREEMPTING) {
-      return null;  // cancel signal
-    } else if (state.status.status === Status.PENDING) {
-      return state.goal.goal;
-    }
-  }).filter(value => typeof value !== 'undefined');
+
+  const status$ = stateStatusChanged$
+    .map(state => ({
+      goal_id: state.goal_id,
+      status: state.status,
+    } as GoalStatus));
+
+  const result$ = stateStatusChanged$
+    .filter(state => (state.status === Status.SUCCEEDED
+        || state.status === Status.PREEMPTED
+        || state.status === Status.ABORTED))
+    .map(state => ({
+      status: {
+        goal_id: state.goal_id,
+        status: state.status,
+      },
+      result: state.result,
+    } as Result));
+
 
   return {
-    value: value$,
+    value: adapt(value$),
     status: adapt(status$),
     result: adapt(result$),
   };
