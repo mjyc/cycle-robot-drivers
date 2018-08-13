@@ -139,6 +139,7 @@ export function SpeechbubbleAction(sources) {
       goal_id: state.goal_id,
       status: state.status,
     } as GoalStatus))
+
   const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED
         || state.status === Status.PREEMPTED

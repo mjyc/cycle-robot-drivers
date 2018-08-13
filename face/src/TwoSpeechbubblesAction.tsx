@@ -150,11 +150,10 @@ function main(sources) {
   // Prepare outgoing streams
   const stateStatusChanged$ = state$
     .compose(pairwise)
-    .filter(([prevState, curState]) => (
-      curState.status !== prevState.status
-      || !isEqual(curState.goal_id, prevState.goal_id)
-     ))
-    .map(([prevState, curState]) => curState);
+    .filter(([prev, cur]) => (
+      cur.status !== prev.status || !isEqual(cur.goal_id, prev.goal_id)
+    ))
+    .map(([prev, cur]) => cur);
 
   const status$ = stateStatusChanged$
     .filter(state => state.status !== ExtraStatus.PREEMPTING)
