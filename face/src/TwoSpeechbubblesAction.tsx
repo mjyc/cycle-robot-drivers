@@ -51,16 +51,11 @@ function main(sources) {
   );
 
   // Update the state
-  enum ExtraStatus {
-    PREEMPTING = 'PREEMPTING',
-  };
-  type ExtendedStatus = Status | ExtraStatus;
   type State = {
     goal_id: GoalID,
     goal: any,
-    status: ExtendedStatus,
+    status: Status,
     result: any,
-    newGoal: Goal,
   };
 
   const initialState: State = {
@@ -68,7 +63,6 @@ function main(sources) {
     goal_id: generateGoalID(),
     status: Status.SUCCEEDED,
     result: null,
-    newGoal: null,
   };
 
   const state$ = action$.fold((state: State, action: Action) => {
@@ -83,19 +77,29 @@ function main(sources) {
           goal: goal.goal,
           status: Status.ACTIVE,
           result: null,
-          newGoal: null,
         };
       } else if (action.type === 'CANCEL') {
         console.debug('Ignore CANCEL in DONE states');
         return state;
+      } else if (
+        action.type === 'FIRST_RESULT' || action.type === 'SECOND_RESULT'
+      ) {
+        console.debug('Ignore FIRST_RESULT and SECOND_RESULT in DONE states');
+        return state;
       }
     } else if (state.status === Status.ACTIVE) {
       if (action.type === 'GOAL') {
-        return {
+        state$.shamefullySendNext({
           ...state,
           goal: null,
-          status: ExtraStatus.PREEMPTING,
-          newGoal: (action.value as Goal)
+          status: Status.PREEMPTED,
+        });
+        const goal = (action.value as Goal);
+        return {
+          goal_id: goal.goal_id,
+          goal: goal.goal,
+          status: Status.ACTIVE,
+          result: null,
         };
       } else if (action.type === 'FIRST_RESULT') {
         console.debug('Ignore FIRST_RESULT in ACTIVE state');
@@ -116,29 +120,8 @@ function main(sources) {
         return {
           ...state,
           goal: null,
-          status: ExtraStatus.PREEMPTING,
-        };
-      }
-    } else if (state.status === ExtraStatus.PREEMPTING) {
-      if ((action.type === 'FIRST_RESULT' || action.type === 'SECOND_RESULT')
-          && (action.value as Result).status.status === Status.PREEMPTED) {
-        const preemptedState = {
-          ...state,
           status: Status.PREEMPTED,
-          result: (action.value as Result).result,  // null
-          newGoal: null,
         };
-        if (state.newGoal) {
-          state$.shamefullySendNext(preemptedState);
-          return {
-            goal_id: state.newGoal.goal_id,
-            goal: state.newGoal.goal,
-            status: Status.ACTIVE,
-            result: null,
-            newGoal: null,
-          };
-        }
-        return preemptedState;
       }
     }
     console.warn(
@@ -156,7 +139,7 @@ function main(sources) {
     .map(([prev, cur]) => cur);
 
   const status$ = stateStatusChanged$
-    .filter(state => state.status !== ExtraStatus.PREEMPTING)
+    .filter(state => state.status !== Status.PREEMPTING)
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
@@ -174,48 +157,48 @@ function main(sources) {
       result: state.result,
     } as Result));
 
-  const targets = {
-    firstGoal: stateStatusChanged$.map(state => {
-        if (!state.goal) {
-          return null;
-        }
-        switch (state.goal.type) {
-          case 'SET_MESSAGE':
-            return {
-              goal_id: state.goal_id,
-              goal: {
-                type: 'MESSAGE',
-                value: state.goal.value,
-              },
-            };
-          case 'ASK_QUESTION':
-            return {
-              goal_id: state.goal_id,
-              goal: {
-                type: 'MESSAGE',
-                value: state.goal.value[0],
-              },
-            };
+  const goals$ = stateStatusChanged$.filter(state => (
+    state.status === Status.ACTIVE || state.status === Status.PREEMPTED
+  )).map(state => {
+    if (!state.goal) {
+      return {
+        first: null,
+        second: null,
+      };
+    }
+    switch (state.goal.type) {
+      case 'SET_MESSAGE':
+        return {
+          first: {
+            goal_id: state.goal_id,
+            goal: {
+              type: 'MESSAGE',
+              value: state.goal.value,
+            },
+          },
+          second: null,
         };
-      }),
-    secondGoal: stateStatusChanged$.map(state => {
-      if (!state.goal) {
-        return null;
-      }
-      switch (state.goal.type) {
-        case 'SET_MESSAGE':
-          return null;
-        case 'ASK_QUESTION':
-          return {
+      case 'ASK_QUESTION':
+        return {
+          first: {
+            goal_id: state.goal_id,
+            goal: {
+              type: 'MESSAGE',
+              value: state.goal.value[0],
+            },
+          },
+          second: {
             goal_id: state.goal_id,
             goal: {
               type: 'CHOICE',
               value: state.goal.value[1],
             },
-          };
-      };
-    }),
-  };
+          },
+        };
+    };
+  });
+  const firstGoal$ = goals$.map(state => state.first);
+  const secondGoal$ = goals$.map(state => state.second);
 
   return {
     DOM: adapt(xs.combine(first.DOM, second.DOM).map(([fdom, sdom]) => (
@@ -230,7 +213,10 @@ function main(sources) {
     ))),
     status: adapt(status$),
     result: adapt(result$),
-    targets: targets,
+    targets: {
+      firstGoal: firstGoal$,
+      secondGoal: secondGoal$
+    },
   };
 }
 
