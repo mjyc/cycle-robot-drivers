@@ -11,7 +11,10 @@ import {
 
 
 function main(sources) {
-  const goal$ = sources.DOM.select('#start').events('click').mapTo({})
+  const goal$ = xs.merge(
+    sources.DOM.select('#start').events('click').mapTo({}),
+    sources.DOM.select('#cancel').events('click').mapTo(null),
+  );
   const speechRecognitionAction = SpeechRecognitionAction({
     goal: goal$,
     SpeechRecognition: sources.SpeechRecognition,
@@ -36,6 +39,7 @@ function main(sources) {
         <h3>Controls</h3>
         <div>
           <button id="start">Start</button>
+          <button id="cancel">Cancel</button>
         </div>
       </div>
 
