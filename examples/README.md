@@ -11,6 +11,7 @@ The three folders contains apps with different purposes:
 To run an example app, do
 
 ```
+# build all packages by running `make` at root dir
 cd basic/speech_synthesis_action/
 npm install
 npm run start:demo

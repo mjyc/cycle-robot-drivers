@@ -10,4 +10,4 @@ This repo contains one utility package and four robot action packages organized 
 4. [speech](./speech): speech synthesis and recognition
 5. [vision](./vision): pose detection
 
-Build all drivers by simply running `make` from the root folder.
+Build all packages by simply running `make` from the root folder. To get your hands dirty, check out our [examples](./examples).
