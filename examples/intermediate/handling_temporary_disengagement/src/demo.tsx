@@ -1,6 +1,6 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import pairwise from 'xstream/extra/pairwise';
+import dropRepeats from 'xstream/extra/dropRepeats';
 import fromEvent from 'xstream/extra/fromEvent'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
@@ -74,13 +74,8 @@ function main(sources) {
     return count;
   }, -1);
 
-  const numPosesChanged$ = numPoses$
-    .compose(pairwise)
-    .filter(([prev, cur]) => prev !== cur)
-    .map(([prev, cur]) => cur);
-  const countChanged$ = count$
-    .compose(pairwise).filter(([prev, cur]) => prev !== cur)
-    .map(([prev, cur]) => cur);
+  const numPosesChanged$ = numPoses$.compose(dropRepeats());
+  const countChanged$ = count$.compose(dropRepeats());
   goalProxy$.imitate(
     xs.merge(
       countChanged$
