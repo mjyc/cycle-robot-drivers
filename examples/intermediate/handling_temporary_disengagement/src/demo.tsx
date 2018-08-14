@@ -58,8 +58,13 @@ function main(sources) {
 
   const count$ = speechSynthesisAction.result
     .filter(result => (result.status.status === "SUCCEEDED"))
-    .fold((acc, x) => {
-      return acc + 1;
+    .fold((count, result) => {
+      if (result.status.status === "SUCCEEDED") {
+        return count + 1;
+      } else if (result.status.status === "PREEMPTED") {
+        return count - 1;
+      }
+      return count;
     }, 0).debug(data => console.warn('count', data));
 
   goalProxy$.imitate(
@@ -68,14 +73,11 @@ function main(sources) {
         .filter(count => count < sentences.length)
         .map(cnt => ({text: sentences[cnt], rate: 0.8})),
       sources.PoseDetection.poses
-        .map(poses => (poses.filter(pose => pose.score > 0.2)))
         .filter(poses => poses.length === 0).mapTo(null),
       sources.PoseDetection.poses
-        .map(poses => (poses.filter(pose => pose.score > 0.2)))
         .map(poses => (poses.length))
         .compose(pairwise)
         .filter(([prev, cur]) => (prev === 0 && cur === 1))
-        .debug(data => console.error(data))
         .mapTo({text: 'I\'ll resume the story', rate: 0.8}),
     )
   );
