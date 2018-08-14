@@ -83,9 +83,9 @@ function setupGui(cameras, net, guiState) {
 
   let multi = gui.addFolder('Multi Pose Detection');
   multi.add(guiState.multiPoseDetection, 'maxPoseDetections')
-      .min(1)
-      .max(20)
-      .step(1);
+    .min(1)
+    .max(20)
+    .step(1);
   multi.add(guiState.multiPoseDetection, 'minPoseConfidence', 0.0, 1.0);
   multi.add(guiState.multiPoseDetection, 'minPartConfidence', 0.0, 1.0);
   // nms Radius: controls the minimum distance between poses that are returned
@@ -250,6 +250,7 @@ export function makePoseDetectionDriver() {
         gui.domElement.style.setProperty('top', '0px');
         gui.domElement.style.setProperty('right', '0px');
         document.querySelector('#pose-detection').appendChild(gui.domElement);
+        gui.closed = true;
       }
     });
 
