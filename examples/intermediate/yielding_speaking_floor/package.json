@@ -21,7 +21,6 @@
     "webpack-dev-server": "^2.11.1"
   },
   "scripts": {
-    "start": "webpack-dev-server ./src/index.tsx",
     "start:demo": "webpack-dev-server ./src/demo.tsx"
   }
 }
