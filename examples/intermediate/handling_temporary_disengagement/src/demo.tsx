@@ -1,8 +1,10 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import pairwise from 'xstream/extra/pairwise';
+import fromEvent from 'xstream/extra/fromEvent'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
+import {timeDriver} from '@cycle/time';
 import {
   makeSpeechSynthesisDriver,
   IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
@@ -57,50 +59,59 @@ function main(sources) {
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
-  const count$ = speechSynthesisAction.result.debug(data => console.warn('result', data))
-    .fold((count, result) => {
-      if (result.status.status === "SUCCEEDED") {
-        return count + 1;
-      }
-       else if (result.status.status === "PREEMPTED") {
-        return count - 1;
-      }
-      return count;
-    }, 0);
-  const numPosesChanged$ = sources.PoseDetection.poses
-    .map(poses => (poses.length))
+  const numPoses$ = sources.PoseDetection.poses.map(poses => poses.length);
+  const count$ = xs.merge(
+    speechSynthesisAction.result,
+    numPoses$  // wait until the pose detector starts
+      .filter(numPoses => numPoses === 1)
+      .take(1).mapTo({status: {status: 'START'}}),
+  ).fold((count, result: any) => {
+    if (result.status.status === "START") {
+      return 0;
+    } else if (result.status.status === "SUCCEEDED") {
+      return count + 1;
+    }
+    return count;
+  }, -1);
+
+  const numPosesChanged$ = numPoses$
     .compose(pairwise)
     .filter(([prev, cur]) => prev !== cur)
     .map(([prev, cur]) => cur);
+  const countChanged$ = count$
+    .compose(pairwise).filter(([prev, cur]) => prev !== cur)
+    .map(([prev, cur]) => cur);
   goalProxy$.imitate(
     xs.merge(
-      count$
+      countChanged$
         .filter(count => count >= 0 && count < sentences.length)
         .map(cnt => ({text: sentences[cnt], rate: 0.8})),
-      numPosesChanged$.filter(numPoses => numPoses === 0).mapTo(null),
-      numPosesChanged$.filter(numPoses => numPoses === 1).mapTo({
-        text: 'I\'ll resume the story', rate: 0.8
-      }),
+      numPosesChanged$.filter(numPoses => numPoses === 0)  // disappeared
+        .mapTo(null),
+      numPosesChanged$.filter(numPoses => numPoses === 1)  // appeared
+        .mapTo({text: 'So', rate: 0.8}),
     )
   );
 
+  const styles = {code: {"background-color": "#f6f8fa"}}
   const vdom$ = xs.combine(
     sources.PoseDetection.poses.startWith([]),
     sources.PoseDetection.DOM,
-  ).map(([p, d]) => (
+    numPoses$.startWith(-1)
+  ).map(([p, d, n]) => (
     <div>
-      <h1>PoseDetection component demo</h1>
+      <div>
+        {(n === -1) ? (<p>Loading...</p>) : (n === 1)
+          ? (<p>(Try hiding from the camera)</p>)
+          : (<p>(Come back to the camera whenever you are ready)</p>)}
+      </div>
 
       <div>
         {d}
       </div>
 
       <div>
-        <h3>Driver outputs</h3>
-        <div>
-          <pre>"poses": {JSON.stringify(p, null, 2)}
-          </pre>
-        </div>
+        <pre style={styles.code}>"poses": {JSON.stringify(p, null, 2)}</pre>
       </div>
     </div>
   ));
@@ -111,7 +122,7 @@ function main(sources) {
       algorithm: 'single-pose',
       singlePoseDetection: {minPoseConfidence: 0.2},
     }),
-    SpeechSynthesis: speechSynthesisAction.value.debug(data => console.warn('value', data)),
+    SpeechSynthesis: speechSynthesisAction.value,
   };
 }
 
@@ -119,4 +130,5 @@ run(main, {
   DOM: makeDOMDriver('#app'),
   PoseDetection: makePoseDetectionDriver(),
   SpeechSynthesis: makeSpeechSynthesisDriver(),
+  Time: timeDriver,
 });
