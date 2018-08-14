@@ -211,9 +211,14 @@ export function makePoseDetectionDriver() {
           }
         }
       });
+      const outPoses = poses
+        .filter(pose => pose.score >= minPoseConfidence)
+        .map(pose => (
+          pose.keypoints.filter(keypoint => keypoint.score >= minPartConfidence)
+        ));
 
       if (posesListener) {
-        posesListener(poses);
+        posesListener(outPoses);
 
         // End monitoring code for frames per second
         stats.end();
