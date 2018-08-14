@@ -122,7 +122,17 @@ export function SpeechSynthesisAction(sources) {
         }
       }
     } else if (state.status === ExtraStatus.PREEMPTING) {
-      if (action.type === 'END') {
+      if (action.type === 'GOAL') {
+        return {
+          ...state,
+          goal: null,
+          status: ExtraStatus.PREEMPTING,
+          newGoal: (action.value as Goal)
+        }
+      } else if (action.type === 'CANCEL') {
+        console.debug('Ignore CANCEL in PREEMPTING states');
+        return state;
+      } else if (action.type === 'END') {
         const preemptedState = {
           ...state,
           status: Status.PREEMPTED,
