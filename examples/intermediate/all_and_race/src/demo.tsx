@@ -23,33 +23,33 @@ const files = [
 function main(sources) {
   const goalsProxy$ = xs.create();
   const audioPlayerAction = AudioPlayerAction({
-    goal: goalsProxy$.map((goals: any) => goals.sound),
+    goal: goalsProxy$.map((goals: any) => goals.audio),
     AudioPlayer: sources.AudioPlayer,
   });
   const speechSynthesisAction = SpeechSynthesisAction({
-    goal: goalsProxy$.map((goals: any) => goals.synth),
+    goal: goalsProxy$.map((goals: any) => goals.speech),
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
   const params$ = xs.combine(
-    sources.DOM.select('#text1').events('focusout')
-      .map(ev => (ev.target as HTMLInputElement).value)
-      .startWith(''),
-    sources.DOM.select('#text2').events('focusout')
-      .map(ev => (ev.target as HTMLInputElement).value)
-      .startWith(''),
     sources.DOM.select('#src1').events('change')
       .map(ev => (ev.target as HTMLInputElement).value)
       .startWith(files[0]),
     sources.DOM.select('#src2').events('change')
       .map(ev => (ev.target as HTMLInputElement).value)
       .startWith(files[0]),
+    sources.DOM.select('#text1').events('focusout')
+      .map(ev => (ev.target as HTMLInputElement).value)
+      .startWith(''),
+    sources.DOM.select('#text2').events('focusout')
+      .map(ev => (ev.target as HTMLInputElement).value)
+      .startWith(''),
   ).remember();
 
   const allGoals$ = sources.DOM.select('#all').events('click')
     .mapTo(params$.take(1)).flatten().map(params => ({
-      synth: initGoal({text: params[0]}),
-      sound: initGoal({src: params[2]}),
+      audio: initGoal({src: params[0]}),
+      speech: initGoal({text: params[2]}),
     }));
   goalsProxy$.imitate(allGoals$);
   // goalsProxy$.addListener({next: data => console.log('goalProxy', data)})
@@ -58,14 +58,19 @@ function main(sources) {
     params$,
     speechSynthesisAction.status.startWith(null),
     speechSynthesisAction.result.startWith(null),
-  ).map(([params, status, result]) => {
+    audioPlayerAction.status.startWith(null),
+    audioPlayerAction.result.startWith(null),
+  ).map(([params, audioStatus, audioResult, speechStatus, speechResult]) => {
     return {
       params,
-      status,
-      result,
+      audioStatus,
+      audioResult,
+      speechStatus,
+      speechResult,
     }
   });
-  const vdom$ = state$.map(state => (
+  const styles = {code: {"background-color": "#f6f8fa"}}
+  const vdom$ = state$.map(s => (
     <div>
       <div>
         <h3>Inputs</h3>
@@ -76,26 +81,26 @@ function main(sources) {
             <th>Joint action 2</th>
           </tr>
           <tr>
+            <th>Play</th>
+            <td>
+              <select id="src1">{files.map(file => (s.params[2] === file ? (
+                <option selected value={file}>{file}</option>
+              ) : (
+                <option value={file}>{file}</option>
+              )))}</select>
+            </td>
+            <td>
+              <select id="src2">{files.map(file => (s.params[3] === file ? (
+                <option selected value={file}>{file}</option>
+              ) : (
+                <option value={file}>{file}</option>
+              )))}</select>
+            </td>
+          </tr>
+          <tr>
             <th>Say</th>
             <td><input id="text1" type="text"></input></td>
             <td><input id="text2" type="text"></input></td>
-          </tr>
-          <tr>
-            <th>Play</th>
-            <td>
-              <select id="src1">{files.map(file => (state.params[2] === file ? (
-                <option selected value={file}>{file}</option>
-              ) : (
-                <option value={file}>{file}</option>
-              )))}</select>
-            </td>
-            <td>
-              <select id="src2">{files.map(file => (state.params[3] === file ? (
-                <option selected value={file}>{file}</option>
-              ) : (
-                <option value={file}>{file}</option>
-              )))}</select>
-            </td>
           </tr>
         </table>
       </div>
@@ -119,8 +124,22 @@ function main(sources) {
           </tr>
           <tr>
             <td>Outputs</td>
-            <td>1</td>
-            <td>2</td>
+            <td>
+              <pre style={styles.code}>
+                "status": {JSON.stringify(s.audioStatus, null, 2)}
+              </pre>
+              <pre style={styles.code}>
+                "result": {JSON.stringify(s.audioResult, null, 2)}
+              </pre>
+            </td>
+            <td>
+              <pre style={styles.code}>
+                "status": {JSON.stringify(s.speechStatus, null, 2)}
+              </pre>
+              <pre style={styles.code}>
+                "result": {JSON.stringify(s.speechResult, null, 2)}
+              </pre>
+            </td>
             <td>3</td>
           </tr>
         </table>
@@ -130,8 +149,8 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    AudioPlayer: audioPlayerAction.value.debug(d => console.warn('sound.value', d)),
-    SpeechSynthesis: speechSynthesisAction.value.debug(d => console.warn('synth.value',d)),
+    AudioPlayer: audioPlayerAction.value.debug(d => console.warn('audio.value', d)),
+    SpeechSynthesis: speechSynthesisAction.value.debug(d => console.warn('speech.value',d)),
   };
 }
 
