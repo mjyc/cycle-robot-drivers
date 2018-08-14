@@ -9,6 +9,7 @@ import {
 } from '@cycle-robot-drivers/speech'
 import {makePoseDetectionDriver} from '@cycle-robot-drivers/vision'
 
+// a random story from https://www.plot-generator.org.uk/story/
 const sentences = [
   "Charity Thomas had always loved derelict New York with its wasteful, warty waters.",
   "It was a place where she felt active.",
@@ -56,29 +57,30 @@ function main(sources) {
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
-  const count$ = speechSynthesisAction.result
-    .filter(result => (result.status.status === "SUCCEEDED"))
+  const count$ = speechSynthesisAction.result.debug(data => console.warn('result', data))
     .fold((count, result) => {
       if (result.status.status === "SUCCEEDED") {
         return count + 1;
-      } else if (result.status.status === "PREEMPTED") {
+      }
+       else if (result.status.status === "PREEMPTED") {
         return count - 1;
       }
       return count;
-    }, 0).debug(data => console.warn('count', data));
-
+    }, 0);
+  const numPosesChanged$ = sources.PoseDetection.poses
+    .map(poses => (poses.length))
+    .compose(pairwise)
+    .filter(([prev, cur]) => prev !== cur)
+    .map(([prev, cur]) => cur);
   goalProxy$.imitate(
     xs.merge(
       count$
-        .filter(count => count < sentences.length)
+        .filter(count => count >= 0 && count < sentences.length)
         .map(cnt => ({text: sentences[cnt], rate: 0.8})),
-      sources.PoseDetection.poses
-        .filter(poses => poses.length === 0).mapTo(null),
-      sources.PoseDetection.poses
-        .map(poses => (poses.length))
-        .compose(pairwise)
-        .filter(([prev, cur]) => (prev === 0 && cur === 1))
-        .mapTo({text: 'I\'ll resume the story', rate: 0.8}),
+      numPosesChanged$.filter(numPoses => numPoses === 0).mapTo(null),
+      numPosesChanged$.filter(numPoses => numPoses === 1).mapTo({
+        text: 'I\'ll resume the story', rate: 0.8
+      }),
     )
   );
 
