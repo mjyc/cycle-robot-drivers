@@ -52,7 +52,6 @@ function main(sources) {
     }
   });
 
-  const styles = {code: {"background-color": "#f6f8fa"}}
   const vdom$ = state$.map(s => (
     <div>
       <div>
