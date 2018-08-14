@@ -4,7 +4,8 @@ import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal, isEqual,
+  GoalID, Goal, GoalStatus, Status, Result,
+  generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
 

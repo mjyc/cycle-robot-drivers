@@ -1,7 +1,8 @@
 import xs from 'xstream'
 import {mockTimeSource} from '@cycle/time';
 import {
-  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal,
+  GoalID, GoalStatus, Status, 
+  generateGoalID,
 } from '@cycle-robot-drivers/action'
 import {SpeechSynthesisAction} from '../src/SpeechSynthesisAction';
 
