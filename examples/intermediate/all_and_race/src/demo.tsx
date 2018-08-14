@@ -3,10 +3,15 @@ import xs from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {timeDriver} from '@cycle/time';
+import {initGoal, isEqual} from '@cycle-robot-drivers/action';
 import {
   makeSpeechSynthesisDriver,
   IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
 } from '@cycle-robot-drivers/speech'
+import {
+  makeAudioPlayerDriver,
+  IsolatedAudioPlayerAction as AudioPlayerAction,
+} from '@cycle-robot-drivers/sound'
 
 const files = [
   require('../public/snd/IWohoo1.ogg'),
@@ -16,7 +21,51 @@ const files = [
 
 
 function main(sources) {
-  const vdom$ = xs.of(null).map(s => (
+  const goalsProxy$ = xs.create();
+  const audioPlayerAction = AudioPlayerAction({
+    goal: goalsProxy$.map((goals: any) => goals.sound),
+    AudioPlayer: sources.AudioPlayer,
+  });
+  const speechSynthesisAction = SpeechSynthesisAction({
+    goal: goalsProxy$.map((goals: any) => goals.synth),
+    SpeechSynthesis: sources.SpeechSynthesis,
+  });
+
+  const params$ = xs.combine(
+    sources.DOM.select('#text1').events('focusout')
+      .map(ev => (ev.target as HTMLInputElement).value)
+      .startWith(''),
+    sources.DOM.select('#text2').events('focusout')
+      .map(ev => (ev.target as HTMLInputElement).value)
+      .startWith(''),
+    sources.DOM.select('#src1').events('change')
+      .map(ev => (ev.target as HTMLInputElement).value)
+      .startWith(files[0]),
+    sources.DOM.select('#src2').events('change')
+      .map(ev => (ev.target as HTMLInputElement).value)
+      .startWith(files[0]),
+  ).remember();
+
+  const allGoals$ = sources.DOM.select('#all').events('click')
+    .mapTo(params$.take(1)).flatten().map(params => ({
+      synth: initGoal({text: params[0]}),
+      sound: initGoal({src: params[2]}),
+    }));
+  goalsProxy$.imitate(allGoals$);
+  // goalsProxy$.addListener({next: data => console.log('goalProxy', data)})
+
+  const state$ = xs.combine(
+    params$,
+    speechSynthesisAction.status.startWith(null),
+    speechSynthesisAction.result.startWith(null),
+  ).map(([params, status, result]) => {
+    return {
+      params,
+      status,
+      result,
+    }
+  });
+  const vdom$ = state$.map(state => (
     <div>
       <div>
         <h3>Inputs</h3>
@@ -34,14 +83,14 @@ function main(sources) {
           <tr>
             <th>Play</th>
             <td>
-              <select id="src1">{files.map(file => (false ? (
+              <select id="src1">{files.map(file => (state.params[2] === file ? (
                 <option selected value={file}>{file}</option>
               ) : (
                 <option value={file}>{file}</option>
               )))}</select>
             </td>
             <td>
-              <select id="src2">{files.map(file => (false ? (
+              <select id="src2">{files.map(file => (state.params[3] === file ? (
                 <option selected value={file}>{file}</option>
               ) : (
                 <option value={file}>{file}</option>
@@ -81,14 +130,14 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    // SpeechSynthesis: speechSynthesisAction.value,
-    // SpeechRecognition: speechRecognitionAction.value,
+    AudioPlayer: audioPlayerAction.value.debug(d => console.warn('sound.value', d)),
+    SpeechSynthesis: speechSynthesisAction.value.debug(d => console.warn('synth.value',d)),
   };
 }
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  // SpeechSynthesis: makeSpeechSynthesisDriver(),
-  // SpeechRecognition: makeSpeechRecognitionDriver(),
+  AudioPlayer: makeAudioPlayerDriver(),
+  SpeechSynthesis: makeSpeechSynthesisDriver(),
   Time: timeDriver,
 });
