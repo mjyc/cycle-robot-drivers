@@ -1,7 +1,5 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import fromEvent from 'xstream/extra/fromEvent'
-import delay from 'xstream/extra/delay'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {

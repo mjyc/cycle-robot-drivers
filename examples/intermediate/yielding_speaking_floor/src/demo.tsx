@@ -1,8 +1,11 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import delay from 'xstream/extra/delay'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
+import {timeDriver} from '@cycle/time';
+import {
+  GoalStatus, Status, Result,
+} from '@cycle-robot-drivers/action'
 import {
   makeSpeechSynthesisDriver,
   makeSpeechRecognitionDriver,
@@ -20,54 +23,51 @@ const sentences = [
 
 
 function main(sources) {
-  const goals$ = xs.merge(
-    xs.of({text: sentences[Math.floor(Math.random()*5)], rate: 0.75}),
-    sources.SpeechRecognition.events('soundstart').debug(data => console.log('soundstart', data)).mapTo(null),
-    sources.SpeechRecognition.events('speechstart').debug(data => console.log('speechstart', data)).mapTo(null),
-  );
-
-  const speechSynthesisAction = SpeechSynthesisAction({
-    goal: goals$,
-    SpeechSynthesis: sources.SpeechSynthesis,
-  });
   const goal$ = xs.merge(
     sources.DOM.select('#say').events('click').mapTo({}),
-    sources.DOM.select('#cancel').events('click').mapTo(null),
   );
+  const speechSynthesisAction = SpeechSynthesisAction({
+    goal: xs.merge(
+      goal$.mapTo({
+        text: sentences[Math.floor(Math.random()*sentences.length)],
+        rate: 0.75,
+      }).compose(sources.Time.delay(500)),  // give some time for recog to boot
+      sources.SpeechRecognition.events('speechstart').mapTo(null),  // cancel
+    ),
+    SpeechSynthesis: sources.SpeechSynthesis,
+  });
+
   const speechRecognitionAction = SpeechRecognitionAction({
-    goal: xs.of({}).compose(delay(500)),
+    goal: goal$.mapTo({}),
     SpeechRecognition: sources.SpeechRecognition,
   });
 
   const state$ = xs.combine(
-    speechRecognitionAction.status.startWith(null),
-    speechRecognitionAction.result.startWith(null),
-  ).map(([status, result]) => {
+    speechRecognitionAction.status.startWith({}),
+    speechRecognitionAction.result.startWith({}),
+  ).map(([status, result]: [GoalStatus, Result]) => {
     return {
-      status,
-      result,
+      status: status.status,
+      result: result.result,
     }
   });
 
   const styles = {code: {"background-color": "#f6f8fa"}}
   const vdom$ = state$.map(s => (
     <div>
-      <h1>SpeechRecognitionAction component demo</h1>
-
       <div>
-        <h3>Controls</h3>
         <div>
-          <button id="say">Say something</button>
-        </div>
-      </div>
-
-      <div>
-        <h3>Action outputs</h3>
-        <div>
-          <pre style={styles.code}>"status": {JSON.stringify(s.status, null, 2)}
-          </pre>
-          <pre style={styles.code}>"result": {JSON.stringify(s.result, null, 2)}
-          </pre>
+          <button id="say" disabled={s.status === Status.ACTIVE}>
+            Hey robot, tell me something interesting.
+          </button>
+          {s.status === Status.ACTIVE ? (
+            <div>
+              <small>(Try saying something to interrupt the speech)</small>
+            </div>
+          ) : null}
+          {s.status === Status.SUCCEEDED ? (
+            <div>The robot heard: "{s.result}"</div>
+          ) : null}
         </div>
       </div>
     </div>
@@ -84,4 +84,5 @@ run(main, {
   DOM: makeDOMDriver('#app'),
   SpeechSynthesis: makeSpeechSynthesisDriver(),
   SpeechRecognition: makeSpeechRecognitionDriver(),
+  Time: timeDriver,
 });
