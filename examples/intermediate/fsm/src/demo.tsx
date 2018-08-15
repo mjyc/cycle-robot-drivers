@@ -52,6 +52,47 @@ const sentences = [
 ];
 
 
+function intent() {
+  return action$;
+}
+
+function model(action$) {
+  // numPerson === 0
+  // numPerson === 1
+  // currentSentenceNum === 0 ...
+  // actions.speechSynthesis.result
+  // actions.speechSynthesis.result
+
+  const addReducer$ = actions.add$
+    .map(content => function addReducer(prevState: State): State {
+      // 1. convert "content" to a concrete action & call "transit" to get a new state
+      // 2. return a new state in certain cases
+      // 3.
+      return {
+        ...prevState,
+        list: prevState.list.concat(
+          {
+            content: content,
+            count: prevState.counter.count,
+            key: String(Date.now()),
+          }
+        ),
+      };
+    });
+
+  transit()
+
+  return state$
+}
+
+function view() {
+
+}
+
+function goal(state$) {
+  state$.map(s => s.)
+}
+
 function main(sources) {
   const goalProxy$ = xs.create();
   const speechSynthesisAction = SpeechSynthesisAction({
@@ -60,6 +101,11 @@ function main(sources) {
   });
 
   const numPoses$ = sources.PoseDetection.poses.map(poses => poses.length);
+  const xs.create();
+
+  const actions$.
+
+
   const count$ = xs.merge(
     speechSynthesisAction.result,
     numPoses$  // wait until the pose detector starts
@@ -90,22 +136,19 @@ function main(sources) {
 
   const styles = {code: {"background-color": "#f6f8fa"}}
   const vdom$ = xs.combine(
-    sources.PoseDetection.poses.startWith([]),
     sources.PoseDetection.DOM,
-    numPoses$.startWith(-1)
-  ).map(([p, d, n]) => (
+    sources.PoseDetection.poses.startWith([]),
+
+  ).map(([d, p, n]) => (
     <div>
       <div>
-        {(n === -1) ? (<p>Loading...</p>) : (n === 1)
-          ? (<p>(Try hiding from the camera)</p>)
-          : (<p>(Come back to the camera whenever you are ready)</p>)}
+        <h3>State</h3>
+        <div>Waiting</div>
       </div>
 
       <div>
+        <h3>Detection outputs</h3>
         {d}
-      </div>
-
-      <div>
         <pre style={styles.code}>"poses": {JSON.stringify(p, null, 2)}</pre>
       </div>
     </div>
