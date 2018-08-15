@@ -1,10 +1,9 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import dropRepeats from 'xstream/extra/dropRepeats';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {timeDriver} from '@cycle/time';
-import {initGoal, isEqual} from '@cycle-robot-drivers/action';
+import {initGoal} from '@cycle-robot-drivers/action';
 import {
   makeSpeechSynthesisDriver,
   IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
@@ -40,91 +39,50 @@ function main(sources) {
       .startWith(files[0]),
     sources.DOM.select('#src2').events('change')
       .map(ev => (ev.target as HTMLInputElement).value)
-      .startWith(files[0]),
+      .startWith(files[1]),
     sources.DOM.select('#text1').events('focusout')
       .map(ev => (ev.target as HTMLInputElement).value)
-      .startWith(''),
+      .startWith('Hello'),
     sources.DOM.select('#text2').events('focusout')
       .map(ev => (ev.target as HTMLInputElement).value)
-      .startWith(''),
+      .startWith('World'),
   ).remember();
 
+  // Prepare first goal streams
+  const extractFirstGoals = (params) => ({
+    audio: initGoal({src: params[0]}),
+    speech: initGoal({text: params[2]}),
+  });
   const allGoals$ = sources.DOM.select('#all').events('click')
-    .mapTo(params$.take(1)).flatten().map(params => ({
-      audio: initGoal({src: params[0]}),
-      speech: initGoal({text: params[2]}),
-    }));
-   const raceGoals$ = sources.DOM.select('#race').events('click')
-    .mapTo(params$.take(1)).flatten().map(params => ({
-      audio: initGoal({src: params[0]}),
-      speech: initGoal({text: params[2]}),
-    }));
+    .mapTo(params$.take(1)).flatten().map(extractFirstGoals);
+  const raceGoals$ = sources.DOM.select('#race').events('click')
+    .mapTo(params$.take(1)).flatten().map(extractFirstGoals);
 
-  const action$ = xs.merge(
-    allGoals$.map(g => ({type: 'ALL', value: g})),
-    raceGoals$.map(g => ({type: 'RACE', value: g})),
-    audioPlayerAction.result.map(r => ({type: 'AUDIO_RESULT', value: r})),
-    speechSynthesisAction.result.map(r => ({type: 'SPEECH_RESULT', value: r})),
-  );
-  const actionState$ = action$.fold((state: any, action: {type: string, value: any}) => {
-    console.debug('state, action', state, action);
-    if (action.type === 'ALL') {
-      return {
-        type: 'ALL',
-        goal_ids: [
-          action.value.audio.goal_id,
-          action.value.speech.goal_id,
-        ],
-        result: [],
-      };
-    } else if (action.type === 'RACE') {
-      return {
-        type: 'RACE',
-        goal_ids: [
-          action.value.audio.goal_id,
-          action.value.speech.goal_id,
-        ],
-        result: null,
-      };
-    } else if (action.type === 'AUDIO_RESULT' || action.type === 'SPEECH_RESULT') {
-      if (state.type === 'ALL') {
-        const goal_ids = state.goal_ids
-          .filter(goal_id => !isEqual(goal_id, action.value.status.goal_id));
-        if (state.goal_ids.length - 1 === goal_ids.length) {
-          return {
-            ...state,
-            goal_ids,
-            result: [...state.result, action.value],
-          };
-        }
-      } else if (state.type === 'RACE') {
-        if (state.goal_ids
-            .filter(goal_id => isEqual(goal_id, action.value.status.goal_id))
-            .length > 0) {
-          return {
-            ...state,
-            goal_ids: [],
-            result: action.value,
-          };
-        }
-      }
-    }
-    return state;
-  }, {}).compose(dropRepeats());
+  // Create result streams
+  const allResult$ = sources.DOM.select('#all').events('click').mapTo(
+    xs.combine(
+      audioPlayerAction.result,
+      speechSynthesisAction.result,
+    ).take(1)
+  ).flatten();
+  const raceResult$ = sources.DOM.select('#race').events('click').mapTo(
+    xs.merge(
+      audioPlayerAction.result,
+      speechSynthesisAction.result,
+    ).take(1)
+  ).flatten();
 
+  // Create second goal streams
+  const extractSecondGoals = (params) => ({
+    audio: initGoal({src: params[1]}),
+    speech: initGoal({text: params[3]}),
+  });
   goalsProxy$.imitate(
     xs.merge(
       allGoals$,
       raceGoals$,
-      actionState$
-        .filter(s => (
-          (s.type === 'ALL' && s.goal_ids.length === 0)
-          || (s.type === 'RACE' && s.goal_ids.length === 0)
-        ))
-        .mapTo(params$.take(1)).flatten().map(params => ({
-          audio: initGoal({src: params[1]}),
-          speech: initGoal({text: params[3]}),
-        })),
+      allResult$.mapTo(params$.take(1)).flatten().map(extractSecondGoals),
+      raceResult$.mapTo(params$.take(1)).flatten().map(extractSecondGoals),
     )
   );
 
@@ -134,18 +92,17 @@ function main(sources) {
     speechSynthesisAction.result.startWith(null),
     audioPlayerAction.status.startWith(null),
     audioPlayerAction.result.startWith(null),
-    actionState$.startWith(null)
+    xs.merge(allResult$, raceResult$).startWith(null)
   ).map(([
-    params,
-    audioStatus, audioResult, speechStatus, speechResult,
-    actionState,]) => {
+    params, audioStatus, audioResult, speechStatus, speechResult, joint1Result,
+  ]) => {
     return {
       params,
       audioStatus,
       audioResult,
       speechStatus,
       speechResult,
-      actionResult: actionState && actionState.result,
+      joint1Result,
     }
   });
   const styles = {code: {"background-color": "#f6f8fa"}}
@@ -162,14 +119,14 @@ function main(sources) {
           <tr>
             <th>Play</th>
             <td>
-              <select id="src1">{files.map(file => (s.params[2] === file ? (
+              <select id="src1">{files.map(file => (s.params[0] === file ? (
                 <option selected value={file}>{file}</option>
               ) : (
                 <option value={file}>{file}</option>
               )))}</select>
             </td>
             <td>
-              <select id="src2">{files.map(file => (s.params[3] === file ? (
+              <select id="src2">{files.map(file => (s.params[1] === file ? (
                 <option selected value={file}>{file}</option>
               ) : (
                 <option value={file}>{file}</option>
@@ -178,8 +135,8 @@ function main(sources) {
           </tr>
           <tr>
             <th>Say</th>
-            <td><input id="text1" type="text"></input></td>
-            <td><input id="text2" type="text"></input></td>
+            <td><input id="text1" type="text" value={s.params[2]}></input></td>
+            <td><input id="text2" type="text" value={s.params[3]}></input></td>
           </tr>
         </table>
       </div>
@@ -187,8 +144,15 @@ function main(sources) {
       <div>
         <h3>Controls</h3>
         <div>
-          <button id="all">all</button>
-          <button id="race">race</button>
+          <button disabled={(
+            (s.audioStatus && (s.audioStatus as any).status === "ACTIVE")
+            || (s.speechStatus && (s.speechStatus as any).status === "ACTIVE")
+          )} id="all">all</button>
+          <button disabled={(
+            (s.audioStatus && (s.audioStatus as any).status === "ACTIVE")
+            || (s.speechStatus && (s.speechStatus as any).status === "ACTIVE")
+          )} id="race">race</button>
+          <span><small> (for joint action 1)</small></span>
         </div>
       </div>
 
@@ -196,13 +160,11 @@ function main(sources) {
         <h3>Outputs</h3>
         <table>
           <tr>
-            <th></th>
             <th>Say</th>
             <th>Play</th>
             <th>Joint action 1</th>
           </tr>
           <tr>
-            <td>Outputs</td>
             <td>
               <pre style={styles.code}>
                 "status": {JSON.stringify(s.audioStatus, null, 2)}
@@ -221,7 +183,7 @@ function main(sources) {
             </td>
             <td>
               <pre style={styles.code}>
-                "result": {JSON.stringify(s.actionResult, null, 2)}
+                "result": {JSON.stringify(s.joint1Result, null, 2)}
               </pre>
             </td>
           </tr>
