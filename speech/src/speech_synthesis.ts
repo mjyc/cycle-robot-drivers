@@ -1,6 +1,6 @@
-import {Stream} from 'xstream'
-import fromEvent from 'xstream/extra/fromEvent'
-import {adapt} from '@cycle/run/lib/adapt'
+import {Stream} from 'xstream';
+import fromEvent from 'xstream/extra/fromEvent';
+import {adapt} from '@cycle/run/lib/adapt';
 
 
 class UtteranceSource {
