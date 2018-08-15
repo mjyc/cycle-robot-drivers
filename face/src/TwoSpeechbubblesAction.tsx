@@ -139,7 +139,6 @@ function main(sources) {
     .map(([prev, cur]) => cur);
 
   const status$ = stateStatusChanged$
-    .filter(state => state.status !== Status.PREEMPTING)
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,

@@ -14,7 +14,6 @@ export enum Status {
   PREEMPTED = 'PREEMPTED',
   SUCCEEDED = 'SUCCEEDED',
   ABORTED = 'ABORTED',
-  PREEMPTING = 'PREEMPTING',
 }
 
 export type GoalStatus = {
