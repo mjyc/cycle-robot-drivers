@@ -54,6 +54,43 @@ function main(sources) {
   goalsProxy$.imitate(allGoals$);
   // goalsProxy$.addListener({next: data => console.log('goalProxy', data)})
 
+  const action$ = xs.merge(
+    allGoals$.map(g => ({type: 'ALL', value: g})),
+    audioPlayerAction.result.map(r => ({type: 'AUDIO_RESULT', value: r})),
+    speechSynthesisAction.result.map(r => ({type: 'SPEECH_RESULT', value: r})),
+  );
+  const state1$ = action$.fold((state: any, action: {type: string, value: any}) => {
+    console.warn('state, action', state, action);
+    if (action.type === 'ALL') {
+      console.log(action.value);
+      // return state;
+      return {
+        type: 'ALL',
+        goal_ids: [
+          action.value.audio.goal_id,
+          action.value.speech.goal_id,
+        ],
+      };
+    } else if (action.type === 'AUDIO_RESULT') {
+      const goal_ids = state.goal_ids
+        .filter(goal_id => !isEqual(goal_id, action.value.status.goal_id));
+      return {
+        ...state,
+        goal_ids,
+      };
+    } else if (action.type === 'SPEECH_RESULT') {
+      const goal_ids = state.goal_ids
+        .filter(goal_id => !isEqual(goal_id, action.value.status.goal_id));
+      return {
+        ...state,
+        goal_ids,
+      };
+    }
+    return state;
+  }, {});
+  state1$.addListener({next: d => console.log('s1', d)});
+  // then send a second goal
+
   const state$ = xs.combine(
     params$,
     speechSynthesisAction.status.startWith(null),
