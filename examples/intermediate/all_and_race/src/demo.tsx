@@ -1,5 +1,6 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {timeDriver} from '@cycle/time';
@@ -21,6 +22,7 @@ const files = [
 
 
 function main(sources) {
+  // Create action components
   const goalsProxy$ = xs.create();
   const audioPlayerAction = AudioPlayerAction({
     goal: goalsProxy$.map((goals: any) => goals.audio),
@@ -31,6 +33,7 @@ function main(sources) {
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
+  // cache parameters
   const params$ = xs.combine(
     sources.DOM.select('#src1').events('change')
       .map(ev => (ev.target as HTMLInputElement).value)
@@ -51,45 +54,79 @@ function main(sources) {
       audio: initGoal({src: params[0]}),
       speech: initGoal({text: params[2]}),
     }));
-  goalsProxy$.imitate(allGoals$);
-  // goalsProxy$.addListener({next: data => console.log('goalProxy', data)})
+   const raceGoals$ = sources.DOM.select('#race').events('click')
+    .mapTo(params$.take(1)).flatten().map(params => ({
+      audio: initGoal({src: params[0]}),
+      speech: initGoal({text: params[2]}),
+    }));
 
   const action$ = xs.merge(
     allGoals$.map(g => ({type: 'ALL', value: g})),
+    raceGoals$.map(g => ({type: 'RACE', value: g})),
     audioPlayerAction.result.map(r => ({type: 'AUDIO_RESULT', value: r})),
     speechSynthesisAction.result.map(r => ({type: 'SPEECH_RESULT', value: r})),
   );
-  const state1$ = action$.fold((state: any, action: {type: string, value: any}) => {
-    console.warn('state, action', state, action);
+  const actionState$ = action$.fold((state: any, action: {type: string, value: any}) => {
+    console.debug('state, action', state, action);
     if (action.type === 'ALL') {
-      console.log(action.value);
-      // return state;
       return {
         type: 'ALL',
         goal_ids: [
           action.value.audio.goal_id,
           action.value.speech.goal_id,
         ],
+        result: [],
       };
-    } else if (action.type === 'AUDIO_RESULT') {
-      const goal_ids = state.goal_ids
-        .filter(goal_id => !isEqual(goal_id, action.value.status.goal_id));
+    } else if (action.type === 'RACE') {
       return {
-        ...state,
-        goal_ids,
+        type: 'RACE',
+        goal_ids: [
+          action.value.audio.goal_id,
+          action.value.speech.goal_id,
+        ],
+        result: null,
       };
-    } else if (action.type === 'SPEECH_RESULT') {
-      const goal_ids = state.goal_ids
-        .filter(goal_id => !isEqual(goal_id, action.value.status.goal_id));
-      return {
-        ...state,
-        goal_ids,
-      };
+    } else if (action.type === 'AUDIO_RESULT' || action.type === 'SPEECH_RESULT') {
+      if (state.type === 'ALL') {
+        const goal_ids = state.goal_ids
+          .filter(goal_id => !isEqual(goal_id, action.value.status.goal_id));
+        if (state.goal_ids.length - 1 === goal_ids.length) {
+          return {
+            ...state,
+            goal_ids,
+            result: [...state.result, action.value],
+          };
+        }
+      } else if (state.type === 'RACE') {
+        if (state.goal_ids
+            .filter(goal_id => isEqual(goal_id, action.value.status.goal_id))
+            .length > 0) {
+          return {
+            ...state,
+            goal_ids: [],
+            result: action.value,
+          };
+        }
+      }
     }
     return state;
-  }, {});
-  state1$.addListener({next: d => console.log('s1', d)});
-  // then send a second goal
+  }, {}).compose(dropRepeats());
+
+  goalsProxy$.imitate(
+    xs.merge(
+      allGoals$,
+      raceGoals$,
+      actionState$
+        .filter(s => (
+          (s.type === 'ALL' && s.goal_ids.length === 0)
+          || (s.type === 'RACE' && s.goal_ids.length === 0)
+        ))
+        .mapTo(params$.take(1)).flatten().map(params => ({
+          audio: initGoal({src: params[1]}),
+          speech: initGoal({text: params[3]}),
+        })),
+    )
+  );
 
   const state$ = xs.combine(
     params$,
@@ -97,13 +134,18 @@ function main(sources) {
     speechSynthesisAction.result.startWith(null),
     audioPlayerAction.status.startWith(null),
     audioPlayerAction.result.startWith(null),
-  ).map(([params, audioStatus, audioResult, speechStatus, speechResult]) => {
+    actionState$.startWith(null)
+  ).map(([
+    params,
+    audioStatus, audioResult, speechStatus, speechResult,
+    actionState,]) => {
     return {
       params,
       audioStatus,
       audioResult,
       speechStatus,
       speechResult,
+      actionResult: actionState && actionState.result,
     }
   });
   const styles = {code: {"background-color": "#f6f8fa"}}
@@ -157,7 +199,7 @@ function main(sources) {
             <th></th>
             <th>Say</th>
             <th>Play</th>
-            <th>Joint</th>
+            <th>Joint action 1</th>
           </tr>
           <tr>
             <td>Outputs</td>
@@ -177,7 +219,11 @@ function main(sources) {
                 "result": {JSON.stringify(s.speechResult, null, 2)}
               </pre>
             </td>
-            <td>3</td>
+            <td>
+              <pre style={styles.code}>
+                "result": {JSON.stringify(s.actionResult, null, 2)}
+              </pre>
+            </td>
           </tr>
         </table>
       </div>
@@ -186,8 +232,8 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    AudioPlayer: audioPlayerAction.value.debug(d => console.warn('audio.value', d)),
-    SpeechSynthesis: speechSynthesisAction.value.debug(d => console.warn('speech.value',d)),
+    AudioPlayer: audioPlayerAction.value,
+    SpeechSynthesis: speechSynthesisAction.value,
   };
 }
 
