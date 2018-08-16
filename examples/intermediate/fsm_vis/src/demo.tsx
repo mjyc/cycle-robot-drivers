@@ -2,36 +2,65 @@ import Snabbdom from 'snabbdom-pragma';
 import dagreD3 from 'dagre-d3'
 import * as d3 from 'd3';
 import xs from 'xstream';
+import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent'
 import {run} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import {makeDOMDriver} from '@cycle/dom';
+import {Goal, Result, initGoal} from '@cycle-robot-drivers/action'
 import {
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/face'
 
+enum SMStates {
+  LOAD = 'LOAD',
+  ASK = 'ASK',
+  POSITIVE = 'POSITIVE',
+  NEGATIVE = 'NEGATIVE',
+  DONE = 'DONE',
+};
+
+enum SMActions {
+  LOADED = 'LOADED',
+  RECEIVED_YES = 'RECEIVED_YES',
+  RECEIVED_NO = 'RECEIVED_NO',
+};
+
+type State = {
+  state: SMStates,
+};
+
+type Reducer = (prev?: State) => State | undefined;
+
+type Actions = {
+  numPoses$: Stream<number>,
+  result$: Stream<Result>,
+}
+
+
+//------------------------------------------------------------------------------
 const types = ['SET_MESSAGE', 'ASK_QUESTION'];
 
+
+//------------------------------------------------------------------------------
 function makeDagreD3Driver() {
   const render2 = new dagreD3.render();
 
   return function dagreD3Driver(sink$) {
     sink$.addListener({
-      next: ({svg, g}) => {
-        // if (!svg || !g) {
-        //   console.warn('Invalid input svg:', svg, 'g', g);
-        //   return;
-        // }
-        const svg1 = d3.select('svg').select('g');
-        // const g1 = createG();
-        // const render2 = new dagreD3.render();
+      next: (g) => {
+        if (!g) {
+          console.warn('Invalid input:', g);
+          return;
+        }
+        const svg = d3.select('svg').select('g');
         d3.select('svg').attr('height', 1000);
         d3.select('svg').attr('width', 800);
-        render2(svg1, g);
+        render2(svg, g);
       }
     });
 
-    return adapt(xs.of({}));
+    return adapt(xs.of((<svg><g/></svg>)));
   };
 }
 
@@ -67,14 +96,14 @@ function createG() {
   return g;
 }
 
-enum SMStates {
+enum SMStates2 {
   LOAD = 'LOAD',
   READ = 'READ',
   WAIT = 'WAIT',
   RESUME = 'RESUME',
   DONE = 'DONE',
 };
-const keys = Object.keys(SMStates).map(s => console.error(s));
+const keys = Object.keys(SMStates2).map(s => console.error(s));
 
 
 function createG2() {
@@ -107,57 +136,28 @@ function createG2() {
   return g;
 }
 
+
+//------------------------------------------------------------------------------
 function main(sources) {
-
-  // const g = createG();
-  const graph$ = fromEvent(window, 'load').mapTo({
-    svg: d3.select('svg').select('g'),
-    g: createG(),
-    // g: g,
-  }); //.debug(d => console.error(d));
-  setTimeout(() => {
-    graph$.shamefullySendNext({svg: null, g: createG2()});
-  }, 2000);
-
-
-  // const graph$ = fromEvent(window, 'load');
-  // const graph$ = fromEvent(window, 'load').addListener({
-  //   next: () => {
-  //     const g = createG();
-  //     const render = new dagreD3.render();
-  //     render(d3.select("svg").select("g"), g);
-  //   }
-  // }); //.debug(d => console.error(d));
-
-  // setTimeout(() => {
-  //   const g = createG();
-
-  //   var svg = d3.select("svg"),
-  //     inner = svg.select("g");
-
-  //   // Set up zoom support
-  //   var zoom = d3.zoom().on("zoom", function() {
-  //         inner.attr("transform", d3.event.transform);
-  //       });
-  //   svg.call(zoom);
-
-  //   // Create the renderer
-  // var render = new dagreD3.render();
-
-  // // Run the renderer. This is what draws the final graph.
-  // render(inner, g);
-
-  //   var initialScale = 0.75;
-  //   svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
-
-  //   svg.attr('height', g.graph().height * initialScale + 40);
-  // }, 1000);
-
   const goalProxy$ = xs.create();
   const speechbubbleAction = TwoSpeechbubblesAction({
     goal: goalProxy$,
     DOM: sources.DOM,
   });
+
+
+
+  fromEvent(window, 'load').mapTo({
+    type: 'ASK_QUESTION',
+    value: ['Hello, how do you feel today?', ['Great', 'Terrible']],
+  });
+
+  // return xs.merge(initReducer$, numPosesReducer$, resultReducer$)
+  //   .fold((state: State, reducer: Reducer) => reducer(state), null)
+  //   .drop(1)  // drop "null"
+  //   .compose(dropRepeats());
+
+
 
   const params$ = xs.combine(
     sources.DOM.select('#type').events('change')
@@ -193,8 +193,19 @@ function main(sources) {
     }
   });
 
+  // update graph
+  const graph$ = fromEvent(window, 'load').mapTo(createG());
+  setTimeout(() => {
+    graph$.shamefullySendNext(createG2());
+  }, 2000);
+
+  // update visualizer
   const styles = {code: {"background-color": "#f6f8fa"}}
-  const vdom$ = xs.combine(state$, speechbubbleAction.DOM).map(([s, b]) => (
+  const vdom$ = xs.combine(
+      state$,
+      speechbubbleAction.DOM,
+      sources.DagreD3,
+  ).map(([s, b, g]) => (
     <div>
       <h1>TwoSpeechbubblesAction component demo</h1>
 
@@ -235,7 +246,9 @@ function main(sources) {
         </div>
       </div>
 
-      <svg><g/></svg>
+      <div>
+        {g}
+      </div>
     </div>
   ));
 
