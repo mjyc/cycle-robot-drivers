@@ -17,21 +17,21 @@ import {
 
 // Define enums
 enum SMStates {
-  ASK_CAREER_QUESTION = 'ASK_CAREER_QUESTION',
-  ASK_WORKING_ONLINE_QUESTION = 'ASK_WORKING_ONLINE_QUESTION',
-  ASK_FAMILY_QUESTION = 'ASK_FAMILY_QUESTION',
-  ASK_SHORT_TRIPS_QUESTION = 'ASK_SHORT_TRIPS_QUESTION',
-  ASK_HOME_OWNERSHIP_QUESTION = 'ASK_HOME_OWNERSHIP_QUESTION',
-  ASK_ROUTINE_QUESTION = 'ASK_ROUTINE_QUESTION',
-  ASK_JOB_SECURITY_QUESTION = 'ASK_JOB_SECURITY_QUESTION',
-  TELL_THEM_THEY_ARE_VACATIONER = 'TELL_THEM_THEY_ARE_VACATIONER',
-  TELL_THEM_THEY_ARE_EXPAT = 'TELL_THEM_THEY_ARE_EXPAT',
-  TELL_THEM_THEY_ARE_NOMAD = 'TELL_THEM_THEY_ARE_NOMAD',
+  ASK_CAREER_QUESTION = 'It\'s import that I reach my full career potential',
+  ASK_WORKING_ONLINE_QUESTION = 'I can see myself working online',
+  ASK_FAMILY_QUESTION = 'I have to be near my family/friends/pets',
+  ASK_SHORT_TRIPS_QUESTION = 'Short trips are awesome!',
+  ASK_HOME_OWNERSHIP_QUESTION = 'I want to have a home and nice things',
+  ASK_ROUTINE_QUESTION = 'A routine gives my life structure',
+  ASK_JOB_SECURITY_QUESTION = 'I need a secure job and a stable income',
+  TELL_THEM_THEY_ARE_VACATIONER = 'You are a vacationer!',
+  TELL_THEM_THEY_ARE_EXPAT = 'You are an expat!',
+  TELL_THEM_THEY_ARE_NOMAD = 'You are a nomad!',
 };
 
 enum SMActions {
-  RECEIVED_YES = 'RECEIVED_YES',
-  RECEIVED_NO = 'RECEIVED_NO',
+  RECEIVED_YES = 'Yes',
+  RECEIVED_NO = 'No',
 };
 
 // define types
@@ -133,7 +133,11 @@ function transition(state: SMStates, action: SMActions) {
 function model(result$: Actions): Stream<State> {
   const initReducer$ = fromEvent(window, 'load').mapTo(function initReducer(prev) {
     const question = SMStates.ASK_CAREER_QUESTION;
-    const graph = createGraph(Object.keys(SMStates), Object.keys(SMActions), machine);
+    const graph = createGraph(
+      Object.keys(SMStates).map(k => SMStates[k]),
+      Object.keys(SMActions).map(k => SMActions[k]),
+      machine,
+    );
     graph.node(question).style = "fill: #f77";
     return {question, graph};
   });
@@ -171,7 +175,10 @@ function goal(state: Stream<State>): Stream<Goal> {
         || s.question === SMStates.TELL_THEM_THEY_ARE_VACATIONER
         || s.question === SMStates.TELL_THEM_THEY_ARE_EXPAT
       ) ? initGoal({type: 'SET_MESSAGE', value: [s.question]})
-        : initGoal({type: 'ASK_QUESTION', value: [s.question, Object.keys(SMActions)]});
+        : initGoal({type: 'ASK_QUESTION', value: [
+          s.question,
+          Object.keys(SMActions).map(k => SMActions[k]),
+        ]});
     })
   );
 }
