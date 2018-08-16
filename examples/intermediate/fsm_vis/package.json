@@ -8,6 +8,7 @@
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
     "@dagrejs/graphlib": "2.1.4",
+    "d3": "4.13.0",
     "dagre": "0.8.2",
     "dagre-d3": "0.6.1",
     "snabbdom": "0.7.1",
