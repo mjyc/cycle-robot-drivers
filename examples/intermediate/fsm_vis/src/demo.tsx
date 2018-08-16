@@ -1,6 +1,10 @@
 import Snabbdom from 'snabbdom-pragma';
+import dagreD3 from 'dagre-d3'
+import * as d3 from 'd3';
 import xs from 'xstream';
+import fromEvent from 'xstream/extra/fromEvent'
 import {run} from '@cycle/run';
+import {adapt} from '@cycle/run/lib/adapt';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
@@ -8,81 +12,146 @@ import {
 
 const types = ['SET_MESSAGE', 'ASK_QUESTION'];
 
-// import {graphlib} from 'dagre-d3';
-// import * as dagreD3 from 'dagre-d3'
-import dagreD3 from 'dagre-d3'
-// let dagreD3 = require('dagre-d3');
-import * as d3 from "d3";
-console.error(dagreD3, d3);
+function makeDagreD3Driver() {
+  const render2 = new dagreD3.render();
 
+  return function dagreD3Driver(sink$) {
+    sink$.addListener({
+      next: ({svg, g}) => {
+        // if (!svg || !g) {
+        //   console.warn('Invalid input svg:', svg, 'g', g);
+        //   return;
+        // }
+        const svg1 = d3.select('svg').select('g');
+        // const g1 = createG();
+        // const render2 = new dagreD3.render();
+        d3.select('svg').attr('height', 1000);
+        d3.select('svg').attr('width', 800);
+        render2(svg1, g);
+      }
+    });
 
-function main(sources) {
+    return adapt(xs.of({}));
+  };
+}
 
-  setTimeout(() => {
+function createG() {
   // Create a new directed graph
   var g = new dagreD3.graphlib.Graph().setGraph({});
 
   // States and transitions from RFC 793
-  var states = [ "CLOSED", "LISTEN", "SYN RCVD", "SYN SENT",
-                 "ESTAB", "FINWAIT-1", "CLOSE WAIT", "FINWAIT-2",
-                 "CLOSING", "LAST-ACK", "TIME WAIT" ];
+  var states = [ 'LOAD', 'READ', 'WAIT', 'RESUME', 'DONE' ];
 
   // Automatically label each of the nodes
   states.forEach(function(state) { g.setNode(state, { label: state }); });
 
   // Set up the edges
-  g.setEdge("CLOSED",     "LISTEN",     { label: "open" });
-  g.setEdge("LISTEN",     "SYN RCVD",   { label: "rcv SYN" });
-  g.setEdge("LISTEN",     "SYN SENT",   { label: "send" });
-  g.setEdge("LISTEN",     "CLOSED",     { label: "close" });
-  g.setEdge("SYN RCVD",   "FINWAIT-1",  { label: "close" });
-  g.setEdge("SYN RCVD",   "ESTAB",      { label: "rcv ACK of SYN" });
-  g.setEdge("SYN SENT",   "SYN RCVD",   { label: "rcv SYN" });
-  g.setEdge("SYN SENT",   "ESTAB",      { label: "rcv SYN, ACK" });
-  g.setEdge("SYN SENT",   "CLOSED",     { label: "close" });
-  g.setEdge("ESTAB",      "FINWAIT-1",  { label: "close" });
-  g.setEdge("ESTAB",      "CLOSE WAIT", { label: "rcv FIN" });
-  g.setEdge("FINWAIT-1",  "FINWAIT-2",  { label: "rcv ACK of FIN" });
-  g.setEdge("FINWAIT-1",  "CLOSING",    { label: "rcv FIN" });
-  g.setEdge("CLOSE WAIT", "LAST-ACK",   { label: "close" });
-  g.setEdge("FINWAIT-2",  "TIME WAIT",  { label: "rcv FIN" });
-  g.setEdge("CLOSING",    "TIME WAIT",  { label: "rcv ACK of FIN" });
-  g.setEdge("LAST-ACK",   "CLOSED",     { label: "rcv ACK of FIN" });
-  g.setEdge("TIME WAIT",  "CLOSED",     { label: "timeout=2MSL" });
+  g.setEdge("LOAD", "READ", {label: "FOUND_PERSON"});
+  g.setEdge("READ", "WAIT", {label: "LOST_PERSON"});
+  g.setEdge("READ", "READ", {label: "FINISHED_SPEACKING"});
+  g.setEdge("READ", "DONE", {label: "FINISHED_READING"});
+  g.setEdge("WAIT", "RESUME", {label: "FOUND_PERSON"});
+  g.setEdge("RESUME", "READ", {label: "FINISHED_SPEACKING"});
 
-  // Set some general styles
-  g.nodes().forEach(function(v) {
-    var node = g.node(v);
-    node.rx = node.ry = 5;
-  });
+  // // Set some general styles
+  // g.nodes().forEach(function(v) {
+  //   var node = g.node(v);
+  //   node.rx = node.ry = 5;
+  // });
 
-  // Add some custom colors based on state
-  g.node('CLOSED').style = "fill: #f77";
-  g.node('ESTAB').style = "fill: #7f7";
+  // // Add some custom colors based on state
+  // g.node('CLOSED').style = "fill: #f77";
+  // g.node('ESTAB').style = "fill: #7f7";
+  g.node('LOAD').style = "fill: #f77";
 
-  var svg = d3.select("svg"),
-      inner = svg.select("g");
+  return g;
+}
 
-  // Set up zoom support
-  var zoom = d3.zoom().on("zoom", function() {
-        inner.attr("transform", d3.event.transform);
-      });
-  svg.call(zoom);
-
-  // Create the renderer
-  var render = new dagreD3.render();
-
-  // Run the renderer. This is what draws the final graph.
-  render(inner, g);
-
-  // Center the graph
-  var initialScale = 0.75;
-  svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
-
-  svg.attr('height', g.graph().height * initialScale + 40);
-}, 2000);
+enum SMStates {
+  LOAD = 'LOAD',
+  READ = 'READ',
+  WAIT = 'WAIT',
+  RESUME = 'RESUME',
+  DONE = 'DONE',
+};
+const keys = Object.keys(SMStates).map(s => console.error(s));
 
 
+function createG2() {
+  // Create a new directed graph
+  var g = new dagreD3.graphlib.Graph().setGraph({});
+
+  // States and transitions from RFC 793
+  var states = [ 'LOAD', 'READ', 'WAIT', 'RESUME', 'DONE' ];
+
+  // Automatically label each of the nodes
+  states.forEach(function(state) { g.setNode(state, { label: state }); });
+
+  // Set up the edges
+  g.setEdge("LOAD", "READ", {label: "FOUND_PERSON"});
+  g.setEdge("READ", "WAIT", {label: "LOST_PERSON"});
+  g.setEdge("READ", "READ", {label: "FINISHED_SPEACKING"});
+  g.setEdge("READ", "DONE", {label: "FINISHED_READING"});
+  g.setEdge("WAIT", "RESUME", {label: "FOUND_PERSON"});
+  g.setEdge("RESUME", "READ", {label: "FINISHED_SPEACKING"});
+
+  // // Set some general styles
+  // g.nodes().forEach(function(v) {
+  //   var node = g.node(v);
+  //   node.rx = node.ry = 5;
+  // });
+
+  // // Add some custom colors based on state
+  g.node('LOAD').style = null;
+
+  return g;
+}
+
+function main(sources) {
+
+  // const g = createG();
+  const graph$ = fromEvent(window, 'load').mapTo({
+    svg: d3.select('svg').select('g'),
+    g: createG(),
+    // g: g,
+  }); //.debug(d => console.error(d));
+  setTimeout(() => {
+    graph$.shamefullySendNext({svg: null, g: createG2()});
+  }, 2000);
+
+
+  // const graph$ = fromEvent(window, 'load');
+  // const graph$ = fromEvent(window, 'load').addListener({
+  //   next: () => {
+  //     const g = createG();
+  //     const render = new dagreD3.render();
+  //     render(d3.select("svg").select("g"), g);
+  //   }
+  // }); //.debug(d => console.error(d));
+
+  // setTimeout(() => {
+  //   const g = createG();
+
+  //   var svg = d3.select("svg"),
+  //     inner = svg.select("g");
+
+  //   // Set up zoom support
+  //   var zoom = d3.zoom().on("zoom", function() {
+  //         inner.attr("transform", d3.event.transform);
+  //       });
+  //   svg.call(zoom);
+
+  //   // Create the renderer
+  // var render = new dagreD3.render();
+
+  // // Run the renderer. This is what draws the final graph.
+  // render(inner, g);
+
+  //   var initialScale = 0.75;
+  //   svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
+
+  //   svg.attr('height', g.graph().height * initialScale + 40);
+  // }, 1000);
 
   const goalProxy$ = xs.create();
   const speechbubbleAction = TwoSpeechbubblesAction({
@@ -172,9 +241,11 @@ function main(sources) {
 
   return {
     DOM: vdom$,
+    DagreD3: graph$,
   };
 }
 
 run(main, {
   DOM: makeDOMDriver('#app'),
+  DagreD3: makeDagreD3Driver(),
 });
