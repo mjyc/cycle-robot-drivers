@@ -1,8 +1,11 @@
+// Implements the travel quiz presented at
+//   http://www.nomadwallet.com/afford-travel-quiz-personality/
 import Snabbdom from 'snabbdom-pragma';
 import dagreD3 from 'dagre-d3'
 import * as d3 from 'd3';
 import xs from 'xstream';
 import {Stream} from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
 import fromEvent from 'xstream/extra/fromEvent'
 import {run} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
@@ -12,34 +15,114 @@ import {
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/face'
 
+// Define enums
 enum SMStates {
-  LOAD = 'LOAD',
-  ASK = 'ASK',
-  POSITIVE = 'POSITIVE',
-  NEGATIVE = 'NEGATIVE',
-  DONE = 'DONE',
+  ASK_CAREER_QUESTION = 'ASK_CAREER_QUESTION',
+  ASK_WORKING_ONLINE_QUESTION = 'ASK_WORKING_ONLINE_QUESTION',
+  ASK_FAMILY_QUESTION = 'ASK_FAMILY_QUESTION',
+  ASK_SHORT_TRIPS_QUESTION = 'ASK_SHORT_TRIPS_QUESTION',
+  ASK_HOME_OWNERSHIP_QUESTION = 'ASK_HOME_OWNERSHIP_QUESTION',
+  ASK_ROUTINE_QUESTION = 'ASK_ROUTINE_QUESTION',
+  ASK_JOB_SECURITY_QUESTION = 'ASK_JOB_SECURITY_QUESTION',
+  TELL_THEM_THEY_ARE_VACATIONER = 'TELL_THEM_THEY_ARE_VACATIONER',
+  TELL_THEM_THEY_ARE_EXPAT = 'TELL_THEM_THEY_ARE_EXPAT',
+  TELL_THEM_THEY_ARE_NOMAD = 'TELL_THEM_THEY_ARE_NOMAD',
 };
 
 enum SMActions {
-  LOADED = 'LOADED',
-  RECEIVED_YES = 'RECEIVED_YES',
-  RECEIVED_NO = 'RECEIVED_NO',
+  RECEIVED_YES = 'YES',
+  RECEIVED_NO = 'NO',
 };
 
+// define types
 type State = {
-  state: SMStates,
+  question: SMStates,
 };
 
 type Reducer = (prev?: State) => State | undefined;
 
-type Actions = {
-  numPoses$: Stream<number>,
-  result$: Stream<Result>,
+type Actions = Stream<Result>;
+
+// define consts
+const machine = {
+  [SMStates.ASK_CAREER_QUESTION]: {
+    [SMActions.RECEIVED_YES]: SMStates.ASK_WORKING_ONLINE_QUESTION,
+    [SMActions.RECEIVED_NO]: SMStates.ASK_FAMILY_QUESTION,
+  },
+  [SMStates.ASK_WORKING_ONLINE_QUESTION]: {
+    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_NOMAD,
+    [SMActions.RECEIVED_NO]: SMStates.TELL_THEM_THEY_ARE_VACATIONER,
+  },
+  [SMStates.ASK_FAMILY_QUESTION]: {
+    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_VACATIONER,
+    [SMActions.RECEIVED_NO]: SMStates.ASK_SHORT_TRIPS_QUESTION,
+  },
+  [SMStates.ASK_SHORT_TRIPS_QUESTION]: {
+    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_VACATIONER,
+    [SMActions.RECEIVED_NO]: SMStates.ASK_HOME_OWNERSHIP_QUESTION,
+  },
+  [SMStates.ASK_HOME_OWNERSHIP_QUESTION]: {
+    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_EXPAT,
+    [SMActions.RECEIVED_NO]: SMStates.ASK_ROUTINE_QUESTION,
+  },
+  [SMStates.ASK_ROUTINE_QUESTION]: {
+    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_EXPAT,
+    [SMActions.RECEIVED_NO]: SMStates.ASK_JOB_SECURITY_QUESTION,
+  },
+  [SMStates.ASK_JOB_SECURITY_QUESTION]: {
+    [SMActions.RECEIVED_YES]: SMStates.ASK_WORKING_ONLINE_QUESTION,
+    [SMActions.RECEIVED_NO]: SMStates.TELL_THEM_THEY_ARE_NOMAD,
+  },
+};
+console.error('========', machine)
+
+// define functions
+function transition(state: SMStates, action: SMActions) {
+  const actions = machine[state];
+  if (!actions) {
+    console.debug(`Invalid state: "${state}"; returning null`);
+    return null;
+  }
+  const newState = actions[action];
+  if (!newState) {
+    console.debug(`Invalid action: "${action}"; returning null`);
+    return null;
+  }
+  return newState;
+}
+
+function model(result$: Actions): Stream<State> {
+  const initReducer$ = fromEvent(window, 'load').mapTo(function initReducer(prev) {
+    return {
+      question: SMStates.ASK_CAREER_QUESTION,
+    };
+  });
+
+  const resultReducer$ = result$
+    .filter(result => result.status.status === 'SUCCEEDED')
+    .map(result => function resultReducer(prevState: State): State {
+      // extract yes & no
+      const question = transition(
+        prevState.question,
+        result.result,
+      );
+      return !!question ? {question} : prevState;
+    });
+
+  return xs.merge(initReducer$, resultReducer$)
+    .fold((state: State, reducer: Reducer) => reducer(state), null)
+    .drop(1)  // drop "null"
+    .compose(dropRepeats());
+}
+
+function goal(state: Stream<State>): Stream<Goal> {
+  return state
+    .map(s => initGoal({type: 'ASK_QUESTION', value: [s.question, ['YES', 'NO']]}));
 }
 
 
 //------------------------------------------------------------------------------
-const types = ['SET_MESSAGE', 'ASK_QUESTION'];
+const types = ['SET_MESSAGE', 'ASK_QUESTION'];  // TODO: remove soon
 
 
 //------------------------------------------------------------------------------
@@ -147,15 +230,11 @@ function main(sources) {
 
 
 
-  fromEvent(window, 'load').mapTo({
-    type: 'ASK_QUESTION',
-    value: ['Hello, how do you feel today?', ['Great', 'Terrible']],
-  });
+  const state2$ = model(speechbubbleAction.result);
+  state2$.addListener({next: d => console.log('state2$', d)});
 
-  // return xs.merge(initReducer$, numPosesReducer$, resultReducer$)
-  //   .fold((state: State, reducer: Reducer) => reducer(state), null)
-  //   .drop(1)  // drop "null"
-  //   .compose(dropRepeats());
+  const goal2$ = goal(state2$);
+  goal2$.addListener({next: d => console.log('goal2$', d)});
 
 
 
@@ -173,11 +252,12 @@ function main(sources) {
 
   // send goals to the action
   goalProxy$.imitate(
-    xs.merge(
-      sources.DOM.select('#start').events('click')
-        .mapTo(params$.take(1)).flatten(),
-      sources.DOM.select('#cancel').events('click').mapTo(null),
-    )
+    goal2$
+    // xs.merge(
+    //   sources.DOM.select('#start').events('click')
+    //     .mapTo(params$.take(1)).flatten(),
+    //   sources.DOM.select('#cancel').events('click').mapTo(null),
+    // )
   );
 
   // update the state
