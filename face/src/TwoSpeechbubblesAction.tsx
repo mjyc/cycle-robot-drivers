@@ -105,7 +105,8 @@ function main(sources) {
         console.debug('Ignore FIRST_RESULT in ACTIVE state');
         return state;
       } else if (action.type === 'SECOND_RESULT') {
-        if (state.goal.type === 'ASK_QUESTION') {
+        if (state.goal.type === 'ASK_QUESTION'
+            && isEqual(state.goal_id, action.value.status.goal_id)) {
           return {
             ...state,
             goal: null,
