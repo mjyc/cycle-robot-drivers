@@ -30,14 +30,14 @@ enum SMStates {
 };
 
 enum SMActions {
-  RECEIVED_YES = 'YES',
-  RECEIVED_NO = 'NO',
+  RECEIVED_YES = 'RECEIVED_YES',
+  RECEIVED_NO = 'RECEIVED_NO',
 };
 
 // define types
 type State = {
   question: SMStates,
-  g: any,
+  graph: any,
 };
 
 type Reducer = (prev?: State) => State | undefined;
@@ -75,9 +75,47 @@ const machine = {
     [SMActions.RECEIVED_NO]: SMStates.TELL_THEM_THEY_ARE_NOMAD,
   },
 };
-console.error('========', machine)
 
 // define functions
+function makeDagreD3Driver() {
+  const width = 1500;
+  const height = 1000;
+  const render = new dagreD3.render();
+
+  return function dagreD3Driver(sink$) {
+    sink$.take(1).addListener({
+      next: () => {
+        d3.select('svg').attr('width', width);
+        d3.select('svg').attr('height', height);
+      }
+    });
+
+    sink$.addListener({
+      next: (g) => {
+        if (!g) {
+          console.warn('Invalid input:', g);
+          return;
+        }
+        render(d3.select('svg').select('g'), g);
+      }
+    });
+
+    return adapt(xs.of((<svg><g/></svg>)));
+  };
+}
+
+function createGraph(states: string[], actions: string[], machine) {
+  const g = new dagreD3.graphlib.Graph().setGraph({});
+  states.map(state => g.setNode(state, {label: state}));
+  Object.keys(machine).map(state => {
+    Object.keys(machine[state]).map(action => {
+      const nextState = machine[state][action];
+      g.setEdge(state, nextState, {label: action});
+    })
+  });
+  return g;
+}
+
 function transition(state: SMStates, action: SMActions) {
   const actions = machine[state];
   if (!actions) {
@@ -92,29 +130,31 @@ function transition(state: SMStates, action: SMActions) {
   return newState;
 }
 
-const g = createGraph(Object.keys(SMStates), Object.keys(SMActions), machine);
-
 function model(result$: Actions): Stream<State> {
   const initReducer$ = fromEvent(window, 'load').mapTo(function initReducer(prev) {
-    return {
-      question: SMStates.ASK_CAREER_QUESTION,
-    };
+    const question = SMStates.ASK_CAREER_QUESTION;
+    const graph = createGraph(Object.keys(SMStates), Object.keys(SMActions), machine);
+    graph.node(question).style = "fill: #f77";
+    return {question, graph};
   });
 
   const resultReducer$ = result$
     .filter(result => result.status.status === 'SUCCEEDED')
     .map(result => function resultReducer(prevState: State): State {
-      // extract yes & no
+      // make a transition
       const question = transition(
         prevState.question,
         result.result,
       );
-
-      const state = !!question ? {question, g: null} : prevState;
-      g.node(prevState.question).style = null;
-      g.node(state.question).style = "fill: #f77";
-      state.g = g;
-      return state;
+      // update the graph
+      if (!!question) {
+        prevState.graph.node(prevState.question).style = null;
+        prevState.graph.node(question).style = "fill: #f77";
+      }
+      return !!question ? {
+        question,
+        graph: prevState.graph
+      } : prevState;
     });
 
   return xs.merge(initReducer$, resultReducer$)
@@ -131,7 +171,7 @@ function goal(state: Stream<State>): Stream<Goal> {
         || s.question === SMStates.TELL_THEM_THEY_ARE_VACATIONER
         || s.question === SMStates.TELL_THEM_THEY_ARE_EXPAT
       ) ? initGoal({type: 'SET_MESSAGE', value: [s.question]})
-        : initGoal({type: 'ASK_QUESTION', value: [s.question, ['YES', 'NO']]});
+        : initGoal({type: 'ASK_QUESTION', value: [s.question, Object.keys(SMActions)]});
     })
   );
 }
@@ -139,41 +179,6 @@ function goal(state: Stream<State>): Stream<Goal> {
 
 //------------------------------------------------------------------------------
 const types = ['SET_MESSAGE', 'ASK_QUESTION'];  // TODO: remove soon
-
-
-//------------------------------------------------------------------------------
-function makeDagreD3Driver() {
-  const render2 = new dagreD3.render();
-
-  return function dagreD3Driver(sink$) {
-    sink$.addListener({
-      next: (g) => {
-        if (!g) {
-          console.warn('Invalid input:', g);
-          return;
-        }
-        const svg = d3.select('svg').select('g');
-        d3.select('svg').attr('height', 1000);
-        d3.select('svg').attr('width', 800);
-        render2(svg, g);
-      }
-    });
-
-    return adapt(xs.of((<svg><g/></svg>)));
-  };
-}
-
-function createGraph(states: string[], actions, transitions) {
-  const g = new dagreD3.graphlib.Graph().setGraph({});
-  states.map(state => g.setNode(state, {label: state}));
-  Object.keys(transitions).map(state => {
-    Object.keys(transitions[state]).map(action => {
-      const nextState = transitions[state][action];
-      g.setEdge(state, nextState, {label: action});
-    })
-  });
-  return g;
-}
 
 //------------------------------------------------------------------------------
 function main(sources) {
@@ -183,105 +188,27 @@ function main(sources) {
     DOM: sources.DOM,
   });
 
+  const state$ = model(speechbubbleAction.result);
+  const goal$ = goal(state$);
 
-
-  const state2$ = model(speechbubbleAction.result);
-  state2$.addListener({next: d => console.log('state2$', d)});
-
-  const goal2$ = goal(state2$);
-  goal2$.addListener({next: d => console.log('goal2$', d)});
-
-
-
-  const params$ = xs.combine(
-    sources.DOM.select('#type').events('change')
-      .map(ev => (ev.target as HTMLInputElement).value)
-      .startWith(types[0]),
-    sources.DOM.select('#value').events('focusout')
-      .map(ev => {
-        const value = (ev.target as HTMLInputElement).value;
-        try { return JSON.parse(value); } catch { return value; }
-      })
-      .startWith(''),
-  ).map(([type, value]) => ({type, value})).remember();
-
-  // send goals to the action
-  goalProxy$.imitate(
-    goal2$
-    // xs.merge(
-    //   sources.DOM.select('#start').events('click')
-    //     .mapTo(params$.take(1)).flatten(),
-    //   sources.DOM.select('#cancel').events('click').mapTo(null),
-    // )
-  );
-
-  // update the state
-  const state$ = xs.combine(
-    params$,
-    speechbubbleAction.status.startWith(null),
-    speechbubbleAction.result.startWith(null),
-  ).map(([params, status, result]) => {
-    return {
-      ...params,
-      status,
-      result,
-    }
-  });
+  // send goals
+  goalProxy$.imitate(goal$);
 
   // update graph
-  // const graph$ = fromEvent(window, 'load').mapTo(g);
-  const graph$ = state2$.map(s2 => s2.g);
-  goal2$.addListener({next: d => console.error('graph$', d)});
+  const graph$ = state$.map(s2 => s2.graph);
 
   // update visualizer
-  const styles = {code: {"background-color": "#f6f8fa"}}
   const vdom$ = xs.combine(
-      state$,
-      speechbubbleAction.DOM,
-      sources.DagreD3,
-  ).map(([s, b, g]) => (
+    sources.DagreD3,
+    speechbubbleAction.DOM,
+  ).map(([b, g]) => (
     <div>
-      <h1>TwoSpeechbubblesAction component demo</h1>
+      <div>
+        {g}
+      </div>
 
       <div>
         {b}
-      </div>
-
-      <div>
-        <h3>Action inputs</h3>
-        <div>
-          <select id="type">{types.map(type => (type === s.type ? (
-            <option selected value={type}>{type}</option>
-          ) : (
-            <option value={type}>{type}</option>
-          )))}</select>
-          <input id="value"></input>
-          <div><small>Try <code style={styles.code}>
-          ["Do you want cookie or ice cream?", ["Cookie", "Ice cream", "Both"]]
-          </code> for ASK_CHOICE</small></div>
-        </div>
-      </div>
-
-      <div>
-        <h3>Controls</h3>
-        <div>
-          <button id="start">Start</button>
-          <button id="cancel">Cancel</button>
-        </div>
-      </div>
-
-      <div>
-        <h3>Action outputs</h3>
-        <div>
-          <pre style={styles.code}>"status": {JSON.stringify(s.status, null, 2)}
-          </pre>
-          <pre style={styles.code}>"result": {JSON.stringify(s.result, null, 2)}
-          </pre>
-        </div>
-      </div>
-
-      <div>
-        {g}
       </div>
     </div>
   ));
