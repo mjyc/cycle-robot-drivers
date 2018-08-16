@@ -74,17 +74,25 @@ export function SpeechbubbleAction(sources) {
       }
     } else if (state.status === Status.ACTIVE) {
       if (action.type === 'GOAL') {
-        state$.shamefullySendNext({
+        // state$.shamefullySendNext({
+        //   ...state,
+        //   goal: null,
+        //   status: Status.PREEMPTED,
+        // });
+        // const goal = (action.value as Goal);
+        // return {
+        //   goal_id: goal.goal_id,
+        //   goal: goal.goal,
+        //   status: Status.ACTIVE,
+        //   result: null,
+        // };
+        setTimeout(() => {
+          action$.shamefullySendNext(action);
+        }, 0);
+        return {
           ...state,
           goal: null,
           status: Status.PREEMPTED,
-        });
-        const goal = (action.value as Goal);
-        return {
-          goal_id: goal.goal_id,
-          goal: goal.goal,
-          status: Status.ACTIVE,
-          result: null,
         };
       } else if (action.type === 'CLICK') {
         return {
