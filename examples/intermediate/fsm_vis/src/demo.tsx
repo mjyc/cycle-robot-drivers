@@ -116,8 +116,16 @@ function model(result$: Actions): Stream<State> {
 }
 
 function goal(state: Stream<State>): Stream<Goal> {
-  return state
-    .map(s => initGoal({type: 'ASK_QUESTION', value: [s.question, ['YES', 'NO']]}));
+  return xs.merge(
+    state.map(s => {
+      return (
+        s.question === SMStates.TELL_THEM_THEY_ARE_NOMAD
+        || s.question === SMStates.TELL_THEM_THEY_ARE_VACATIONER
+        || s.question === SMStates.TELL_THEM_THEY_ARE_EXPAT
+      ) ? initGoal({type: 'SET_MESSAGE', value: [s.question]})
+        : initGoal({type: 'ASK_QUESTION', value: [s.question, ['YES', 'NO']]});
+    })
+  );
 }
 
 
@@ -147,78 +155,17 @@ function makeDagreD3Driver() {
   };
 }
 
-function createG() {
-  // Create a new directed graph
-  var g = new dagreD3.graphlib.Graph().setGraph({});
-
-  // States and transitions from RFC 793
-  var states = [ 'LOAD', 'READ', 'WAIT', 'RESUME', 'DONE' ];
-
-  // Automatically label each of the nodes
-  states.forEach(function(state) { g.setNode(state, { label: state }); });
-
-  // Set up the edges
-  g.setEdge("LOAD", "READ", {label: "FOUND_PERSON"});
-  g.setEdge("READ", "WAIT", {label: "LOST_PERSON"});
-  g.setEdge("READ", "READ", {label: "FINISHED_SPEACKING"});
-  g.setEdge("READ", "DONE", {label: "FINISHED_READING"});
-  g.setEdge("WAIT", "RESUME", {label: "FOUND_PERSON"});
-  g.setEdge("RESUME", "READ", {label: "FINISHED_SPEACKING"});
-
-  // // Set some general styles
-  // g.nodes().forEach(function(v) {
-  //   var node = g.node(v);
-  //   node.rx = node.ry = 5;
-  // });
-
-  // // Add some custom colors based on state
-  // g.node('CLOSED').style = "fill: #f77";
-  // g.node('ESTAB').style = "fill: #7f7";
-  g.node('LOAD').style = "fill: #f77";
-
+function createGraph(states: string[], actions, transitions) {
+  const g = new dagreD3.graphlib.Graph().setGraph({});
+  states.map(state => g.setNode(state, {label: state}));
+  Object.keys(transitions).map(state => {
+    Object.keys(transitions[state]).map(action => {
+      const nextState = transitions[state][action];
+      g.setEdge(state, nextState, {label: action});
+    })
+  });
   return g;
 }
-
-enum SMStates2 {
-  LOAD = 'LOAD',
-  READ = 'READ',
-  WAIT = 'WAIT',
-  RESUME = 'RESUME',
-  DONE = 'DONE',
-};
-const keys = Object.keys(SMStates2).map(s => console.error(s));
-
-
-function createG2() {
-  // Create a new directed graph
-  var g = new dagreD3.graphlib.Graph().setGraph({});
-
-  // States and transitions from RFC 793
-  var states = [ 'LOAD', 'READ', 'WAIT', 'RESUME', 'DONE' ];
-
-  // Automatically label each of the nodes
-  states.forEach(function(state) { g.setNode(state, { label: state }); });
-
-  // Set up the edges
-  g.setEdge("LOAD", "READ", {label: "FOUND_PERSON"});
-  g.setEdge("READ", "WAIT", {label: "LOST_PERSON"});
-  g.setEdge("READ", "READ", {label: "FINISHED_SPEACKING"});
-  g.setEdge("READ", "DONE", {label: "FINISHED_READING"});
-  g.setEdge("WAIT", "RESUME", {label: "FOUND_PERSON"});
-  g.setEdge("RESUME", "READ", {label: "FINISHED_SPEACKING"});
-
-  // // Set some general styles
-  // g.nodes().forEach(function(v) {
-  //   var node = g.node(v);
-  //   node.rx = node.ry = 5;
-  // });
-
-  // // Add some custom colors based on state
-  g.node('LOAD').style = null;
-
-  return g;
-}
-
 
 //------------------------------------------------------------------------------
 function main(sources) {
@@ -274,10 +221,9 @@ function main(sources) {
   });
 
   // update graph
-  const graph$ = fromEvent(window, 'load').mapTo(createG());
-  setTimeout(() => {
-    graph$.shamefullySendNext(createG2());
-  }, 2000);
+  const graph$ = fromEvent(window, 'load').mapTo(createGraph(
+    Object.keys(SMStates), Object.keys(SMActions), machine
+  ));
 
   // update visualizer
   const styles = {code: {"background-color": "#f6f8fa"}}
