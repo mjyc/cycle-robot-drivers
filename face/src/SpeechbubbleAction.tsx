@@ -86,6 +86,7 @@ export function SpeechbubbleAction(sources) {
         //   status: Status.ACTIVE,
         //   result: null,
         // };
+        // beg HACK
         setTimeout(() => {
           action$.shamefullySendNext(action);
         }, 0);
@@ -94,6 +95,7 @@ export function SpeechbubbleAction(sources) {
           goal: null,
           status: Status.PREEMPTED,
         };
+        // end HACK
       } else if (action.type === 'CLICK') {
         return {
           ...state,
@@ -112,10 +114,20 @@ export function SpeechbubbleAction(sources) {
       `Unhandled state.status ${state.status} action.type ${action.type}`
     );
     return state;
-  }, initialState);
+  }, initialState).debug(d => console.error('state$', d));
 
   // Prepare outgoing streams
+  // beg HACK
+  // let lastTimeStamp = new Date();
+  // let innerDOM = null;
   const vdom$ = state$.map((state: State) => {
+    // if (state.goal_id.stamp < lastTimeStamp) {
+    //   return innerDOM;
+    // } else {
+    //   lastTimeStamp = state.goal_id.stamp;
+    // }
+    // end HACK
+    console.error('state', state);
     const innerDOM = (() => {
       if (state.status === Status.ACTIVE) {
         switch (state.goal.type) {
