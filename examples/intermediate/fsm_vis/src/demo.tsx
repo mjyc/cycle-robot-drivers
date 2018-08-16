@@ -37,6 +37,7 @@ enum SMActions {
 // define types
 type State = {
   question: SMStates,
+  g: any,
 };
 
 type Reducer = (prev?: State) => State | undefined;
@@ -91,6 +92,8 @@ function transition(state: SMStates, action: SMActions) {
   return newState;
 }
 
+const g = createGraph(Object.keys(SMStates), Object.keys(SMActions), machine);
+
 function model(result$: Actions): Stream<State> {
   const initReducer$ = fromEvent(window, 'load').mapTo(function initReducer(prev) {
     return {
@@ -106,7 +109,12 @@ function model(result$: Actions): Stream<State> {
         prevState.question,
         result.result,
       );
-      return !!question ? {question} : prevState;
+
+      const state = !!question ? {question, g: null} : prevState;
+      g.node(prevState.question).style = null;
+      g.node(state.question).style = "fill: #f77";
+      state.g = g;
+      return state;
     });
 
   return xs.merge(initReducer$, resultReducer$)
@@ -221,9 +229,9 @@ function main(sources) {
   });
 
   // update graph
-  const graph$ = fromEvent(window, 'load').mapTo(createGraph(
-    Object.keys(SMStates), Object.keys(SMActions), machine
-  ));
+  // const graph$ = fromEvent(window, 'load').mapTo(g);
+  const graph$ = state2$.map(s2 => s2.g);
+  goal2$.addListener({next: d => console.error('graph$', d)});
 
   // update visualizer
   const styles = {code: {"background-color": "#f6f8fa"}}
