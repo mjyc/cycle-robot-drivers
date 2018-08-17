@@ -68,14 +68,14 @@ enum SMActions {
   FINISHED_READING = 'FINISHED_READING',
 };
 
-export type State = {
+type State = {
   state: SMStates,
   curSentence?: number,
 };
 
-export type Reducer = (prev?: State) => State | undefined;
+type Reducer = (prev?: State) => State | undefined;
 
-export type Actions = {
+type Actions = {
   numPoses$: Stream<number>,
   result$: Stream<Result>,
 }
