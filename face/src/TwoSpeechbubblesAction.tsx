@@ -8,7 +8,15 @@ import {
   GoalID, Goal, Status, GoalStatus, Result,
   generateGoalID, initGoal, isEqual, powerup,
 } from '@cycle-robot-drivers/action'
-import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction'
+import {
+  SpeechbubbleType,
+  IsolatedSpeechbubbleAction,
+} from './SpeechbubbleAction'
+
+export enum TwoSpeechbubblesType {
+  SET_MESSAGE = 'SET_MESSAGE',
+  ASK_QUESTION = 'ASK_QUESTION',
+}
 
 function main(sources) {
   sources.proxies = {
@@ -105,7 +113,7 @@ function main(sources) {
         console.debug('Ignore FIRST_RESULT in ACTIVE state');
         return state;
       } else if (action.type === 'SECOND_RESULT') {
-        if (state.goal.type === 'ASK_QUESTION'
+        if (state.goal.type === TwoSpeechbubblesType.ASK_QUESTION
             && isEqual(state.goal_id, action.value.status.goal_id)) {
           return {
             ...state,
@@ -167,30 +175,30 @@ function main(sources) {
       };
     }
     switch (state.goal.type) {
-      case 'SET_MESSAGE':
+      case TwoSpeechbubblesType.SET_MESSAGE:
         return {
           first: {
             goal_id: state.goal_id,
             goal: {
-              type: 'MESSAGE',
+              type: SpeechbubbleType.MESSAGE,
               value: state.goal.value,
             },
           },
           second: null,
         };
-      case 'ASK_QUESTION':
+      case TwoSpeechbubblesType.ASK_QUESTION:
         return {
           first: {
             goal_id: state.goal_id,
             goal: {
-              type: 'MESSAGE',
+              type: SpeechbubbleType.MESSAGE,
               value: state.goal.value[0],
             },
           },
           second: {
             goal_id: state.goal_id,
             goal: {
-              type: 'CHOICE',
+              type: SpeechbubbleType.CHOICE,
               value: state.goal.value[1],
             },
           },

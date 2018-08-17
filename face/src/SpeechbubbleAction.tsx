@@ -5,9 +5,14 @@ import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
 import {
-  GoalID, Goal, GoalStatus, Status, Result, generateGoalID, initGoal, isEqual,
+  GoalID, Goal, GoalStatus, Status, Result,
+  generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
+export enum SpeechbubbleType {
+  MESSAGE = 'MESSAGE',
+  CHOICE = 'CHOICE',
+}
 
 export function SpeechbubbleAction(sources) {
   // Create action stream
@@ -114,7 +119,7 @@ export function SpeechbubbleAction(sources) {
       `Unhandled state.status ${state.status} action.type ${action.type}`
     );
     return state;
-  }, initialState).debug(d => console.error('state$', d));
+  }, initialState);
 
   // Prepare outgoing streams
   // beg HACK
@@ -127,13 +132,12 @@ export function SpeechbubbleAction(sources) {
     //   lastTimeStamp = state.goal_id.stamp;
     // }
     // end HACK
-    console.error('state', state);
     const innerDOM = (() => {
       if (state.status === Status.ACTIVE) {
         switch (state.goal.type) {
-          case 'MESSAGE':
+          case SpeechbubbleType.MESSAGE:
             return (<span>{state.goal.value}</span>);
-          case 'CHOICE':
+          case SpeechbubbleType.CHOICE:
             return (
               <span>{state.goal.value.map((text) => (
                 <button className="choice">{text}</button>
