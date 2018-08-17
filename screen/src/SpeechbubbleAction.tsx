@@ -34,6 +34,7 @@ export function SpeechbubbleAction(sources) {
       };
     }
   });
+  // HACK: force creating the click stream
   let click$ = sources.DOM.select('.choice').elements()
     .filter(b => b.length > 0)
     .map(b => sources.DOM.select('.choice').events('click', {

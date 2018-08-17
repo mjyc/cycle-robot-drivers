@@ -45,6 +45,7 @@ function main(sources) {
   speechbubbles.result.addListener({
     next: data => {
       console.warn('result', data);
+      // test sending two goals back to back
       if (data.result === 'Red pill') {
         sbub$.shamefullySendNext({
           type: 'SET_MESSAGE',
