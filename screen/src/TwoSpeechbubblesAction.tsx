@@ -33,6 +33,10 @@ function main(sources) {
     goal: sources.proxies.secondGoal,
   });
 
+  // HACK
+  first.DOM.addListener({next: d => {}});
+  second.DOM.addListener({next: d => {}})
+
   // Process incoming streams
   type Action = {
     type: string,

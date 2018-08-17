@@ -21,6 +21,7 @@
   },
   "scripts": {
     "start": "webpack-dev-server ./src/index.tsx",
-    "start:demo": "webpack-dev-server ./src/demo.tsx"
+    "start:demo": "webpack-dev-server ./src/demo.tsx",
+    "start:questions": "webpack-dev-server ./src/questions.tsx"
   }
 }

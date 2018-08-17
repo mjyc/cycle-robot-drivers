@@ -34,9 +34,11 @@ export function SpeechbubbleAction(sources) {
       };
     }
   });
-  let click$ = sources.DOM.select('.choice').events('click', {
-    preventDefault: true
-  });
+  let click$ = sources.DOM.select('.choice').elements()
+    .filter(b => b.length > 0)
+    .map(b => sources.DOM.select('.choice').events('click', {
+      preventDefault: true
+    })).flatten();
   click$ = xs.fromObservable(click$).map((event: Event) => {
     return {
       type: 'CLICK',
@@ -79,28 +81,18 @@ export function SpeechbubbleAction(sources) {
       }
     } else if (state.status === Status.ACTIVE) {
       if (action.type === 'GOAL') {
-        // state$.shamefullySendNext({
-        //   ...state,
-        //   goal: null,
-        //   status: Status.PREEMPTED,
-        // });
-        // const goal = (action.value as Goal);
-        // return {
-        //   goal_id: goal.goal_id,
-        //   goal: goal.goal,
-        //   status: Status.ACTIVE,
-        //   result: null,
-        // };
-        // beg HACK
-        setTimeout(() => {
-          action$.shamefullySendNext(action);
-        }, 0);
-        return {
+        state$.shamefullySendNext({
           ...state,
           goal: null,
           status: Status.PREEMPTED,
+        });
+        const goal = (action.value as Goal);
+        return {
+          goal_id: goal.goal_id,
+          goal: goal.goal,
+          status: Status.ACTIVE,
+          result: null,
         };
-        // end HACK
       } else if (action.type === 'CLICK') {
         return {
           ...state,
@@ -122,16 +114,7 @@ export function SpeechbubbleAction(sources) {
   }, initialState);
 
   // Prepare outgoing streams
-  // beg HACK
-  // let lastTimeStamp = new Date();
-  // let innerDOM = null;
   const vdom$ = state$.map((state: State) => {
-    // if (state.goal_id.stamp < lastTimeStamp) {
-    //   return innerDOM;
-    // } else {
-    //   lastTimeStamp = state.goal_id.stamp;
-    // }
-    // end HACK
     const innerDOM = (() => {
       if (state.status === Status.ACTIVE) {
         switch (state.goal.type) {
