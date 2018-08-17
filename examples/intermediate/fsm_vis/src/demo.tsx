@@ -87,17 +87,21 @@ const machine = {
 };
 
 // define functions
-function makeDagreD3Driver() {
-  const width = 1500;
-  const height = 1000;
+function makeDagreD3Driver({
+  width,
+  height,
+}: {
+  width?: number,
+  height?: number,
+} = {}) {
   const render = new dagreD3.render();
 
   return function dagreD3Driver(sink$) {
     sink$.take(1).addListener({
       next: () => {
         const svg = d3.select('svg');
-        svg.attr('width', width);
-        svg.attr('height', height);
+        width && svg.attr('width', width);
+        height && svg.attr('height', height);
         const zoom = d3.zoom().on('zoom', function() {
           svg.select('g').attr('transform', d3.event.transform);
         });
@@ -105,17 +109,28 @@ function makeDagreD3Driver() {
       }
     });
 
-    sink$.addListener({
-      next: (g) => {
+    sink$.fold((acc, g) => {
+      if (!g) {
+        throw Error(`Invalid input: ${JSON.stringify(g, null, 2)}`);
+      };
+      return {
+        g,
+        i: acc.i + 1,
+      }
+    }, {g: null, i: -1}).addListener({
+      next: ({g, i}) => {
         if (!g) {
           console.warn('Invalid input:', g);
           return;
         }
         render(d3.select('svg').select('g'), g);
-      }
+      },
+      error: err => console.error(err),
     });
 
-    return adapt(xs.of((<svg><g/></svg>)));
+    return adapt(xs.of((
+      <svg><g/></svg>
+    )));
   };
 }
 
@@ -245,5 +260,5 @@ function main(sources) {
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  DagreD3: makeDagreD3Driver(),
+  DagreD3: makeDagreD3Driver({width: 1024, height: 768}),
 });
