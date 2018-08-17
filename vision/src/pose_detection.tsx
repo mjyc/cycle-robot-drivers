@@ -213,9 +213,10 @@ export function makePoseDetectionDriver() {
       });
       const outPoses = poses
         .filter(pose => pose.score >= minPoseConfidence)
-        .map(pose => (
-          pose.keypoints.filter(keypoint => keypoint.score >= minPartConfidence)
-        ));
+        .map(pose => ({
+          ...pose,
+          keypoints: pose.keypoints.filter(keypoint => keypoint.score >= minPartConfidence)
+        }));
 
       if (posesListener) {
         posesListener(outPoses);
