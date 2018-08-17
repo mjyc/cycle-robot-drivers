@@ -1,6 +1,6 @@
 export {makeFacialExpressionActionDriver} from './facial_expression_action'
 export {
-  SpeechbubbleType
+  SpeechbubbleType,
   SpeechbubbleAction,
   IsolatedSpeechbubbleAction,
 } from './SpeechbubbleAction'
