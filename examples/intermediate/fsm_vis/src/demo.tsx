@@ -32,6 +32,7 @@ enum SMStates {
 enum SMActions {
   RECEIVED_YES = 'Yes',
   RECEIVED_NO = 'No',
+  RECEIVED_RESTART = 'Restart',
 };
 
 // define types
@@ -74,6 +75,15 @@ const machine = {
     [SMActions.RECEIVED_YES]: SMStates.ASK_WORKING_ONLINE_QUESTION,
     [SMActions.RECEIVED_NO]: SMStates.TELL_THEM_THEY_ARE_NOMAD,
   },
+  [SMStates.TELL_THEM_THEY_ARE_NOMAD]: {
+    [SMActions.RECEIVED_RESTART]: SMStates.ASK_CAREER_QUESTION,
+  },
+  [SMStates.TELL_THEM_THEY_ARE_VACATIONER]: {
+    [SMActions.RECEIVED_RESTART]: SMStates.ASK_CAREER_QUESTION,
+  },
+  [SMStates.TELL_THEM_THEY_ARE_EXPAT]: {
+    [SMActions.RECEIVED_RESTART]: SMStates.ASK_CAREER_QUESTION,
+  },
 };
 
 // define functions
@@ -85,8 +95,13 @@ function makeDagreD3Driver() {
   return function dagreD3Driver(sink$) {
     sink$.take(1).addListener({
       next: () => {
-        d3.select('svg').attr('width', width);
-        d3.select('svg').attr('height', height);
+        const svg = d3.select('svg');
+        svg.attr('width', width);
+        svg.attr('height', height);
+        const zoom = d3.zoom().on('zoom', function() {
+          svg.select('g').attr('transform', d3.event.transform);
+        });
+        svg.call(zoom);
       }
     });
 
@@ -174,10 +189,12 @@ function goal(state: Stream<State>): Stream<Goal> {
         s.question === SMStates.TELL_THEM_THEY_ARE_NOMAD
         || s.question === SMStates.TELL_THEM_THEY_ARE_VACATIONER
         || s.question === SMStates.TELL_THEM_THEY_ARE_EXPAT
-      ) ? initGoal({type: 'SET_MESSAGE', value: [s.question]})
-        : initGoal({type: 'ASK_QUESTION', value: [
+      ) ? initGoal({type: 'ASK_QUESTION', value: [
           s.question,
-          Object.keys(SMActions).map(k => SMActions[k]),
+          [SMActions.RECEIVED_RESTART],
+        ]}) : initGoal({type: 'ASK_QUESTION', value: [
+          s.question,
+          [SMActions.RECEIVED_YES, SMActions.RECEIVED_NO],
         ]});
     })
   );
