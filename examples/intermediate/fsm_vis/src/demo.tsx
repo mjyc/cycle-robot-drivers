@@ -192,9 +192,14 @@ function model(result$: Actions): Stream<State> {
       );
       // update the graph
       if (!!question) {
-        prevState.graph.node(prevState.question)
-          .style = 'stroke: #333; fill: #fff;';
-        prevState.graph.node(question).style = 'fill: #f77';
+        prevState.graph.setNode(prevState.question, {
+          label: prevState.question,
+          style: 'stroke: #333; fill: #fff;',
+        });
+        prevState.graph.setNode(question, {
+          label: question,
+          style: 'stroke: #333; fill: #f77',
+        });
       }
       return !!question ? {
         question,
