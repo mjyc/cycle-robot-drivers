@@ -7,6 +7,15 @@ import {makePoseDetectionDriver} from '@cycle-robot-drivers/vision'
 
 function main(sources) {
   const styles = {code: {"background-color": "#f6f8fa"}}
+
+  sources.PoseDetection.poses.addListener({next: d => {
+    if (d.length === 0) { return; }
+    if (d[0].keypoints.filter(k => k.part === 'nose').length === 0) { return; }
+
+    const nose = d[0].keypoints.filter(k => k.part === 'nose')[0];
+    console.log(nose, nose.position.x / 640, (480 - nose.position.y) / 480);
+  }});
+
   const vdom$ = xs.combine(
     sources.PoseDetection.poses.startWith([]),
     sources.PoseDetection.DOM,
