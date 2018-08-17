@@ -1,5 +1,5 @@
 import xs from 'xstream'
-import pairwise from 'xstream/extra/pairwise'
+import dropRepeats from 'xstream/extra/dropRepeats'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
@@ -132,11 +132,8 @@ export function AudioPlayerAction(sources) {
 
   // Prepare outgoing streams
   const stateStatusChanged$ = state$
-    .compose(pairwise)
-    .filter(([prev, cur]) => (
-      cur.status !== prev.status || !isEqual(cur.goal_id, prev.goal_id)
-    ))
-    .map(([prev, cur]) => cur);
+    .compose(dropRepeats(
+      (x, y) => (x.status === y.status && isEqual(x.goal_id, y.goal_id))));
 
   const value$ = stateStatusChanged$
     .filter(state => (state.status === Status.ACTIVE
