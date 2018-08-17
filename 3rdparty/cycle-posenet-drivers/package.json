@@ -1,5 +1,5 @@
 {
-  "name": "@cycle-robot-drivers/vision",
+  "name": "cycle-posenet-drivers",
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -7,7 +7,7 @@
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "@cycle-robot-drivers/action": "file:../action",
+    "@cycle-robot-drivers/action": "file:../../action",
     "@cycle/isolate": "3.4.0",
     "@cycle/run": "4.4.0",
     "@tensorflow-models/posenet": "0.1.2",

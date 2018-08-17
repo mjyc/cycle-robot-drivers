@@ -5,9 +5,9 @@
   "license": "MIT",
   "dependencies": {
     "@cycle-robot-drivers/screen": "file:../../../screen",
-    "@cycle-robot-drivers/vision": "file:../../../vision",
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
+    "cycle-posenet-drivers": "file:../../../3rdparty/cycle-posenet-drivers",
     "snabbdom": "0.7.1",
     "snabbdom-pragma": "2.7.0",
     "xstream": "11.7.0"

@@ -9,7 +9,7 @@ import {
   makeSpeechSynthesisDriver,
   IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
 } from '@cycle-robot-drivers/speech'
-import {makePoseDetectionDriver} from '@cycle-robot-drivers/vision'
+import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 
 // a random story from https://www.plot-generator.org.uk/story/
 const sentences = [

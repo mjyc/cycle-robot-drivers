@@ -2,7 +2,7 @@ import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
-import {makePoseDetectionDriver} from '@cycle-robot-drivers/vision'
+import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 
 
 function main(sources) {

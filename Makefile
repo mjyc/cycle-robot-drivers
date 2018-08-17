@@ -5,10 +5,9 @@ TSC=$(BINDIR)/tsc
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action screen speech sound vision
+PACKAGES := action screen speech sound 3rdparty/cycle-posenet-drivers
 
 all:
-	@echo $(foo)
 	@echo "npm install"
 	@npm install
 	@echo ""
@@ -26,7 +25,7 @@ lib:
 			make lib $$d; \
 		done; \
 	else \
-		rm -rf $(ARG)/lib/; \
+		rm -rf $(ARG)/lib; \
 		mkdir -p $(ARG)/lib; \
 		$(TSC) --project $(ARG) --module commonjs --outDir $(ARG)/lib/cjs ;\
 		$(TSC) --project $(ARG) --module es6 --outDir $(ARG)/lib/es6 ;\
@@ -46,5 +45,5 @@ sound:
 speech:
 	@:
 
-vision:
+3rdparty/cycle-posenet-drivers:
 	@:

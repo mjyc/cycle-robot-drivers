@@ -6,7 +6,7 @@ import {makeDOMDriver} from '@cycle/dom';
 import {
   makeFacialExpressionActionDriver,
 } from '@cycle-robot-drivers/screen'
-import {makePoseDetectionDriver} from '@cycle-robot-drivers/vision'
+import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 
 
 function main(sources) {

@@ -5,7 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "@cycle-robot-drivers/speech": "file:../../../speech",
-    "@cycle-robot-drivers/vision": "file:../../../vision",
+    "cycle-posenet-drivers": "file:../../../3rdparty/cycle-posenet-drivers",
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
     "@cycle/time": "0.15.0",
