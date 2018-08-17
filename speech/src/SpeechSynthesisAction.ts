@@ -26,7 +26,7 @@ export function SpeechSynthesisAction(sources) {
       return {
         type: 'GOAL',
         value: (goal as any).goal_id ? goal : initGoal(goal),
-      }
+      };
     }
   });
   const events$ = xs.merge(
@@ -76,7 +76,7 @@ export function SpeechSynthesisAction(sources) {
           goal: (action.value as Goal).goal,
           status: Status.PENDING,
           result: null,
-        }
+        };
       } else if (action.type === 'CANCEL') {
         console.debug('Ignore CANCEL in DONE states');
         return state;
@@ -88,7 +88,7 @@ export function SpeechSynthesisAction(sources) {
           goal: null,
           status: ExtraStatus.PREEMPTING,
           newGoal: (action.value as Goal)
-        }
+        };
       } else if (action.type === 'START') {
         return {
           ...state,
@@ -99,7 +99,7 @@ export function SpeechSynthesisAction(sources) {
           ...state,
           goal: null,
           status: ExtraStatus.PREEMPTING,
-        }
+        };
       }
     } else if (state.status === Status.ACTIVE) {
       if (action.type === 'GOAL') {
@@ -108,19 +108,19 @@ export function SpeechSynthesisAction(sources) {
           goal: null,
           status: ExtraStatus.PREEMPTING,
           newGoal: (action.value as Goal)
-        }
+        };
       } else if (action.type === 'END') {
         return {
           ...state,
           status: Status.SUCCEEDED,
           result: action.value,
-        }
+        };
       } else if (action.type === 'CANCEL') {
         return {
           ...state,
           goal: null,
           status: ExtraStatus.PREEMPTING,
-        }
+        };
       }
     } else if (state.status === ExtraStatus.PREEMPTING) {
       if (action.type === 'GOAL') {
@@ -147,7 +147,7 @@ export function SpeechSynthesisAction(sources) {
             status: Status.PENDING,
             result: null,
             newGoal: null,
-          }
+          };
         } else {
           return preemptedState;
         }
