@@ -13,6 +13,7 @@ function main(sources) {
   const styles = {code: {"background-color": "#f6f8fa"}}
 
   let leftEye = null;
+  let rightEye = null;
   fromEvent(window, 'load').addListener({next: d => {
     leftEye = document.querySelector('.left.eye');
     rightEye = document.querySelector('.right.eye');
@@ -24,10 +25,10 @@ function main(sources) {
 
     const nose = d[0].keypoints.filter(k => k.part === 'nose')[0];
     console.log(nose.position.x / 640, 'calc(' +  (22.22 * nose.position.y / 480) + 'vh)');
-    if (leftEye & rightEye) {
+    if (leftEye && rightEye) {
       leftEye.style.left = 'calc(' +  (22.22 * nose.position.x / 640) + 'vh)'
       leftEye.style.bottom = 'calc(' +  (22.22 * (480 - nose.position.y) / 480) + 'vh)'
-      rightEye.style.left = 'calc(' +  (22.22 * nose.position.x / 640) + 'vh)'
+      rightEye.style.right = 'calc(' +  (22.22 * (640 - nose.position.x) / 640) + 'vh)'
       rightEye.style.bottom = 'calc(' +  (22.22 * (480 - nose.position.y) / 480) + 'vh)'
     }
   }});
