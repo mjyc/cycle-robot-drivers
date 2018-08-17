@@ -2,7 +2,7 @@ import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream'
 import {adapt} from '@cycle/run/lib/adapt'
 import dat from 'dat.gui';
-const Stats = require('stats.js');
+import Stats from 'stats.js';
 import * as posenet from '@tensorflow-models/posenet';
 
 import {drawSkeleton, drawKeypoints, isMobile, setupCamera} from './utils'
@@ -121,11 +121,16 @@ function setupGui(cameras, net, guiState) {
 }
 
 
-export function makePoseDetectionDriver() {
+export function makePoseDetectionDriver({
+  videoWidth = 640,
+  videoHeight = 480,
+  flipHorizontal = true,
+}: {
+  videoWidth?: number,
+  videoHeight?: number,
+  flipHorizontal?: boolean,
+} = {}) {
   const stats = new Stats();
-  const videoWidth = 640;
-  const videoHeight = 480;
-  const flipHorizontal = true;
 
   return function poseDetectionDriver(sink$) {
     let params = null;

@@ -18,7 +18,5 @@
     "stats.js": "0.17.0",
     "xstream": "11.7.0"
   },
-  "devDependencies": {
-    "@types/node": "^10.5.7"
-  }
+  "devDependencies": {}
 }

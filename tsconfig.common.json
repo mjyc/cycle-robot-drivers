@@ -6,6 +6,7 @@
     "declaration": true,
     "alwaysStrict": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "target": "es5"
   },
