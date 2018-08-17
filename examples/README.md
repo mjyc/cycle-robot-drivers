@@ -4,17 +4,19 @@ A collection of small Cycle.js apps demonstrating cycle-robot-drivers usage.
 
 The three folders contains apps with different purposes:
 
-1. [basic](./basic): apps demonstrating usage of a single action
-2. [intermediate](./intermediate) WIP
-3. [advanced](./advanced) WIP
+1. [basic/](./basic): apps demonstrating usage of a single action
+2. [intermediate/](./intermediate) WIP
+3. [advanced/](./advanced) WIP
 
 To run an example app, do
 
 ```
-# build all packages by running `make` at root dir
+# build all packages by running `make` at root repo directory
 cd basic/speech_synthesis_action/
 npm install
 npm run start:demo
 ```
 
-and visit localhost:9000
+and visit `localhost:9000`.
+
+All packages were tested with Chrome browser (>= 65.0.3325.181) only.
