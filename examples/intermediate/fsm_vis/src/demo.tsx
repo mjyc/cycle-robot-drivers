@@ -97,33 +97,37 @@ function makeDagreD3Driver({
   const render = new dagreD3.render();
 
   return function dagreD3Driver(sink$) {
-    sink$.take(1).addListener({
-      next: () => {
-        const svg = d3.select('svg');
-        width && svg.attr('width', width);
-        height && svg.attr('height', height);
-        const zoom = d3.zoom().on('zoom', function() {
-          svg.select('g').attr('transform', d3.event.transform);
-        });
-        svg.call(zoom);
-      }
-    });
-
-    sink$.fold((acc, g) => {
-      if (!g) {
-        throw Error(`Invalid input: ${JSON.stringify(g, null, 2)}`);
-      };
-      return {
-        g,
-        i: acc.i + 1,
-      }
-    }, {g: null, i: -1}).addListener({
+    sink$.filter(g => !g).addListener({
+      next: g => console.error(`Invalid input: ${JSON.stringify(g, null, 2)}`)
+    })
+    sink$.filter(g => !!g).fold((acc, g) => ({
+      g,
+      i: acc.i + 1,
+    }), {g: null, i: -1}).drop(1).addListener({
       next: ({g, i}) => {
-        if (!g) {
-          console.warn('Invalid input:', g);
-          return;
+        const svg = d3.select('svg');
+        const inner = svg.select('g');
+        render(inner, g);
+        if (i === 0) {
+          // setup width & height
+          width && svg.attr('width', width);
+          height && svg.attr('height', height);
+          // set up zoom support
+          const zoom = d3.zoom().on('zoom', function() {
+            svg.select('g').attr('transform', d3.event.transform);
+          });
+          svg.call(zoom);
+          // center the graph
+          const initialScale = 0.8;
+          svg.call(
+            zoom.transform,
+            d3.zoomIdentity
+              .translate(
+                (svg.attr("width") - g.graph().width * initialScale) / 2, 20
+              )
+              .scale(initialScale)
+          );
         }
-        render(d3.select('svg').select('g'), g);
       },
       error: err => console.error(err),
     });
@@ -136,11 +140,17 @@ function makeDagreD3Driver({
 
 function createGraph(states: string[], actions: string[], machine) {
   const g = new dagreD3.graphlib.Graph().setGraph({});
-  states.map(state => g.setNode(state, {label: state}));
+  states.map(state => g.setNode(state, {
+    label: state,
+    style: 'stroke: #333; fill: #fff;',
+  }));
   Object.keys(machine).map(state => {
     Object.keys(machine[state]).map(action => {
       const nextState = machine[state][action];
-      g.setEdge(state, nextState, {label: action});
+      g.setEdge(state, nextState, {
+        label: action,
+        style: 'stroke: #333; fill: none; stroke-width: 1.5px;',
+      });
     })
   });
   return g;
@@ -168,7 +178,7 @@ function model(result$: Actions): Stream<State> {
       Object.keys(SMActions).map(k => SMActions[k]),
       machine,
     );
-    graph.node(question).style = "fill: #f77";
+    graph.node(question).style = 'fill: #f77';
     return {question, graph};
   });
 
@@ -182,8 +192,9 @@ function model(result$: Actions): Stream<State> {
       );
       // update the graph
       if (!!question) {
-        prevState.graph.node(prevState.question).style = null;
-        prevState.graph.node(question).style = "fill: #f77";
+        prevState.graph.node(prevState.question)
+          .style = 'stroke: #333; fill: #fff;';
+        prevState.graph.node(question).style = 'fill: #f77';
       }
       return !!question ? {
         question,
@@ -260,5 +271,5 @@ function main(sources) {
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  DagreD3: makeDagreD3Driver({width: 1024, height: 768}),
+  DagreD3: makeDagreD3Driver({width: 960, height: 720}),
 });
