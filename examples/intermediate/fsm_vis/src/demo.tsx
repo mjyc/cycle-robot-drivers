@@ -13,7 +13,7 @@ import {makeDOMDriver} from '@cycle/dom';
 import {Goal, Result, initGoal} from '@cycle-robot-drivers/action'
 import {
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
-} from '@cycle-robot-drivers/face'
+} from '@cycle-robot-drivers/screen'
 
 // Define enums
 enum SMStates {

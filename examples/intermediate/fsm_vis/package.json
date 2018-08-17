@@ -5,7 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "@cycle-robot-drivers/action": "file:../../../action",
-    "@cycle-robot-drivers/face": "file:../../../face",
+    "@cycle-robot-drivers/screen": "file:../../../screen",
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
     "@dagrejs/graphlib": "2.1.4",

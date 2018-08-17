@@ -4,7 +4,7 @@ import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
-} from '@cycle-robot-drivers/face'
+} from '@cycle-robot-drivers/screen'
 
 const types = ['SET_MESSAGE', 'ASK_QUESTION'];
 
