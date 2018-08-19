@@ -4,54 +4,46 @@ import fromEvent from 'xstream/extra/fromEvent'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
-  makeFacialExpressionActionDriver,
+  makeTabletFaceDriver,
 } from '@cycle-robot-drivers/screen'
 import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 
+const videoWidth = 640;
+const videoHeight = 480;
 
 function main(sources) {
+  const face$ = sources.PoseDetection.poses
+    .filter(poses => poses.length > 0)
+    .filter(poses =>
+      poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1)
+    .map(poses => {
+      const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
+      const normalizedPos = {
+        x: nose.position.x / videoWidth,
+        y: nose.position.y / videoHeight,
+      };
+      return {
+        type: 'SET_STATE',
+        value: {
+          leftEye: normalizedPos,
+          rightEye: normalizedPos,
+        }
+      }
+    });
+
   const styles = {code: {"background-color": "#f6f8fa"}};
-
-  let leftEye = null;
-  let rightEye = null;
-  fromEvent(window, 'load').addListener({next: d => {
-    leftEye = document.querySelector('.left.eye');
-    rightEye = document.querySelector('.right.eye');
-  }})
-
-  sources.PoseDetection.poses.addListener({next: d => {
-    if (d.length === 0) { return; }
-    if (d[0].keypoints.filter(k => k.part === 'nose').length === 0) { return; }
-
-    const nose = d[0].keypoints.filter(k => k.part === 'nose')[0];
-    console.log(nose.position.x / 640, 'calc(' +  (22.22 * nose.position.y / 480) + 'vh)');
-    if (leftEye && rightEye) {
-      leftEye.style.left = 'calc(' +  (22.22 * nose.position.x / 640) + 'vh)'
-      leftEye.style.bottom = 'calc(' +  (22.22 * (480 - nose.position.y) / 480) + 'vh)'
-      rightEye.style.right = 'calc(' +  (22.22 * (640 - nose.position.x) / 640) + 'vh)'
-      rightEye.style.bottom = 'calc(' +  (22.22 * (480 - nose.position.y) / 480) + 'vh)'
-    }
-  }});
-
-  const goal$ = xs.merge(
-    sources.DOM.select('#start').events('click')
-      .mapTo({type: 'happy'}),
-  );
-
   const vdom$ = xs.combine(
     sources.PoseDetection.poses.startWith([]),
-    sources.FacialExpressionAction.DOM,
+    sources.TabletFace.DOM,
     sources.PoseDetection.DOM,
   ).map(([p, f, d]) => (
     <div>
-      <h1>PoseDetection component demo</h1>
-
       <div>
-        <button id="start">Start</button>
+        {f}
       </div>
 
       <div>
-        {f}
+        <button id="start">Start following face</button>
       </div>
 
       <div>
@@ -59,7 +51,7 @@ function main(sources) {
       </div>
 
       <div>
-        <h3>Driver outputs</h3>
+        <h3>Pose detector outputs</h3>
         <div>
           <pre style={styles.code}>"poses": {JSON.stringify(p, null, 2)}
           </pre>
@@ -70,12 +62,12 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    FacialExpressionAction: goal$,
+    TabletFace: face$,
   };
 }
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  FacialExpressionAction: makeFacialExpressionActionDriver(),
-  PoseDetection: makePoseDetectionDriver(),
+  TabletFace: makeTabletFaceDriver(),
+  PoseDetection: makePoseDetectionDriver({videoWidth, videoHeight}),
 });
