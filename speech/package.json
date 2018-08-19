@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
-  "main": "src/cjs/index.js",
+  "main": "lib/cjs/index.js",
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
