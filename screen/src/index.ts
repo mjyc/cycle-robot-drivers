@@ -1,4 +1,4 @@
-export {makeTabletFaceDriver} from './face_controller'
+export {makeTabletFaceDriver} from './tablet_face'
 export {makeFacialExpressionActionDriver} from './facial_expression_action'
 export {
   SpeechbubbleType,
