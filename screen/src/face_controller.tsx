@@ -1,5 +1,6 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream'
+import {Stream} from 'xstream'
 import fromEvent from 'xstream/extra/fromEvent'
 import {adapt} from '@cycle/run/lib/adapt'
 import {
@@ -24,6 +25,9 @@ class EyeController {
 
     this.setElements(elements);
   }
+
+  get leftEye() { return this._leftEye; }
+  get rightEye() { return this._rightEye; }
 
   setElements({
     leftEye,
@@ -204,6 +208,7 @@ enum ActionType {
   EXPRESS = 'EXPRESS',
   START_BLINKING = 'START_BLINKING',
   STOP_BLINKING = 'STOP_BLINKING',
+  SET_STATE = 'SET_STATE',
 }
 
 type Action = {
@@ -213,7 +218,7 @@ type Action = {
 
 export function makeFaceControllerDriver({
   faceColor = 'whitesmoke',
-  faceHeight = '62.5vh',
+  faceHeight = '100vh',
   faceWidth = '100vw',
   eyeColor = 'black',
   eyeSize = '33.33vh',
@@ -268,6 +273,35 @@ export function makeFaceControllerDriver({
   };
   const eyes = new EyeController();
 
+  function setEyeState(eyeElem: HTMLElement, state: {
+    size?: number,
+    pos?: {
+      x?: number,
+      y?: number,
+    },
+  } = {}, isRight = false) {
+    if (!eyeElem) {
+      console.warn('Invalid input:', eyeElem, '; retuning');
+      return;
+    }
+
+    if (state.size) {
+      eyeElem.style.width = `calc(${eyeSize} * ${state.size})`;
+      eyeElem.style.height = `calc(${eyeSize} * ${state.size})`;
+    }
+
+    if (state.pos) {
+      const x = state.pos.x;
+      const y = state.pos.y;
+      if (!isRight) {
+        eyeElem.style.left = `calc(${eyeSize} / 3 * 2 * ${x})`;
+      } else {
+        eyeElem.style.right = `calc(${eyeSize} / 3 * 2 * ${1-x})`;
+      }
+      eyeElem.style.bottom = `calc(${eyeSize} / 3 * 2 * ${y})`;
+    }
+  }
+
   return function faceController(sink$) {
     let animations = {};
 
@@ -282,7 +316,7 @@ export function makeFaceControllerDriver({
       })
     }});
 
-    const allFinish$$ = xs.create();
+    const allFinish$$: Stream<Stream<any[]>> = xs.create();
     sink$.addListener({
       next: function(action: Action) {
         switch (action.type) {
@@ -303,6 +337,10 @@ export function makeFaceControllerDriver({
             break;
           case ActionType.STOP_BLINKING:
             eyes.startBlinking(action.value);
+            break;
+          case ActionType.SET_STATE:
+            setEyeState(eyes.leftEye, action.value && action.value.left);
+            setEyeState(eyes.rightEye, action.value && action.value.right, true);
             break;
         }
       }

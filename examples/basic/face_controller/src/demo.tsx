@@ -10,22 +10,67 @@ const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
 
 
 function main(sources) {
-
+  // TODO: remove this
   sources.FaceController.allFinish.addListener({next: d => console.error(d)});
 
-  const action$ = xs.merge(
-    sources.DOM.select('#happy').events('click').mapTo({type: 'EXPRESS', value: {type: 'happy'}}),
-    sources.DOM.select('#sad').events('click').mapTo({type: 'EXPRESS', value: {type: 'sad'}}),
-    sources.DOM.select('#angry').events('click').mapTo({type: 'EXPRESS', value: {type: 'angry'}}),
-    sources.DOM.select('#focused').events('click').mapTo({type: 'EXPRESS', value: {type: 'focused'}}),
-    sources.DOM.select('#confused').events('click').mapTo({type: 'EXPRESS', value: {type: 'confused'}}),
+  const x$ = sources.DOM.select('#x').events('input')
+    .map(ev => parseFloat((ev.target as HTMLInputElement).value))
+    .startWith(0.0);
+  const y$ = sources.DOM.select('#y').events('input')
+    .map(ev => parseFloat((ev.target as HTMLInputElement).value))
+    .startWith(0.0);
+  const size$ = sources.DOM.select('#size').events('input')
+    .map(ev => parseFloat((ev.target as HTMLInputElement).value))
+    .startWith(1.0);
+  const params$ = xs.combine(x$, y$, size$)
+    .map(([x, y, size]) => ({x, y, size}))
+    .remember();
 
-    sources.DOM.select('#start_blinking').events('click').mapTo({type: 'START_BLINKING'}),
-    sources.DOM.select('#stop_blinking').events('click').mapTo({type: 'STOP_BLINKING'}),
+  const action$ = xs.merge(
+    sources.DOM.select('#happy').events('click')
+      .mapTo({type: 'EXPRESS', value: {type: 'happy'}}),
+    sources.DOM.select('#sad').events('click')
+      .mapTo({type: 'EXPRESS', value: {type: 'sad'}}),
+    sources.DOM.select('#angry').events('click')
+      .mapTo({type: 'EXPRESS', value: {type: 'angry'}}),
+    sources.DOM.select('#focused').events('click')
+      .mapTo({type: 'EXPRESS', value: {type: 'focused'}}),
+    sources.DOM.select('#confused').events('click')
+      .mapTo({type: 'EXPRESS', value: {type: 'confused'}}),
+
+    sources.DOM.select('#start_blinking').events('click')
+      .mapTo({type: 'START_BLINKING'}),
+    sources.DOM.select('#stop_blinking').events('click')
+      .mapTo({type: 'STOP_BLINKING'}),
+
+    x$.map(x => ({
+      type: 'SET_STATE',
+      value: {
+        left: {pos: {x}},
+        right: {pos: {x}},
+      },
+    })),
+    y$.map(y => ({
+      type: 'SET_STATE',
+      value: {
+        left: {pos: {y}},
+        right: {pos: {y}},
+      },
+    })),
+    size$.map(size => ({
+      type: 'SET_STATE',
+      value: {
+        left: {size},
+        right: {size},
+      },
+    })),
   );
 
   const styles = {code: {"background-color": "#f6f8fa"}};
-  const vdom$ = sources.FaceController.DOM.map(f => (
+  const vdom$ = xs.combine(
+    sources.FaceController.DOM,
+    params$,
+  ).map(([f, p]) => (
     <div>
       <h1>FaceController driver demo</h1>
 
@@ -38,36 +83,32 @@ function main(sources) {
           <button id="confused">Confused</button>
           <button id="start_blinking">Start blinking</button>
           <button id="stop_blinking">Stop blinking</button>
+          <div>
+            <span className="label">Eye x-position</span>
+            <input id="x"
+              type="range" min="0.0" max="1.0" value={p.x} step="0.1">
+            </input>
+            <span>{p.x}</span>
+          </div>
+          <div>
+            <span className="label">Eye y-position</span>
+            <input id="y"
+              type="range" min="0.0" max="1.0" value={p.y} step="0.1">
+            </input>
+            <span>{p.y}</span>
+          </div>
+          <div>
+            <span className="label">Eye size</span>
+            <input id="size"
+              type="range" min="0.0" max="2.0" value={p.size} step="0.1">
+            </input>
+            <span>{p.size}</span>
+          </div>
         </div>
       </div>
 
       <div>
         {f}
-      </div>
-
-      <div>
-        <h3>Action inputs</h3>
-        <div>
-          <div>
-            <select id="type">{[].map(type => (type === false ? (
-              <option selected value={type}>{type}</option>
-            ) : (
-              <option value={type}>{type}</option>
-            )))}</select>
-          </div>
-          <span className="label">Duration</span>
-          <input id="duration"
-            type="range" min="100" max="10000" value="1" step="1">
-          </input><span> 1ms</span>
-        </div>
-      </div>
-
-      <div>
-        <h3>Controls</h3>
-        <div>
-          <button id="start">Start</button>
-          <button id="cancel">Cancel</button>
-        </div>
       </div>
 
       <div>
@@ -83,8 +124,8 @@ function main(sources) {
   ));
 
   return {
-    FaceController: action$.debug(d => console.error('action', d)),
     DOM: vdom$,
+    FaceController: action$.debug(d => console.error('action', d)),
   };
 }
 
