@@ -236,10 +236,10 @@ export function makePoseDetectionDriver({
     window.addEventListener('load', async () => {
       if (!video) {
         video = await setupCamera(
-          document.querySelector('#pose-detection-video'), videoWidth, videoHeight);
+          document.querySelector('#pose_detection_video'), videoWidth, videoHeight);
         video.play();
 
-        const canvas: any = document.querySelector('#pose-detection-canvas');
+        const canvas: any = document.querySelector('#pose_detection_canvas');
         context = canvas.getContext('2d');
         canvas.width = videoWidth;
         canvas.height = videoHeight;
@@ -249,13 +249,13 @@ export function makePoseDetectionDriver({
 
         stats.showPanel(0);
         stats.dom.style.setProperty('position', 'absolute');
-        document.querySelector('#pose-detection').appendChild(stats.dom);
+        document.querySelector('#pose_detection').appendChild(stats.dom);
 
         const gui = setupGui(video, params.net, params);
         gui.domElement.style.setProperty('position', 'absolute');
         gui.domElement.style.setProperty('top', '0px');
         gui.domElement.style.setProperty('right', '0px');
-        document.querySelector('#pose-detection').appendChild(gui.domElement);
+        document.querySelector('#pose_detection').appendChild(gui.domElement);
         gui.closed = true;
       }
     });
@@ -303,13 +303,13 @@ export function makePoseDetectionDriver({
     });
 
     const vdom$ = xs.of((
-      <div id="pose-detection" style={{position: "relative"}}>
+      <div id="pose_detection" style={{position: "relative"}}>
         <video
-          id="pose-detection-video"
+          id="pose_detection_video"
           style={{display: 'none'}}
           autoPlay
         />
-        <canvas id="pose-detection-canvas" />
+        <canvas id="pose_detection_canvas" />
       </div>
     ));
     return {
