@@ -216,7 +216,7 @@ type Action = {
   value: any,
 }
 
-export function makeFaceControllerDriver({
+export function makeTabletFaceDriver({
   faceColor = 'whitesmoke',
   faceHeight = '100vh',
   faceWidth = '100vw',
@@ -296,7 +296,7 @@ export function makeFaceControllerDriver({
     }
   }
 
-  return function faceController(sink$) {
+  return function tabletFaceDriver(sink$) {
     let animations = {};
 
     fromEvent(window, 'load').addListener({next: () => {

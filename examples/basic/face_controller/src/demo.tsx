@@ -3,7 +3,7 @@ import xs from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
-  makeFaceControllerDriver,
+  makeTabletFaceDriver,
 } from '@cycle-robot-drivers/screen'
 
 const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
@@ -11,7 +11,7 @@ const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
 
 function main(sources) {
   // TODO: remove this
-  sources.FaceController.allFinish.addListener({next: d => console.error(d)});
+  sources.TabletFace.allFinish.addListener({next: d => console.error(d)});
 
   const x$ = sources.DOM.select('#x').events('input')
     .map(ev => parseFloat((ev.target as HTMLInputElement).value))
@@ -58,11 +58,11 @@ function main(sources) {
 
   const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(
-    sources.FaceController.DOM,
+    sources.TabletFace.DOM,
     params$,
   ).map(([f, p]) => (
     <div>
-      <h1>FaceController driver demo</h1>
+      <h1>TabletFace driver demo</h1>
 
       <div>
         <div>
@@ -76,14 +76,14 @@ function main(sources) {
           <div>
             <span className="label">Eye x-position</span>
             <input id="x"
-              type="range" min="0.0" max="1.0" value={p.x} step="0.1">
+              type="range" min="0.0" max="1.0" value={p.x} step="0.01">
             </input>
             <span>{p.x}</span>
           </div>
           <div>
             <span className="label">Eye y-position</span>
             <input id="y"
-              type="range" min="0.0" max="1.0" value={p.y} step="0.1">
+              type="range" min="0.0" max="1.0" value={p.y} step="0.01">
             </input>
             <span>{p.y}</span>
           </div>
@@ -108,11 +108,11 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    FaceController: action$.debug(d => console.error('action', d)),
+    TabletFace: action$.debug(d => console.error('action', d)),
   };
 }
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  FaceController: makeFaceControllerDriver(),
+  TabletFace: makeTabletFaceDriver(),
 });
