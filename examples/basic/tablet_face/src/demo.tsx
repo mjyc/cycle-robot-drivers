@@ -11,7 +11,7 @@ const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
 
 function main(sources) {
   // TODO: remove this
-  sources.TabletFace.allFinish.addListener({next: d => console.error(d)});
+  sources.TabletFace.allFinish.addListener({next: d => console.error('allFinish', d)});
 
   const x$ = sources.DOM.select('#x').events('input')
     .map(ev => parseFloat((ev.target as HTMLInputElement).value))
@@ -43,15 +43,15 @@ function main(sources) {
     x$.map(x => ({
       type: 'SET_STATE',
       value: {
-        left: {x},
-        right: {x},
+        leftEye: {x},
+        rightEye: {x},
       },
     })),
     y$.map(y => ({
       type: 'SET_STATE',
       value: {
-        left: {y},
-        right: {y},
+        leftEye: {y},
+        rightEye: {y},
       },
     })),
   );
@@ -108,7 +108,7 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    TabletFace: action$.debug(d => console.error('action', d)),
+    TabletFace: action$,
   };
 }
 

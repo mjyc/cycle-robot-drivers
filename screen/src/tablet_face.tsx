@@ -333,10 +333,10 @@ export function makeTabletFaceDriver({
             eyes.startBlinking(action.value);
             break;
           case ActionType.SET_STATE:
-            const leftPos = action.value && action.value.left || {};
-            const rightPos = action.value && action.value.right || {};
+            const leftPos = action.value && action.value.leftEye || {};
+            const rightPos = action.value && action.value.rightEye || {};
             setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
-            setEyePosition(eyes.rightEye, leftPos.x, leftPos.y, true);
+            setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
             break;
         }
       }
