@@ -313,6 +313,10 @@ export function makeTabletFaceDriver({
     const allFinish$$: Stream<Stream<any[]>> = xs.create();
     sink$.addListener({
       next: function(action: Action) {
+        if (!action) {
+          console.error('cancel the tablet face action!');
+          return;
+        }
         switch (action.type) {
           case ActionType.EXPRESS:
             animations = eyes.express(action.value);

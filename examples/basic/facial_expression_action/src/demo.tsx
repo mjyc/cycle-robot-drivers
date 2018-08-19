@@ -4,12 +4,19 @@ import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   makeTabletFaceDriver,
+  IsolatedFacialExpressionAction as FacialExpressionAction,
 } from '@cycle-robot-drivers/screen'
 
 const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
 
 
 function main(sources) {
+  const goalProxy$ = xs.create();
+  const facialExpressionAction = FacialExpressionAction({
+    goal: goalProxy$,
+    DOM: sources.DOM,
+  });
+
   const params$ = xs.combine(
     sources.DOM.select('#type').events('change')
       .map(ev => (ev.target as HTMLInputElement).value)
@@ -23,19 +30,19 @@ function main(sources) {
   ).map(([type, duration]) => ({type, duration})).remember();
 
   // send goals to the action
-  const goal$ = xs.merge(
-    sources.DOM.select('#start').events('click')
-      .mapTo(params$.take(1)).flatten(),
-    sources.DOM.select('#cancel').events('click').mapTo(null),
+  goalProxy$.imitate(
+    xs.merge(
+      sources.DOM.select('#start').events('click')
+        .mapTo(params$.take(1)).flatten(),
+      sources.DOM.select('#cancel').events('click').mapTo(null),
+    )
   );
 
   // update the state
   const state$ = xs.combine(
     params$,
-    // sources.TabletFace.status.startWith(null),
-    // sources.TabletFace.result.startWith(null),
-    xs.of({}),
-    xs.of({}),
+    facialExpressionAction.status.startWith(null),
+    facialExpressionAction.result.startWith(null),
   ).map(([params, status, result]) => {
     return {
       ...params,
@@ -91,7 +98,7 @@ function main(sources) {
   ));
 
   return {
-    TabletFace: goal$,
+    TabletFace: facialExpressionAction.value,
     DOM: vdom$,
   };
 }

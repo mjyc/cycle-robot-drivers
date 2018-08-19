@@ -38,8 +38,8 @@ export function FacialExpressionAction(sources) {
     }
   });
 
-  // add that event...
-  const action$ = xs.merge(goal$);
+  // TODO: add that event...
+  const action$ = xs.merge(goal$).debug(d => console.error('action', d));
 
   // Create state stream
   type State = {
@@ -105,6 +105,13 @@ export function FacialExpressionAction(sources) {
     .compose(dropRepeats(
       (x, y) => (x.status === y.status && isEqual(x.goal_id, y.goal_id))));
 
+  const value$ = stateStatusChanged$.debug(d => console.error('value', d))
+    .drop(1)
+    .map(state => ({
+      type: 'EXPRESS',
+      value: state.goal,
+    }));
+
   const status$ = stateStatusChanged$
     .map(state => ({
       goal_id: state.goal_id,
@@ -124,7 +131,7 @@ export function FacialExpressionAction(sources) {
     } as Result));
 
   return {
-    value: adapt(xs.of(null)),
+    value: adapt(value$),
     status: adapt(status$),
     result: adapt(result$),
   };
