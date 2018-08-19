@@ -34,7 +34,7 @@ export function SpeechbubbleAction(sources) {
       };
     }
   });
-  // HACK: force creating the click stream
+  // IMPORTANT!! force creating the click stream
   let click$ = sources.DOM.select('.choice').elements()
     .filter(b => b.length > 0)
     .map(b => sources.DOM.select('.choice').events('click', {
@@ -134,6 +134,8 @@ export function SpeechbubbleAction(sources) {
     })();
     return innerDOM;
   });
+  // IMPORTANT!! manually empty vdom$ stream to prevent the unexpected behavior
+  vdom$.addListener({next: vdom => {}});
 
   const stateStatusChanged$ = state$
     .compose(dropRepeats(
