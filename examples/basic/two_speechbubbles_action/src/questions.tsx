@@ -48,13 +48,13 @@ function main(sources) {
       // test sending two goals back to back
       if (data.result === 'Red pill') {
         sbub$.shamefullySendNext({
-          type: 'SET_MESSAGE',
-          value: 'You chose the brutal truths of reality',
+          type: 'ASK_QUESTION',
+          value: ['You chose the brutal truths of reality', ['OK']],
         });
       } else if (data.result === 'Blue pill') {
         sbub$.shamefullySendNext({
-          type: 'SET_MESSAGE',
-          value: 'You chose the blissful ignorance of illusion',
+          type: 'ASK_QUESTION',
+          value: ['You chose the blissful ignorance of illusion', ['OK']],
         });
       }
     },
