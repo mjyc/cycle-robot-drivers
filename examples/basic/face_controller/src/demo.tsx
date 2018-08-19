@@ -19,11 +19,8 @@ function main(sources) {
   const y$ = sources.DOM.select('#y').events('input')
     .map(ev => parseFloat((ev.target as HTMLInputElement).value))
     .startWith(0.0);
-  const size$ = sources.DOM.select('#size').events('input')
-    .map(ev => parseFloat((ev.target as HTMLInputElement).value))
-    .startWith(1.0);
-  const params$ = xs.combine(x$, y$, size$)
-    .map(([x, y, size]) => ({x, y, size}))
+  const params$ = xs.combine(x$, y$)
+    .map(([x, y]) => ({x, y}))
     .remember();
 
   const action$ = xs.merge(
@@ -46,22 +43,15 @@ function main(sources) {
     x$.map(x => ({
       type: 'SET_STATE',
       value: {
-        left: {pos: {x}},
-        right: {pos: {x}},
+        left: {x},
+        right: {x},
       },
     })),
     y$.map(y => ({
       type: 'SET_STATE',
       value: {
-        left: {pos: {y}},
-        right: {pos: {y}},
-      },
-    })),
-    size$.map(size => ({
-      type: 'SET_STATE',
-      value: {
-        left: {size},
-        right: {size},
+        left: {y},
+        right: {y},
       },
     })),
   );
@@ -96,13 +86,6 @@ function main(sources) {
               type="range" min="0.0" max="1.0" value={p.y} step="0.1">
             </input>
             <span>{p.y}</span>
-          </div>
-          <div>
-            <span className="label">Eye size</span>
-            <input id="size"
-              type="range" min="0.0" max="2.0" value={p.size} step="0.1">
-            </input>
-            <span>{p.size}</span>
           </div>
         </div>
       </div>
