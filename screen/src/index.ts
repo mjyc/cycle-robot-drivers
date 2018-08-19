@@ -1,3 +1,4 @@
+export {makeFaceControllerDriver} from './face_controller'
 export {makeFacialExpressionActionDriver} from './facial_expression_action'
 export {
   SpeechbubbleType,
