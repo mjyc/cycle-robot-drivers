@@ -98,8 +98,8 @@ function main(sources) {
   ));
 
   return {
-    TabletFace: facialExpressionAction.value,
     DOM: vdom$,
+    TabletFace: facialExpressionAction.value,
   };
 }
 
