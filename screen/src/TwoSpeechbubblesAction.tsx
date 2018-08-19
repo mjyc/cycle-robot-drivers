@@ -32,7 +32,7 @@ function main(sources) {
     DOM: sources.DOM,
     goal: sources.proxies.secondGoal,
   });
-  // HACK: empty the streams manually
+  // IMPORTANT!! empty the streams manually
   first.DOM.addListener({next: d => {}});
   second.DOM.addListener({next: d => {}})
 
