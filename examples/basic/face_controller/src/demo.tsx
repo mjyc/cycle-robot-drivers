@@ -11,10 +11,38 @@ const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
 
 function main(sources) {
 
+  // const action$ = xs.create();
+  // window.onload = () => {
+  //   setTimeout(() => action$.shamefullySendNext({type: 'START_BLINKING', value: {type: 'happy'}}), 100);
+  // };
+
+  const action$ = xs.merge(
+    sources.DOM.select('#happy').events('click').mapTo({type: 'EXPRESS', value: {type: 'happy'}}),
+    sources.DOM.select('#sad').events('click').mapTo({type: 'EXPRESS', value: {type: 'sad'}}),
+    sources.DOM.select('#angry').events('click').mapTo({type: 'EXPRESS', value: {type: 'angry'}}),
+    sources.DOM.select('#focused').events('click').mapTo({type: 'EXPRESS', value: {type: 'focused'}}),
+    sources.DOM.select('#confused').events('click').mapTo({type: 'EXPRESS', value: {type: 'confused'}}),
+
+    sources.DOM.select('#start_blinking').events('click').mapTo({type: 'START_BLINKING'}),
+    sources.DOM.select('#stop_blinking').events('click').mapTo({type: 'STOP_BLINKING'}),
+  );
+
   const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = sources.FaceController.DOM.map(f => (
     <div>
-      <h1>FacalExpressionAction driver demo</h1>
+      <h1>FaceController driver demo</h1>
+
+      <div>
+        <div>
+          <button id="happy">Happy</button>
+          <button id="sad">Sad</button>
+          <button id="angry">Angry</button>
+          <button id="focused">Focused</button>
+          <button id="confused">Confused</button>
+          <button id="start_blinking">Start blinking</button>
+          <button id="stop_blinking">Stop blinking</button>
+        </div>
+      </div>
 
       <div>
         {f}
@@ -58,7 +86,7 @@ function main(sources) {
   ));
 
   return {
-    FaceController: xs.of(null),
+    FaceController: action$.debug(d => console.error('action', d)),
     DOM: vdom$,
   };
 }
