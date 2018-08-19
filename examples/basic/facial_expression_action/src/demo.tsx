@@ -3,7 +3,7 @@ import xs from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
-  makeFacialExpressionActionDriver,
+  makeTabletFaceDriver,
 } from '@cycle-robot-drivers/screen'
 
 const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
@@ -32,8 +32,10 @@ function main(sources) {
   // update the state
   const state$ = xs.combine(
     params$,
-    sources.FacialExpressionAction.status.startWith(null),
-    sources.FacialExpressionAction.result.startWith(null),
+    // sources.TabletFace.status.startWith(null),
+    // sources.TabletFace.result.startWith(null),
+    xs.of({}),
+    xs.of({}),
   ).map(([params, status, result]) => {
     return {
       ...params,
@@ -43,7 +45,7 @@ function main(sources) {
   });
 
   const styles = {code: {"background-color": "#f6f8fa"}};
-  const vdom$ = xs.combine(state$, sources.FacialExpressionAction.DOM).map(([s, f]) => (
+  const vdom$ = xs.combine(state$, sources.TabletFace.DOM).map(([s, f]) => (
     <div>
       <h1>FacalExpressionAction driver demo</h1>
 
@@ -89,12 +91,12 @@ function main(sources) {
   ));
 
   return {
-    FacialExpressionAction: goal$,
+    TabletFace: goal$,
     DOM: vdom$,
   };
 }
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  FacialExpressionAction: makeFacialExpressionActionDriver(),
+  TabletFace: makeTabletFaceDriver({faceHeight: '600px'}),
 });
