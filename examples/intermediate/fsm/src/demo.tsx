@@ -212,7 +212,7 @@ function main(sources) {
   const goal$ = goal(state$);
   goalProxy$.imitate(goal$);
 
-  const styles = {code: {"background-color": "#f6f8fa"}}
+  const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(
     sources.PoseDetection.DOM,
     sources.PoseDetection.poses.startWith([]),

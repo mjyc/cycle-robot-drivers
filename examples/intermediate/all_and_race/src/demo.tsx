@@ -105,7 +105,7 @@ function main(sources) {
       joint1Result,
     }
   });
-  const styles = {code: {"background-color": "#f6f8fa"}}
+  const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = state$.map(s => (
     <div>
       <div>

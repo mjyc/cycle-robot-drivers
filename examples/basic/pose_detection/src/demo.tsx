@@ -6,7 +6,7 @@ import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 
 
 function main(sources) {
-  const styles = {code: {"background-color": "#f6f8fa"}}
+  const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(
     sources.PoseDetection.poses.startWith([]),
     sources.PoseDetection.DOM,

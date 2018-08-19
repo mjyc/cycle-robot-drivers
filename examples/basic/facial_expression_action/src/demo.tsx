@@ -42,7 +42,7 @@ function main(sources) {
     }
   });
 
-  const styles = {code: {"background-color": "#f6f8fa"}}
+  const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(state$, sources.FacialExpressionAction.DOM).map(([s, f]) => (
     <div>
       <h1>FacalExpressionAction driver demo</h1>

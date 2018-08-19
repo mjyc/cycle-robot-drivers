@@ -51,7 +51,7 @@ function main(sources) {
     }
   });
 
-  const styles = {code: {"background-color": "#f6f8fa"}}
+  const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = state$.map(s => (
     <div>
       <h1>SpeechSynthesisAction component demo</h1>

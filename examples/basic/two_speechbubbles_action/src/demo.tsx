@@ -50,7 +50,7 @@ function main(sources) {
     }
   });
 
-  const styles = {code: {"background-color": "#f6f8fa"}}
+  const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(state$, speechbubbleAction.DOM).map(([s, b]) => (
     <div>
       <h1>TwoSpeechbubblesAction component demo</h1>
