@@ -36,7 +36,12 @@ function main(sources) {
     next: data => console.warn('status', data),
   });
   speechbubbleAction.result.addListener({
-    next: data => console.warn('result', data),
+    next: data => {
+      console.warn('result', data);
+      if (data.result === 'Hello' || data.result === 'World!') {
+        sbub$.shamefullySendNext({type: 'CHOICE', value: ['Hello there!']});
+      }
+    },
   });
 
   const vdom$ = speechbubbleAction.DOM.map((speechbubble) => {
