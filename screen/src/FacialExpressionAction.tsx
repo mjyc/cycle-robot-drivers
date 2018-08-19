@@ -106,17 +106,23 @@ export function FacialExpressionAction(sources) {
       (x, y) => (x.status === y.status && isEqual(x.goal_id, y.goal_id))));
 
   const value$ = stateStatusChanged$.debug(d => console.error('value', d))
-    .drop(1)
-    .map(state => ({
-      type: 'EXPRESS',
-      value: state.goal,
-    }));
-
+    .filter(state =>
+      state.status === Status.ACTIVE || state.status === Status.PREEMPTED)
+    .map(state => {
+      if (state.status === Status.ACTIVE) {
+        return {
+          type: 'EXPRESS',
+          value: state.goal,
+        };
+      } else {  // state.status === Status.PREEMPTED
+        return null;
+      }
+    });
   const status$ = stateStatusChanged$
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
-    } as GoalStatus))
+    } as GoalStatus));
 
   const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED

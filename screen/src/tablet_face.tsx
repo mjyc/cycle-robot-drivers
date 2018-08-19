@@ -314,7 +314,9 @@ export function makeTabletFaceDriver({
     sink$.addListener({
       next: function(action: Action) {
         if (!action) {
-          console.error('cancel the tablet face action!');
+          Object.keys(animations).map((key) => {
+            animations[key].cancel();
+          });
           return;
         }
         switch (action.type) {
