@@ -32,7 +32,7 @@ function main(sources) {
 
   const facialExpressionAction = FacialExpressionAction({
     goal: fexp$,
-    SpeechSynthesis: sources.SpeechSynthesis,
+    TabletFace: sources.TabletFace,
   });
 
   facialExpressionAction.result.addListener({
@@ -41,9 +41,6 @@ function main(sources) {
   facialExpressionAction.status.addListener({
     next: data => console.warn('status', data),
   });
-  // facialExpressionAction.ended.addListener({
-  //   next: data => console.warn('ended', data),
-  // });
 
   return {
     DOM: vdom$,

@@ -14,7 +14,7 @@ function main(sources) {
   const goalProxy$ = xs.create();
   const facialExpressionAction = FacialExpressionAction({
     goal: goalProxy$,
-    DOM: sources.DOM,
+    TabletFace: sources.TabletFace,
   });
 
   const params$ = xs.combine(

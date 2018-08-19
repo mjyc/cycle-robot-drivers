@@ -39,7 +39,13 @@ export function FacialExpressionAction(sources) {
   });
 
   // TODO: add that event...
-  const action$ = xs.merge(goal$).debug(d => console.error('action', d));
+  const action$ = xs.merge(
+    goal$,
+    sources.TabletFace.allFinish.mapTo({
+      type: 'END',
+      value: null,
+    }),
+  ).debug(d => console.error('action', d));
 
   // Create state stream
   type State = {
@@ -86,6 +92,12 @@ export function FacialExpressionAction(sources) {
           goal: goal.goal,
           status: Status.ACTIVE,
           result: null,
+        };
+      } else if (action.type === 'END') {
+        return {
+          ...state,
+          status: Status.SUCCEEDED,
+          result: action.value,
         };
       } else if (action.type === 'CANCEL') {
         return {
