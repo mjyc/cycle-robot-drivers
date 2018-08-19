@@ -269,7 +269,7 @@ export function makeFaceControllerDriver({
   const eyes = new EyeController();
 
   return function faceController(sink$) {
-    // let animations = [];
+    let animations = {};
 
     fromEvent(window, 'load').addListener({next: () => {
       eyes.setElements({
@@ -282,37 +282,31 @@ export function makeFaceControllerDriver({
       })
     }});
 
+    const allFinish$$ = xs.create();
     sink$.addListener({
       next: function(action: Action) {
         switch (action.type) {
           case ActionType.EXPRESS:
-            eyes.express(action.value);
-            return;
+            animations = eyes.express(action.value);
+            allFinish$$.shamefullySendNext(
+              xs.fromPromise(
+                Promise.all(Object.keys(animations).map((key) => {
+                  return new Promise((resolve, reject) => {
+                    animations[key].onfinish = resolve;
+                  })
+                }))
+              )
+            );
+            break;
           case ActionType.START_BLINKING:
             eyes.startBlinking(action.value);
-            return;
+            break;
           case ActionType.STOP_BLINKING:
             eyes.startBlinking(action.value);
-            return;
+            break;
         }
       }
     });
-
-    // if (action.type === 'EXPRESS') {
-    //   eyes.express(action.value)
-    // }
-
-    // animations = eyes.express(props);
-    //   Promise.all(Object.keys(animations).map((key) => {
-    //     return new Promise((resolve, reject) => {
-    //       animations[key].onfinish = resolve;
-    //     })
-    //   })).then((data) => {
-    //     eventListener.next({
-    //       type: 'ENDED',
-    //       value: null
-    //     });
-    //   });
 
     const vdom$ = xs.of((
       <div className="face" style={styles.face}>
@@ -346,6 +340,7 @@ export function makeFaceControllerDriver({
 
     return {
       DOM: adapt(vdom$),
+      allFinish: adapt(allFinish$$.flatten()),
     }
   }
 }

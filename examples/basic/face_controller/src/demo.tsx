@@ -11,10 +11,7 @@ const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
 
 function main(sources) {
 
-  // const action$ = xs.create();
-  // window.onload = () => {
-  //   setTimeout(() => action$.shamefullySendNext({type: 'START_BLINKING', value: {type: 'happy'}}), 100);
-  // };
+  sources.FaceController.allFinish.addListener({next: d => console.error(d)});
 
   const action$ = xs.merge(
     sources.DOM.select('#happy').events('click').mapTo({type: 'EXPRESS', value: {type: 'happy'}}),
