@@ -292,7 +292,7 @@ export function makeTabletFaceDriver({
       }
     }
     if (!!y) {
-      eyeElem.style.bottom = `calc(${eyeSize} / 3 * 2 * ${y})`;
+      eyeElem.style.bottom = `calc(${eyeSize} / 3 * 2 * ${1-y})`;
     }
   }
 

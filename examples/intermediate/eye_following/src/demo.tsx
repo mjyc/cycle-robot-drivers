@@ -31,33 +31,31 @@ function main(sources) {
       }
     });
 
-  const click$ = sources.DOM.select('#start').events('click')
+  const lastClick$ = sources.DOM.select('#start').events('click')
     .map(event => (event.target as HTMLButtonElement).textContent)
-    .debug(c => console.error(c));
+    .startWith('Stop following face');
 
-  const stopped$ = click$.fold((acc, x) => {
-    return !acc;
-  }, true).remember();
-
-  const face$ = stopped$.map(s => s ? action$ : xs.of({
-    type: 'SET_STATE',
-    value: {
-      leftEye: {x: 0.5, y: 0.5},
-      rightEye: {x: 0.5, y: 0.5},
-    }
-  })).flatten();
+  const face$ = lastClick$.map(text =>
+    (text === "Start following face") ? action$ : xs.of({
+      type: 'SET_STATE',
+      value: {
+        leftEye: {x: 0.5, y: 0.5},
+        rightEye: {x: 0.5, y: 0.5},
+      }
+    })
+  ).flatten();
 
   const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(
     sources.PoseDetection.poses.startWith([]),
     sources.TabletFace.DOM,
     sources.PoseDetection.DOM,
-    stopped$,
-  ).map(([p, f, d, st]) => (
+    lastClick$,
+  ).map(([p, f, d, l]) => (
     <div>
       <div>
         <button id="start">{
-          st
+          (l === "Stop following face")
           ? "Start following face"
           : "Stop following face"
         }</button>
