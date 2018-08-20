@@ -9,14 +9,6 @@ import {
   generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
-export enum FacialExpressionType {
-  HAPPY = 'HAPPY',
-  SAD = 'SAD',
-  ANGRY = 'ANGRY',
-  FOCUSED = 'FOCUSED',
-  CONFUSED = 'CONFUSED',
-}
-
 export function FacialExpressionAction(sources) {
   // Create action stream
   type Action = {
