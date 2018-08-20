@@ -10,9 +10,6 @@ const types = ['happy', 'sad', 'angry', 'focused', 'confused'];
 
 
 function main(sources) {
-  // TODO: remove this
-  sources.TabletFace.allFinish.addListener({next: d => console.error('allFinish', d)});
-
   const x$ = sources.DOM.select('#x').events('input')
     .map(ev => parseFloat((ev.target as HTMLInputElement).value))
     .startWith(0.0);

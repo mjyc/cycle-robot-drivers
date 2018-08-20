@@ -231,11 +231,6 @@ function goal(state: Stream<State>): Stream<Goal> {
   );
 }
 
-
-//------------------------------------------------------------------------------
-const types = ['SET_MESSAGE', 'ASK_QUESTION'];  // TODO: remove soon
-
-//------------------------------------------------------------------------------
 function main(sources) {
   const goalProxy$ = xs.create();
   const speechbubbleAction = TwoSpeechbubblesAction({

@@ -38,7 +38,6 @@ export function FacialExpressionAction(sources) {
     }
   });
 
-  // TODO: add that event...
   const action$ = xs.merge(
     goal$,
     sources.TabletFace.allFinish.mapTo({
