@@ -12,7 +12,7 @@ const videoWidth = 640;
 const videoHeight = 480;
 
 function main(sources) {
-  const face$ = sources.PoseDetection.poses
+  const action$ = sources.PoseDetection.poses
     .filter(poses => poses.length > 0)
     .filter(poses =>
       poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1)
@@ -31,19 +31,40 @@ function main(sources) {
       }
     });
 
+  const click$ = sources.DOM.select('#start').events('click')
+    .map(event => (event.target as HTMLButtonElement).textContent)
+    .debug(c => console.error(c));
+
+  const stopped$ = click$.fold((acc, x) => {
+    return !acc;
+  }, true).remember();
+
+  const face$ = stopped$.map(s => s ? action$ : xs.of({
+    type: 'SET_STATE',
+    value: {
+      leftEye: {x: 0.5, y: 0.5},
+      rightEye: {x: 0.5, y: 0.5},
+    }
+  })).flatten();
+
   const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(
     sources.PoseDetection.poses.startWith([]),
     sources.TabletFace.DOM,
     sources.PoseDetection.DOM,
-  ).map(([p, f, d]) => (
+    stopped$,
+  ).map(([p, f, d, st]) => (
     <div>
       <div>
-        {f}
+        <button id="start">{
+          st
+          ? "Start following face"
+          : "Stop following face"
+        }</button>
       </div>
 
       <div>
-        <button id="start">Start following face</button>
+        {f}
       </div>
 
       <div>
