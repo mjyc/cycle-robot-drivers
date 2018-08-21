@@ -12,7 +12,7 @@ import {
 } from '@cycle-robot-drivers/speech'
 import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 
-// a random story from https://www.plot-generator.org.uk/story/
+// a randomly generated story from https://www.plot-generator.org.uk/story/
 const sentences = [
   "Susan Vader had always hated pretty Sidney with its empty, encouraging estuaries.",
   "It was a place where she felt ambivalent.",
@@ -51,7 +51,7 @@ const sentences = [
   "THE END"
 ];
 
-
+// enums for finite state machine pattern
 enum SMStates {
   LOAD = 'LOAD',
   READ = 'READ',
@@ -60,13 +60,14 @@ enum SMStates {
   DONE = 'DONE',
 };
 
-enum SMActions {
+enum SMEdges {
   FOUND_PERSON = 'FOUND_PERSON',
   LOST_PERSON = 'LOST_PERSON',
   FINISHED_SPEACKING = 'FINISHED_SPEACKING',
   FINISHED_READING = 'FINISHED_READING',
 };
 
+// types for state reducer pattern
 type State = {
   state: SMStates,
   curSentence?: number,
@@ -75,16 +76,23 @@ type State = {
 type Reducer = (prev?: State) => State | undefined;
 
 type Actions = {
-  numPoses$: Stream<number>,
+  numPeople$: Stream<number>,
   result$: Stream<Result>,
 }
 
+function intent(poses: Stream<any[]>, result: Stream<Result>) {
+  const numPeople$ = poses.map(poses => poses.length).compose(dropRepeats())
+  return {
+    numPeople$,
+    result$: result,
+  };
+}
 
-function transition(state: SMStates, action: SMActions) {
+function transition(state: SMStates, action: SMEdges) {
   switch (state) {
     case SMStates.LOAD:
       switch (action) {
-        case SMActions.FOUND_PERSON:
+        case SMEdges.FOUND_PERSON:
           return SMStates.READ
         default:
           console.debug(`Invalid action: "${action}"; returning null`);
@@ -92,11 +100,11 @@ function transition(state: SMStates, action: SMActions) {
       }
     case SMStates.READ:
       switch (action) {
-        case SMActions.LOST_PERSON:
+        case SMEdges.LOST_PERSON:
           return SMStates.WAIT
-        case SMActions.FINISHED_SPEACKING:
+        case SMEdges.FINISHED_SPEACKING:
           return SMStates.READ
-        case SMActions.FINISHED_READING:
+        case SMEdges.FINISHED_READING:
           return SMStates.DONE
         default:
           console.debug(`Invalid action: "${action}"; returning null`);
@@ -104,7 +112,7 @@ function transition(state: SMStates, action: SMActions) {
       }
     case SMStates.WAIT:
       switch (action) {
-        case SMActions.FOUND_PERSON:
+        case SMEdges.FOUND_PERSON:
           return SMStates.RESUME
         default:
           console.debug(`Invalid action: "${action}"; returning null`);
@@ -112,7 +120,7 @@ function transition(state: SMStates, action: SMActions) {
       }
     case SMStates.RESUME:
       switch (action) {
-        case SMActions.FINISHED_SPEACKING:
+        case SMEdges.FINISHED_SPEACKING:
           return SMStates.READ
         default:
           console.debug(`Invalid action: "${action}"; returning null`);
@@ -124,14 +132,6 @@ function transition(state: SMStates, action: SMActions) {
   }
 }
 
-function intent(poses: Stream<any[]>, result: Stream<Result>) {
-  const numPoses$ = poses.map(poses => poses.length).compose(dropRepeats())
-  return {
-    numPoses$,
-    result$: result,
-  };
-}
-
 function model(actions: Actions): Stream<State> {
   const initReducer$ = xs.of(function initReducer(prev) {
     return {
@@ -140,12 +140,12 @@ function model(actions: Actions): Stream<State> {
     };
   });
 
-  const numPosesReducer$ = actions.numPoses$
-    .map(numPoses => function numPosesReducer(prevState: State): State {
-      // action is based on numPoses
+  const numPeopleReducer$ = actions.numPeople$
+    .map(numPeople => function numPeopleReducer(prevState: State): State {
+      // the edge is based on numPeople
       const state = transition(
         prevState.state,
-        numPoses === 0 ? SMActions.LOST_PERSON : SMActions.FOUND_PERSON
+        numPeople === 0 ? SMEdges.LOST_PERSON : SMEdges.FOUND_PERSON
       );
       if (!!state) {
         return {
@@ -160,11 +160,11 @@ function model(actions: Actions): Stream<State> {
   const resultReducer$ = actions.result$
     .filter(result => result.status.status === 'SUCCEEDED')
     .map(result => function resultReducer(prevState: State): State {
-      // action is based on prevState.curSentence
+      // the edge is based on prevState.curSentence
       const state = transition(
         prevState.state,
         prevState.curSentence === sentences.length - 1
-          ? SMActions.FINISHED_READING : SMActions.FINISHED_SPEACKING,
+          ? SMEdges.FINISHED_READING : SMEdges.FINISHED_SPEACKING,
       );
       if (!!state) {
         return {
@@ -178,7 +178,7 @@ function model(actions: Actions): Stream<State> {
       }
     });
 
-  return xs.merge(initReducer$, numPosesReducer$, resultReducer$)
+  return xs.merge(initReducer$, numPeopleReducer$, resultReducer$)
     .fold((state: State, reducer: Reducer) => reducer(state), null)
     .drop(1)  // drop "null"
     .compose(dropRepeats());
