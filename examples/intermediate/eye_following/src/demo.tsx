@@ -12,11 +12,11 @@ const videoWidth = 640;
 const videoHeight = 480;
 
 function main(sources) {
-  const action$ = sources.PoseDetection.poses
+  const faceMoving$ = sources.PoseDetection.poses
     .filter(poses => poses.length > 0)
     .filter(poses =>
-      poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1)
-    .map(poses => {
+      poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
+    ).map(poses => {
       const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
       const normalizedPos = {
         x: nose.position.x / videoWidth,
@@ -30,19 +30,19 @@ function main(sources) {
         }
       }
     });
+  const faceStatic$ = xs.of({
+    type: 'SET_STATE',
+    value: {
+      leftEye: {x: 0.5, y: 0.5},
+      rightEye: {x: 0.5, y: 0.5},
+    }
+  });
 
   const lastClick$ = sources.DOM.select('#start').events('click')
     .map(event => (event.target as HTMLButtonElement).textContent)
     .startWith('Stop following face');
-
   const face$ = lastClick$.map(text =>
-    (text === "Start following face") ? action$ : xs.of({
-      type: 'SET_STATE',
-      value: {
-        leftEye: {x: 0.5, y: 0.5},
-        rightEye: {x: 0.5, y: 0.5},
-      }
-    })
+    (text === "Start following face") ? faceMoving$ : faceStatic$
   ).flatten();
 
   const styles = {code: {"background-color": "#f6f8fa"}};
@@ -82,6 +82,13 @@ function main(sources) {
   return {
     DOM: vdom$,
     TabletFace: face$,
+    PoseDetection: xs.of({
+      algorithm: 'single-pose',
+      singlePoseDetection: {
+        imageScaleFactor: 0.1,
+        minPoseConfidence: 0.2
+      },
+    }),
   };
 }
 
