@@ -13,6 +13,8 @@ import {
   IsolatedSpeechRecognitionAction as SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech'
 
+// The quotes are from
+//   https://codereview.stackexchange.com/questions/41269/displaying-random-quotes-from-an-array/41271
 const sentences = [
   "Did you know Steve Jobs said Stay Hungry. Stay Foolish?",
   "Did you know Pablo Picasso said Good Artists Copy, Great Artists Steal?",
@@ -21,24 +23,24 @@ const sentences = [
   "Did you know Leonardo Da Vinci said Simplicity is the ultimate sophistication?"
 ];
 
-
 function main(sources) {
-  const goal$ = xs.merge(
-    sources.DOM.select('#say').events('click').mapTo({}),
+  const click$ = sources.DOM.select('#say').events('click');
+  const speechstart$ = sources.SpeechRecognition.events('speechstart');
+  const speechSynthesisGoal$ = xs.merge(
+    click$.mapTo({
+      text: sentences[Math.floor(Math.random()*sentences.length)],
+      rate: 0.75,
+    }).compose(sources.Time.delay(500)),  // give some time for recog to start
+    speechstart$.mapTo(null),  // cancel
   );
   const speechSynthesisAction = SpeechSynthesisAction({
-    goal: xs.merge(
-      goal$.mapTo({
-        text: sentences[Math.floor(Math.random()*sentences.length)],
-        rate: 0.75,
-      }).compose(sources.Time.delay(500)),  // give some time for recog to boot
-      sources.SpeechRecognition.events('speechstart').mapTo(null),  // cancel
-    ),
+    goal: speechSynthesisGoal$,
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
+  const speechRecognitionGoal$ = click$.mapTo({});
   const speechRecognitionAction = SpeechRecognitionAction({
-    goal: goal$.mapTo({}),
+    goal: speechRecognitionGoal$,
     SpeechRecognition: sources.SpeechRecognition,
   });
 
@@ -51,7 +53,6 @@ function main(sources) {
       result: result.result,
     }
   });
-
   const vdom$ = state$.map(s => (
     <div>
       <div>
