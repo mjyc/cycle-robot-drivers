@@ -77,6 +77,7 @@ function main(sources) {
     audio: initGoal({src: params[1]}),
     speech: initGoal({text: params[3]}),
   });
+  // end them on receiving results
   goalsProxy$.imitate(
     xs.merge(
       allGoals$,
