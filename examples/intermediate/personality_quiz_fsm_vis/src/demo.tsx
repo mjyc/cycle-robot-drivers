@@ -15,8 +15,8 @@ import {
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen'
 
-// Define enums
-enum SMStates {
+// enums for finite state machine pattern
+enum SMState {
   ASK_CAREER_QUESTION = 'It\'s import that I reach my full career potential',
   ASK_WORKING_ONLINE_QUESTION = 'I can see myself working online',
   ASK_FAMILY_QUESTION = 'I have to be near my family/friends/pets',
@@ -29,15 +29,15 @@ enum SMStates {
   TELL_THEM_THEY_ARE_NOMAD = 'You are a nomad!',
 };
 
-enum SMActions {
+enum SMEvent {
   RECEIVED_YES = 'Yes',
   RECEIVED_NO = 'No',
   RECEIVED_RESTART = 'Restart',
 };
 
-// define types
+// types for state reducer pattern
 type State = {
-  question: SMStates,
+  question: SMState,
   graph: any,
 };
 
@@ -45,48 +45,7 @@ type Reducer = (prev?: State) => State | undefined;
 
 type Actions = Stream<Result>;
 
-// define consts
-const machine = {
-  [SMStates.ASK_CAREER_QUESTION]: {
-    [SMActions.RECEIVED_YES]: SMStates.ASK_WORKING_ONLINE_QUESTION,
-    [SMActions.RECEIVED_NO]: SMStates.ASK_FAMILY_QUESTION,
-  },
-  [SMStates.ASK_WORKING_ONLINE_QUESTION]: {
-    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_NOMAD,
-    [SMActions.RECEIVED_NO]: SMStates.TELL_THEM_THEY_ARE_VACATIONER,
-  },
-  [SMStates.ASK_FAMILY_QUESTION]: {
-    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_VACATIONER,
-    [SMActions.RECEIVED_NO]: SMStates.ASK_SHORT_TRIPS_QUESTION,
-  },
-  [SMStates.ASK_SHORT_TRIPS_QUESTION]: {
-    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_VACATIONER,
-    [SMActions.RECEIVED_NO]: SMStates.ASK_HOME_OWNERSHIP_QUESTION,
-  },
-  [SMStates.ASK_HOME_OWNERSHIP_QUESTION]: {
-    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_EXPAT,
-    [SMActions.RECEIVED_NO]: SMStates.ASK_ROUTINE_QUESTION,
-  },
-  [SMStates.ASK_ROUTINE_QUESTION]: {
-    [SMActions.RECEIVED_YES]: SMStates.TELL_THEM_THEY_ARE_EXPAT,
-    [SMActions.RECEIVED_NO]: SMStates.ASK_JOB_SECURITY_QUESTION,
-  },
-  [SMStates.ASK_JOB_SECURITY_QUESTION]: {
-    [SMActions.RECEIVED_YES]: SMStates.ASK_WORKING_ONLINE_QUESTION,
-    [SMActions.RECEIVED_NO]: SMStates.TELL_THEM_THEY_ARE_NOMAD,
-  },
-  [SMStates.TELL_THEM_THEY_ARE_NOMAD]: {
-    [SMActions.RECEIVED_RESTART]: SMStates.ASK_CAREER_QUESTION,
-  },
-  [SMStates.TELL_THEM_THEY_ARE_VACATIONER]: {
-    [SMActions.RECEIVED_RESTART]: SMStates.ASK_CAREER_QUESTION,
-  },
-  [SMStates.TELL_THEM_THEY_ARE_EXPAT]: {
-    [SMActions.RECEIVED_RESTART]: SMStates.ASK_CAREER_QUESTION,
-  },
-};
-
-// define functions
+// Graph visualizer driver based on dagre-dr3
 function makeDagreD3Driver({
   width,
   height,
@@ -138,17 +97,17 @@ function makeDagreD3Driver({
   };
 }
 
-function createGraph(states: string[], actions: string[], machine) {
+function createGraph(states: string[], events: string[], transTable) {
   const g = new dagreD3.graphlib.Graph().setGraph({});
   states.map(state => g.setNode(state, {
     label: state,
     style: 'stroke: #333; fill: #fff;',
   }));
-  Object.keys(machine).map(state => {
-    Object.keys(machine[state]).map(action => {
-      const nextState = machine[state][action];
+  Object.keys(transTable).map(state => {
+    Object.keys(transTable[state]).map(event => {
+      const nextState = transTable[state][event];
       g.setEdge(state, nextState, {
-        label: action,
+        label: event,
         style: 'stroke: #333; fill: none; stroke-width: 1.5px;',
       });
     })
@@ -156,27 +115,67 @@ function createGraph(states: string[], actions: string[], machine) {
   return g;
 }
 
-function transition(state: SMStates, action: SMActions) {
-  const actions = machine[state];
-  if (!actions) {
+function transition(transTable, state: SMState, event: SMEvent) {
+  const events = transTable[state];
+  if (!events) {
     console.debug(`Invalid state: "${state}"; returning null`);
     return null;
   }
-  const newState = actions[action];
+  const newState = events[event];
   if (!newState) {
-    console.debug(`Invalid action: "${action}"; returning null`);
+    console.debug(`Invalid event: "${event}"; returning null`);
     return null;
   }
   return newState;
 }
 
 function model(result$: Actions): Stream<State> {
+  const transTable = {
+    [SMState.ASK_CAREER_QUESTION]: {
+      [SMEvent.RECEIVED_YES]: SMState.ASK_WORKING_ONLINE_QUESTION,
+      [SMEvent.RECEIVED_NO]: SMState.ASK_FAMILY_QUESTION,
+    },
+    [SMState.ASK_WORKING_ONLINE_QUESTION]: {
+      [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_NOMAD,
+      [SMEvent.RECEIVED_NO]: SMState.TELL_THEM_THEY_ARE_VACATIONER,
+    },
+    [SMState.ASK_FAMILY_QUESTION]: {
+      [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_VACATIONER,
+      [SMEvent.RECEIVED_NO]: SMState.ASK_SHORT_TRIPS_QUESTION,
+    },
+    [SMState.ASK_SHORT_TRIPS_QUESTION]: {
+      [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_VACATIONER,
+      [SMEvent.RECEIVED_NO]: SMState.ASK_HOME_OWNERSHIP_QUESTION,
+    },
+    [SMState.ASK_HOME_OWNERSHIP_QUESTION]: {
+      [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_EXPAT,
+      [SMEvent.RECEIVED_NO]: SMState.ASK_ROUTINE_QUESTION,
+    },
+    [SMState.ASK_ROUTINE_QUESTION]: {
+      [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_EXPAT,
+      [SMEvent.RECEIVED_NO]: SMState.ASK_JOB_SECURITY_QUESTION,
+    },
+    [SMState.ASK_JOB_SECURITY_QUESTION]: {
+      [SMEvent.RECEIVED_YES]: SMState.ASK_WORKING_ONLINE_QUESTION,
+      [SMEvent.RECEIVED_NO]: SMState.TELL_THEM_THEY_ARE_NOMAD,
+    },
+    [SMState.TELL_THEM_THEY_ARE_NOMAD]: {
+      [SMEvent.RECEIVED_RESTART]: SMState.ASK_CAREER_QUESTION,
+    },
+    [SMState.TELL_THEM_THEY_ARE_VACATIONER]: {
+      [SMEvent.RECEIVED_RESTART]: SMState.ASK_CAREER_QUESTION,
+    },
+    [SMState.TELL_THEM_THEY_ARE_EXPAT]: {
+      [SMEvent.RECEIVED_RESTART]: SMState.ASK_CAREER_QUESTION,
+    },
+  };
+
   const initReducer$ = fromEvent(window, 'load').mapTo(function initReducer(prev) {
-    const question = SMStates.ASK_CAREER_QUESTION;
+    const question = SMState.ASK_CAREER_QUESTION;
     const graph = createGraph(
-      Object.keys(SMStates).map(k => SMStates[k]),
-      Object.keys(SMActions).map(k => SMActions[k]),
-      machine,
+      Object.keys(SMState).map(k => SMState[k]),
+      Object.keys(SMEvent).map(k => SMEvent[k]),
+      transTable,
     );
     graph.node(question).style = 'fill: #f77';
     return {question, graph};
@@ -187,6 +186,7 @@ function model(result$: Actions): Stream<State> {
     .map(result => function resultReducer(prevState: State): State {
       // make a transition
       const question = transition(
+        transTable,
         prevState.question,
         result.result,
       );
@@ -217,15 +217,15 @@ function goal(state: Stream<State>): Stream<Goal> {
   return xs.merge(
     state.map(s => {
       return (
-        s.question === SMStates.TELL_THEM_THEY_ARE_NOMAD
-        || s.question === SMStates.TELL_THEM_THEY_ARE_VACATIONER
-        || s.question === SMStates.TELL_THEM_THEY_ARE_EXPAT
+        s.question === SMState.TELL_THEM_THEY_ARE_NOMAD
+        || s.question === SMState.TELL_THEM_THEY_ARE_VACATIONER
+        || s.question === SMState.TELL_THEM_THEY_ARE_EXPAT
       ) ? initGoal({type: 'ASK_QUESTION', value: [
           s.question,
-          [SMActions.RECEIVED_RESTART],
+          [SMEvent.RECEIVED_RESTART],
         ]}) : initGoal({type: 'ASK_QUESTION', value: [
           s.question,
-          [SMActions.RECEIVED_YES, SMActions.RECEIVED_NO],
+          [SMEvent.RECEIVED_YES, SMEvent.RECEIVED_NO],
         ]});
     })
   );

@@ -52,7 +52,7 @@ const sentences = [
 ];
 
 // enums for finite state machine pattern
-enum SMStates {
+enum SMState {
   LOAD = 'LOAD',
   READ = 'READ',
   WAIT = 'WAIT',
@@ -60,7 +60,7 @@ enum SMStates {
   DONE = 'DONE',
 };
 
-enum SMEdges {
+enum SMEvent {
   FOUND_PERSON = 'FOUND_PERSON',
   LOST_PERSON = 'LOST_PERSON',
   FINISHED_SPEACKING = 'FINISHED_SPEACKING',
@@ -69,7 +69,7 @@ enum SMEdges {
 
 // types for state reducer pattern
 type State = {
-  state: SMStates,
+  state: SMState,
   curSentenceIndex?: number,
 };
 
@@ -88,40 +88,40 @@ function intent(poses: Stream<any[]>, result: Stream<Result>) {
   };
 }
 
-function transition(state: SMStates, action: SMEdges) {
+function transition(state: SMState, action: SMEvent) {
   switch (state) {
-    case SMStates.LOAD:
+    case SMState.LOAD:
       switch (action) {
-        case SMEdges.FOUND_PERSON:
-          return SMStates.READ
+        case SMEvent.FOUND_PERSON:
+          return SMState.READ
         default:
           console.debug(`Invalid action: "${action}"; returning null`);
           return null;
       }
-    case SMStates.READ:
+    case SMState.READ:
       switch (action) {
-        case SMEdges.LOST_PERSON:
-          return SMStates.WAIT
-        case SMEdges.FINISHED_SPEACKING:
-          return SMStates.READ
-        case SMEdges.FINISHED_READING:
-          return SMStates.DONE
+        case SMEvent.LOST_PERSON:
+          return SMState.WAIT
+        case SMEvent.FINISHED_SPEACKING:
+          return SMState.READ
+        case SMEvent.FINISHED_READING:
+          return SMState.DONE
         default:
           console.debug(`Invalid action: "${action}"; returning null`);
           return null;
       }
-    case SMStates.WAIT:
+    case SMState.WAIT:
       switch (action) {
-        case SMEdges.FOUND_PERSON:
-          return SMStates.RESUME
+        case SMEvent.FOUND_PERSON:
+          return SMState.RESUME
         default:
           console.debug(`Invalid action: "${action}"; returning null`);
           return null;
       }
-    case SMStates.RESUME:
+    case SMState.RESUME:
       switch (action) {
-        case SMEdges.FINISHED_SPEACKING:
-          return SMStates.READ
+        case SMEvent.FINISHED_SPEACKING:
+          return SMState.READ
         default:
           console.debug(`Invalid action: "${action}"; returning null`);
           return null;
@@ -145,7 +145,7 @@ function model(actions: Actions): Stream<State> {
       // the edge is based on numPeople
       const state = transition(
         prevState.state,
-        numPeople === 0 ? SMEdges.LOST_PERSON : SMEdges.FOUND_PERSON
+        numPeople === 0 ? SMEvent.LOST_PERSON : SMEvent.FOUND_PERSON
       );
       if (!!state) {
         return {
@@ -164,14 +164,14 @@ function model(actions: Actions): Stream<State> {
       const state = transition(
         prevState.state,
         prevState.curSentenceIndex === sentences.length - 1
-          ? SMEdges.FINISHED_READING : SMEdges.FINISHED_SPEACKING,
+          ? SMEvent.FINISHED_READING : SMEvent.FINISHED_SPEACKING,
       );
       if (!!state) {
         return {
           ...prevState,
           state,
           curSentenceIndex:
-            state === SMStates.READ && prevState.state !== SMStates.RESUME
+            state === SMState.READ && prevState.state !== SSMStateRESUME
             ? prevState.curSentenceIndex + 1 : prevState.curSentenceIndex,
         };
       } else {
@@ -188,13 +188,13 @@ function model(actions: Actions): Stream<State> {
 function goal(state: Stream<State>): Stream<Goal> {
   return xs.merge(
     state
-      .filter(s => s.state === SMStates.RESUME)
+      .filter(s => s.state === SMState.RESUME)
       .mapTo(initGoal({text: 'I\'ll resume the story', rate: 0.8})),
     state
-      .filter(s => s.state === SMStates.READ)
+      .filter(s => s.state === SMState.READ)
       .map(s => initGoal({text: sentences[s.curSentenceIndex], rate: 0.8})),
     state
-      .filter(s => s.state === SMStates.WAIT)
+      .filter(s => s.state === SMState.WAIT)
       .mapTo(null),
   );
 }
