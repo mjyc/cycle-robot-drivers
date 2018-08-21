@@ -1,7 +1,6 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
-import fromEvent from 'xstream/extra/fromEvent'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {timeDriver} from '@cycle/time';
@@ -11,7 +10,7 @@ import {
 } from '@cycle-robot-drivers/speech'
 import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 
-// a random story from https://www.plot-generator.org.uk/story/
+// a randomly generated story from https://www.plot-generator.org.uk/story/
 const sentences = [
   "Charity Thomas had always loved derelict New York with its wasteful, warty waters.",
   "It was a place where she felt active.",
@@ -59,40 +58,41 @@ function main(sources) {
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
-  const numPoses$ = sources.PoseDetection.poses.map(poses => poses.length);
-  const count$ = xs.merge(
+  const numPeople$ = sources.PoseDetection.poses
+    .map(poses => poses.length)
+    .compose(dropRepeats())
+    .startWith(0);
+  const curSentenceIndex$ = xs.merge(
     speechSynthesisAction.result,
-    numPoses$  // wait until the pose detector starts
-      .filter(numPoses => numPoses === 1)
-      .take(1).mapTo({status: {status: 'START'}}),
-  ).fold((count, result: any) => {
-    if (result.status.status === "START") {
+    numPeople$
+      .filter(numPeople => numPeople === 1)
+      .take(1)
+      .mapTo('START'),  // wait for a person before starting
+  ).fold((index, result: any) => {
+    if (result === "START") {
       return 0;
     } else if (result.status.status === "SUCCEEDED") {
-      return count + 1;
+      return index + 1;
     }
-    return count;
-  }, -1);
+    return index;
+  }, -1).compose(dropRepeats());
 
-  const numPosesChanged$ = numPoses$.compose(dropRepeats());
-  const countChanged$ = count$.compose(dropRepeats());
-  goalProxy$.imitate(
-    xs.merge(
-      countChanged$
-        .filter(count => count >= 0 && count < sentences.length)
-        .map(cnt => ({text: sentences[cnt], rate: 0.8})),
-      numPosesChanged$.filter(numPoses => numPoses === 0)  // disappeared
-        .mapTo(null),
-      numPosesChanged$.filter(numPoses => numPoses === 1)  // appeared
-        .mapTo({text: 'So', rate: 0.8}),
-    )
+  const goal$ = xs.merge(
+    curSentenceIndex$
+      .filter(count => count >= 0 && count < sentences.length)
+      .map(cnt => ({text: sentences[cnt], rate: 0.8})),
+    numPeople$.filter(numPeople => numPeople === 0)  // disappeared
+      .mapTo(null),
+    numPeople$.filter(numPeople => numPeople === 1)  // appeared
+      .mapTo({text: 'So', rate: 0.8}),
   );
+  goalProxy$.imitate(goal$);
 
   const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(
     sources.PoseDetection.poses.startWith([]),
     sources.PoseDetection.DOM,
-    numPoses$.startWith(-1)
+    numPeople$.startWith(-1)
   ).map(([p, d, n]) => (
     <div>
       <div>
