@@ -70,7 +70,7 @@ enum SMEdges {
 // types for state reducer pattern
 type State = {
   state: SMStates,
-  curSentence?: number,
+  curSentenceIndex?: number,
 };
 
 type Reducer = (prev?: State) => State | undefined;
@@ -136,7 +136,7 @@ function model(actions: Actions): Stream<State> {
   const initReducer$ = xs.of(function initReducer(prev) {
     return {
       state: 'LOAD',
-      curSentence: 0,
+      curSentenceIndex: 0,
     };
   });
 
@@ -160,18 +160,19 @@ function model(actions: Actions): Stream<State> {
   const resultReducer$ = actions.result$
     .filter(result => result.status.status === 'SUCCEEDED')
     .map(result => function resultReducer(prevState: State): State {
-      // the edge is based on prevState.curSentence
+      // the edge is based on prevState.curSentenceIndex
       const state = transition(
         prevState.state,
-        prevState.curSentence === sentences.length - 1
+        prevState.curSentenceIndex === sentences.length - 1
           ? SMEdges.FINISHED_READING : SMEdges.FINISHED_SPEACKING,
       );
       if (!!state) {
         return {
           ...prevState,
           state,
-          curSentence: state === SMStates.READ
-            ? prevState.curSentence + 1 : prevState.curSentence,
+          curSentenceIndex:
+            state === SMStates.READ && prevState.state !== SMStates.RESUME
+            ? prevState.curSentenceIndex + 1 : prevState.curSentenceIndex,
         };
       } else {
         return prevState;
@@ -191,7 +192,7 @@ function goal(state: Stream<State>): Stream<Goal> {
       .mapTo(initGoal({text: 'I\'ll resume the story', rate: 0.8})),
     state
       .filter(s => s.state === SMStates.READ)
-      .map(s => initGoal({text: sentences[s.curSentence], rate: 0.8})),
+      .map(s => initGoal({text: sentences[s.curSentenceIndex], rate: 0.8})),
     state
       .filter(s => s.state === SMStates.WAIT)
       .mapTo(null),
