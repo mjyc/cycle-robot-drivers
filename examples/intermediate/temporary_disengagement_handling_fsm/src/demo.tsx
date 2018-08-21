@@ -171,7 +171,7 @@ function model(actions: Actions): Stream<State> {
           ...prevState,
           state,
           curSentenceIndex:
-            state === SMState.READ && prevState.state !== SSMStateRESUME
+            state === SMState.READ && prevState.state !== SMState.RESUME
             ? prevState.curSentenceIndex + 1 : prevState.curSentenceIndex,
         };
       } else {
