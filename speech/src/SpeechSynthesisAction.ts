@@ -8,24 +8,29 @@ import {
   generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
-type Reducer = (prev?: State) => State | undefined;
-
-enum StateType {
+enum State {
   RUNNING = 'RUNNING',
   DONE = 'DONE',
-};
+}
 
 enum ExtraStatus {
   PREEMPTING = 'PREEMPTING',
-};
+}
 
-type State = {
-  state: StateType,
+type Variables = {
   goal_id: GoalID,
   goal: any,
   status: Status | ExtraStatus,
   result: any,
 };
+
+type ReducerState = {
+  state: State,
+  variables: Variables,
+  output: any,
+};
+
+type Reducer = (prev?: ReducerState) => ReducerState | undefined;
 
 enum InputType {
   GOAL = 'GOAL',
@@ -37,7 +42,8 @@ enum InputType {
 type Input = {
   type: InputType,
   value: Goal,
-}
+};
+
 
 // NOTE: consider creating "EventSource"
 function input(goalO, startEventO, endEventO) {
@@ -61,55 +67,65 @@ function input(goalO, startEventO, endEventO) {
 }
 
 const transitionTable = {
-  [StateType.DONE]: {
-    [InputType.GOAL]: StateType.RUNNING,
+  [State.DONE]: {
+    [InputType.GOAL]: State.RUNNING,
   },
-  [StateType.RUNNING]: {
-    [InputType.END]: StateType.DONE,
+  [State.RUNNING]: {
+    [InputType.END]: State.DONE,
   },
 };
 
-function transition(prev: State, input: Input): State {
-  const states = transitionTable[prev.state];
-  if (!states) {
-    console.debug(`Invalid prev.state: "${prev.state}"; returning prev`);
-    return prev;
+function transition(
+  state: State, variables: Variables, input: Input
+): ReducerState {
+  const newStates = transitionTable[state];
+  if (!newStates) {
+    throw new Error(`Invalid state: "${state}"`);
   }
-  const state = states[input.type];
-  if (!state) {
-    console.debug(`Invalid input.type: "${input.type}"; returning prev`);
-    return prev;
+  const newState = newStates[input.type];
+  if (!newState) {
+    throw new Error(`Invalid input.type: "${input.type}"`);
   }
 
-  if (prev.state === StateType.DONE && state === StateType.RUNNING) {
+  if (state === State.DONE && newState === State.RUNNING) {
     const goal = input.value;
     return {
-      state,
-      goal_id: goal.goal_id,
-      goal: goal.goal,
-      status: Status.ACTIVE,
-      result: null,
+      state: newState,
+      variables: {
+        goal_id: goal.goal_id,
+        goal: goal.goal,
+        status: Status.ACTIVE,
+        result: null,
+      },
+      output: {
+      },
     };
   }
 
-  console.warn(`Unknow status: ${state}; returning prev`);
-  return prev;
+  throw new Error(`Invalid transition`);
 }
 
-function transitionReducer(input$) {
-  const initReducer$ = xs.of(function initReducer(prev: State): State {
-    return {
-      state: StateType.DONE,
-      goal: null,
-      goal_id: generateGoalID(),
-      result: null,
-      status: Status.SUCCEEDED,
-    };
-  });
+function transitionReducer(input$): Stream<Reducer> {
+  const initReducer$: Stream<Reducer> = xs.of(
+    function initReducer(prev) {
+      return {
+        state: State.DONE,
+        variables: {
+          goal: null,
+          goal_id: null,
+          result: null,
+          status: Status.SUCCEEDED,
+        },
+        output: null,
+      }
+    }
+  );
 
-  const inputReducer$ = input$
-    .map(input => function inputReducer(prev: State): State {
-      return transition(prev, input);
+  const inputReducer$: Stream<Reducer> = input$
+    .map(input => function inputReducer(prev) {
+      // const cur = ;
+      // return !!cur ? cur : prev;
+      return transition(prev.state, prev.variables, input);
     });
 
   return xs.merge(initReducer$, inputReducer$);
@@ -124,7 +140,7 @@ export function SpeechSynthesisAction(sources) {
   );
 
   const state$ = transitionReducer(input$)
-    .fold((state: State, reducer: Reducer) => reducer(state), null);
+    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null);
 
   return {
     value: adapt(xs.of('value')),
