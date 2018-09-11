@@ -9,7 +9,6 @@ export type Goal = {
 };
 
 export enum Status {
-  PENDING = 'PENDING',
   ACTIVE = 'ACTIVE',
   PREEMPTED = 'PREEMPTED',
   SUCCEEDED = 'SUCCEEDED',
