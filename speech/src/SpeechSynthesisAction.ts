@@ -1,5 +1,5 @@
 import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
+import {Stream} from 'xstream'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
 
@@ -8,192 +8,128 @@ import {
   generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
+type Reducer = (prev?: State) => State | undefined;
+
+enum StateType {
+  RUNNING = 'RUNNING',
+  DONE = 'DONE',
+};
+
+enum ExtraStatus {
+  PREEMPTING = 'PREEMPTING',
+};
+
+type State = {
+  state: StateType,
+  goal_id: GoalID,
+  goal: any,
+  status: Status | ExtraStatus,
+  result: any,
+};
+
+enum InputType {
+  GOAL = 'GOAL',
+  CANCEL = 'CANCEL',
+  START = 'START',
+  END = 'END',
+}
+
+type Input = {
+  type: InputType,
+  value: Goal,
+}
+
+// NOTE: consider creating "EventSource"
+function input(goalO, startEventO, endEventO) {
+  return xs.merge(
+    xs.fromObservable(goalO).map(goal => {
+      if (goal === null) {
+        return {
+          type: InputType.CANCEL,
+          value: null,  // goal MUST BE null on CANCEL
+        };
+      } else {
+        return {
+          type: InputType.GOAL,
+          value: (goal as any).goal_id ? goal : initGoal(goal),
+        };
+      }
+    }),
+    xs.fromObservable(startEventO).mapTo({type: InputType.START, value: null}),
+    xs.fromObservable(endEventO).mapTo({type: InputType.END, value: null}),
+  );
+}
+
+const transitionTable = {
+  [StateType.DONE]: {
+    [InputType.GOAL]: StateType.RUNNING,
+  },
+  [StateType.RUNNING]: {
+    [InputType.END]: StateType.DONE,
+  },
+};
+
+function transition(prev: State, input: Input): State {
+  const states = transitionTable[prev.state];
+  if (!states) {
+    console.debug(`Invalid prev.state: "${prev.state}"; returning prev`);
+    return prev;
+  }
+  const state = states[input.type];
+  if (!state) {
+    console.debug(`Invalid input.type: "${input.type}"; returning prev`);
+    return prev;
+  }
+
+  if (prev.state === StateType.DONE && state === StateType.RUNNING) {
+    const goal = input.value;
+    return {
+      state,
+      goal_id: goal.goal_id,
+      goal: goal.goal,
+      status: Status.ACTIVE,
+      result: null,
+    };
+  }
+
+  console.warn(`Unknow status: ${state}; returning prev`);
+  return prev;
+}
+
+function transitionReducer(input$) {
+  const initReducer$ = xs.of(function initReducer(prev: State): State {
+    return {
+      state: StateType.DONE,
+      goal: null,
+      goal_id: generateGoalID(),
+      result: null,
+      status: Status.SUCCEEDED,
+    };
+  });
+
+  const inputReducer$ = input$
+    .map(input => function inputReducer(prev: State): State {
+      return transition(prev, input);
+    });
+
+  return xs.merge(initReducer$, inputReducer$);
+}
 
 export function SpeechSynthesisAction(sources) {
-  // Create action stream
-  type Action = {
-    type: string,
-    value: Goal | SpeechSynthesisEvent,
-  };
 
-  const goal$ = xs.fromObservable(sources.goal).map(goal => {
-    if (goal === null) {
-      return {
-        type: 'CANCEL',
-        value: null,  // goal MUST BE null on CANCEL
-      };
-    } else {
-      return {
-        type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
-      };
-    }
-  });
-  const events$ = xs.merge(
-    sources.SpeechSynthesis.events('start').map(
-      event => ({type: 'START', value: event})
-    ),
-    sources.SpeechSynthesis.events('end').map(
-      event => ({type: 'END', value: event})
-    ),
-    sources.SpeechSynthesis.events('error').map(
-      event => ({type: 'ERROR', value: event})
-    ),
+  const input$ = input(
+    sources.goal,
+    sources.SpeechSynthesis.events('start'),
+    sources.SpeechSynthesis.events('end'),
   );
-  const action$ = xs.merge(goal$, events$);
 
-
-  // Create state stream
-  enum ExtraStatus {
-    PREEMPTING = 'PREEMPTING',
-  };
-  type ExtendedStatus = Status | ExtraStatus;
-  type State = {
-    goal_id: GoalID,
-    goal: any,
-    status: ExtendedStatus,
-    result: any,
-    newGoal: Goal,
-  };
-
-  const initialState: State = {
-    goal: null,
-    goal_id: generateGoalID(),
-    status: Status.SUCCEEDED,
-    result: null,
-    newGoal: null,
-  };
-
-  const state$ = action$.fold((state: State, action: Action): State => {
-    console.debug('state', state, 'action', action);
-    if (state.status === Status.SUCCEEDED
-        || state.status === Status.PREEMPTED
-        || state.status === Status.ABORTED) {
-      if (action.type === 'GOAL') {
-        return {
-          ...state,
-          goal_id: (action.value as Goal).goal_id,
-          goal: (action.value as Goal).goal,
-          status: Status.PENDING,
-          result: null,
-        };
-      } else if (action.type === 'CANCEL') {
-        console.debug('Ignore CANCEL in DONE states');
-        return state;
-      }
-    } else if (state.status === Status.PENDING) {
-      if (action.type === 'GOAL') {
-        return {
-          ...state,
-          goal: null,
-          status: ExtraStatus.PREEMPTING,
-          newGoal: (action.value as Goal)
-        };
-      } else if (action.type === 'START') {
-        return {
-          ...state,
-          status: Status.ACTIVE,
-        };
-      } else if (action.type === 'CANCEL') {
-        return {
-          ...state,
-          goal: null,
-          status: ExtraStatus.PREEMPTING,
-        };
-      }
-    } else if (state.status === Status.ACTIVE) {
-      if (action.type === 'GOAL') {
-        return {
-          ...state,
-          goal: null,
-          status: ExtraStatus.PREEMPTING,
-          newGoal: (action.value as Goal)
-        };
-      } else if (action.type === 'END') {
-        return {
-          ...state,
-          status: Status.SUCCEEDED,
-          result: action.value,
-        };
-      } else if (action.type === 'CANCEL') {
-        return {
-          ...state,
-          goal: null,
-          status: ExtraStatus.PREEMPTING,
-        };
-      }
-    } else if (state.status === ExtraStatus.PREEMPTING) {
-      if (action.type === 'GOAL') {
-        return {
-          ...state,
-          goal: null,
-          status: ExtraStatus.PREEMPTING,
-          newGoal: (action.value as Goal)
-        }
-      } else if (action.type === 'CANCEL') {
-        console.debug('Ignore CANCEL in PREEMPTING states');
-        return state;
-      } else if (action.type === 'END') {
-        const preemptedState = {
-          ...state,
-          status: Status.PREEMPTED,
-          newGoal: null,
-        }
-        if (state.newGoal) {
-          state$.shamefullySendNext(preemptedState);
-          return {
-            goal_id: state.newGoal.goal_id,
-            goal: state.newGoal.goal,
-            status: Status.PENDING,
-            result: null,
-            newGoal: null,
-          };
-        } else {
-          return preemptedState;
-        }
-      }
-    }
-    console.warn(
-      `Unhandled state.status ${state.status} action.type ${action.type}`
-    );
-    return state;
-  }, initialState);
-
-
-  // Prepare outgoing streams
-  const stateStatusChanged$ = state$
-    .compose(dropRepeats(
-      (x, y) => (x.status === y.status && isEqual(x.goal_id, y.goal_id))));
-
-  const value$ = stateStatusChanged$
-    .filter(state => (state.status === Status.PENDING
-      || state.status === ExtraStatus.PREEMPTING))
-    .map(state => state.goal);
-
-  const status$ = stateStatusChanged$
-    .filter(state => state.status !== ExtraStatus.PREEMPTING)
-    .map(state => ({
-      goal_id: state.goal_id,
-      status: state.status,
-    } as GoalStatus));
-
-  const result$ = stateStatusChanged$
-    .filter(state => (state.status === Status.SUCCEEDED
-        || state.status === Status.PREEMPTED
-        || state.status === Status.ABORTED))
-    .map(state => ({
-      status: {
-        goal_id: state.goal_id,
-        status: state.status,
-      },
-      result: state.result,
-    } as Result));
-
+  const state$ = transitionReducer(input$)
+    .fold((state: State, reducer: Reducer) => reducer(state), null);
 
   return {
-    value: adapt(value$),
-    status: adapt(status$),
-    result: adapt(result$),
+    value: adapt(xs.of('value')),
+    status: adapt(xs.of('status')),
+    result: adapt(state$),
   };
 }
 
