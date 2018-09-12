@@ -6,7 +6,7 @@ import {timeDriver} from '@cycle/time';
 import {initGoal} from '@cycle-robot-drivers/action';
 import {
   makeSpeechSynthesisDriver,
-  SpeechSynthesisAction as SpeechSynthesisAction,
+  SpeechSynthesisAction,
 } from '@cycle-robot-drivers/speech'
 import {
   makeAudioPlayerDriver,
