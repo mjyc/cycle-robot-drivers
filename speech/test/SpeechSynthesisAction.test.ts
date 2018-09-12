@@ -120,38 +120,35 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-  // it('does nothing on initial cancel', (done) => {
-  //   const Time = mockTimeSource();
+  it('does nothing on initial cancel', (done) => {
+    const Time = mockTimeSource();
 
-  //   // Create test input streams with time
-  //   const goalStr$ =        Time.diagram(`-x-|`);
-  //   const events = {
-  //     start:                Time.diagram(`---|`),
-  //     end:                  Time.diagram(`---|`),
-  //     error:                Time.diagram(`---|`),
-  //   }
-  //   const expectedValue$ =  Time.diagram(`---|`);
-  //   const expectedStatus$ = Time.diagram(`---|`);
-  //   const expectedResult$ = Time.diagram(`---|`);
+    // Create test input streams with time
+    const goalMark$ =        Time.diagram(`-x-|`);
+    const events = {
+      start:                 Time.diagram(`---|`),
+      end:                   Time.diagram(`---|`),
+    }
+    const expectedOutput$ =  Time.diagram(`---|`);
+    const expectedResult$ =  Time.diagram(`---|`);
 
-  //   // Create the action to test
-  //   const goal$ = goalStr$.mapTo(null);
-  //   const speechSynthesisAction = SpeechSynthesisAction({
-  //     goal: goal$,
-  //     SpeechSynthesis: {
-  //       events: (eventName) => {
-  //         return events[eventName];
-  //       }
-  //     }
-  //   });
+    // Create the action to test
+    const goal$ = goalMark$.mapTo(null);
+    const speechSynthesisAction = SpeechSynthesisAction({
+      goal: goal$,
+      SpeechSynthesis: {
+        events: (eventName) => {
+          return events[eventName];
+        }
+      }
+    });
 
-  //   // Run test
-  //   Time.assertEqual(speechSynthesisAction.value, expectedValue$);
-  //   Time.assertEqual(speechSynthesisAction.status, expectedStatus$);
-  //   Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    // Run test
+    Time.assertEqual(speechSynthesisAction.output, expectedOutput$);
+    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
 
-  //   Time.run(done);
-  // });
+    Time.run(done);
+  });
 
   // it('does nothing on cancel after succeeded', (done) => {
   //   const Time = mockTimeSource();
