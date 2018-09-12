@@ -7,6 +7,7 @@ import {
   generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 
+
 enum State {
   RUNNING = 'RUNNING',
   DONE = 'DONE',
@@ -44,10 +45,11 @@ type Input = {
 };
 
 
-// NOTE: consider creating "EventSource"
-function input(goalO, startEventO, endEventO) {
+function input(
+  goal$: Stream<any>, startEvent$: Stream<any>, endEvent$: Stream<any>
+) {
   return xs.merge(
-    xs.fromObservable(goalO).map(goal => {
+    goal$.map(goal => {
       if (goal === null) {
         return {
           type: InputType.CANCEL,
@@ -56,12 +58,12 @@ function input(goalO, startEventO, endEventO) {
       } else {
         return {
           type: InputType.GOAL,
-          value: (goal as any).goal_id ? goal : initGoal(goal),
+          value: !!(goal as any).goal_id ? goal : initGoal(goal),
         };
       }
     }),
-    xs.fromObservable(startEventO).mapTo({type: InputType.START, value: null}),
-    xs.fromObservable(endEventO).mapTo({type: InputType.END, value: null}),
+    startEvent$.mapTo({type: InputType.START, value: null}),
+    endEvent$.mapTo({type: InputType.END, value: null}),
   );
 }
 
@@ -90,12 +92,13 @@ function transition(
 
   let state = states[input.type];
   if (!state) {
-    console.debug(`Undefined transition for input.type: "${input.type}"; `
+    console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
       + `set state to prevState`);
     state = prevState;
   }
 
   if (prevState === State.DONE && state === State.RUNNING) {
+    // Start a new goal
     const goal = input.value;
     return {
       state,
@@ -110,16 +113,17 @@ function transition(
     };
   } else if (state === State.DONE) {
     if (prevState === State.RUNNING || prevState === State.PREEMPTING) {
-      if (!!prevVariables.newGoal) {
-        console.error('There is a new goal!!!');
-      }
+      // Stop the current goal and start the queued new goal
+      const newGoal = prevVariables.newGoal;
       return {
-        state,
+        state: !!newGoal ? State.RUNNING : state,
         variables: {
-          goal_id: null,
+          goal_id: !!newGoal ? newGoal.goal_id : null,
           newGoal: null,
         },
-        outputs: null,
+        outputs: !!newGoal ? {
+          args: newGoal.goal,
+        } : null,
         result: {
           status: {
             goal_id: prevVariables.goal_id,
@@ -131,6 +135,7 @@ function transition(
       };
     }
   } else if (prevState === State.RUNNING && state === State.PREEMPTING) {
+    // Start stopping the current goal and queue a new goal if received one
     return {
       state,
       variables: {
@@ -142,7 +147,7 @@ function transition(
       },
       result: null,
     }
-  }
+  } // TODO update queue goal in certain condition
 
   return {
     state: prevState,
@@ -152,8 +157,8 @@ function transition(
   };
 }
 
-function transitionReducer(input$): Stream<Reducer> {
-  const initReducer$: Stream<Reducer> = xs.of(
+function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
+  const initReducer$ = xs.of(
     function initReducer(prev) {
       return {
         state: State.DONE,
@@ -167,7 +172,7 @@ function transitionReducer(input$): Stream<Reducer> {
     }
   );
 
-  const inputReducer$: Stream<Reducer> = input$
+  const inputReducer$ = input$
     .map(input => function inputReducer(prev) {
       return transition(prev.state, prev.variables, input);
     });
@@ -176,23 +181,21 @@ function transitionReducer(input$): Stream<Reducer> {
 }
 
 export function SpeechSynthesisAction(sources) {
-
   const input$ = input(
-    sources.goal,
-    sources.SpeechSynthesis.events('start'),
-    sources.SpeechSynthesis.events('end'),
+    xs.fromObservable(sources.goal),
+    xs.fromObservable(sources.SpeechSynthesis.events('start')),
+    xs.fromObservable(sources.SpeechSynthesis.events('end')),
   );
 
   const state$ = transitionReducer(input$)
-    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null).debug();
+    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
+    .drop(1);  // drop "null"
   const outputs$ = state$.map(state => state.outputs)
     .filter(outputs => !!outputs);
   const result$ = state$.map(state => state.result).filter(result => !!result);
 
   return {
-    outputs: {
-      args: adapt(outputs$.map(outputs => outputs.args)),
-    },
+    output: adapt(outputs$.map(outputs => outputs.args)),
     result: adapt(result$),
   };
 }

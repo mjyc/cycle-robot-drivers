@@ -12,8 +12,8 @@ function main(sources) {
   const vdom$ = xs.of((<p>SpeechSynthesisAction component test</p>));
   const synth$ = xs.create();
   setTimeout(() => synth$.shamefullySendNext({text: 'Hello'}), 1);
-  // // test overwriting the current goal
-  // setTimeout(() => synth$.shamefullySendNext({text: 'World'}), 200);
+  // test overwriting the current goal
+  setTimeout(() => synth$.shamefullySendNext({text: 'World'}), 200);
   // test canceling an active goal
   setTimeout(() => synth$.shamefullySendNext(null), 500);
   setTimeout(() => synth$.shamefullySendNext({text: 'Jello'}), 1500);
@@ -25,8 +25,8 @@ function main(sources) {
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
-  speechSynthesisAction.outputs.args.addListener({
-    next: data => console.warn('outputs.args', data),
+  speechSynthesisAction.output.addListener({
+    next: data => console.warn('output', data),
   });
   speechSynthesisAction.result.addListener({
     next: data => console.warn('result', data),
@@ -34,7 +34,7 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    SpeechSynthesis: speechSynthesisAction.outputs.args,
+    SpeechSynthesis: speechSynthesisAction.output,
   };
 }
 
