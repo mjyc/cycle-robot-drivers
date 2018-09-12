@@ -110,7 +110,7 @@ describe('SpeechSynthesisAction', () => {
     const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: toStatus(str).status === 'PREEMPTED' ? null : 'x',
+      result: null,
     }));
 
     // Run test
