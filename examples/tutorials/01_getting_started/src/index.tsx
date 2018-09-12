@@ -3,9 +3,8 @@ import xs from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
-  makeSpeechSynthesisDriver,
-  SpeechSynthesisAction,
   makeSpeechSynthesisActionDriver,
+  makeSpeechRecognitionActionDriver,
 } from '@cycle-robot-drivers/speech'
 
 
@@ -31,10 +30,12 @@ function main(sources) {
   return {
     DOM: vdom$,
     SpeechSynthesisAction: goal$,
+    SpeechRecognitionAction: xs.of({}),
   };
 }
 
 run(main, {
   DOM: makeDOMDriver('#app'),
   SpeechSynthesisAction: makeSpeechSynthesisActionDriver(),
+  SpeechRecognitionAction: makeSpeechRecognitionActionDriver(),
 });

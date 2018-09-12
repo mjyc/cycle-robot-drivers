@@ -1,9 +1,10 @@
-export {makeSpeechSynthesisDriver} from './speech_synthesis'
+export {makeSpeechSynthesisDriver} from './speech_synthesis';
 export {
   SpeechSynthesisAction,
   makeSpeechSynthesisActionDriver,
-} from './SpeechSynthesisAction'
-export {makeSpeechRecognitionDriver} from './speech_recognition'
+} from './SpeechSynthesisAction';
+export {makeSpeechRecognitionDriver} from './speech_recognition';
 export {
   SpeechRecognitionAction,
-} from './SpeechRecognitionAction'
+  makeSpeechRecognitionActionDriver,
+} from './SpeechRecognitionAction';
