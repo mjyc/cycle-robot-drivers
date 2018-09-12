@@ -88,13 +88,11 @@ describe('SpeechSynthesisAction', () => {
     const expectedOutputMark$ = Time.diagram(`-0-1--|`);
     const expectedResultMark$ = Time.diagram(`----p-|`);
 
-    // update strings to proper inputs
+    // Create the action to test
     const goal = {text: 'Hello'};
     const goal_id = generateGoalID();
     const goals = [{goal, goal_id}, null];
     const goal$ = goalMark$.map(i => goals[i]);
-
-    // Create the action to test
     const speechSynthesisAction = SpeechSynthesisAction({
       goal: goal$,
       SpeechSynthesis: {
