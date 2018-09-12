@@ -96,14 +96,15 @@ describe('SpeechRecognitionAction', () => {
     const expectedOutputMark$ = Time.diagram(`-0-1---|`);
     const expectedResultMark$ = Time.diagram(`-----p-|`);
 
-    // update strings to proper inputs
-    const transcript = 'Jello there?';
+    // Create the action to test
     const goal = {};
     const goal_id = generateGoalID();
     const goals = [{goal, goal_id}, null];
     const goal$ = goalMark$.map(i => goals[i]);
-
-    // Create the action to test
+    const transcript = 'Jello there?';
+    events.result = events.result.map(r => ({
+      results: [[{transcript}]],
+    }));
     const speechRecognitionAction = SpeechRecognitionAction({
       goal: goal$,
       SpeechRecognition: {
@@ -120,6 +121,54 @@ describe('SpeechRecognitionAction', () => {
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
       result: null,
+    }));
+
+    // Run test
+    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
+    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
+
+    Time.run(done);
+  });
+
+  it('does nothing on cancel after succeeded', (done) => {
+    const Time = mockTimeSource();
+
+    // Create test input streams with time
+    const goalMark$ =           Time.diagram(`-0---1-|`);
+    const events = {
+      start:                    Time.diagram(`--x----|`),
+      end:                      Time.diagram(`----x--|`),
+      result:                   Time.diagram(`---x---|`),
+      error:                    Time.diagram(`-------|`),
+    }
+    const expectedOutputMark$ = Time.diagram(`-0-----|`);
+    const expectedResultMark$ = Time.diagram(`----s--|`);
+
+    // Create the action to test
+    const goal = {};
+    const goal_id = generateGoalID();
+    const goals = [{goal, goal_id}, null];
+    const goal$ = goalMark$.map(i => goals[i]);
+    const transcript = 'Yellow there!';
+    events.result = events.result.map(r => ({
+      results: [[{transcript}]],
+    }));
+    const speechRecognitionAction = SpeechRecognitionAction({
+      goal: goal$,
+      SpeechRecognition: {
+        events: (eventName) => {
+          return events[eventName];
+        }
+      }
+    });
+
+    // Prepare expected values
+    const values = [goal, null];
+    const toStatus = createToStatus(goal_id);
+    const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
+    const expectedResult$ = expectedResultMark$.map(str => ({
+      status: toStatus(str),
+      result: transcript,
     }));
 
     // Run test
