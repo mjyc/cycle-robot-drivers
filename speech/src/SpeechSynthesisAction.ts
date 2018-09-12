@@ -53,7 +53,7 @@ function input(
       if (goal === null) {
         return {
           type: InputType.CANCEL,
-          value: null,  // goal MUST BE null on CANCEL
+          value: null,  // means "cancel"
         };
       } else {
         return {
