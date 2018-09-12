@@ -1,10 +1,9 @@
 import xs from 'xstream'
 import {Stream} from 'xstream'
 import {adapt} from '@cycle/run/lib/adapt'
-import isolate from '@cycle/isolate';
+import isolate from '@cycle/isolate'
 import {
-  GoalID, Goal, GoalStatus, Status, Result,
-  generateGoalID, initGoal, isEqual,
+  GoalID, Goal, Status, Result, initGoal,
 } from '@cycle-robot-drivers/action'
 
 

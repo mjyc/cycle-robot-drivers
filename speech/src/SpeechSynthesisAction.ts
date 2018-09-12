@@ -1,11 +1,10 @@
 import xs from 'xstream'
 import {Stream} from 'xstream'
 import {adapt} from '@cycle/run/lib/adapt'
-import isolate from '@cycle/isolate';
 import {
-  GoalID, Goal, GoalStatus, Status, Result,
-  generateGoalID, initGoal, isEqual,
+  GoalID, Goal, Status, Result, initGoal,
 } from '@cycle-robot-drivers/action'
+import {makeSpeechSynthesisDriver} from './speech_synthesis'
 
 
 enum State {
@@ -198,4 +197,18 @@ export function SpeechSynthesisAction(sources) {
     output: adapt(outputs$.map(outputs => outputs.args)),
     result: adapt(result$),
   };
+}
+
+export function makeSpeechSynthesisActionDriver() {
+  const speechSynthesisDriver = makeSpeechSynthesisDriver();
+
+  return function speechSynthesisActionDriver(sink$) {
+    const proxy$ = xs.create();
+    const speechSynthesisAction = SpeechSynthesisAction({
+      goal: sink$,
+      SpeechSynthesis: speechSynthesisDriver(proxy$)
+    });
+    proxy$.imitate(speechSynthesisAction.output);
+    return speechSynthesisAction;
+  }
 }

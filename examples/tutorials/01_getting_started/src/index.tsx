@@ -5,40 +5,36 @@ import {makeDOMDriver} from '@cycle/dom';
 import {
   makeSpeechSynthesisDriver,
   SpeechSynthesisAction as SpeechSynthesisAction,
+  makeSpeechSynthesisActionDriver,
 } from '@cycle-robot-drivers/speech'
 
 
 function main(sources) {
   const vdom$ = xs.of((<p>SpeechSynthesisAction component test</p>));
-  const synth$ = xs.create();
-  setTimeout(() => synth$.shamefullySendNext({text: 'Hello'}), 1);
+  const goal$ = xs.create();
+  setTimeout(() => goal$.shamefullySendNext({text: 'Hello'}), 1);
   // test overwriting the current goal
-  setTimeout(() => synth$.shamefullySendNext({text: 'World'}), 200);
+  setTimeout(() => goal$.shamefullySendNext({text: 'World'}), 200);
   // test canceling an active goal
-  setTimeout(() => synth$.shamefullySendNext(null), 500);
-  setTimeout(() => synth$.shamefullySendNext({text: 'Jello'}), 1500);
+  setTimeout(() => goal$.shamefullySendNext(null), 500);
+  setTimeout(() => goal$.shamefullySendNext({text: 'Jello'}), 1500);
   // test calling cancel on done; cancel must do nothing
-  setTimeout(() => synth$.shamefullySendNext(null), 2500);
+  setTimeout(() => goal$.shamefullySendNext(null), 2500);
 
-  const speechSynthesisAction = SpeechSynthesisAction({
-    goal: synth$,
-    SpeechSynthesis: sources.SpeechSynthesis,
-  });
-
-  speechSynthesisAction.output.addListener({
+  sources.SpeechSynthesisAction.output.addListener({
     next: data => console.warn('output', data),
   });
-  speechSynthesisAction.result.addListener({
+  sources.SpeechSynthesisAction.result.addListener({
     next: data => console.warn('result', data),
   });
 
   return {
     DOM: vdom$,
-    SpeechSynthesis: speechSynthesisAction.output,
+    SpeechSynthesisAction: goal$,
   };
 }
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  SpeechSynthesis: makeSpeechSynthesisDriver(),
+  SpeechSynthesisAction: makeSpeechSynthesisActionDriver(),
 });
