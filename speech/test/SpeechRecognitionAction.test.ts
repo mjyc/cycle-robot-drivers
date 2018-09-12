@@ -225,4 +225,62 @@ describe('SpeechRecognitionAction', () => {
 
     Time.run(done);
   });
+
+  it('cancels the first goal on receiving a second goal', (done) => {
+    const Time = mockTimeSource();
+
+    // Create test input streams with time
+    const goalMark$ =          Time.diagram(`-0--1-------|`);
+    const events = {
+      start:                   Time.diagram(`--x-----x---|`),
+      end:                     Time.diagram(`------x---x-|`),
+      result:                  Time.diagram(`---------x--|`),
+      error:                   Time.diagram(`-----x------|`),
+    };
+    const expecteds = [{
+      output:                  Time.diagram(`-0--x-------|`),
+      result:                  Time.diagram(`------p-----|`),
+    }, {
+      output:                  Time.diagram(`------1-----|`),
+      result:                  Time.diagram(`----------s-|`),
+    }];
+
+    // Create the action to test
+    const goal_ids = [generateGoalID(), generateGoalID()];
+    const goals = [{}, {}];
+    const goal$ = goalMark$.map(i => ({
+      goal_id: goal_ids[i],
+      goal: goals[i],
+    }));
+    const transcript = 'Mellow there~';
+    events.result = events.result.map(r => ({
+      results: [[{transcript}]],
+    }));
+    const speechRecognitionAction = SpeechRecognitionAction({
+      goal: goal$,
+      SpeechRecognition: {
+        events: (eventName) => {
+          return events[eventName];
+        }
+      }
+    });
+
+    // Prepare expected values
+    expecteds.map((expected, i) => {
+      expected.output = expected.output.map(j => goals[j] ? goals[j] : null);
+      const toStatus = createToStatus(goal_ids[i]);
+      expected.result = expected.result.map(str => ({
+        status: toStatus(str),
+        result: toStatus(str).status === Status.SUCCEEDED ? transcript : null,
+      }));
+    });
+    const expectedOutput$ = xs.merge(expecteds[0].output, expecteds[1].output);
+    const expectedResult$ = xs.merge(expecteds[0].result, expecteds[1].result);
+
+    // Run test
+    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
+    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
+
+    Time.run(done);
+  });
 });
