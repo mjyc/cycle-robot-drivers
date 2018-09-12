@@ -25,11 +25,8 @@ function main(sources) {
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
-  speechSynthesisAction.value.addListener({
-    next: data => console.warn('value', data),
-  });
-  speechSynthesisAction.status.addListener({
-    next: data => console.warn('status', data),
+  speechSynthesisAction.outputs.addListener({
+    next: data => console.warn('outputs', data),
   });
   speechSynthesisAction.result.addListener({
     next: data => console.warn('result', data),
@@ -37,7 +34,7 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    // SpeechSynthesis: speechSynthesisAction.value,
+    SpeechSynthesis: speechSynthesisAction.outputs.map(outputs => outputs.args),
   };
 }
 

@@ -10,24 +10,23 @@ import {
 
 enum State {
   RUNNING = 'RUNNING',
-  DONE = 'DONE',
-}
-
-enum ExtraStatus {
   PREEMPTING = 'PREEMPTING',
+  DONE = 'DONE',
 }
 
 type Variables = {
   goal_id: GoalID,
-  goal: any,
-  status: Status | ExtraStatus,
-  result: any,
+};
+
+type Outputs = {
+  args: any,
 };
 
 type ReducerState = {
   state: State,
   variables: Variables,
-  output: any,
+  outputs: Outputs,
+  result: Result,
 };
 
 type Reducer = (prev?: ReducerState) => ReducerState | undefined;
@@ -71,38 +70,59 @@ const transitionTable = {
     [InputType.GOAL]: State.RUNNING,
   },
   [State.RUNNING]: {
+    [InputType.START]: State.RUNNING,
     [InputType.END]: State.DONE,
   },
 };
 
 function transition(
-  state: State, variables: Variables, input: Input
+  prevState: State, prevVariables: Variables, input: Input
 ): ReducerState {
-  const newStates = transitionTable[state];
-  if (!newStates) {
-    throw new Error(`Invalid state: "${state}"`);
+  const states = transitionTable[prevState];
+  if (!states) {
+    throw new Error(`Invalid prevState: "${prevState}"`);
   }
-  const newState = newStates[input.type];
-  if (!newState) {
+  const state = states[input.type];
+  if (!state) {
     throw new Error(`Invalid input.type: "${input.type}"`);
   }
 
-  if (state === State.DONE && newState === State.RUNNING) {
+  let newVariables = prevVariables;
+  if (prevState === State.DONE && state === State.RUNNING) {
     const goal = input.value;
     return {
-      state: newState,
+      state: state,
       variables: {
         goal_id: goal.goal_id,
-        goal: goal.goal,
-        status: Status.ACTIVE,
-        result: null,
       },
-      output: {
+      outputs: {
+        args: goal.goal
+      },
+      result: null,
+    };
+  } else if (prevState === State.RUNNING && state === State.DONE) {
+    return {
+      state: state,
+      variables: {
+        goal_id: null,
+      },
+      outputs: null,
+      result: {
+        status: {
+          goal_id: prevVariables.goal_id,
+          status: Status.SUCCEEDED,
+        },
+        result: null,
       },
     };
   }
 
-  throw new Error(`Invalid transition`);
+  return {
+    state: prevState,
+    variables: prevVariables,
+    outputs: null,
+    result: null,
+  };
 }
 
 function transitionReducer(input$): Stream<Reducer> {
@@ -111,20 +131,16 @@ function transitionReducer(input$): Stream<Reducer> {
       return {
         state: State.DONE,
         variables: {
-          goal: null,
           goal_id: null,
-          result: null,
-          status: Status.SUCCEEDED,
         },
-        output: null,
+        outputs: null,
+        result: null,
       }
     }
   );
 
   const inputReducer$: Stream<Reducer> = input$
     .map(input => function inputReducer(prev) {
-      // const cur = ;
-      // return !!cur ? cur : prev;
       return transition(prev.state, prev.variables, input);
     });
 
@@ -140,12 +156,13 @@ export function SpeechSynthesisAction(sources) {
   );
 
   const state$ = transitionReducer(input$)
-    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null);
+    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null).debug();
+  const outputs$ = state$.map(state => state.outputs).filter(outputs => !!outputs);
+  const result$ = state$.map(state => state.result);
 
   return {
-    value: adapt(xs.of('value')),
-    status: adapt(xs.of('status')),
-    result: adapt(state$),
+    outputs: adapt(outputs$),
+    result: adapt(result$),
   };
 }
 
