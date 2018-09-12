@@ -15,6 +15,7 @@ enum State {
 
 type Variables = {
   goal_id: GoalID,
+  newGoal: Goal,
 };
 
 type Outputs = {
@@ -69,6 +70,7 @@ const transitionTable = {
     [InputType.GOAL]: State.RUNNING,
   },
   [State.RUNNING]: {
+    [InputType.GOAL]: State.PREEMPTING,
     [InputType.CANCEL]: State.PREEMPTING,
     [InputType.START]: State.RUNNING,
     [InputType.END]: State.DONE,
@@ -85,18 +87,21 @@ function transition(
   if (!states) {
     throw new Error(`Invalid prevState: "${prevState}"`);
   }
-  const state = states[input.type];
+
+  let state = states[input.type];
   if (!state) {
-    throw new Error(`Invalid input.type: "${input.type}"`);
+    console.debug(`Undefined transition for input.type: "${input.type}"; `
+      + `set state to prevState`);
+    state = prevState;
   }
 
-  let newVariables = prevVariables;
   if (prevState === State.DONE && state === State.RUNNING) {
     const goal = input.value;
     return {
       state,
       variables: {
         goal_id: goal.goal_id,
+        newGoal: null,
       },
       outputs: {
         args: goal.goal
@@ -105,10 +110,14 @@ function transition(
     };
   } else if (state === State.DONE) {
     if (prevState === State.RUNNING || prevState === State.PREEMPTING) {
+      if (!!prevVariables.newGoal) {
+        console.error('There is a new goal!!!');
+      }
       return {
         state,
         variables: {
           goal_id: null,
+          newGoal: null,
         },
         outputs: null,
         result: {
@@ -121,12 +130,15 @@ function transition(
         },
       };
     }
-  } else if (state === State.PREEMPTING) {
+  } else if (prevState === State.RUNNING && state === State.PREEMPTING) {
     return {
       state,
-      variables: prevVariables,
+      variables: {
+        ...prevVariables,
+        newGoal: input.type === InputType.GOAL ? input.value as Goal : null,
+      },
       outputs: {
-        args: null
+        args: null,
       },
       result: null,
     }
@@ -147,6 +159,7 @@ function transitionReducer(input$): Stream<Reducer> {
         state: State.DONE,
         variables: {
           goal_id: null,
+          newGoal: null,
         },
         outputs: null,
         result: null,
@@ -174,7 +187,7 @@ export function SpeechSynthesisAction(sources) {
     .fold((state: ReducerState, reducer: Reducer) => reducer(state), null).debug();
   const outputs$ = state$.map(state => state.outputs)
     .filter(outputs => !!outputs);
-  const result$ = state$.map(state => state.result);
+  const result$ = state$.map(state => state.result).filter(result => !!result);
 
   return {
     outputs: {
