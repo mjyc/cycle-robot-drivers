@@ -7,7 +7,7 @@ import {
 import {SpeechSynthesisAction} from '../src/SpeechSynthesisAction';
 
 
-// console.debug = jest.fn();  // hide debug outputs
+console.debug = jest.fn();  // hide debug outputs
 
 function createToStatus(goal_id: GoalID) {
   return function (str: string): GoalStatus {
@@ -234,61 +234,55 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-  // it('cancels the first goal on receiving a second goal', (done) => {
-  //   const Time = mockTimeSource();
+  it('cancels the first goal on receiving a second goal', (done) => {
+    const Time = mockTimeSource();
 
-  //   // Create test input streams with time
-  //   const goalNum$ =           Time.diagram(`-0--1-----|`);
-  //   const events = {
-  //     start:                   Time.diagram(`--x---x---|`),
-  //     end:                     Time.diagram(`-----x--x-|`),
-  //     error:                   Time.diagram(`----------|`),
-  //   };
-  //   const expecteds = [{
-  //     value:                   Time.diagram(`-0--x-----|`),
-  //     status:                  Time.diagram(`-da--p----|`),
-  //     result:                  Time.diagram(`-----p----|`),
-  //   }, {
-  //     value:                   Time.diagram(`-----1----|`),
-  //     status:                  Time.diagram(`-----da-s-|`),
-  //     result:                  Time.diagram(`--------s-|`),
-  //   }];
+    // Create test input streams with time
+    const goalMark$ =          Time.diagram(`-0--1-----|`);
+    const events = {
+      start:                   Time.diagram(`--x---x---|`),
+      end:                     Time.diagram(`-----x--x-|`),
+    };
+    const expecteds = [{
+      output:                  Time.diagram(`-0--x-----|`),
+      result:                  Time.diagram(`-----p----|`),
+    }, {
+      output:                  Time.diagram(`-----1----|`),
+      result:                  Time.diagram(`--------s-|`),
+    }];
 
-  //   // Create the action to test
-  //   const goal_ids = [generateGoalID(), generateGoalID()];
-  //   const goals = [{text: 'Hello'}, {text: 'World'}];
-  //   const goal$ = goalNum$.map(i => ({
-  //     goal_id: goal_ids[i],
-  //     goal: goals[i],
-  //   }));
-  //   const speechSynthesisAction = SpeechSynthesisAction({
-  //     goal: goal$,
-  //     SpeechSynthesis: {
-  //       events: (eventName) => {
-  //         return events[eventName];
-  //       }
-  //     }
-  //   });
+    // Create the action to test
+    const goal_ids = [generateGoalID(), generateGoalID()];
+    const goals = [{text: 'Hello'}, {text: 'World'}];
+    const goal$ = goalMark$.map(i => ({
+      goal_id: goal_ids[i],
+      goal: goals[i],
+    }));
+    const speechSynthesisAction = SpeechSynthesisAction({
+      goal: goal$,
+      SpeechSynthesis: {
+        events: (eventName) => {
+          return events[eventName];
+        }
+      }
+    });
 
-  //   // Prepare expected values
-  //   expecteds.map((expected, i) => {
-  //     expected.value = expected.value.map(j => goals[j] ? goals[j] : null);
-  //     const toStatus = createToStatusFnc(goal_ids[i]);
-  //     expected.status = expected.status.map(str => toStatus(str));
-  //     expected.result = expected.result.map(str => ({
-  //       status: toStatus(str),
-  //       result: toStatus(str).status === 'PREEMPTED' ? null : 'x',
-  //     }));
-  //   });
-  //   const expectedValue$ = xs.merge(expecteds[0].value, expecteds[1].value);
-  //   const expectedStatus$ = xs.merge(expecteds[0].status, expecteds[1].status);
-  //   const expectedResult$ = xs.merge(expecteds[0].result, expecteds[1].result);
+    // Prepare expected values
+    expecteds.map((expected, i) => {
+      expected.output = expected.output.map(j => goals[j] ? goals[j] : null);
+      const toStatus = createToStatus(goal_ids[i]);
+      expected.result = expected.result.map(str => ({
+        status: toStatus(str),
+        result: null,
+      }));
+    });
+    const expectedOutput$ = xs.merge(expecteds[0].output, expecteds[1].output);
+    const expectedResult$ = xs.merge(expecteds[0].result, expecteds[1].result);
 
-  //   // Run test
-  //   Time.assertEqual(speechSynthesisAction.value, expectedValue$);
-  //   Time.assertEqual(speechSynthesisAction.status, expectedStatus$);
-  //   Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    // Run test
+    Time.assertEqual(speechSynthesisAction.output, expectedOutput$);
+    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
 
-  //   Time.run(done);
-  // });
+    Time.run(done);
+  });
 });
