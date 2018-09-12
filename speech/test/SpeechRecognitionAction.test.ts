@@ -177,4 +177,52 @@ describe('SpeechRecognitionAction', () => {
 
     Time.run(done);
   });
+
+  it('does nothing on cancel after preempted', (done) => {
+    const Time = mockTimeSource();
+
+    // Create test input streams with time
+    const goalMark$ =           Time.diagram(`-0-1--1-|`);
+    const events = {
+      start:                    Time.diagram(`--x-----|`),
+      end:                      Time.diagram(`-----x--|`),
+      result:                   Time.diagram(`--------|`),
+      error:                    Time.diagram(`----x---|`),
+    }
+    const expectedOutputMark$ = Time.diagram(`-0-1----|`);
+    const expectedResultMark$ = Time.diagram(`-----p--|`);
+
+    // Create the action to test
+    const goal = {};
+    const goal_id = generateGoalID();
+    const goals = [{goal, goal_id}, null];
+    const goal$ = goalMark$.map(i => goals[i]);
+    const transcript = 'Fellow there%';
+    events.result = events.result.map(r => ({
+      results: [[{transcript}]],
+    }));
+    const speechRecognitionAction = SpeechRecognitionAction({
+      goal: goal$,
+      SpeechRecognition: {
+        events: (eventName) => {
+          return events[eventName];
+        }
+      }
+    });
+
+    // Prepare expected values
+    const values = [goal, null];
+    const toStatus = createToStatus(goal_id);
+    const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
+    const expectedResult$ = expectedResultMark$.map(str => ({
+      status: toStatus(str),
+      result: null,
+    }));
+
+    // Run test
+    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
+    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
+
+    Time.run(done);
+  });
 });
