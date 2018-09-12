@@ -9,7 +9,7 @@ import {
 import {
   makeSpeechSynthesisDriver,
   makeSpeechRecognitionDriver,
-  IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
+  SpeechSynthesisAction as SpeechSynthesisAction,
   IsolatedSpeechRecognitionAction as SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech'
 

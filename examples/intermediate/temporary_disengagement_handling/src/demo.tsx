@@ -6,7 +6,7 @@ import {makeDOMDriver} from '@cycle/dom';
 import {timeDriver} from '@cycle/time';
 import {
   makeSpeechSynthesisDriver,
-  IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
+  SpeechSynthesisAction as SpeechSynthesisAction,
 } from '@cycle-robot-drivers/speech'
 import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 

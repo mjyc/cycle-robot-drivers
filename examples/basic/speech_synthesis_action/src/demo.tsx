@@ -6,7 +6,7 @@ import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   makeSpeechSynthesisDriver,
-  IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
+  SpeechSynthesisAction as SpeechSynthesisAction,
 } from '@cycle-robot-drivers/speech'
 
 
