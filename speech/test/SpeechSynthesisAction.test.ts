@@ -76,7 +76,7 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-  it('cancels a running goal on cancel"', (done) => {
+  it('cancels a running goal on cancel', (done) => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
