@@ -199,7 +199,3 @@ export function SpeechSynthesisAction(sources) {
     result: adapt(result$),
   };
 }
-
-export function IsolatedSpeechSynthesisAction(sources) {
-  return isolate(SpeechSynthesisAction)(sources);
-};
