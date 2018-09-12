@@ -10,7 +10,6 @@ import {makeSpeechRecognitionDriver} from './speech_recognition';
 enum State {
   RUNNING = 'RUNNING',
   DONE = 'DONE',
-  PENDING = 'PENDING',
   PREEMPTING = 'PREEMPTING',
 }
 
@@ -164,7 +163,10 @@ function transition(
         },
       };
     }
-  } else if (prevState === State.RUNNING && state === State.PREEMPTING) {
+  } else if (
+    (prevState === State.RUNNING || prevState === State.PREEMPTING)
+    && state === State.PREEMPTING
+  ) {
     // Start stopping the current goal and queue a new goal if received one
     return {
       state,
@@ -177,7 +179,7 @@ function transition(
       },
       result: null,
     }
-  } // TODO update queue goal in certain condition
+  }
 
   return {
     state: prevState,
