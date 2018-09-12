@@ -232,7 +232,3 @@ export function SpeechRecognitionAction(sources) {
     result: adapt(result$),
   };
 }
-
-export function IsolatedSpeechRecognitionAction(sources) {
-  return isolate(SpeechRecognitionAction)(sources);
-};

@@ -10,7 +10,7 @@ import {
   makeSpeechSynthesisDriver,
   makeSpeechRecognitionDriver,
   SpeechSynthesisAction,
-  IsolatedSpeechRecognitionAction as SpeechRecognitionAction,
+  SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech'
 
 // The quotes are from
