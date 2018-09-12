@@ -2,7 +2,6 @@ import xs from 'xstream'
 import {Stream} from 'xstream'
 import {adapt} from '@cycle/run/lib/adapt'
 import isolate from '@cycle/isolate';
-
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   generateGoalID, initGoal, isEqual,
@@ -10,8 +9,8 @@ import {
 
 enum State {
   RUNNING = 'RUNNING',
-  PREEMPTING = 'PREEMPTING',
   DONE = 'DONE',
+  PREEMPTING = 'PREEMPTING',
 }
 
 type Variables = {
@@ -70,9 +69,13 @@ const transitionTable = {
     [InputType.GOAL]: State.RUNNING,
   },
   [State.RUNNING]: {
+    [InputType.CANCEL]: State.PREEMPTING,
     [InputType.START]: State.RUNNING,
     [InputType.END]: State.DONE,
   },
+  [State.PREEMPTING]: {
+    [InputType.END]: State.DONE,
+  }
 };
 
 function transition(
@@ -91,7 +94,7 @@ function transition(
   if (prevState === State.DONE && state === State.RUNNING) {
     const goal = input.value;
     return {
-      state: state,
+      state,
       variables: {
         goal_id: goal.goal_id,
       },
@@ -100,21 +103,33 @@ function transition(
       },
       result: null,
     };
-  } else if (prevState === State.RUNNING && state === State.DONE) {
-    return {
-      state: state,
-      variables: {
-        goal_id: null,
-      },
-      outputs: null,
-      result: {
-        status: {
-          goal_id: prevVariables.goal_id,
-          status: Status.SUCCEEDED,
+  } else if (state === State.DONE) {
+    if (prevState === State.RUNNING || prevState === State.PREEMPTING) {
+      return {
+        state,
+        variables: {
+          goal_id: null,
         },
-        result: null,
+        outputs: null,
+        result: {
+          status: {
+            goal_id: prevVariables.goal_id,
+            status: prevState === State.RUNNING
+              ? Status.SUCCEEDED : Status.PREEMPTED,
+          },
+          result: null,
+        },
+      };
+    }
+  } else if (state === State.PREEMPTING) {
+    return {
+      state,
+      variables: prevVariables,
+      outputs: {
+        args: null
       },
-    };
+      result: null,
+    }
   }
 
   return {
@@ -157,11 +172,14 @@ export function SpeechSynthesisAction(sources) {
 
   const state$ = transitionReducer(input$)
     .fold((state: ReducerState, reducer: Reducer) => reducer(state), null).debug();
-  const outputs$ = state$.map(state => state.outputs).filter(outputs => !!outputs);
+  const outputs$ = state$.map(state => state.outputs)
+    .filter(outputs => !!outputs);
   const result$ = state$.map(state => state.result);
 
   return {
-    outputs: adapt(outputs$),
+    outputs: {
+      args: adapt(outputs$.map(outputs => outputs.args)),
+    },
     result: adapt(result$),
   };
 }

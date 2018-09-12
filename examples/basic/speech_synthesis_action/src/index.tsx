@@ -14,8 +14,8 @@ function main(sources) {
   setTimeout(() => synth$.shamefullySendNext({text: 'Hello'}), 1);
   // // test overwriting the current goal
   // setTimeout(() => synth$.shamefullySendNext({text: 'World'}), 200);
-  // // test canceling an active goal
-  // setTimeout(() => synth$.shamefullySendNext(null), 500);
+  // test canceling an active goal
+  setTimeout(() => synth$.shamefullySendNext(null), 500);
   // setTimeout(() => synth$.shamefullySendNext({text: 'Jello'}), 1500);
   // // test calling cancel on done; cancel must do nothing
   // setTimeout(() => synth$.shamefullySendNext(null), 2500);
@@ -25,8 +25,8 @@ function main(sources) {
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
-  speechSynthesisAction.outputs.addListener({
-    next: data => console.warn('outputs', data),
+  speechSynthesisAction.outputs.args.addListener({
+    next: data => console.warn('outputs.args', data),
   });
   speechSynthesisAction.result.addListener({
     next: data => console.warn('result', data),
@@ -34,7 +34,7 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    SpeechSynthesis: speechSynthesisAction.outputs.map(outputs => outputs.args),
+    SpeechSynthesis: speechSynthesisAction.outputs.args,
   };
 }
 
