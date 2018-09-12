@@ -124,13 +124,13 @@ describe('SpeechSynthesisAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalMark$ =        Time.diagram(`-x-|`);
+    const goalMark$ =       Time.diagram(`-x-|`);
     const events = {
-      start:                 Time.diagram(`---|`),
-      end:                   Time.diagram(`---|`),
+      start:                Time.diagram(`---|`),
+      end:                  Time.diagram(`---|`),
     }
-    const expectedOutput$ =  Time.diagram(`---|`);
-    const expectedResult$ =  Time.diagram(`---|`);
+    const expectedOutput$ = Time.diagram(`---|`);
+    const expectedResult$ = Time.diagram(`---|`);
 
     // Create the action to test
     const goal$ = goalMark$.mapTo(null);
@@ -150,51 +150,48 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-  // it('does nothing on cancel after succeeded', (done) => {
-  //   const Time = mockTimeSource();
+  it('does nothing on cancel after succeeded', (done) => {
+    const Time = mockTimeSource();
 
-  //   // Create test input streams with time
-  //   const goalNum$ =           Time.diagram(`-0--1-|`);
-  //   const events = {
-  //     start:                   Time.diagram(`--x---|`),
-  //     end:                     Time.diagram(`---x--|`),
-  //     error:                   Time.diagram(`------|`),
-  //   }
-  //   const expectedValueNum$ =  Time.diagram(`-0----|`);
-  //   const expectedStatusStr$ = Time.diagram(`-das--|`);
-  //   const expectedResultStr$ = Time.diagram(`---s--|`);
+    // Create test input streams with time
+    const goalMark$ =           Time.diagram(`-0--1-|`);
+    const events = {
+      start:                    Time.diagram(`--x---|`),
+      end:                      Time.diagram(`---x--|`),
+      error:                    Time.diagram(`------|`),
+    }
+    const expectedOutputMark$ = Time.diagram(`-0----|`);
+    const expectedResultMark$ = Time.diagram(`---s--|`);
 
-  //   // Create the action to test
-  //   const goal = {text: 'Hello'};
-  //   const goal_id = generateGoalID();
-  //   const goals = [{goal, goal_id}, null];
-  //   const goal$ = goalNum$.map(i => goals[i]);
-  //   const speechSynthesisAction = SpeechSynthesisAction({
-  //     goal: goal$,
-  //     SpeechSynthesis: {
-  //       events: (eventName) => {
-  //         return events[eventName];
-  //       }
-  //     }
-  //   });
+    // Create the action to test
+    const goal = {text: 'Hello'};
+    const goal_id = generateGoalID();
+    const goals = [{goal, goal_id}, null];
+    const goal$ = goalMark$.map(i => goals[i]);
+    const speechSynthesisAction = SpeechSynthesisAction({
+      goal: goal$,
+      SpeechSynthesis: {
+        events: (eventName) => {
+          return events[eventName];
+        }
+      }
+    });
 
-  //   // Prepare expected values
-  //   const values = [goal, null];
-  //   const toStatus = createToStatusFnc(goal_id);
-  //   const expectedValue$ = expectedValueNum$.map(i => values[i]);
-  //   const expectedStatus$ = expectedStatusStr$.map(str => toStatus(str));
-  //   const expectedResult$ = expectedResultStr$.map(str => ({
-  //     status: toStatus(str),
-  //     result: toStatus(str).status === 'PREEMPTED' ? null : 'x',
-  //   }));
+    // Prepare expected values
+    const values = [goal, null];
+    const toStatus = createToStatus(goal_id);
+    const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
+    const expectedResult$ = expectedResultMark$.map(str => ({
+      status: toStatus(str),
+      result: null,
+    }));
 
-  //   // Run test
-  //   Time.assertEqual(speechSynthesisAction.value, expectedValue$);
-  //   Time.assertEqual(speechSynthesisAction.status, expectedStatus$);
-  //   Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    // Run test
+    Time.assertEqual(speechSynthesisAction.output, expectedOutput$);
+    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
 
-  //   Time.run(done);
-  // });
+    Time.run(done);
+  });
 
   // it('does nothing on cancel after preempted', (done) => {
   //   const Time = mockTimeSource();
