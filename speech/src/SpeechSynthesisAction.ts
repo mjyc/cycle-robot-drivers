@@ -137,17 +137,19 @@ function transition(
     (prevState === State.RUNNING || prevState === State.PREEMPTING)
     && state === State.PREEMPTING
   ) {
-    // Start stopping the current goal and queue a new goal if received one
-    return {
-      state,
-      variables: {
-        ...prevVariables,
-        newGoal: input.type === InputType.GOAL ? input.value as Goal : null,
-      },
-      outputs: {
-        args: null,
-      },
-      result: null,
+    if (input.type === InputType.GOAL || input.type === InputType.CANCEL) {
+      // Start stopping the current goal and queue a new goal if received one
+      return {
+        state,
+        variables: {
+          ...prevVariables,
+          newGoal: input.type === InputType.GOAL ? input.value as Goal : null,
+        },
+        outputs: {
+          args: null,
+        },
+        result: null,
+      }
     }
   }
 
