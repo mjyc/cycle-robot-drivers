@@ -32,6 +32,16 @@ lib:
 		echo "✓ Compiled TypeScript to lib\n"; \
 	fi
 
+test:
+	@if [ "$(ARG)" = "" ]; then \
+		for d in $(PACKAGES); do \
+			make test $$d; \
+		done; \
+	else \
+		cd $(ARG) && npm run test && cd .. &&\
+		echo "✓ Tested $(ARG)" ;\
+	fi
+
 # catch and do nothing
 action:
 	@:
