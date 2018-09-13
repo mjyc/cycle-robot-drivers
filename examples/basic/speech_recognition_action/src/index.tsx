@@ -4,7 +4,7 @@ import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   makeSpeechRecognitionDriver,
-  IsolatedSpeechRecognitionAction as SpeechRecognitionAction,
+  SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech'
 
 
@@ -26,11 +26,8 @@ function main(sources) {
     SpeechRecognition: sources.SpeechRecognition,
   });
 
-  speechRecognitionAction.value.addListener({
-    next: data => console.warn('value', data),
-  });
-  speechRecognitionAction.status.addListener({
-    next: data => console.warn('status', data),
+  speechRecognitionAction.output.addListener({
+    next: data => console.warn('output', data),
   });
   speechRecognitionAction.result.addListener({
     next: data => console.warn('result', data),
@@ -38,7 +35,7 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    SpeechRecognition: speechRecognitionAction.value,
+    SpeechRecognition: speechRecognitionAction.output,
   };
 }
 

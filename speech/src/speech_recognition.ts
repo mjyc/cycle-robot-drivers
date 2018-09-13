@@ -18,16 +18,16 @@ export function makeSpeechRecognitionDriver() {
 
   return function speechRecognitionDriver(sink$) {
     sink$.addListener({
-      next: (props) => {
+      next: (args) => {
         // array values are SpeechSynthesisUtterance properties that are not
         //   event handlers; see
         //   https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition
-        if (!props) {
+        if (!args) {
           recognition.abort();
         } else {
-          ['lang', 'continuous', 'interimResults', 'maxAlternatives', 'serviceURI'].map((prop) => {
-            if (prop in props) {
-              recognition[prop] = props[prop]
+          ['lang', 'continuous', 'interimResults', 'maxAlternatives', 'serviceURI'].map((arg) => {
+            if (arg in args) {
+              recognition[arg] = args[arg]
             };
           });
           recognition.start();

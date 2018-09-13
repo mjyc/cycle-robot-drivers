@@ -9,8 +9,8 @@ import {
 import {
   makeSpeechSynthesisDriver,
   makeSpeechRecognitionDriver,
-  IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
-  IsolatedSpeechRecognitionAction as SpeechRecognitionAction,
+  SpeechSynthesisAction,
+  SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech'
 
 // The quotes are from

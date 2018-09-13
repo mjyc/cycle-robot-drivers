@@ -4,7 +4,7 @@ import {
   GoalID, GoalStatus, Status,
   generateGoalID,
 } from '@cycle-robot-drivers/action'
-import {SpeechSynthesisAction} from '../src/SpeechSynthesisAction';
+import {SpeechRecognitionAction} from '../src/SpeechRecognitionAction';
 
 
 console.debug = jest.fn();  // hide debug outputs
@@ -32,29 +32,35 @@ function createToStatus(goal_id: GoalID) {
 };
 
 
-describe('SpeechSynthesisAction', () => {
+describe('SpeechRecognitionAction', () => {
   it('walks through "happy path"', (done) => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalMark$ =           Time.diagram(`-x---|`);
+    const goalMark$ =           Time.diagram(`-x----|`);
     const events = {
-      start:                    Time.diagram(`--x--|`),
-      end:                      Time.diagram(`---x-|`),
+      start:                    Time.diagram(`--x---|`),
+      end:                      Time.diagram(`----x-|`),
+      result:                   Time.diagram(`---x--|`),
+      error:                    Time.diagram(`------|`),
     }
-    const expectedOutputMark$ = Time.diagram(`-x---|`);
-    const expectedResultMark$ = Time.diagram(`---s-|`);
+    const expectedOutputMark$ = Time.diagram(`-x----|`);
+    const expectedResultMark$ = Time.diagram(`----s-|`);
 
     // Create the action to test
-    const goal = {text: 'Hello'};
+    const goal = {};
     const goal_id = generateGoalID();
     const goal$ = goalMark$.mapTo({
       goal_id,
       goal,
     });
-    const speechSynthesisAction = SpeechSynthesisAction({
+    const transcript = 'Hello there';
+    events.result = events.result.map(r => ({
+      results: [[{transcript}]],
+    }));
+    const speechRecognitionAction = SpeechRecognitionAction({
       goal: goal$,
-      SpeechSynthesis: {
+      SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
         }
@@ -66,12 +72,12 @@ describe('SpeechSynthesisAction', () => {
     const expectedOutput$ = expectedOutputMark$.mapTo(goal);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null,
+      result: transcript,
     }));
 
     // Run test
-    Time.assertEqual(speechSynthesisAction.output, expectedOutput$);
-    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
+    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
 
     Time.run(done);
   });
@@ -80,22 +86,28 @@ describe('SpeechSynthesisAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalMark$ =           Time.diagram(`-0-1--|`);
+    const goalMark$ =           Time.diagram(`-0-1---|`);
     const events = {
-      start:                    Time.diagram(`--x---|`),
-      end:                      Time.diagram(`----x-|`),
+      start:                    Time.diagram(`--x----|`),
+      end:                      Time.diagram(`-----x-|`),
+      result:                   Time.diagram(`-------|`),
+      error:                    Time.diagram(`----x--|`),
     }
-    const expectedOutputMark$ = Time.diagram(`-0-1--|`);
-    const expectedResultMark$ = Time.diagram(`----p-|`);
+    const expectedOutputMark$ = Time.diagram(`-0-1---|`);
+    const expectedResultMark$ = Time.diagram(`-----p-|`);
 
     // Create the action to test
-    const goal = {text: 'Hello'};
+    const goal = {};
     const goal_id = generateGoalID();
     const goals = [{goal, goal_id}, null];
     const goal$ = goalMark$.map(i => goals[i]);
-    const speechSynthesisAction = SpeechSynthesisAction({
+    const transcript = 'Jello there?';
+    events.result = events.result.map(r => ({
+      results: [[{transcript}]],
+    }));
+    const speechRecognitionAction = SpeechRecognitionAction({
       goal: goal$,
-      SpeechSynthesis: {
+      SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
         }
@@ -112,38 +124,8 @@ describe('SpeechSynthesisAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(speechSynthesisAction.output, expectedOutput$);
-    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
-
-    Time.run(done);
-  });
-
-  it('does nothing on initial cancel', (done) => {
-    const Time = mockTimeSource();
-
-    // Create test input streams with time
-    const goalMark$ =       Time.diagram(`-x-|`);
-    const events = {
-      start:                Time.diagram(`---|`),
-      end:                  Time.diagram(`---|`),
-    }
-    const expectedOutput$ = Time.diagram(`---|`);
-    const expectedResult$ = Time.diagram(`---|`);
-
-    // Create the action to test
-    const goal$ = goalMark$.mapTo(null);
-    const speechSynthesisAction = SpeechSynthesisAction({
-      goal: goal$,
-      SpeechSynthesis: {
-        events: (eventName) => {
-          return events[eventName];
-        }
-      }
-    });
-
-    // Run test
-    Time.assertEqual(speechSynthesisAction.output, expectedOutput$);
-    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
+    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
 
     Time.run(done);
   });
@@ -152,22 +134,28 @@ describe('SpeechSynthesisAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalMark$ =           Time.diagram(`-0--1-|`);
+    const goalMark$ =           Time.diagram(`-0---1-|`);
     const events = {
-      start:                    Time.diagram(`--x---|`),
-      end:                      Time.diagram(`---x--|`),
+      start:                    Time.diagram(`--x----|`),
+      end:                      Time.diagram(`----x--|`),
+      result:                   Time.diagram(`---x---|`),
+      error:                    Time.diagram(`-------|`),
     }
-    const expectedOutputMark$ = Time.diagram(`-0----|`);
-    const expectedResultMark$ = Time.diagram(`---s--|`);
+    const expectedOutputMark$ = Time.diagram(`-0-----|`);
+    const expectedResultMark$ = Time.diagram(`----s--|`);
 
     // Create the action to test
-    const goal = {text: 'Hello'};
+    const goal = {};
     const goal_id = generateGoalID();
     const goals = [{goal, goal_id}, null];
     const goal$ = goalMark$.map(i => goals[i]);
-    const speechSynthesisAction = SpeechSynthesisAction({
+    const transcript = 'Yellow there!';
+    events.result = events.result.map(r => ({
+      results: [[{transcript}]],
+    }));
+    const speechRecognitionAction = SpeechRecognitionAction({
       goal: goal$,
-      SpeechSynthesis: {
+      SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
         }
@@ -180,12 +168,12 @@ describe('SpeechSynthesisAction', () => {
     const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null,
+      result: transcript,
     }));
 
     // Run test
-    Time.assertEqual(speechSynthesisAction.output, expectedOutput$);
-    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
+    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
 
     Time.run(done);
   });
@@ -194,22 +182,28 @@ describe('SpeechSynthesisAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalMark$ =           Time.diagram(`-0-1-1-|`);
+    const goalMark$ =           Time.diagram(`-0-1--1-|`);
     const events = {
-      start:                    Time.diagram(`--x----|`),
-      end:                      Time.diagram(`----x--|`),
+      start:                    Time.diagram(`--x-----|`),
+      end:                      Time.diagram(`-----x--|`),
+      result:                   Time.diagram(`--------|`),
+      error:                    Time.diagram(`----x---|`),
     }
-    const expectedOutputMark$ = Time.diagram(`-0-1---|`);
-    const expectedResultMark$ = Time.diagram(`----p--|`);
+    const expectedOutputMark$ = Time.diagram(`-0-1----|`);
+    const expectedResultMark$ = Time.diagram(`-----p--|`);
 
     // Create the action to test
-    const goal = {text: 'Hello'};
+    const goal = {};
     const goal_id = generateGoalID();
     const goals = [{goal, goal_id}, null];
     const goal$ = goalMark$.map(i => goals[i]);
-    const speechSynthesisAction = SpeechSynthesisAction({
+    const transcript = 'Fellow there%';
+    events.result = events.result.map(r => ({
+      results: [[{transcript}]],
+    }));
+    const speechRecognitionAction = SpeechRecognitionAction({
       goal: goal$,
-      SpeechSynthesis: {
+      SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
         }
@@ -226,8 +220,8 @@ describe('SpeechSynthesisAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(speechSynthesisAction.output, expectedOutput$);
-    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
+    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
 
     Time.run(done);
   });
@@ -236,29 +230,35 @@ describe('SpeechSynthesisAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalMark$ =          Time.diagram(`-0--1-----|`);
+    const goalMark$ =          Time.diagram(`-0--1-------|`);
     const events = {
-      start:                   Time.diagram(`--x---x---|`),
-      end:                     Time.diagram(`-----x--x-|`),
+      start:                   Time.diagram(`--x-----x---|`),
+      end:                     Time.diagram(`------x---x-|`),
+      result:                  Time.diagram(`---------x--|`),
+      error:                   Time.diagram(`-----x------|`),
     };
     const expecteds = [{
-      output:                  Time.diagram(`-0--x-----|`),
-      result:                  Time.diagram(`-----p----|`),
+      output:                  Time.diagram(`-0--x-------|`),
+      result:                  Time.diagram(`------p-----|`),
     }, {
-      output:                  Time.diagram(`-----1----|`),
-      result:                  Time.diagram(`--------s-|`),
+      output:                  Time.diagram(`------1-----|`),
+      result:                  Time.diagram(`----------s-|`),
     }];
 
     // Create the action to test
     const goal_ids = [generateGoalID(), generateGoalID()];
-    const goals = [{text: 'Hello'}, {text: 'World'}];
+    const goals = [{}, {}];
     const goal$ = goalMark$.map(i => ({
       goal_id: goal_ids[i],
       goal: goals[i],
     }));
-    const speechSynthesisAction = SpeechSynthesisAction({
+    const transcript = 'Mellow there~';
+    events.result = events.result.map(r => ({
+      results: [[{transcript}]],
+    }));
+    const speechRecognitionAction = SpeechRecognitionAction({
       goal: goal$,
-      SpeechSynthesis: {
+      SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
         }
@@ -271,15 +271,15 @@ describe('SpeechSynthesisAction', () => {
       const toStatus = createToStatus(goal_ids[i]);
       expected.result = expected.result.map(str => ({
         status: toStatus(str),
-        result: null,
+        result: toStatus(str).status === Status.SUCCEEDED ? transcript : null,
       }));
     });
     const expectedOutput$ = xs.merge(expecteds[0].output, expecteds[1].output);
     const expectedResult$ = xs.merge(expecteds[0].result, expecteds[1].result);
 
     // Run test
-    Time.assertEqual(speechSynthesisAction.output, expectedOutput$);
-    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
+    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
 
     Time.run(done);
   });

@@ -1,4 +1,4 @@
-.PHONY: lib action
+.PHONY: lib action screen speech sound 3rdparty/cycle-posenet-drivers
 
 BINDIR=node_modules/.bin
 TSC=$(BINDIR)/tsc
@@ -30,6 +30,16 @@ lib:
 		$(TSC) --project $(ARG) --module commonjs --outDir $(ARG)/lib/cjs ;\
 		$(TSC) --project $(ARG) --module es6 --outDir $(ARG)/lib/es6 ;\
 		echo "✓ Compiled TypeScript to lib\n"; \
+	fi
+
+test:
+	@if [ "$(ARG)" = "" ]; then \
+		for d in $(PACKAGES); do \
+			make test $$d; \
+		done; \
+	else \
+		cd $(ARG) && npm run test && cd .. &&\
+		echo "✓ Tested $(ARG)" ;\
 	fi
 
 # catch and do nothing

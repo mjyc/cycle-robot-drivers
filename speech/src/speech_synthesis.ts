@@ -19,16 +19,16 @@ export function makeSpeechSynthesisDriver() {
 
   return function speechSynthesisDriver(sink$) {
     sink$.addListener({
-      next: (props) => {
+      next: (args) => {
         // array values are SpeechSynthesisUtterance properties that are not
         //   event handlers; see
         //   https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance
-        if (!props) {
+        if (!args) {
           synthesis.cancel();
         } else {
-          ['lang', 'pitch', 'rate', 'text', 'voice', 'volume'].map(prop => {
-            if (prop in props) {
-              utterance[prop] = props[prop];
+          ['lang', 'pitch', 'rate', 'text', 'voice', 'volume'].map(arg => {
+            if (arg in args) {
+              utterance[arg] = args[arg];
             }
           });
           synthesis.speak(utterance);

@@ -8,7 +8,7 @@ import {timeDriver} from '@cycle/time';
 import {Goal, Result, initGoal} from '@cycle-robot-drivers/action'
 import {
   makeSpeechSynthesisDriver,
-  IsolatedSpeechSynthesisAction as SpeechSynthesisAction,
+  SpeechSynthesisAction,
 } from '@cycle-robot-drivers/speech'
 import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 

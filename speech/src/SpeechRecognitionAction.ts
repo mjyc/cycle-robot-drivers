@@ -1,215 +1,252 @@
-import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
-import {adapt} from '@cycle/run/lib/adapt'
-import isolate from '@cycle/isolate';
-
+import xs from 'xstream';
+import {Stream} from 'xstream';
+import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, GoalStatus, Status, Result,
-  generateGoalID, initGoal, isEqual,
-} from '@cycle-robot-drivers/action'
+  GoalID, Goal, Status, Result, initGoal,
+} from '@cycle-robot-drivers/action';
+import {makeSpeechRecognitionDriver} from './speech_recognition';
 
 
-export function SpeechRecognitionAction(sources) {
-  // Create action stream
-  type Action = {
-    type: string,
-    value: Goal | SpeechRecognitionError | SpeechRecognitionEvent | string,
-  };
+enum State {
+  RUNNING = 'RUNNING',
+  DONE = 'DONE',
+  PREEMPTING = 'PREEMPTING',
+}
 
-  const goal$ = xs.fromObservable(sources.goal).map(goal => {
-    if (goal === null) {
-      return {
-        type: 'CANCEL',
-        value: null,  // goal MUST BE null on CANCEL
-      };
-    } else {
-      return {
-        type: 'GOAL',
-        value: initGoal(goal),
-      }
-    }
-  });
-  const events$ = xs.merge(
-    sources.SpeechRecognition.events('end').map(
-      event => ({type: 'END', value: event})
-    ),
-    sources.SpeechRecognition.events('error').map(
-      event => ({type: 'ERROR', value: event})
-    ),
-    sources.SpeechRecognition.events('result').map(
-      event => ({type: 'RESULT', value: event})
-    ),
-    sources.SpeechRecognition.events('start').map(
-      event => ({type: 'START', value: event})
-    ),
-  );
-  const action$ = xs.merge(goal$, events$);
+type Variables = {
+  goal_id: GoalID,
+  transcript: string,
+  newGoal: Goal,
+};
 
-  // Create status stream
-  enum ExtraStatus {
-    PREEMPTING = 'PREEMPTING',
-  };
-  type ExtendedStatus = Status | ExtraStatus;
-  type State = {
-    goal_id: GoalID,
-    goal: any,
-    status: ExtendedStatus,
-    result: any,
-    newGoal: Goal,
-  };
+type Outputs = {
+  args: any,
+};
 
-  const initialState: State = {
-    goal: null,
-    goal_id: generateGoalID(),
-    status: Status.SUCCEEDED,
-    result: null,
-    newGoal: null,
-  };
+type ReducerState = {
+  state: State,
+  variables: Variables,
+  outputs: Outputs,
+  result: Result,
+};
 
-  const state$ = action$.fold((state: State, action: Action): State => {
-    console.debug('state', state, 'action', action);
-    if (state.status === Status.SUCCEEDED
-        || state.status === Status.PREEMPTED
-        || state.status === Status.ABORTED) {
-      if (action.type === 'GOAL') {
+type Reducer = (prev?: ReducerState) => ReducerState | undefined;
+
+enum InputType {
+  GOAL = 'GOAL',
+  CANCEL = 'CANCEL',
+  START = 'START',
+  END = 'END',
+  ERROR = 'ERROR',
+  RESULT = 'RESULT',
+}
+
+type Input = {
+  type: InputType,
+  value: Goal | SpeechRecognitionEvent,
+};
+
+
+function input(
+  goal$: Stream<any>,
+  startEvent$: Stream<any>,
+  endEvent$: Stream<any>,
+  errorEvent$: Stream<any>,
+  resultEvent$: Stream<any>
+) {
+  return xs.merge(
+    goal$.map(goal => {
+      if (goal === null) {
         return {
-          ...state,
-          goal_id: (action.value as Goal).goal_id,
-          goal: (action.value as Goal).goal,
-          status: Status.PENDING,
-          result: null,
-        }
-      } else if (action.type === 'CANCEL') {
-        console.debug('Ignore CANCEL in DONE states');
-        return state;
-      }
-    } else if (state.status === Status.PENDING) {
-      if (action.type === 'GOAL') {
-        return {
-          ...state,
-          goal: null,
-          status: ExtraStatus.PREEMPTING,
-          newGoal: (action.value as Goal)
-        }
-      } else if (action.type === 'START') {
-        return {
-          ...state,
-          status: Status.ACTIVE,
+          type: InputType.CANCEL,
+          value: null,  // means "cancel"
         };
-      } else if (action.type === 'CANCEL') {
+      } else {
         return {
-          ...state,
-          goal: null,
-          status: ExtraStatus.PREEMPTING,
-        }
+          type: InputType.GOAL,
+          value: !!(goal as any).goal_id ? goal : initGoal(goal),
+        };
       }
-    } else if (state.status === Status.ACTIVE) {
-      if (action.type === 'GOAL') {
-        return {
-          ...state,
-          goal: null,
-          status: ExtraStatus.PREEMPTING,
-          newGoal: (action.value as Goal)
-        }
-      } else if (action.type === 'RESULT') {
-        const event = (action.value as SpeechRecognitionEvent);
-        const last = event.results.length - 1;
-        const result = event.results[last][0].transcript;
-        return {
-          ...state,
-          result,
-        }
-      } else if (action.type === 'ERROR') {
-        const event = (action.value as SpeechRecognitionError);
-        return {
-          ...state,
-          result: event.error,  // "no-speech"
-        }
-      } else if (action.type === 'END') {
-        // set result to '' when ended without hearing anything
-        return {
-          ...state,
-          status: Status.SUCCEEDED,
-          result: state.result ? state.result : '',
-        }
-      } else if (action.type === 'CANCEL') {
-        return {
-          ...state,
-          goal: null,
-          status: ExtraStatus.PREEMPTING,
-        }
-      }
-    } else if (state.status === ExtraStatus.PREEMPTING) {
-      if (action.type === 'END') {
-        const preemptedState = {
-          ...state,
-          status: Status.PREEMPTED,
+    }),
+    startEvent$.mapTo({type: InputType.START, value: null}),
+    endEvent$.mapTo({type: InputType.END, value: null}),
+    errorEvent$.mapTo({type: InputType.ERROR, value: null}),
+    resultEvent$.map(event => ({type: InputType.RESULT, value: event})),
+  );
+}
+
+const transitionTable = {
+  [State.DONE]: {
+    [InputType.GOAL]: State.RUNNING,
+  },
+  [State.RUNNING]: {
+    [InputType.GOAL]: State.PREEMPTING,
+    [InputType.CANCEL]: State.PREEMPTING,
+    [InputType.START]: State.RUNNING,
+    [InputType.END]: State.DONE,
+  },
+  [State.PREEMPTING]: {
+    [InputType.END]: State.DONE,
+  }
+};
+
+function transition(
+  prevState: State, prevVariables: Variables, input: Input
+): ReducerState {
+  const states = transitionTable[prevState];
+  if (!states) {
+    throw new Error(`Invalid prevState: "${prevState}"`);
+  }
+
+  let state = states[input.type];
+  if (!state) {
+    console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
+      + `set state to prevState`);
+    state = prevState;
+  }
+
+  if (prevState === State.DONE && state === State.RUNNING) {
+    // Start a new goal
+    const goal = (input.value as Goal);
+    return {
+      state,
+      variables: {
+        goal_id: goal.goal_id,
+        transcript: null,
+        newGoal: null,
+      },
+      outputs: {
+        args: goal.goal
+      },
+      result: null,
+    };
+  } else if (
+    prevState === State.RUNNING && state === State.RUNNING
+  ) {
+    if (input.type === InputType.RESULT) {
+      const event = (input.value as SpeechRecognitionEvent);
+      const last = event.results.length - 1;
+      const transcript = event.results[last][0].transcript;
+      return {
+        state,
+        variables: {
+          ...prevVariables,
+          transcript,
+        },
+        outputs: null,
+        result: null,
+      };
+    } else if (input.type === InputType.ERROR) {
+      console.debug('No speech; transcript is null');
+    }
+  } else if (state === State.DONE) {
+    if (prevState === State.RUNNING || prevState === State.PREEMPTING) {
+      // Stop the current goal and start the queued new goal
+      const newGoal = prevVariables.newGoal;
+      return {
+        state: !!newGoal ? State.RUNNING : state,
+        variables: {
+          goal_id: !!newGoal ? newGoal.goal_id : null,
+          transcript: null,
           newGoal: null,
-        }
-        if (state.newGoal) {
-          state$.shamefullySendNext(preemptedState);
-          return {
-            goal_id: state.newGoal.goal_id,
-            goal: state.newGoal.goal,
-            status: Status.PENDING,
-            result: null,
-            newGoal: null,
-          }
-        } else {
-          return preemptedState;
-        }
-      } else if (action.type === 'ERROR') {
-        console.debug('Ignore ERROR in PREEMPTING state');
-        return state;
-      } else if (action.type === 'START') {
-        throw Error('Cannot start recognition while trying to preempt it; ' +
-          'probably sent two goals too close to each other');
+        },
+        outputs: !!newGoal ? {
+          args: newGoal.goal,
+        } : null,
+        result: {
+          status: {
+            goal_id: prevVariables.goal_id,
+            status: prevState === State.RUNNING
+              ? Status.SUCCEEDED : Status.PREEMPTED,
+          },
+          result: prevVariables.transcript,
+        },
+      };
+    }
+  } else if (
+    (prevState === State.RUNNING || prevState === State.PREEMPTING)
+    && state === State.PREEMPTING
+  ) {
+    if (input.type === InputType.GOAL || input.type === InputType.CANCEL) {
+      // Start stopping the current goal and queue a new goal if received one
+      return {
+        state,
+        variables: {
+          ...prevVariables,
+          newGoal: input.type === InputType.GOAL ? input.value as Goal : null,
+        },
+        outputs: prevState === State.RUNNING ? {
+          args: null,
+        } : null,
+        result: null,
       }
     }
-    console.warn(
-      `Unhandled state.status ${state.status} action.type ${action.type}`
-    );
-    return state;
-  }, initialState);
-
-
-  // Prepare outgoing streams
-  const stateStatusChanged$ = state$
-    .compose(dropRepeats(
-      (x, y) => (x.status === y.status && isEqual(x.goal_id, y.goal_id))));
-
-  const value$ = stateStatusChanged$
-    .filter(state => (state.status === Status.PENDING
-      || state.status === ExtraStatus.PREEMPTING))
-    .map(state => state.goal);
-
-  const status$ = stateStatusChanged$
-    .filter(state => state.status !== ExtraStatus.PREEMPTING)
-    .map(state => ({
-      goal_id: state.goal_id,
-      status: state.status,
-    } as GoalStatus));
-
-  const result$ = stateStatusChanged$
-    .filter(state => (state.status === Status.SUCCEEDED
-        || state.status === Status.PREEMPTED
-        || state.status === Status.ABORTED))
-    .map(state => ({
-      status: {
-        goal_id: state.goal_id,
-        status: state.status,
-      },
-      result: state.result,
-    } as Result));
-
+  }
 
   return {
-    value: adapt(value$),
-    status: adapt(status$),
+    state: prevState,
+    variables: prevVariables,
+    outputs: null,
+    result: null,
+  };
+}
+
+function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
+  const initReducer$: Stream<Reducer> = xs.of(
+    function initReducer(prev: ReducerState): ReducerState {
+      return {
+        state: State.DONE,
+        variables: {
+          goal_id: null,
+          transcript: null,
+          newGoal: null,
+        },
+        outputs: null,
+        result: null,
+      }
+    }
+  );
+
+  const inputReducer$: Stream<Reducer> = input$
+    .map(input => function inputReducer(prev: ReducerState): ReducerState {
+      return transition(prev.state, prev.variables, input);
+    });
+
+  return xs.merge(initReducer$, inputReducer$);
+}
+
+export function SpeechRecognitionAction(sources) {
+  const input$ = input(
+    xs.fromObservable(sources.goal),
+    xs.fromObservable(sources.SpeechRecognition.events('start')),
+    xs.fromObservable(sources.SpeechRecognition.events('end')),
+    xs.fromObservable(sources.SpeechRecognition.events('error')),
+    xs.fromObservable(sources.SpeechRecognition.events('result')),
+  );
+
+  const state$ = transitionReducer(input$)
+    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
+    .drop(1);  // drop "null"
+  const outputs$ = state$.map(state => state.outputs)
+    .filter(outputs => !!outputs);
+  const result$ = state$.map(state => state.result).filter(result => !!result);
+
+  return {
+    output: adapt(outputs$.map(outputs => outputs.args)),
     result: adapt(result$),
   };
 }
 
-export function IsolatedSpeechRecognitionAction(sources) {
-  return isolate(SpeechRecognitionAction)(sources);
-};
+export function makeSpeechRecognitionActionDriver() {
+  const speechRecognitionDriver = makeSpeechRecognitionDriver();
+
+  return function speechRecognitionActionDriver(sink$) {
+    const proxy$ = xs.create();
+    const speechRecognitionAction = SpeechRecognitionAction({
+      goal: sink$,
+      SpeechRecognition: speechRecognitionDriver(proxy$)
+    });
+    proxy$.imitate(speechRecognitionAction.output);
+    return speechRecognitionAction;
+  }
+}

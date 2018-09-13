@@ -4,7 +4,7 @@ import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   makeSpeechRecognitionDriver,
-  IsolatedSpeechRecognitionAction as SpeechRecognitionAction,
+  SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech'
 
 

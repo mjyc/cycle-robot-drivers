@@ -10,5 +10,4 @@ export {
   generateGoalID,
   initGoal,
   isEqual,
-  powerup,
 } from './utils';
