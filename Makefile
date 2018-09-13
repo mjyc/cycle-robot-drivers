@@ -1,4 +1,4 @@
-.PHONY: lib action
+.PHONY: lib action screen speech sound 3rdparty/cycle-posenet-drivers
 
 BINDIR=node_modules/.bin
 TSC=$(BINDIR)/tsc
