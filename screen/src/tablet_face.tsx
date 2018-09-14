@@ -1,8 +1,11 @@
 import Snabbdom from 'snabbdom-pragma';
+import {VNode} from 'snabbdom/vnode';
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
+import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
+import {makeDOMDriver, MainDOMSource} from '@cycle/dom';
 import {
   Goal, GoalStatus, Status, initGoal,
 } from '@cycle-robot-drivers/action';
@@ -252,19 +255,25 @@ type Command = {
 }
 
 export function makeTabletFaceDriver({
-  faceColor = 'whitesmoke',
-  faceHeight = '100vh',
-  faceWidth = '100vw',
-  eyeColor = 'black',
-  eyeSize = '33.33vh',
-  eyelidColor = 'whitesmoke',
+  styles: {
+    faceColor = 'whitesmoke',
+    faceHeight = '100vh',
+    faceWidth = '100vw',
+    eyeColor = 'black',
+    eyeSize = '33.33vh',
+    eyelidColor = 'whitesmoke',
+  },
+   DOMDriver = makeDOMDriver(document.body.firstElementChild),
 }: {
-  faceColor?: string,
-  faceHeight?: string,
-  faceWidth?: string,
-  eyeColor?: string,
-  eyeSize?: string,
-  eyelidColor?: string,
+  styles?: {
+    faceColor?: string,
+    faceHeight?: string,
+    faceWidth?: string,
+    eyeColor?: string,
+    eyeSize?: string,
+    eyelidColor?: string,
+  },
+  DOMDriver?: Driver<Stream<VNode>, MainDOMSource>,
 } = {}) {
   const styles = {
     face: {
@@ -331,7 +340,7 @@ export function makeTabletFaceDriver({
     }
   }
 
-  return function tabletFaceDriver(command$) {
+  return function(command$) {
     let animations = {};
 
     fromEvent(window, 'load').addListener({next: () => {
@@ -413,6 +422,9 @@ export function makeTabletFaceDriver({
         </div>
       </div>
     ));
+
+    DOMDriver(vdom$);
+    // DOMDriver(vdom$).addListener({next: (data) => console.error(data)});
 
     return {
       DOM: adapt(vdom$),
