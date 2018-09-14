@@ -34,9 +34,11 @@ lib:
 
 test:
 	@if [ "$(ARG)" = "" ]; then \
+		exitcode=0; \
 		for d in $(PACKAGES); do \
-			make test $$d; \
+			make test $$d || exitcode=$$?; \
 		done; \
+		exit $$exitcode; \
 	else \
 		cd $(ARG) && npm run test && cd .. &&\
 		echo "✓ Tested $(ARG)" ;\
