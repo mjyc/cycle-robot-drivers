@@ -1,5 +1,6 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
+import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
   GoalID, Goal, Status, Result, initGoal,
@@ -237,9 +238,11 @@ export function SpeechRecognitionAction(sources) {
   };
 }
 
-export function makeSpeechRecognitionActionDriver(options = {}) {
-  const speechRecognitionDriver = !!(options as any).speechRecognitionDriver
-    ? (options as any).speechRecognitionDriver : makeSpeechRecognitionDriver();
+export function makeSpeechRecognitionActionDriver({
+  speechRecognitionDriver = makeSpeechRecognitionDriver(),
+}: {
+  speechRecognitionDriver?: Driver<any, any>,
+} = {}): Driver<any, any> {
 
   return function speechRecognitionActionDriver(sink$) {
     const proxy$ = xs.create();
