@@ -1,13 +1,12 @@
 import Snabbdom from 'snabbdom-pragma';
-import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
-import {adapt} from '@cycle/run/lib/adapt'
+import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
+import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   generateGoalID, initGoal, isEqual,
-} from '@cycle-robot-drivers/action'
+} from '@cycle-robot-drivers/action';
 
 export function FacialExpressionAction(sources) {
   // Create action stream
@@ -115,7 +114,7 @@ export function FacialExpressionAction(sources) {
       if (state.status === Status.ACTIVE) {
         return {
           type: 'EXPRESS',
-          value: state.goal,
+          args: state.goal,
         };
       } else {  // state.status === Status.PREEMPTED
         return null;

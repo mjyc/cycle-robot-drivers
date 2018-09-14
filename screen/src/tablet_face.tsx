@@ -1,11 +1,12 @@
 import Snabbdom from 'snabbdom-pragma';
-import xs from 'xstream'
-import {Stream} from 'xstream'
-import fromEvent from 'xstream/extra/fromEvent'
-import {adapt} from '@cycle/run/lib/adapt'
+import xs from 'xstream';
+import {Stream} from 'xstream';
+import fromEvent from 'xstream/extra/fromEvent';
+import {adapt} from '@cycle/run/lib/adapt';
 import {
   Goal, GoalStatus, Status, initGoal,
-} from '@cycle-robot-drivers/action'
+} from '@cycle-robot-drivers/action';
+
 
 // adapted from
 //   https://github.com/mjyc/tablet-robot-face/blob/709b731dff04033c08cf045adc4e038eefa750a2/index.js#L3-L184
@@ -204,16 +205,48 @@ class EyeController {
   }
 }
 
-enum ActionType {
+
+enum CommandType {
   EXPRESS = 'EXPRESS',
   START_BLINKING = 'START_BLINKING',
   STOP_BLINKING = 'STOP_BLINKING',
   SET_STATE = 'SET_STATE',
 }
 
-type Action = {
-  type: ActionType,
-  value: any,
+export enum ExpressCommandType {
+  HAPPY = 'happy',
+  SAD = 'sad',
+  ANGRY = 'angry',
+  FOCUSED = 'focused',
+  CONFUSED = 'confused',
+}
+
+type ExpressCommandArgs = {
+  type: ExpressCommandType,
+  // level: number
+  duration: number,
+  enterDuration: number,
+  exitDuration: number,
+}
+
+type StartBlinkingCommandArgs = {
+  maxInterval: number,
+}
+
+type SetStateCommandArgs = {
+  leftEye: {
+    x: number,
+    y: number,
+  },
+  rightEye: {
+    x: number,
+    y: number,
+  },
+}
+
+type Command = {
+  type: CommandType,
+  args: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
 
 export function makeTabletFaceDriver({
@@ -296,7 +329,7 @@ export function makeTabletFaceDriver({
     }
   }
 
-  return function tabletFaceDriver(sink$) {
+  return function tabletFaceDriver(command$: Stream<Command>) {
     let animations = {};
 
     fromEvent(window, 'load').addListener({next: () => {
@@ -311,8 +344,8 @@ export function makeTabletFaceDriver({
     }});
 
     const allFinish$$: Stream<Stream<any[]>> = xs.create();
-    sink$.addListener({
-      next: function(action: Action) {
+    command$.addListener({
+      next: function(action: Command) {
         if (!action) {
           Object.keys(animations).map((key) => {
             animations[key].cancel();
@@ -320,8 +353,8 @@ export function makeTabletFaceDriver({
           return;
         }
         switch (action.type) {
-          case ActionType.EXPRESS:
-            animations = eyes.express(action.value);
+          case CommandType.EXPRESS:
+            animations = eyes.express((action.args as ExpressCommandArgs));
             allFinish$$.shamefullySendNext(
               xs.fromPromise(
                 Promise.all(Object.keys(animations).map((key) => {
@@ -332,15 +365,16 @@ export function makeTabletFaceDriver({
               )
             );
             break;
-          case ActionType.START_BLINKING:
-            eyes.startBlinking(action.value);
+          case CommandType.START_BLINKING:
+            eyes.startBlinking((action.args as StartBlinkingCommandArgs));
             break;
-          case ActionType.STOP_BLINKING:
-            eyes.startBlinking(action.value);
+          case CommandType.STOP_BLINKING:
+            eyes.stopBlinking();
             break;
-          case ActionType.SET_STATE:
-            const leftPos = action.value && action.value.leftEye || {};
-            const rightPos = action.value && action.value.rightEye || {};
+          case CommandType.SET_STATE:
+            const args = (action.args as SetStateCommandArgs);
+            const leftPos = args && args.leftEye || {x: null, y: null};
+            const rightPos = args && args.rightEye || {x: null, y: null};
             setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
             setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
             break;

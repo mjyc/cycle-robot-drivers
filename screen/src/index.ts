@@ -1,4 +1,7 @@
-export {makeTabletFaceDriver} from './tablet_face'
+export {
+  ExpressCommandType,
+  makeTabletFaceDriver,
+} from './tablet_face'
 export {
   FacialExpressionAction,
   IsolatedFacialExpressionAction,

@@ -6,7 +6,7 @@ import isolate from '@cycle/isolate';
 
 import {
   GoalID, Goal, Status, GoalStatus, Result,
-  generateGoalID, initGoal, isEqual, powerup,
+  generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action'
 import {
   SpeechbubbleType,
@@ -227,6 +227,18 @@ function main(sources) {
     },
   };
 }
+
+function powerup(main, connect) {
+  return (sources) => {
+    const sinks = main(sources);
+    Object.keys(sources.proxies).map(key => {
+      connect(sources.proxies[key], sinks.targets[key]);
+    });
+    const {targets, ...sinksNoTargets} = sinks;
+    return sinksNoTargets;
+  };
+}
+
 
 export function TwoSpeechbubblesAction(sources) {
   return powerup(main, (proxy, target) => proxy.imitate(target))(sources);

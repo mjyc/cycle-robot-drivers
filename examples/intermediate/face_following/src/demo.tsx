@@ -24,7 +24,7 @@ function main(sources) {
       };
       return {
         type: 'SET_STATE',
-        value: {
+        args: {
           leftEye: normalizedPos,
           rightEye: normalizedPos,
         }
@@ -32,7 +32,7 @@ function main(sources) {
     });
   const faceStatic$ = xs.of({
     type: 'SET_STATE',
-    value: {
+    args: {
       leftEye: {x: 0.5, y: 0.5},
       rightEye: {x: 0.5, y: 0.5},
     }
