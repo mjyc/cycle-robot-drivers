@@ -31,17 +31,17 @@ function main(sources) {
   });
 
   return {
-    // FacialExpressionAction: xs.periodic(2000).mapTo({type: 'happy'}),
+    FacialExpressionAction: xs.periodic(2000).mapTo({type: 'happy'}),
     SpeechSynthesisAction: goal$,
     SpeechRecognitionAction: xs.of({}),
-    TabletFace: xs.periodic(2000).mapTo({type: 'EXPRESS', args: {type: 'happy'}}),
+    // TabletFace: xs.periodic(2000).mapTo({type: 'EXPRESS', args: {type: 'happy'}}),
   };
 }
 
-// const tabletFaceDriver = makeTabletFaceDriver({styles: {faceHeight: '600px'}});
+const tabletFaceDriver = makeTabletFaceDriver({styles: {faceHeight: '600px'}});
 run(main, {
-  // FacialExpressionAction: makeFacialExpressionActionDriver(),
+  FacialExpressionAction: makeFacialExpressionActionDriver({tabletFaceDriver}),
   SpeechSynthesisAction: makeSpeechSynthesisActionDriver(),
   SpeechRecognitionAction: makeSpeechRecognitionActionDriver(),
-  TabletFace: makeTabletFaceDriver({styles: {faceHeight: '600px'}}),
+  TabletFace: tabletFaceDriver,
 });

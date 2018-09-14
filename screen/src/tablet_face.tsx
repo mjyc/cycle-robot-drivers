@@ -1,11 +1,9 @@
 import Snabbdom from 'snabbdom-pragma';
-import {VNode} from 'snabbdom/vnode';
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import fromEvent from 'xstream/extra/fromEvent';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
-import {makeDOMDriver, MainDOMSource} from '@cycle/dom';
+import {makeDOMDriver} from '@cycle/dom';
 import {
   Goal, GoalStatus, Status, initGoal,
 } from '@cycle-robot-drivers/action';
@@ -280,7 +278,7 @@ export function makeTabletFaceDriver({
     eyeColor = 'black',
     eyeSize = '33.33vh',
     eyelidColor = 'whitesmoke',
-  },
+  } = {},
   DOMDriver = makeDOMDriver(document.body.firstElementChild),
 }: {
   styles?: {
@@ -291,8 +289,8 @@ export function makeTabletFaceDriver({
     eyeSize?: string,
     eyelidColor?: string,
   },
-  DOMDriver?: Driver<Stream<VNode>, MainDOMSource>,
-} = {}) {
+  DOMDriver?: Driver<any, any>,
+} = {}): Driver<any, any> {
   const styles = {
     face: {
       backgroundColor: faceColor,
@@ -377,7 +375,7 @@ export function makeTabletFaceDriver({
         lowerLeftEyelid: faceElem.querySelector('.left .eyelid.lower'),
         lowerRightEyelid: faceElem.querySelector('.right .eyelid.lower'),
       });
-    });
+    }});
 
     const allFinish$$: Stream<Stream<any[]>> = xs.create();
     command$.addListener({

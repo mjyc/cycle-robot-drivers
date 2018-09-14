@@ -1,6 +1,7 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
+import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
 import {
@@ -146,8 +147,12 @@ export function FacialExpressionAction(sources) {
   };
 }
 
-export function makeFacialExpressionActionDriver(tabletFaceDriver) {
-  return function facialExpressionActionDriver(sink$) {
+export function makeFacialExpressionActionDriver({
+  tabletFaceDriver = makeTabletFaceDriver(),
+}: {
+  tabletFaceDriver?: Driver<any, any>,
+} = {}): Driver<any, any> {
+  return function(sink$) {
     const proxy$ = xs.create();
     const facialExpressionAction = FacialExpressionAction({
       goal: sink$,
