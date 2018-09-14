@@ -210,7 +210,6 @@ export function makeSpeechSynthesisActionDriver({
 }: {
   speechSynthesisDriver?: Driver<any, any>,
 } = {}): Driver<any, any> {
-
   return function speechSynthesisActionDriver(sink$) {
     const proxy$ = xs.create();
     const speechSynthesisAction = SpeechSynthesisAction({

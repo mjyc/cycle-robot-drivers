@@ -243,7 +243,6 @@ export function makeSpeechRecognitionActionDriver({
 }: {
   speechRecognitionDriver?: Driver<any, any>,
 } = {}): Driver<any, any> {
-
   return function speechRecognitionActionDriver(sink$) {
     const proxy$ = xs.create();
     const speechRecognitionAction = SpeechRecognitionAction({
