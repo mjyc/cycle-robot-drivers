@@ -87,7 +87,7 @@ function transition(
 ): ReducerState {
   const states = transitionTable[prevState];
   if (!states) {
-    throw new Error(`Invalid prevState: "${prevState}"`);
+    throw new Error(`Invalid prevState="${prevState}"`);
   }
 
   let state = states[input.type];
