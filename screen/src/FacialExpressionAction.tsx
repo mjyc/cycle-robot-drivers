@@ -7,6 +7,7 @@ import {
   GoalID, Goal, GoalStatus, Status, Result,
   generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action';
+import {makeTabletFaceDriver} from './tablet_face';
 
 export function FacialExpressionAction(sources) {
   // Create action stream
@@ -35,7 +36,7 @@ export function FacialExpressionAction(sources) {
       type: 'END',
       value: null,
     }),
-  ).debug(d => console.error('action', d));
+  );
 
   // Create state stream
   type State = {
@@ -107,7 +108,7 @@ export function FacialExpressionAction(sources) {
     .compose(dropRepeats(
       (x, y) => (x.status === y.status && isEqual(x.goal_id, y.goal_id))));
 
-  const value$ = stateStatusChanged$.debug(d => console.error('value', d))
+  const value$ = stateStatusChanged$
     .filter(state =>
       state.status === Status.ACTIVE || state.status === Status.PREEMPTED)
     .map(state => {
@@ -145,6 +146,14 @@ export function FacialExpressionAction(sources) {
   };
 }
 
-export function IsolatedFacialExpressionAction(sources) {
-  return isolate(FacialExpressionAction)(sources);
-};
+export function makeFacialExpressionActionDriver(tabletFaceDriver) {
+  return function facialExpressionActionDriver(sink$) {
+    const proxy$ = xs.create();
+    const facialExpressionAction = FacialExpressionAction({
+      goal: sink$,
+      TabletFace: tabletFaceDriver(proxy$),
+    });
+    proxy$.imitate(facialExpressionAction.value);
+    return facialExpressionAction;
+  }
+}

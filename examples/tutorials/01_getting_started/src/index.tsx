@@ -3,13 +3,16 @@ import xs from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
+  makeTabletFaceDriver,
+  makeFacialExpressionActionDriver,
+} from '@cycle-robot-drivers/screen'
+import {
   makeSpeechSynthesisActionDriver,
   makeSpeechRecognitionActionDriver,
-} from '@cycle-robot-drivers/speech'
+} from '@cycle-robot-drivers/speech';
 
 
 function main(sources) {
-  const vdom$ = xs.of((<p>SpeechSynthesisAction component test</p>));
   const goal$ = xs.create();
   setTimeout(() => goal$.shamefullySendNext({text: 'Hello'}), 1);
   // test overwriting the current goal
@@ -28,14 +31,18 @@ function main(sources) {
   });
 
   return {
-    DOM: vdom$,
+    DOM: sources.TabletFace.DOM,
+    FacialExpressionAction: xs.periodic(2000).mapTo({type: 'happy'}),
     SpeechSynthesisAction: goal$,
     SpeechRecognitionAction: xs.of({}),
   };
 }
 
+const TabletFace = makeTabletFaceDriver({faceHeight: '600px'});
 run(main, {
   DOM: makeDOMDriver('#app'),
+  FacialExpressionAction: makeFacialExpressionActionDriver(TabletFace),
   SpeechSynthesisAction: makeSpeechSynthesisActionDriver(),
   SpeechRecognitionAction: makeSpeechRecognitionActionDriver(),
+  TabletFace,
 });

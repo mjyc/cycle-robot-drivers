@@ -4,7 +4,7 @@ import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   makeTabletFaceDriver,
-  IsolatedFacialExpressionAction as FacialExpressionAction,
+  FacialExpressionAction,
 } from '@cycle-robot-drivers/screen'
 
 const types = ['happy', 'sad', 'angry', 'focused', 'confused'];

@@ -69,7 +69,8 @@ class EyeController {
     exitDuration = 75,
   }) {
     if (!this._leftEye) {  // assumes all elements are always set together
-      console.warn('Skipping; eye elements are not set');
+      console.warn('Eye elements are not set; return;');
+      return;
     }
 
     const options = {
@@ -168,7 +169,8 @@ class EyeController {
     duration = 150,  // in ms
   } = {}) {
     if (!this._leftEye) {  // assumes all elements are always set together
-      console.warn('Skipping; eye elements are not set');
+      console.warn('Eye elements are not set; return;');
+      return;
     }
 
     [this._leftEye, this._rightEye].map((eye) => {
@@ -187,7 +189,7 @@ class EyeController {
     maxInterval = 5000
   } = {}) {
     if (this._blinkTimeoutID) {
-      console.warn(`Skipping; already blinking with timeoutID: ${this._blinkTimeoutID}`);
+      console.warn(`Already blinking with timeoutID: ${this._blinkTimeoutID}; return;`);
       return;
     }
     const blinkRandomly = (timeout) => {
@@ -354,7 +356,7 @@ export function makeTabletFaceDriver({
         }
         switch (action.type) {
           case CommandType.EXPRESS:
-            animations = eyes.express(action.args as ExpressCommandArgs);
+            animations = eyes.express(action.args as ExpressCommandArgs) || {};
             allFinish$$.shamefullySendNext(
               xs.fromPromise(
                 Promise.all(Object.keys(animations).map((key) => {
