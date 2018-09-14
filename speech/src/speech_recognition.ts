@@ -2,9 +2,10 @@ import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
+import {EventSource} from '@cycle-robot-drivers/action';
 
 
-class RecognitionSource {
+class RecognitionSource implements EventSource {
   constructor(
     private _recognition: SpeechRecognition,
   ) {}
@@ -36,6 +37,6 @@ export function makeSpeechRecognitionDriver() {
       }
     });
 
-    return new RecognitionSource(recognition);
+    return new RecognitionSource(recognition) as EventSource;
   }
 }

@@ -1,9 +1,10 @@
 import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {adapt} from '@cycle/run/lib/adapt';
+import {EventSource} from '@cycle-robot-drivers/action';
 
 
-class AudioSource {
+class AudioSource implements EventSource {
   constructor(
     private _audio: HTMLAudioElement,
   ) {}
@@ -34,6 +35,6 @@ export function makeAudioPlayerDriver() {
       }
     });
 
-    return new AudioSource(audio);
+    return new AudioSource(audio) as EventSource;
   }
 }

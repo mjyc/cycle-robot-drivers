@@ -28,7 +28,6 @@ lib:
 		rm -rf $(ARG)/lib; \
 		mkdir -p $(ARG)/lib; \
 		$(TSC) --project $(ARG) --module commonjs --outDir $(ARG)/lib/cjs ;\
-		$(TSC) --project $(ARG) --module es6 --outDir $(ARG)/lib/es6 ;\
 		echo "✓ Compiled TypeScript to lib\n"; \
 	fi
 

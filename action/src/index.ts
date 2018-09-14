@@ -4,6 +4,7 @@ export {
   Status,
   GoalStatus,
   Result,
+  EventSource,
 } from './types';
 
 export {

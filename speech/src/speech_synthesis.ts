@@ -2,9 +2,10 @@ import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
+import {EventSource} from '@cycle-robot-drivers/action';
 
 
-class UtteranceSource {
+class UtteranceSource implements EventSource {
   constructor(
     private _utterance: SpeechSynthesisUtterance,
   ) {}
@@ -37,6 +38,6 @@ export function makeSpeechSynthesisDriver() {
       }
     });
 
-    return new UtteranceSource(utterance);
+    return new UtteranceSource(utterance) as EventSource;
   }
 }
