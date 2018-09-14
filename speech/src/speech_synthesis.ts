@@ -4,17 +4,17 @@ import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 
 
-export class UtteranceSource {  // export-ed to use it as type
+class UtteranceSource {
   constructor(
     private _utterance: SpeechSynthesisUtterance,
   ) {}
 
-  events(eventName: string): Stream<Event> {
+  events(eventName: string) {
     return adapt(fromEvent(this._utterance, eventName));
   }
 }
 
-export function makeSpeechSynthesisDriver(): Driver<Stream<any>, UtteranceSource> {
+export function makeSpeechSynthesisDriver() {
   const synthesis: SpeechSynthesis = window.speechSynthesis;
   const utterance: SpeechSynthesisUtterance = new SpeechSynthesisUtterance();
 

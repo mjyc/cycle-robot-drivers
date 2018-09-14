@@ -4,17 +4,17 @@ import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 
 
-export class RecognitionSource {  // export-ed to use it as type
+class RecognitionSource {
   constructor(
     private _recognition: SpeechRecognition,
   ) {}
 
-  events(eventName: string): Stream<Event> {
+  events(eventName: string) {
     return adapt(fromEvent(this._recognition, eventName));
   }
 }
 
-export function makeSpeechRecognitionDriver(): Driver<Stream<any>, RecognitionSource> {
+export function makeSpeechRecognitionDriver() {
   const recognition: SpeechRecognition = new webkitSpeechRecognition();
 
   return function(sink$) {
