@@ -237,8 +237,9 @@ export function SpeechRecognitionAction(sources) {
   };
 }
 
-export function makeSpeechRecognitionActionDriver() {
-  const speechRecognitionDriver = makeSpeechRecognitionDriver();
+export function makeSpeechRecognitionActionDriver(options = {}) {
+  const speechRecognitionDriver = !!(options as any).speechRecognitionDriver
+    ? (options as any).speechRecognitionDriver : makeSpeechRecognitionDriver();
 
   return function speechRecognitionActionDriver(sink$) {
     const proxy$ = xs.create();

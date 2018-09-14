@@ -204,14 +204,15 @@ export function SpeechSynthesisAction(sources) {
   };
 }
 
-export function makeSpeechSynthesisActionDriver() {
-  const speechSynthesisDriver = makeSpeechSynthesisDriver();
+export function makeSpeechSynthesisActionDriver(options = {}) {
+  const speechSynthesisDriver = !!(options as any).speechSynthesisDriver
+    ? (options as any).speechSynthesisDriver : makeSpeechSynthesisDriver();
 
   return function speechSynthesisActionDriver(sink$) {
     const proxy$ = xs.create();
     const speechSynthesisAction = SpeechSynthesisAction({
       goal: sink$,
-      SpeechSynthesis: speechSynthesisDriver(proxy$)
+      SpeechSynthesis: speechSynthesisDriver(proxy$),
     });
     proxy$.imitate(speechSynthesisAction.output);
     return speechSynthesisAction;
