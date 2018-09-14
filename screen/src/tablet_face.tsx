@@ -263,7 +263,7 @@ export function makeTabletFaceDriver({
     eyeSize = '33.33vh',
     eyelidColor = 'whitesmoke',
   },
-   DOMDriver = makeDOMDriver(document.body.firstElementChild),
+  DOMDriver = makeDOMDriver(document.body.firstElementChild),
 }: {
   styles?: {
     faceColor?: string,
