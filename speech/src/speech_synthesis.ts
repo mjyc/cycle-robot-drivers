@@ -1,9 +1,10 @@
 import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
+import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 
 
-class UtteranceSource {
+export class UtteranceSource {  // export-ed to use it as type
   constructor(
     private _utterance: SpeechSynthesisUtterance,
   ) {}
@@ -13,11 +14,11 @@ class UtteranceSource {
   }
 }
 
-export function makeSpeechSynthesisDriver() {
+export function makeSpeechSynthesisDriver(): Driver<Stream<any>, UtteranceSource> {
   const synthesis: SpeechSynthesis = window.speechSynthesis;
   const utterance: SpeechSynthesisUtterance = new SpeechSynthesisUtterance();
 
-  return function speechSynthesisDriver(sink$) {
+  return function(sink$) {
     sink$.addListener({
       next: (args) => {
         // array values are SpeechSynthesisUtterance properties that are not

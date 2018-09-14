@@ -1,9 +1,10 @@
 import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
+import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 
 
-class RecognitionSource {
+export class RecognitionSource {  // export-ed to use it as type
   constructor(
     private _recognition: SpeechRecognition,
   ) {}
@@ -13,10 +14,10 @@ class RecognitionSource {
   }
 }
 
-export function makeSpeechRecognitionDriver() {
+export function makeSpeechRecognitionDriver(): Driver<Stream<any>, RecognitionSource> {
   const recognition: SpeechRecognition = new webkitSpeechRecognition();
 
-  return function speechRecognitionDriver(sink$) {
+  return function(sink$) {
     sink$.addListener({
       next: (args) => {
         // array values are SpeechSynthesisUtterance properties that are not
