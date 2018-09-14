@@ -164,7 +164,7 @@ class EyeController {
         }
 
       default:
-        console.warn(`Invalid input type: ${type}`);
+        console.warn(`Invalid input type=${type}`);
     }
   }
 
@@ -192,7 +192,7 @@ class EyeController {
     maxInterval = 5000
   } = {}) {
     if (this._blinkTimeoutID) {
-      console.warn(`Already blinking with timeoutID: ${this._blinkTimeoutID}; return;`);
+      console.warn(`Already blinking with timeoutID=${this._blinkTimeoutID}; return;`);
       return;
     }
     const blinkRandomly = (timeout) => {
@@ -207,6 +207,24 @@ class EyeController {
   stopBlinking() {
     clearTimeout(this._blinkTimeoutID);
     this._blinkTimeoutID = null;
+  }
+
+  setEyePosition(eyeElem, x, y, isRight = false) {
+    if (!eyeElem) {  // assumes all elements are always set together
+      console.warn('Invalid inputs ', eyeElem, x, y, '; retuning');
+      return;
+    }
+
+    if (!!x) {
+      if (!isRight) {
+        eyeElem.style.left = `calc(${this._eyeSize} / 3 * 2 * ${x})`;
+      } else {
+        eyeElem.style.right = `calc(${this._eyeSize} / 3 * 2 * ${1-x})`;
+      }
+    }
+    if (!!y) {
+      eyeElem.style.bottom = `calc(${this._eyeSize} / 3 * 2 * ${1-y})`;
+    }
   }
 }
 
@@ -317,42 +335,49 @@ export function makeTabletFaceDriver({
   };
   const eyes = new EyeController();
 
-  function setEyePosition(
-    eyeElem: HTMLElement,
-    x: number,
-    y: number,
-    isRight = false,
-  ) {
-    if (!eyeElem) {
-      console.warn('Invalid input:', eyeElem, x, y, '; retuning');
-      return;
-    }
-
-    if (!!x) {
-      if (!isRight) {
-        eyeElem.style.left = `calc(${eyeSize} / 3 * 2 * ${x})`;
-      } else {
-        eyeElem.style.right = `calc(${eyeSize} / 3 * 2 * ${1-x})`;
-      }
-    }
-    if (!!y) {
-      eyeElem.style.bottom = `calc(${eyeSize} / 3 * 2 * ${1-y})`;
-    }
-  }
-
   return function(command$) {
     let animations = {};
 
-    fromEvent(window, 'load').addListener({next: () => {
+    const DOM = DOMDriver(xs.of((
+      <div className="face" style={styles.face}>
+        <div className="eye left" style={
+          (Object as any).assign({}, styles.eye, styles.left)
+        }>
+          <div className="eyelid upper" style={
+            (Object as any).assign({}, styles.eyelid, styles.upper)
+          }>
+          </div>
+          <div className="eyelid lower" style={
+            (Object as any).assign({}, styles.eyelid, styles.lower)
+          }>
+          </div>
+        </div>
+
+        <div className="eye right" style={
+          (Object as any).assign({}, styles.eye, styles.right)
+        }>
+          <div className="eyelid upper" style={
+            (Object as any).assign({}, styles.eyelid, styles.upper)
+          }>
+          </div>
+          <div className="eyelid lower" style={
+            (Object as any).assign({}, styles.eyelid, styles.lower)
+          }>
+          </div>
+        </div>
+      </div>
+    )));
+
+    DOM.select('.face').element().addListener({next: (faceElem) => {
       eyes.setElements({
-        leftEye: document.querySelector('.left.eye'),
-        rightEye: document.querySelector('.right.eye'),
-        upperLeftEyelid: document.querySelector('.left .eyelid.upper'),
-        upperRightEyelid: document.querySelector('.right .eyelid.upper'),
-        lowerLeftEyelid: document.querySelector('.left .eyelid.lower'),
-        lowerRightEyelid: document.querySelector('.right .eyelid.lower'),
-      })
-    }});
+        leftEye: faceElem.querySelector('.left.eye'),
+        rightEye: faceElem.querySelector('.right.eye'),
+        upperLeftEyelid: faceElem.querySelector('.left .eyelid.upper'),
+        upperRightEyelid: faceElem.querySelector('.right .eyelid.upper'),
+        lowerLeftEyelid: faceElem.querySelector('.left .eyelid.lower'),
+        lowerRightEyelid: faceElem.querySelector('.right .eyelid.lower'),
+      });
+    });
 
     const allFinish$$: Stream<Stream<any[]>> = xs.create();
     command$.addListener({
@@ -386,48 +411,14 @@ export function makeTabletFaceDriver({
             const args = action.args as SetStateCommandArgs;
             const leftPos = args && args.leftEye || {x: null, y: null};
             const rightPos = args && args.rightEye || {x: null, y: null};
-            setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
-            setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
+            eyes.setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
+            eyes.setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
             break;
         }
       }
     });
 
-    const vdom$ = xs.of((
-      <div className="face" style={styles.face}>
-        <div className="eye left" style={
-          (Object as any).assign({}, styles.eye, styles.left)
-        }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
-        </div>
-
-        <div className="eye right" style={
-          (Object as any).assign({}, styles.eye, styles.right)
-        }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
-        </div>
-      </div>
-    ));
-
-    DOMDriver(vdom$);
-    // DOMDriver(vdom$).addListener({next: (data) => console.error(data)});
-
     return {
-      DOM: adapt(vdom$),
       allFinish: adapt(allFinish$$.flatten()),
     }
   }
