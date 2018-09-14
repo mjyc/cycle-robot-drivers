@@ -377,7 +377,7 @@ export function makeTabletFaceDriver({
       });
     }});
 
-    const allFinish$$: Stream<Stream<any[]>> = xs.create();
+    const animationFinish$$: Stream<Stream<any[]>> = xs.create();
     command$.addListener({
       next: function(action: Command) {
         if (!action) {
@@ -389,7 +389,7 @@ export function makeTabletFaceDriver({
         switch (action.type) {
           case CommandType.EXPRESS:
             animations = eyes.express(action.args as ExpressCommandArgs) || {};
-            allFinish$$.shamefullySendNext(
+            animationFinish$$.shamefullySendNext(
               xs.fromPromise(
                 Promise.all(Object.keys(animations).map((key) => {
                   return new Promise((resolve, reject) => {
@@ -417,7 +417,7 @@ export function makeTabletFaceDriver({
     });
 
     return {
-      allFinish: adapt(allFinish$$.flatten()),
+      animationFinish: adapt(animationFinish$$.flatten()),
     }
   }
 }

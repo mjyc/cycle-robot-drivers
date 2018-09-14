@@ -33,7 +33,7 @@ export function FacialExpressionAction(sources) {
 
   const action$ = xs.merge(
     goal$,
-    sources.TabletFace.allFinish.mapTo({
+    sources.TabletFace.animationFinish.mapTo({
       type: 'END',
       value: null,
     }),
