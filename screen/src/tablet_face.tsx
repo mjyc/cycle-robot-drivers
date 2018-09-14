@@ -329,7 +329,7 @@ export function makeTabletFaceDriver({
     }
   }
 
-  return function tabletFaceDriver(command$: Stream<Command>) {
+  return function tabletFaceDriver(command$) {
     let animations = {};
 
     fromEvent(window, 'load').addListener({next: () => {
@@ -354,7 +354,7 @@ export function makeTabletFaceDriver({
         }
         switch (action.type) {
           case CommandType.EXPRESS:
-            animations = eyes.express((action.args as ExpressCommandArgs));
+            animations = eyes.express(action.args as ExpressCommandArgs);
             allFinish$$.shamefullySendNext(
               xs.fromPromise(
                 Promise.all(Object.keys(animations).map((key) => {
@@ -366,13 +366,13 @@ export function makeTabletFaceDriver({
             );
             break;
           case CommandType.START_BLINKING:
-            eyes.startBlinking((action.args as StartBlinkingCommandArgs));
+            eyes.startBlinking(action.args as StartBlinkingCommandArgs);
             break;
           case CommandType.STOP_BLINKING:
             eyes.stopBlinking();
             break;
           case CommandType.SET_STATE:
-            const args = (action.args as SetStateCommandArgs);
+            const args = action.args as SetStateCommandArgs;
             const leftPos = args && args.leftEye || {x: null, y: null};
             const rightPos = args && args.rightEye || {x: null, y: null};
             setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
