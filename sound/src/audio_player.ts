@@ -9,7 +9,7 @@ class AudioSource implements EventSource {
     private _audio: HTMLAudioElement,
   ) {}
 
-  events(eventName: string): Stream<Event> {
+  events(eventName: string) {
     return adapt(fromEvent(this._audio, eventName));
   }
 }
