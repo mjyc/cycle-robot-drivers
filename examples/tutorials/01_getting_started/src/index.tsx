@@ -44,7 +44,10 @@ function main(sources) {
     SpeechSynthesisAction: xs.create(),
     SpeechRecognitionAction: xs.create(),
   };
-  sources.TabletFace = TabletFace(sources.proxies.TabletFace);
+  sources.TabletFace = TabletFace({
+    DOM: sources.DOM,
+    command: sources.proxies.TabletFace,
+  });
   sources.SpeechSynthesisAction = SpeechSynthesisAction({
     goal: sources.proxies.SpeechSynthesisAction,
     SpeechSynthesis: sources.SpeechSynthesis,
@@ -66,6 +69,7 @@ function main(sources) {
     .debug('SpeechRecognitionAction.result')
     .addListener({next: () => {}});
 
+    
   return {
     DOM: sources.TabletFace.DOM,
     SpeechSynthesis: sources.SpeechSynthesisAction.output,

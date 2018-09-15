@@ -1,6 +1,5 @@
 export {
   ExpressCommandType,
-  makeTabletFaceDriver,
   TabletFace,
 } from './tablet_face';
 export {
