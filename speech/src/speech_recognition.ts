@@ -15,7 +15,7 @@ class RecognitionSource implements EventSource {
   }
 }
 
-export function makeSpeechRecognitionDriver() {
+export function makeSpeechRecognitionDriver(): Driver<any, any> {
   const recognition: SpeechRecognition = new webkitSpeechRecognition();
 
   return function(sink$) {
