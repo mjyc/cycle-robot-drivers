@@ -1,47 +1,17 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
+import delay from 'xstream/extra/delay'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
-  makeSpeechSynthesisActionDriver,
-  makeSpeechRecognitionActionDriver,
+  makeSpeechSynthesisDriver,
+  SpeechSynthesisAction,
+  makeSpeechRecognitionDriver,
+  SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
 
 
-function main(sources) {
-  const goal$ = xs.create();
-  setTimeout(() => goal$.shamefullySendNext({text: 'Hello'}), 1);
-  // test overwriting the current goal
-  setTimeout(() => goal$.shamefullySendNext({text: 'World'}), 200);
-  // test canceling an active goal
-  setTimeout(() => goal$.shamefullySendNext(null), 500);
-  setTimeout(() => goal$.shamefullySendNext({text: 'Jello'}), 1500);
-  // test calling cancel on done; cancel must do nothing
-  setTimeout(() => goal$.shamefullySendNext(null), 2500);
-
-  sources.SpeechSynthesisAction.output.addListener({
-    next: data => console.warn('output', data),
-  });
-  sources.SpeechSynthesisAction.result.addListener({
-    next: data => console.warn('result', data),
-  });
-
-  return {
-    // FacialExpressionAction: xs.periodic(2000).mapTo({type: 'happy'}),
-    SpeechSynthesisAction: goal$,
-    SpeechRecognitionAction: xs.of({}),
-    // TabletFace: xs.periodic(2000).mapTo({type: 'EXPRESS', args: {type: 'happy'}}),
-  };
-}
-
-// const DOMDriver = makeDOMDriver('#app');
-// const tabletFaceDriver = makeTabletFaceDriver({
-//   styles: {faceHeight: '600px'},
-//   DOMDriver,
-// });
-
-
-function powerup(main, connect) {
+function powerup(main, connect: (proxy: any, target: any) => any) {
   return (sources) => {
     const sinks = main(sources);
     Object.keys(sources.proxies).map(key => {
@@ -52,30 +22,42 @@ function powerup(main, connect) {
   };
 }
 
-// function main_temp(sources) {
-//   sources.proxies = {
-//     firstGoal: xs.create(),
-//     secondGoal: xs.create(),
-//   };
+function main(sources) {
+  sources.proxies = {
+    SpeechSynthesisAction: xs.create(),
+    SpeechRecognitionAction: xs.create(),
+  };
 
+  sources.SpeechSynthesisAction = SpeechSynthesisAction({
+    goal: sources.proxies.SpeechSynthesisAction,
+    SpeechSynthesis: sources.SpeechSynthesis,
+  });
+  sources.SpeechRecognitionAction = SpeechRecognitionAction({
+    goal: sources.proxies.SpeechRecognitionAction,
+    SpeechRecognition: sources.SpeechRecognition,
+  });
 
+  const synthGoal$ = xs.of({text: 'Hello'}).compose(delay(1000));
+  const recogGoal$ = xs.of({}).compose(delay(1000));
 
-//   return {
-//     FacialExpressionAction
-//     SpeechSynthesisAction
-//     SpeechRecognitionAction
-//     TabletFace
-//     TwoSpeechbubblesActionDriver
+  sources.SpeechSynthesisAction.result
+    .debug('SpeechSynthesisAction.result')
+    .addListener({next: () => {}});
+  sources.SpeechRecognitionAction.result
+    .debug('SpeechRecognitionAction.result')
+    .addListener({next: () => {}});
 
-//     targets: {
-//       firstGoal: firstGoal$,
-//       secondGoal: secondGoal$
-//     },
-//   }
-// }
+  return {
+    SpeechSynthesis: sources.SpeechSynthesisAction.output,
+    SpeechRecognition: sources.SpeechRecognitionAction.output,
+    targets: {
+      SpeechSynthesisAction: synthGoal$,
+      SpeechRecognitionAction: recogGoal$,
+    },
+  }
+}
 
-run(main, {
-  // FacialExpressionAction: makeFacialExpressionActionDriver({tabletFaceDriver}),
-  SpeechSynthesisAction: makeSpeechSynthesisActionDriver(),
-  SpeechRecognitionAction: makeSpeechRecognitionActionDriver(),
+run(powerup(main, (proxy, target) => proxy.imitate(target)), {
+  SpeechSynthesis: makeSpeechSynthesisDriver(),
+  SpeechRecognition: makeSpeechRecognitionDriver(),
 });
