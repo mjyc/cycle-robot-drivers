@@ -237,19 +237,3 @@ export function SpeechRecognitionAction(sources) {
     result: adapt(result$),
   };
 }
-
-export function makeSpeechRecognitionActionDriver({
-  speechRecognitionDriver = makeSpeechRecognitionDriver(),
-}: {
-  speechRecognitionDriver?: Driver<any, any>,
-} = {}): Driver<any, any> {
-  return function speechRecognitionActionDriver(sink$) {
-    const proxy$ = xs.create();
-    const speechRecognitionAction = SpeechRecognitionAction({
-      goal: sink$,
-      SpeechRecognition: speechRecognitionDriver(proxy$)
-    });
-    proxy$.imitate(speechRecognitionAction.output);
-    return speechRecognitionAction;
-  }
-}

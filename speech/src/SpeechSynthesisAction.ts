@@ -204,19 +204,3 @@ export function SpeechSynthesisAction(sources) {
     result: adapt(result$),
   };
 }
-
-export function makeSpeechSynthesisActionDriver({
-  speechSynthesisDriver = makeSpeechSynthesisDriver(),
-}: {
-  speechSynthesisDriver?: Driver<any, any>,
-} = {}): Driver<any, any> {
-  return function speechSynthesisActionDriver(sink$) {
-    const proxy$ = xs.create();
-    const speechSynthesisAction = SpeechSynthesisAction({
-      goal: sink$,
-      SpeechSynthesis: speechSynthesisDriver(proxy$),
-    });
-    proxy$.imitate(speechSynthesisAction.output);
-    return speechSynthesisAction;
-  }
-}
