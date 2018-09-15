@@ -272,20 +272,24 @@ type Command = {
 }
 
 export function makeTabletFaceDriver({
-  faceColor = 'whitesmoke',
-  faceHeight = '100vh',
-  faceWidth = '100vw',
-  eyeColor = 'black',
-  eyeSize = '33.33vh',
-  eyelidColor = 'whitesmoke',
+  styles: {
+    faceColor = 'whitesmoke',
+    faceHeight = '100vh',
+    faceWidth = '100vw',
+    eyeColor = 'black',
+    eyeSize = '33.33vh',
+    eyelidColor = 'whitesmoke',
+  }
 }: {
-  faceColor?: string,
-  faceHeight?: string,
-  faceWidth?: string,
-  eyeColor?: string,
-  eyeSize?: string,
-  eyelidColor?: string,
-} = {}): Driver<any, any> {
+  styles?: {
+    faceColor?: string,
+    faceHeight?: string,
+    faceWidth?: string,
+    eyeColor?: string,
+    eyeSize?: string,
+    eyelidColor?: string,
+  },
+} = {styles: {}}): Driver<any, any> {
   const styles = {
     face: {
       backgroundColor: faceColor,
