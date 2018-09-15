@@ -5,7 +5,8 @@ import {makeDOMDriver} from '@cycle/dom';
 import {
   makeTabletFaceDriver,
   makeFacialExpressionActionDriver,
-} from '@cycle-robot-drivers/screen'
+  makeTwoSpeechbubblesActionDriver,
+} from '@cycle-robot-drivers/screen';
 import {
   makeSpeechSynthesisActionDriver,
   makeSpeechRecognitionActionDriver,
@@ -38,10 +39,15 @@ function main(sources) {
   };
 }
 
-const tabletFaceDriver = makeTabletFaceDriver({styles: {faceHeight: '600px'}});
+const DOMDriver = makeDOMDriver('#app');
+const tabletFaceDriver = makeTabletFaceDriver({
+  styles: {faceHeight: '600px'},
+  DOMDriver,
+});
 run(main, {
   FacialExpressionAction: makeFacialExpressionActionDriver({tabletFaceDriver}),
   SpeechSynthesisAction: makeSpeechSynthesisActionDriver(),
   SpeechRecognitionAction: makeSpeechRecognitionActionDriver(),
   TabletFace: tabletFaceDriver,
+  TwoSpeechbubblesActionDriver: makeTwoSpeechbubblesActionDriver({DOMDriver})
 });

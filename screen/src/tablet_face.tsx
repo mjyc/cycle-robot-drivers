@@ -3,7 +3,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
-import {makeDOMDriver} from '@cycle/dom';
+import {makeDOMDriver, VNode} from '@cycle/dom';
 import {
   Goal, GoalStatus, Status, initGoal,
 } from '@cycle-robot-drivers/action';
@@ -232,6 +232,7 @@ enum CommandType {
   START_BLINKING = 'START_BLINKING',
   STOP_BLINKING = 'STOP_BLINKING',
   SET_STATE = 'SET_STATE',
+  SPEECHBUBBLES = 'SPEECHBUBBLES',
 }
 
 export enum ExpressCommandType {
@@ -267,7 +268,8 @@ type SetStateCommandArgs = {
 
 type Command = {
   type: CommandType,
-  args: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
+  args: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs
+    | VNode,
 }
 
 export function makeTabletFaceDriver({
@@ -336,48 +338,8 @@ export function makeTabletFaceDriver({
   return function(command$) {
     let animations = {};
 
-    const DOM = DOMDriver(xs.of((
-      <div className="face" style={styles.face}>
-        <div className="eye left" style={
-          (Object as any).assign({}, styles.eye, styles.left)
-        }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
-        </div>
-
-        <div className="eye right" style={
-          (Object as any).assign({}, styles.eye, styles.right)
-        }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
-        </div>
-      </div>
-    )));
-
-    DOM.select('.face').element().addListener({next: (faceElem) => {
-      eyes.setElements({
-        leftEye: faceElem.querySelector('.left.eye'),
-        rightEye: faceElem.querySelector('.right.eye'),
-        upperLeftEyelid: faceElem.querySelector('.left .eyelid.upper'),
-        upperRightEyelid: faceElem.querySelector('.right .eyelid.upper'),
-        lowerLeftEyelid: faceElem.querySelector('.left .eyelid.lower'),
-        lowerRightEyelid: faceElem.querySelector('.right .eyelid.lower'),
-      });
-    }});
-
     const animationFinish$$: Stream<Stream<any[]>> = xs.create();
+    const speechbubblesDOM$ = xs.create();
     command$.addListener({
       next: function(action: Command) {
         if (!action) {
@@ -412,9 +374,52 @@ export function makeTabletFaceDriver({
             eyes.setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
             eyes.setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
             break;
+          case CommandType.SPEECHBUBBLES:
+            speechbubblesDOM$.shamefullySendNext(action.args);
+            break;
         }
       }
     });
+
+    DOMDriver(speechbubblesDOM$.map((speechbubbles) => (
+      <div className="face" style={styles.face}>
+        {speechbubbles}
+        <div className="eye left" style={
+          (Object as any).assign({}, styles.eye, styles.left)
+        }>
+          <div className="eyelid upper" style={
+            (Object as any).assign({}, styles.eyelid, styles.upper)
+          }>
+          </div>
+          <div className="eyelid lower" style={
+            (Object as any).assign({}, styles.eyelid, styles.lower)
+          }>
+          </div>
+        </div>
+
+        <div className="eye right" style={
+          (Object as any).assign({}, styles.eye, styles.right)
+        }>
+          <div className="eyelid upper" style={
+            (Object as any).assign({}, styles.eyelid, styles.upper)
+          }>
+          </div>
+          <div className="eyelid lower" style={
+            (Object as any).assign({}, styles.eyelid, styles.lower)
+          }>
+          </div>
+        </div>
+      </div>
+    ))).select('.face').element().addListener({next: (faceElem) => {
+      eyes.setElements({
+        leftEye: faceElem.querySelector('.left.eye'),
+        rightEye: faceElem.querySelector('.right.eye'),
+        upperLeftEyelid: faceElem.querySelector('.left .eyelid.upper'),
+        upperRightEyelid: faceElem.querySelector('.right .eyelid.upper'),
+        lowerLeftEyelid: faceElem.querySelector('.left .eyelid.lower'),
+        lowerRightEyelid: faceElem.querySelector('.right .eyelid.lower'),
+      });
+    }});
 
     return {
       animationFinish: adapt(animationFinish$$.flatten()),
