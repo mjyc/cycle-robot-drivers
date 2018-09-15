@@ -15,5 +15,4 @@ export {
   TwoSpeechbubblesType,
   TwoSpeechbubblesAction,
   IsolatedTwoSpeechbubblesAction,
-  makeTwoSpeechbubblesActionDriver,
 } from './TwoSpeechbubblesAction';

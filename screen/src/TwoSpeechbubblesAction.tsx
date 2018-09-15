@@ -4,7 +4,7 @@ import dropRepeats from 'xstream/extra/dropRepeats';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-import {makeDOMDriver} from '@cycle/dom';
+// import {makeDOMDriver} from '@cycle/dom';
 import {
   GoalID, Goal, Status, GoalStatus, Result,
   generateGoalID, initGoal, isEqual,
@@ -249,26 +249,26 @@ export function IsolatedTwoSpeechbubblesAction(sources) {
   return isolate(TwoSpeechbubblesAction)(sources);
 }
 
-export function makeTwoSpeechbubblesActionDriver({
-  DOMDriver = makeDOMDriver(document.body.firstElementChild),
-}: {
-  DOMDriver?: Driver<any, any>,
-} = {}): Driver<any, any> {
-  return function(sink$) {
-    const proxy$ = xs.create();
-    const DOM = DOMDriver(proxy$);
-    const speechbubbleAction = TwoSpeechbubblesAction({
-      goal: sink$,
-      DOM,
-    });
-    proxy$.imitate((xs.combine(speechbubbleAction.DOM, DOM.select('.face').element())
-      .map(([speechbubbles, face]) => {
-        return (
-          <div>
-            {face}
-          </div>
-        );
-      })));
-    return speechbubbleAction;
-  }
-}
+// export function makeTwoSpeechbubblesActionDriver({
+//   DOMDriver = makeDOMDriver(document.body.firstElementChild),
+// }: {
+//   DOMDriver?: Driver<any, any>,
+// } = {}): Driver<any, any> {
+//   return function(sink$) {
+//     const proxy$ = xs.create();
+//     const DOM = DOMDriver(proxy$);
+//     const speechbubbleAction = TwoSpeechbubblesAction({
+//       goal: sink$,
+//       DOM,
+//     });
+//     proxy$.imitate((xs.combine(speechbubbleAction.DOM, DOM.select('.face').element())
+//       .map(([speechbubbles, face]) => {
+//         return (
+//           <div>
+//             {face}
+//           </div>
+//         );
+//       })));
+//     return speechbubbleAction;
+//   }
+// }

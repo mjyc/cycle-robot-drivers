@@ -1,9 +1,9 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
+import fromEvent from 'xstream/extra/fromEvent';
 import {Stream} from 'xstream';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
-import {makeDOMDriver, VNode} from '@cycle/dom';
 import {
   Goal, GoalStatus, Status, initGoal,
 } from '@cycle-robot-drivers/action';
@@ -268,30 +268,23 @@ type SetStateCommandArgs = {
 
 type Command = {
   type: CommandType,
-  args: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs
-    | VNode,
+  args: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
 
 export function makeTabletFaceDriver({
-  styles: {
-    faceColor = 'whitesmoke',
-    faceHeight = '100vh',
-    faceWidth = '100vw',
-    eyeColor = 'black',
-    eyeSize = '33.33vh',
-    eyelidColor = 'whitesmoke',
-  } = {},
-  DOMDriver = makeDOMDriver(document.body.firstElementChild),
+  faceColor = 'whitesmoke',
+  faceHeight = '100vh',
+  faceWidth = '100vw',
+  eyeColor = 'black',
+  eyeSize = '33.33vh',
+  eyelidColor = 'whitesmoke',
 }: {
-  styles?: {
-    faceColor?: string,
-    faceHeight?: string,
-    faceWidth?: string,
-    eyeColor?: string,
-    eyeSize?: string,
-    eyelidColor?: string,
-  },
-  DOMDriver?: Driver<any, any>,
+  faceColor?: string,
+  faceHeight?: string,
+  faceWidth?: string,
+  eyeColor?: string,
+  eyeSize?: string,
+  eyelidColor?: string,
 } = {}): Driver<any, any> {
   const styles = {
     face: {
@@ -338,6 +331,18 @@ export function makeTabletFaceDriver({
   return function(command$) {
     let animations = {};
 
+    fromEvent(window, 'load').addListener({next: (event) => {
+      console.log(event);
+      // eyes.setElements({
+      //   leftEye: faceElem.querySelector('.left.eye'),
+      //   rightEye: faceElem.querySelector('.right.eye'),
+      //   upperLeftEyelid: faceElem.querySelector('.left .eyelid.upper'),
+      //   upperRightEyelid: faceElem.querySelector('.right .eyelid.upper'),
+      //   lowerLeftEyelid: faceElem.querySelector('.left .eyelid.lower'),
+      //   lowerRightEyelid: faceElem.querySelector('.right .eyelid.lower'),
+      // });
+    }});
+
     const animationFinish$$: Stream<Stream<any[]>> = xs.create();
     const speechbubblesDOM$ = xs.create();
     command$.addListener({
@@ -381,9 +386,8 @@ export function makeTabletFaceDriver({
       }
     });
 
-    DOMDriver(speechbubblesDOM$.map((speechbubbles) => (
+    const vnode$ = xs.of(
       <div className="face" style={styles.face}>
-        {speechbubbles}
         <div className="eye left" style={
           (Object as any).assign({}, styles.eye, styles.left)
         }>
@@ -410,18 +414,10 @@ export function makeTabletFaceDriver({
           </div>
         </div>
       </div>
-    ))).select('.face').element().addListener({next: (faceElem) => {
-      eyes.setElements({
-        leftEye: faceElem.querySelector('.left.eye'),
-        rightEye: faceElem.querySelector('.right.eye'),
-        upperLeftEyelid: faceElem.querySelector('.left .eyelid.upper'),
-        upperRightEyelid: faceElem.querySelector('.right .eyelid.upper'),
-        lowerLeftEyelid: faceElem.querySelector('.left .eyelid.lower'),
-        lowerRightEyelid: faceElem.querySelector('.right .eyelid.lower'),
-      });
-    }});
+    );
 
     return {
+      DOM: vnode$,
       animationFinish: adapt(animationFinish$$.flatten()),
     }
   }
