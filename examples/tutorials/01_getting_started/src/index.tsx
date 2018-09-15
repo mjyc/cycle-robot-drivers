@@ -10,7 +10,7 @@ import {
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
 import {
-  makeTabletFaceDriver,
+  TabletFace,
 } from '@cycle-robot-drivers/screen';
 
 
@@ -40,9 +40,11 @@ function powerup(
 
 function main(sources) {
   sources.proxies = {
+    TabletFace: xs.create(),
     SpeechSynthesisAction: xs.create(),
     SpeechRecognitionAction: xs.create(),
   };
+  sources.TabletFace = TabletFace(sources.proxies.TabletFace);
   sources.SpeechSynthesisAction = SpeechSynthesisAction({
     goal: sources.proxies.SpeechSynthesisAction,
     SpeechSynthesis: sources.SpeechSynthesis,
@@ -55,6 +57,7 @@ function main(sources) {
 
   const synthGoal$ = xs.of({text: 'Hello'}).compose(delay(1000));
   const recogGoal$ = xs.of({}).compose(delay(1000));
+  const faceGoal$ = xs.of({type: 'EXPRESS', args: {type: 'happy'}}).compose(delay(1000));
 
   sources.SpeechSynthesisAction.result
     .debug('SpeechSynthesisAction.result')
@@ -68,6 +71,7 @@ function main(sources) {
     SpeechSynthesis: sources.SpeechSynthesisAction.output,
     SpeechRecognition: sources.SpeechRecognitionAction.output,
     targets: {
+      TabletFace: faceGoal$,
       SpeechSynthesisAction: synthGoal$,
       SpeechRecognitionAction: recogGoal$,
     },
@@ -76,7 +80,6 @@ function main(sources) {
 
 run(powerup(main, (proxy, target) => proxy.imitate(target)), {
   DOM: makeDOMDriver('#app'),
-  TabletFace: makeTabletFaceDriver(),
   SpeechSynthesis: makeSpeechSynthesisDriver(),
   SpeechRecognition: makeSpeechRecognitionDriver(),
 });
