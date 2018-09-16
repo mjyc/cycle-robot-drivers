@@ -154,8 +154,11 @@ export function AudioPlayerAction(sources) {
         status: state.status,
       },
       result: state.result,
-    } as Result))
-    .drop(1);  // ignore first "SUCCEEDED";
+    } as Result));
+
+  // IMPORTANT!! empty the streams manually; otherwise it emits the first
+  //   "SUCCEEDED" result
+  value$.addListener({next: () => {}});
 
 
   return {
