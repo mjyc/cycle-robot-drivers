@@ -4,6 +4,7 @@
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "dependencies": {
+    "@cycle-robot-drivers/action": "file:../../../action",
     "@cycle-robot-drivers/screen": "file:../../../screen",
     "@cycle-robot-drivers/sound": "file:../../../sound",
     "@cycle-robot-drivers/speech": "file:../../../speech",
