@@ -17,6 +17,7 @@ import {
   makeSpeechRecognitionDriver,
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
+import {makePoseDetectionDriver} from 'cycle-posenet-drivers';
 
 
 function powerup(
@@ -92,15 +93,22 @@ function main(sources) {
   sources.AudioPlayerAction.value
     .debug('AudioPlayerAction.value')
     .addListener({next: () => {}});
+  sources.PoseDetection.poses
+    // .debug('PoseDetection.poses')  // see the outputs in the browser
+    .addListener({next: () => {}});
     
   return {
-    DOM: xs.combine(sources.TabletFace.DOM, sources.TwoSpeechbubblesAction.DOM)
-      .map(([face, speechbubbles]) => (
-        <div>
-          {speechbubbles}
-          {face}
-        </div>
-      )),
+    DOM: xs.combine(
+      sources.TabletFace.DOM,
+      sources.TwoSpeechbubblesAction.DOM,
+      sources.PoseDetection.DOM
+    ).map(([face, speechbubbles, poseDetectionViz]) => (
+      <div>
+        {speechbubbles}
+        {face}
+        {poseDetectionViz}
+      </div>
+    )),
     AudioPlayer: sources.AudioPlayerAction.value,
     SpeechSynthesis: sources.SpeechSynthesisAction.output,
     SpeechRecognition: sources.SpeechRecognitionAction.output,
@@ -119,4 +127,5 @@ run(powerup(main, (proxy, target) => proxy.imitate(target)), {
   AudioPlayer: makeAudioPlayerDriver(),
   SpeechSynthesis: makeSpeechSynthesisDriver(),
   SpeechRecognition: makeSpeechRecognitionDriver(),
+  PoseDetection: makePoseDetectionDriver(),
 });
