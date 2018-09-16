@@ -129,3 +129,16 @@ run(powerup(main, (proxy, target) => proxy.imitate(target)), {
   SpeechRecognition: makeSpeechRecognitionDriver(),
   PoseDetection: makePoseDetectionDriver(),
 });
+
+
+function runRobotProgram(main, drivers) {
+
+  // go through keys in drivers and check it has required drivers
+  //   otherwise create one
+
+  // create a new main
+
+  // poweritup
+
+  // run()
+};

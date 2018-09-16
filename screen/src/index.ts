@@ -4,7 +4,6 @@ export {
 } from './tablet_face';
 export {
   FacialExpressionAction,
-  makeFacialExpressionActionDriver,
 } from './FacialExpressionAction';
 export {
   SpeechbubbleType,
