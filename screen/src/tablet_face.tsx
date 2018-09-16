@@ -1,8 +1,6 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import fromEvent from 'xstream/extra/fromEvent';
 import {Stream} from 'xstream';
-import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
   Goal, GoalStatus, Status, initGoal,

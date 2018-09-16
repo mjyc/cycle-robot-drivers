@@ -7,11 +7,11 @@ import {initGoal} from '@cycle-robot-drivers/action';
 import {
   makeSpeechSynthesisDriver,
   SpeechSynthesisAction,
-} from '@cycle-robot-drivers/speech'
+} from '@cycle-robot-drivers/speech';
 import {
   makeAudioPlayerDriver,
-  IsolatedAudioPlayerAction as AudioPlayerAction,
-} from '@cycle-robot-drivers/sound'
+  AudioPlayerAction,
+} from '@cycle-robot-drivers/sound';
 
 const files = [
   require('../public/snd/IWohoo1.ogg'),

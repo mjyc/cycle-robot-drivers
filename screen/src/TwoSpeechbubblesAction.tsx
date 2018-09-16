@@ -1,7 +1,6 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
-import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
 // import {makeDOMDriver} from '@cycle/dom';

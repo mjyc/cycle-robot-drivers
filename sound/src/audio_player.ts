@@ -19,15 +19,15 @@ export function makeAudioPlayerDriver() {
 
   return function audioPlayerDriver(sink$) {
     sink$.addListener({
-      next: (props) => {
-        if (!props) {
+      next: (args) => {
+        if (!args) {
           audio.pause();
         } else {
           // array values are a subset of HTMLAudioElement properties; see
           //   https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement
-          ['src', 'volume', 'loop'].map(prop => {
-            if (prop in props) {
-              audio[prop] = props[prop];
+          ['src', 'volume', 'loop'].map(arg => {
+            if (arg in args) {
+              audio[arg] = args[arg];
             }
           });
           audio.play();

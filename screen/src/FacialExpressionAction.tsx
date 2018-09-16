@@ -1,14 +1,11 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
-import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
-import isolate from '@cycle/isolate';
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action';
-import {makeTabletFaceDriver} from './tablet_face';
 
 export function FacialExpressionAction(sources) {
   // Create action stream
@@ -145,20 +142,4 @@ export function FacialExpressionAction(sources) {
     status: adapt(status$),
     result: adapt(result$),
   };
-}
-
-export function makeFacialExpressionActionDriver({
-  tabletFaceDriver = makeTabletFaceDriver(),
-}: {
-  tabletFaceDriver?: Driver<any, any>,
-} = {}): Driver<any, any> {
-  return function(sink$) {
-    const proxy$ = xs.create();
-    const facialExpressionAction = FacialExpressionAction({
-      goal: sink$,
-      TabletFace: tabletFaceDriver(proxy$),
-    });
-    proxy$.imitate(facialExpressionAction.value);
-    return facialExpressionAction;
-  }
 }
