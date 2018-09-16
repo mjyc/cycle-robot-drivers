@@ -10,8 +10,7 @@ function main(sources) {
   const src = require('../public/snd/IWohoo3.ogg');
   const synthGoal$ = xs.of({text: 'Hello'}).compose(delay(1000));
   const recogGoal$ = xs.of({}).compose(delay(1000));
-  const faceGoal$ = xs.of({type: 'EXPRESS', args: {type: 'happy'}}).compose(delay(1000));
-  // const faceGoal$ = xs.of({type: 'happy'}).compose(delay(1000));
+  const faceGoal$ = xs.of({type: 'happy'}).compose(delay(1000));
   const speechGoal$ = xs.of({type: 'ASK_QUESTION', value: ['How are you?', ['Good', 'Bad']]}).compose(delay(1000));
   const soundGoal$ = xs.of({src}).compose(delay(1000));
 
@@ -23,11 +22,11 @@ function main(sources) {
   //   }
   // });
 
-  // sources.FacialExpressionAction.value
-  //   .debug('FacialExpressionAction.value')
-  //   .addListener({next: () => {}});
-  sources.AudioPlayerAction.value
-    .debug('AudioPlayerAction.value')
+  sources.FacialExpressionAction.result
+    .debug('FacialExpressionAction.result')
+    .addListener({next: () => {}});
+  sources.AudioPlayerAction.result
+    .debug('AudioPlayerAction.result')
     .addListener({next: () => {}});
   sources.SpeechSynthesisAction.result
     .debug('SpeechSynthesisAction.result')
@@ -43,8 +42,7 @@ function main(sources) {
     .addListener({next: () => {}});
     
   return {
-    TabletFace: faceGoal$,
-    // FacialExpressionAction: faceGoal$,
+    FacialExpressionAction: faceGoal$,
     TwoSpeechbubblesAction: speechGoal$,
     AudioPlayerAction: soundGoal$,
     SpeechSynthesisAction: synthGoal$,

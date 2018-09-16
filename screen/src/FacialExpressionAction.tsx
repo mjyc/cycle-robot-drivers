@@ -135,7 +135,8 @@ export function FacialExpressionAction(sources) {
         status: state.status,
       },
       result: state.result,
-    } as Result));
+    } as Result))
+    .drop(1);  // ignore first "SUCCEEDED"
 
   return {
     value: adapt(value$),

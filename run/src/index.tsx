@@ -65,10 +65,10 @@ export function runRobotProgram(
       command: sources.proxies.TabletFace,
       DOM: sources.DOM,
     });
-    // sources.FacialExpressionAction = FacialExpressionAction({
-    //   goal: sources.proxies.FaceialExpressionAction,
-    //   TabletFace: sources.TabletFace,
-    // });
+    sources.FacialExpressionAction = FacialExpressionAction({
+      goal: sources.proxies.FacialExpressionAction,
+      TabletFace: sources.TabletFace,
+    });
     sources.AudioPlayerAction = AudioPlayerAction({
       goal: sources.proxies.AudioPlayerAction,
       AudioPlayer: sources.AudioPlayer,
@@ -89,7 +89,7 @@ export function runRobotProgram(
     return (() => {
       const {
         TabletFace,
-        // FacialExpressionAction,
+        FacialExpressionAction,
         AudioPlayerAction,
         TwoSpeechbubblesAction,
         SpeechSynthesisAction,
@@ -98,8 +98,9 @@ export function runRobotProgram(
       } = main(sources);
       sinks.targets = {
         TabletFace,
-        TwoSpeechbubblesAction,
+        FacialExpressionAction,
         AudioPlayerAction,
+        TwoSpeechbubblesAction,
         SpeechSynthesisAction,
         SpeechRecognitionAction,
       };
@@ -117,9 +118,9 @@ export function runRobotProgram(
           </div>
         ));
       }
-      // if (!sinks.targets.TabletFace) {
-      //   sinks.targets.TabletFace = FacialExpressionAction.value;
-      // }
+      if (!sinks.targets.TabletFace) {
+        sinks.targets.TabletFace = sources.FacialExpressionAction.value;
+      }
       if (!sinks.AudioPlayer) {
         sinks.AudioPlayer = sources.AudioPlayerAction.value;
       }
