@@ -4,6 +4,7 @@ import {run, Driver} from '@cycle/run';
 import {powerup} from '@cycle-robot-drivers/action';
 import {
   TabletFace,
+  FacialExpressionAction,
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
 import {
@@ -27,7 +28,7 @@ export function runRobotProgram(
     SpeechRecognition?: Driver<any, any>,
     PoseDetection?: Driver<any, any>,
   },
-  runCycleProgram: any,
+  runCycleProgram?,
 ) {
   if (!main) {
     throw new Error('Must pass the argument main');
@@ -54,6 +55,7 @@ export function runRobotProgram(
   function wrappedMain(sources) {
     sources.proxies = {
       TabletFace: xs.create(),
+      FacialExpressionAction: xs.create(),
       TwoSpeechbubblesAction: xs.create(),
       AudioPlayerAction: xs.create(),
       SpeechSynthesisAction: xs.create(),
@@ -63,13 +65,17 @@ export function runRobotProgram(
       command: sources.proxies.TabletFace,
       DOM: sources.DOM,
     });
-    sources.TwoSpeechbubblesAction = TwoSpeechbubblesAction({
-      goal: sources.proxies.TwoSpeechbubblesAction,
-      DOM: sources.DOM,
-    });
+    // sources.FacialExpressionAction = FacialExpressionAction({
+    //   goal: sources.proxies.FaceialExpressionAction,
+    //   TabletFace: sources.TabletFace,
+    // });
     sources.AudioPlayerAction = AudioPlayerAction({
       goal: sources.proxies.AudioPlayerAction,
       AudioPlayer: sources.AudioPlayer,
+    });
+    sources.TwoSpeechbubblesAction = TwoSpeechbubblesAction({
+      goal: sources.proxies.TwoSpeechbubblesAction,
+      DOM: sources.DOM,
     });
     sources.SpeechSynthesisAction = SpeechSynthesisAction({
       goal: sources.proxies.SpeechSynthesisAction,
@@ -83,12 +89,20 @@ export function runRobotProgram(
     return (() => {
       const {
         TabletFace,
-        TwoSpeechbubblesAction,
+        // FacialExpressionAction,
         AudioPlayerAction,
+        TwoSpeechbubblesAction,
         SpeechSynthesisAction,
         SpeechRecognitionAction,
         ...sinks
       } = main(sources);
+      sinks.targets = {
+        TabletFace,
+        TwoSpeechbubblesAction,
+        AudioPlayerAction,
+        SpeechSynthesisAction,
+        SpeechRecognitionAction,
+      };
 
       if (!sinks.DOM) {
         sinks.DOM = xs.combine(
@@ -103,6 +117,9 @@ export function runRobotProgram(
           </div>
         ));
       }
+      // if (!sinks.targets.TabletFace) {
+      //   sinks.targets.TabletFace = FacialExpressionAction.value;
+      // }
       if (!sinks.AudioPlayer) {
         sinks.AudioPlayer = sources.AudioPlayerAction.value;
       }
@@ -113,13 +130,6 @@ export function runRobotProgram(
         sinks.SpeechRecognition = sources.SpeechRecognitionAction.output;
       }
 
-      sinks.targets = {
-        TabletFace,
-        TwoSpeechbubblesAction,
-        AudioPlayerAction,
-        SpeechSynthesisAction,
-        SpeechRecognitionAction,
-      };
       return sinks;
     })();
   }
