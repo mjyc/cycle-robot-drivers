@@ -11,6 +11,7 @@ import {
 } from '@cycle-robot-drivers/speech';
 import {
   TabletFace,
+  IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
 
 
@@ -43,10 +44,15 @@ function main(sources) {
     TabletFace: xs.create(),
     SpeechSynthesisAction: xs.create(),
     SpeechRecognitionAction: xs.create(),
+    TwoSpeechbubblesAction: xs.create(),
   };
   sources.TabletFace = TabletFace({
     DOM: sources.DOM,
     command: sources.proxies.TabletFace,
+  });
+  sources.TwoSpeechbubblesAction = TwoSpeechbubblesAction({
+    DOM: sources.DOM,
+    goal: sources.proxies.TwoSpeechbubblesAction,
   });
   sources.SpeechSynthesisAction = SpeechSynthesisAction({
     goal: sources.proxies.SpeechSynthesisAction,
@@ -61,6 +67,7 @@ function main(sources) {
   const synthGoal$ = xs.of({text: 'Hello'}).compose(delay(1000));
   const recogGoal$ = xs.of({}).compose(delay(1000));
   const faceGoal$ = xs.of({type: 'EXPRESS', args: {type: 'happy'}}).compose(delay(1000));
+  const speechGoal$ = xs.of({type: 'ASK_QUESTION', value: ['How are you?', ['Good', 'Bad']]}).compose(delay(1000));
 
   sources.SpeechSynthesisAction.result
     .debug('SpeechSynthesisAction.result')
@@ -68,16 +75,26 @@ function main(sources) {
   sources.SpeechRecognitionAction.result
     .debug('SpeechRecognitionAction.result')
     .addListener({next: () => {}});
+  sources.TwoSpeechbubblesAction.result
+    .debug('TwoSpeechbubblesAction.result')
+    .addListener({next: () => {}});
 
     
   return {
-    DOM: sources.TabletFace.DOM,
+    DOM: xs.combine(sources.TabletFace.DOM, sources.TwoSpeechbubblesAction.DOM)
+      .map(([face, speechbubbles]) => (
+        <div>
+          {speechbubbles}
+          {face}
+        </div>
+      )),
     SpeechSynthesis: sources.SpeechSynthesisAction.output,
     SpeechRecognition: sources.SpeechRecognitionAction.output,
     targets: {
       TabletFace: faceGoal$,
       SpeechSynthesisAction: synthGoal$,
       SpeechRecognitionAction: recogGoal$,
+      TwoSpeechbubblesAction: speechGoal$,
     },
   }
 }
