@@ -1,7 +1,7 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import delay from 'xstream/extra/delay'
-import {run} from '@cycle/run';
+import {run, Driver} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   TabletFace,
@@ -122,23 +122,96 @@ function main(sources) {
   }
 }
 
-run(powerup(main, (proxy, target) => proxy.imitate(target)), {
-  DOM: makeDOMDriver('#app'),
-  AudioPlayer: makeAudioPlayerDriver(),
-  SpeechSynthesis: makeSpeechSynthesisDriver(),
-  SpeechRecognition: makeSpeechRecognitionDriver(),
-  PoseDetection: makePoseDetectionDriver(),
-});
+// run(powerup(main, (proxy, target) => proxy.imitate(target)), {
+//   DOM: makeDOMDriver('#app'),
+//   AudioPlayer: makeAudioPlayerDriver(),
+//   SpeechSynthesis: makeSpeechSynthesisDriver(),
+//   SpeechRecognition: makeSpeechRecognitionDriver(),
+//   PoseDetection: makePoseDetectionDriver(),
+// });
 
 
-function runRobotProgram(main, drivers) {
+function runRobotProgram(
+  main,
+  drivers: {
+    DOM: Driver<any, any>,
+    AudioPlayer?: Driver<any, any>,
+    SpeechSynthesis?: Driver<any, any>,
+    SpeechRecognition?: Driver<any, any>,
+    PoseDetection?: Driver<any, any>,
+  }
+) {
+  if (!drivers.DOM) {
+    throw new Error('DOMDriver must be defined in drivers as DOM');
+  }
+  if (!drivers.AudioPlayer) {
+    drivers.AudioPlayer = makeAudioPlayerDriver();
+  }
+  if (!drivers.SpeechSynthesis) {
+    drivers.SpeechSynthesis = makeSpeechSynthesisDriver();
+  }
+  if (!drivers.SpeechRecognition) {
+    drivers.SpeechRecognition = makeSpeechRecognitionDriver();
+  }
+  if (!drivers.PoseDetection) {
+    drivers.PoseDetection = makePoseDetectionDriver();
+  }
 
-  // go through keys in drivers and check it has required drivers
-  //   otherwise create one
+  function wrappedMain(sources) {
+    sources.proxies = {
+      TabletFace: xs.create(),
+      TwoSpeechbubblesAction: xs.create(),
+      AudioPlayerAction: xs.create(),
+      SpeechSynthesisAction: xs.create(),
+      SpeechRecognitionAction: xs.create(),
+    };
+    sources.TabletFace = TabletFace({
+      command: sources.proxies.TabletFace,
+      DOM: sources.DOM,
+    });
+    sources.TwoSpeechbubblesAction = TwoSpeechbubblesAction({
+      goal: sources.proxies.TwoSpeechbubblesAction,
+      DOM: sources.DOM,
+    });
+    sources.AudioPlayerAction = AudioPlayerAction({
+      goal: sources.proxies.AudioPlayerAction,
+      AudioPlayer: sources.AudioPlayer,
+    });
+    sources.SpeechSynthesisAction = SpeechSynthesisAction({
+      goal: sources.proxies.SpeechSynthesisAction,
+      SpeechSynthesis: sources.SpeechSynthesis,
+    });
+    sources.SpeechRecognitionAction = SpeechRecognitionAction({
+      goal: sources.proxies.SpeechRecognitionAction,
+      SpeechRecognition: sources.SpeechRecognition,
+    });
 
-  // create a new main
+    return (() => {
+      const {
+        TabletFace,
+        TwoSpeechbubblesAction,
+        AudioPlayerAction,
+        SpeechSynthesisAction,
+        SpeechRecognitionAction,
+        ...sinks
+      } = main(sources);
+      sinks.target = {
+        TabletFace,
+        TwoSpeechbubblesAction,
+        AudioPlayerAction,
+        SpeechSynthesisAction,
+        SpeechRecognitionAction,
+      };
+      return sinks;
+    })();
+  }
 
-  // poweritup
-
-  // run()
+  return run(
+    powerup(wrappedMain, (proxy, target) => proxy.imitate(target)),
+    drivers,
+  );
 };
+
+runRobotProgram(main, {
+  DOM: makeDOMDriver('#app'),
+});
