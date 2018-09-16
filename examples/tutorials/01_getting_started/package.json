@@ -5,6 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "@cycle-robot-drivers/screen": "file:../../../screen",
+    "@cycle-robot-drivers/sound": "file:../../../sound",
     "@cycle-robot-drivers/speech": "file:../../../speech",
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
@@ -13,6 +14,7 @@
     "xstream": "11.7.0"
   },
   "devDependencies": {
+    "@types/node": "^10.5.7",
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.2",
     "file-loader": "^1.1.11",

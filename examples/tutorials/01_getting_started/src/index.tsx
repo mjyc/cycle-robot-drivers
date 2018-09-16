@@ -4,15 +4,19 @@ import delay from 'xstream/extra/delay'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
+  TabletFace,
+  IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
+} from '@cycle-robot-drivers/screen';
+import {
+  makeAudioPlayerDriver,
+  AudioPlayerAction,
+} from '@cycle-robot-drivers/sound';
+import {
   makeSpeechSynthesisDriver,
   SpeechSynthesisAction,
   makeSpeechRecognitionDriver,
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
-import {
-  TabletFace,
-  IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
-} from '@cycle-robot-drivers/screen';
 
 
 function powerup(
@@ -42,17 +46,22 @@ function powerup(
 function main(sources) {
   sources.proxies = {
     TabletFace: xs.create(),
+    TwoSpeechbubblesAction: xs.create(),
+    AudioPlayerAction: xs.create(),
     SpeechSynthesisAction: xs.create(),
     SpeechRecognitionAction: xs.create(),
-    TwoSpeechbubblesAction: xs.create(),
   };
   sources.TabletFace = TabletFace({
-    DOM: sources.DOM,
     command: sources.proxies.TabletFace,
+    DOM: sources.DOM,
   });
   sources.TwoSpeechbubblesAction = TwoSpeechbubblesAction({
-    DOM: sources.DOM,
     goal: sources.proxies.TwoSpeechbubblesAction,
+    DOM: sources.DOM,
+  });
+  sources.AudioPlayerAction = AudioPlayerAction({
+    goal: sources.proxies.AudioPlayerAction,
+    AudioPlayer: sources.AudioPlayer,
   });
   sources.SpeechSynthesisAction = SpeechSynthesisAction({
     goal: sources.proxies.SpeechSynthesisAction,
@@ -62,12 +71,14 @@ function main(sources) {
     goal: sources.proxies.SpeechRecognitionAction,
     SpeechRecognition: sources.SpeechRecognition,
   });
+  
 
-
+  const src = require('../public/snd/IWohoo3.ogg');
   const synthGoal$ = xs.of({text: 'Hello'}).compose(delay(1000));
   const recogGoal$ = xs.of({}).compose(delay(1000));
   const faceGoal$ = xs.of({type: 'EXPRESS', args: {type: 'happy'}}).compose(delay(1000));
   const speechGoal$ = xs.of({type: 'ASK_QUESTION', value: ['How are you?', ['Good', 'Bad']]}).compose(delay(1000));
+  const soundGoal$ = xs.of({src}).compose(delay(1000));
 
   sources.SpeechSynthesisAction.result
     .debug('SpeechSynthesisAction.result')
@@ -78,7 +89,9 @@ function main(sources) {
   sources.TwoSpeechbubblesAction.result
     .debug('TwoSpeechbubblesAction.result')
     .addListener({next: () => {}});
-
+  sources.AudioPlayerAction.value
+    .debug('AudioPlayerAction.value')
+    .addListener({next: () => {}});
     
   return {
     DOM: xs.combine(sources.TabletFace.DOM, sources.TwoSpeechbubblesAction.DOM)
@@ -88,19 +101,22 @@ function main(sources) {
           {face}
         </div>
       )),
+    AudioPlayer: sources.AudioPlayerAction.value,
     SpeechSynthesis: sources.SpeechSynthesisAction.output,
     SpeechRecognition: sources.SpeechRecognitionAction.output,
     targets: {
       TabletFace: faceGoal$,
+      TwoSpeechbubblesAction: speechGoal$,
+      AudioPlayerAction: soundGoal$,
       SpeechSynthesisAction: synthGoal$,
       SpeechRecognitionAction: recogGoal$,
-      TwoSpeechbubblesAction: speechGoal$,
     },
   }
 }
 
 run(powerup(main, (proxy, target) => proxy.imitate(target)), {
   DOM: makeDOMDriver('#app'),
+  AudioPlayer: makeAudioPlayerDriver(),
   SpeechSynthesis: makeSpeechSynthesisDriver(),
   SpeechRecognition: makeSpeechRecognitionDriver(),
 });
