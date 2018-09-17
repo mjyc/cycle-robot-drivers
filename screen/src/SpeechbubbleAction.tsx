@@ -27,9 +27,18 @@ export function SpeechbubbleAction(sources) {
         value: null,
       };
     } else {
+      const value = !!(goal as any).goal_id ? goal as any: initGoal(goal);
       return {
         type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
+        value: !value.goal.type ? {
+          goal_id: value.goal_id,
+          goal: {
+            type: typeof value.goal === 'string'
+              ? SpeechbubbleType.MESSAGE
+              : SpeechbubbleType.CHOICE,
+            value: value.goal,
+          },
+        } : value,
       };
     }
   });

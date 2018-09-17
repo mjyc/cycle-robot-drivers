@@ -54,7 +54,7 @@ function input(
           value: null,  // means "cancel"
         };
       } else {
-        let value = !!(goal as any).goal_id ? goal : initGoal(goal);
+        const value = !!(goal as any).goal_id ? goal : initGoal(goal);
         return {
           type: InputType.GOAL,
           value: typeof value.goal === 'string'

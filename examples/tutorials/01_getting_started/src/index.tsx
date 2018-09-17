@@ -1,36 +1,28 @@
 import Snabbdom from 'snabbdom-pragma';
-import xs from 'xstream';
 import {makeDOMDriver} from '@cycle/dom';
 import {runRobotProgram as run} from '@cycle-robot-drivers/run';
+import xs from 'xstream';
 
 
 function main(sources) { 
   const goals$ = sources.TabletFace.load.map(() => ({
-    face: {type: 'happy'},
-    sound: {src: require('../public/snd/IWohoo3.ogg')},
-    speechbubble: {type: 'ASK_QUESTION', value: ['How are you?', ['Good', 'Bad']]},
-    synthesis: {text: 'Hello there!'},
+    face: 'happy',
+    sound: require('../public/snd/IWohoo3.ogg'),
+    speechbubble: {
+      message: 'How are you?',
+      choices: ['Good', 'Bad'],
+    },
+    synthesis: 'Hello there!',
     recognition: {},
   }));
 
-  sources.FacialExpressionAction.result
-    .debug('FacialExpressionAction.result')
-    .addListener({next: () => {}});
-  sources.AudioPlayerAction.result
-    .debug('AudioPlayerAction.result')
-    .addListener({next: () => {}});
-  sources.SpeechSynthesisAction.result
-    .debug('SpeechSynthesisAction.result')
-    .addListener({next: () => {}});
-  sources.SpeechRecognitionAction.result
-    .debug('SpeechRecognitionAction.result')
-    .addListener({next: () => {}});
   sources.TwoSpeechbubblesAction.result
-    .debug('TwoSpeechbubblesAction.result')
-    .addListener({next: () => {}});
+    .addListener({next: result => console.log(result)});
+  sources.SpeechRecognitionAction.result
+    .addListener({next: result => console.log(result)});
+  // see the visual outputs in the browser as well
   sources.PoseDetection.poses
-    // .debug('PoseDetection.poses')  // see the outputs in the browser
-    .addListener({next: () => {}});
+    .addListener({next: poses => console.log(poses)});
     
   return {
     FacialExpressionAction: goals$.map(goals => goals.face),
@@ -38,6 +30,10 @@ function main(sources) {
     AudioPlayerAction: goals$.map(goals => goals.sound),
     SpeechSynthesisAction: goals$.map(goals => goals.synthesis),
     SpeechRecognitionAction: goals$.map(goals => goals.recognition),
+    PoseDetection: xs.of({
+      algorithm: 'single-pose',
+      singlePoseDetection: {minPoseConfidence: 0.2},
+    }),
   }
 }
 

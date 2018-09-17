@@ -22,10 +22,15 @@ export function AudioPlayerAction(sources) {
         value: null,  // goal MUST BE null on CANCEL
       };
     } else {
+      const value = !!(goal as any).goal_id ? goal as any : initGoal(goal);
       return {
         type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
-      }
+        value: typeof value.goal === 'string'
+          ? {
+            goal_id: value.goal_id,
+            goal: {src: value.goal},
+          } : value,
+      };
     }
   });
   const events$ = xs.merge(

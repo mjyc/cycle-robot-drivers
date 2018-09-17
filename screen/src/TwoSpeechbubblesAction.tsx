@@ -3,7 +3,6 @@ import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-// import {makeDOMDriver} from '@cycle/dom';
 import {
   GoalID, Goal, Status, GoalStatus, Result,
   generateGoalID, initGoal, isEqual,
@@ -50,9 +49,18 @@ function main(sources) {
         value: null,
       };
     } else {
+      const value = !!(goal as any).goal_id ? goal as any: initGoal(goal);
       return {
         type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
+        value: !value.goal.type ? {
+          goal_id: value.goal_id,
+          goal: {
+            type: typeof value.goal === 'string'
+              ? TwoSpeechbubblesType.SET_MESSAGE
+              : TwoSpeechbubblesType.ASK_QUESTION,
+            value: value.goal,
+          }
+        } : value,
       };
     }
   });
@@ -193,14 +201,14 @@ function main(sources) {
             goal_id: state.goal_id,
             goal: {
               type: SpeechbubbleType.MESSAGE,
-              value: state.goal.value[0],
+              value: state.goal.value.message,
             },
           },
           second: {
             goal_id: state.goal_id,
             goal: {
               type: SpeechbubbleType.CHOICE,
-              value: state.goal.value[1],
+              value: state.goal.value.choices,
             },
           },
         };

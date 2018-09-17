@@ -21,9 +21,15 @@ export function FacialExpressionAction(sources) {
         value: null,
       };
     } else {
+      const value = !!(goal as any).goal_id ? goal as any : initGoal(goal);
       return {
         type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
+        value: typeof value.goal === 'string' ? {
+          goal_id: value.goal_id,
+          goal: {
+            type: value.goal,
+          }
+        } : value,
       };
     }
   });
