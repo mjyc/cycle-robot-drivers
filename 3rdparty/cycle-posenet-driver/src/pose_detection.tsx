@@ -233,7 +233,8 @@ export function makePoseDetectionDriver({
       }
     }
 
-    window.addEventListener('load', async () => {
+    // window.addEventListener('load', async () => {
+    setTimeout(async () => {
       if (!video) {
         video = await setupCamera(
           document.querySelector('#pose_detection_video'), videoWidth, videoHeight);
@@ -258,7 +259,8 @@ export function makePoseDetectionDriver({
         document.querySelector('#pose_detection').appendChild(gui.domElement);
         gui.closed = true;
       }
-    });
+    }, 1000);
+    // });
 
     const initialParams = {
       algorithm: 'multi-pose',

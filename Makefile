@@ -1,11 +1,11 @@
-.PHONY: lib action screen speech sound 3rdparty/cycle-posenet-drivers run
+.PHONY: lib action screen speech sound 3rdparty/cycle-posenet-driver run
 
 BINDIR=node_modules/.bin
 TSC=$(BINDIR)/tsc
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action screen speech sound 3rdparty/cycle-posenet-drivers run
+PACKAGES := action screen speech sound 3rdparty/cycle-posenet-driver run
 
 all:
 	@echo "npm install"
@@ -57,7 +57,7 @@ sound:
 speech:
 	@:
 
-3rdparty/cycle-posenet-drivers:
+3rdparty/cycle-posenet-driver:
 	@:
 
 run:
