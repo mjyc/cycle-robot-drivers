@@ -1,15 +1,17 @@
-export {makeTabletFaceDriver} from './tablet_face'
+export {
+  ExpressCommandType,
+  TabletFace,
+} from './tablet_face';
 export {
   FacialExpressionAction,
-  IsolatedFacialExpressionAction,
-} from './FacialExpressionAction'
+} from './FacialExpressionAction';
 export {
   SpeechbubbleType,
   SpeechbubbleAction,
   IsolatedSpeechbubbleAction,
-} from './SpeechbubbleAction'
+} from './SpeechbubbleAction';
 export {
   TwoSpeechbubblesType,
   TwoSpeechbubblesAction,
   IsolatedTwoSpeechbubblesAction,
-} from './TwoSpeechbubblesAction'
+} from './TwoSpeechbubblesAction';

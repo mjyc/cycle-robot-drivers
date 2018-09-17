@@ -4,7 +4,6 @@ import {adapt} from '@cycle/run/lib/adapt';
 import {
   GoalID, Goal, Status, Result, initGoal,
 } from '@cycle-robot-drivers/action';
-import {makeSpeechRecognitionDriver} from './speech_recognition';
 
 
 enum State {
@@ -95,7 +94,7 @@ function transition(
 ): ReducerState {
   const states = transitionTable[prevState];
   if (!states) {
-    throw new Error(`Invalid prevState: "${prevState}"`);
+    throw new Error(`Invalid prevState="${prevState}"`);
   }
 
   let state = states[input.type];
@@ -235,18 +234,4 @@ export function SpeechRecognitionAction(sources) {
     output: adapt(outputs$.map(outputs => outputs.args)),
     result: adapt(result$),
   };
-}
-
-export function makeSpeechRecognitionActionDriver() {
-  const speechRecognitionDriver = makeSpeechRecognitionDriver();
-
-  return function speechRecognitionActionDriver(sink$) {
-    const proxy$ = xs.create();
-    const speechRecognitionAction = SpeechRecognitionAction({
-      goal: sink$,
-      SpeechRecognition: speechRecognitionDriver(proxy$)
-    });
-    proxy$.imitate(speechRecognitionAction.output);
-    return speechRecognitionAction;
-  }
 }

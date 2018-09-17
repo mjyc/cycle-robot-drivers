@@ -1,10 +1,10 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import fromEvent from 'xstream/extra/fromEvent'
+import {Stream} from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
-  makeTabletFaceDriver,
+  TabletFace,
 } from '@cycle-robot-drivers/screen'
 import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
 
@@ -45,10 +45,15 @@ function main(sources) {
     (text === "Start following face") ? faceMoving$ : faceStatic$
   ).flatten();
 
+  const tabletFace = TabletFace({
+    command: face$,
+    DOM: sources.DOM,
+  });
+
   const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(
     sources.PoseDetection.poses.startWith([]),
-    sources.TabletFace.DOM,
+    tabletFace.DOM,
     sources.PoseDetection.DOM,
     lastClick$,
   ).map(([p, f, d, l]) => (
@@ -94,6 +99,5 @@ function main(sources) {
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  TabletFace: makeTabletFaceDriver(),
   PoseDetection: makePoseDetectionDriver({videoWidth, videoHeight}),
 });

@@ -1,13 +1,12 @@
 import Snabbdom from 'snabbdom-pragma';
-import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
-import {adapt} from '@cycle/run/lib/adapt'
+import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
+import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   generateGoalID, initGoal, isEqual,
-} from '@cycle-robot-drivers/action'
+} from '@cycle-robot-drivers/action';
 
 export enum SpeechbubbleType {
   MESSAGE = 'MESSAGE',
@@ -28,9 +27,18 @@ export function SpeechbubbleAction(sources) {
         value: null,
       };
     } else {
+      const value = !!(goal as any).goal_id ? goal as any: initGoal(goal);
       return {
         type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
+        value: !value.goal.type ? {
+          goal_id: value.goal_id,
+          goal: {
+            type: typeof value.goal === 'string'
+              ? SpeechbubbleType.MESSAGE
+              : SpeechbubbleType.CHOICE,
+            value: value.goal,
+          },
+        } : value,
       };
     }
   });
@@ -167,4 +175,4 @@ export function SpeechbubbleAction(sources) {
 
 export function IsolatedSpeechbubbleAction(sources) {
   return isolate(SpeechbubbleAction)(sources);
-};
+}

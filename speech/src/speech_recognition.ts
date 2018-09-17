@@ -1,22 +1,24 @@
 import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
+import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
+import {EventSource} from '@cycle-robot-drivers/action';
 
 
-class RecognitionSource {
+class RecognitionSource implements EventSource {
   constructor(
     private _recognition: SpeechRecognition,
   ) {}
 
-  events(eventName: string): Stream<Event> {
+  events(eventName: string) {
     return adapt(fromEvent(this._recognition, eventName));
   }
 }
 
-export function makeSpeechRecognitionDriver() {
+export function makeSpeechRecognitionDriver(): Driver<any, any> {
   const recognition: SpeechRecognition = new webkitSpeechRecognition();
 
-  return function speechRecognitionDriver(sink$) {
+  return function(sink$) {
     sink$.addListener({
       next: (args) => {
         // array values are SpeechSynthesisUtterance properties that are not
@@ -35,6 +37,6 @@ export function makeSpeechRecognitionDriver() {
       }
     });
 
-    return new RecognitionSource(recognition);
+    return new RecognitionSource(recognition) as EventSource;
   }
 }

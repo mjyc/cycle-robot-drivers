@@ -1,11 +1,11 @@
 import Snabbdom from 'snabbdom-pragma';
-import xs from 'xstream'
-import {Stream} from 'xstream'
-import fromEvent from 'xstream/extra/fromEvent'
-import {adapt} from '@cycle/run/lib/adapt'
+import xs from 'xstream';
+import {Stream} from 'xstream';
+import {adapt} from '@cycle/run/lib/adapt';
 import {
   Goal, GoalStatus, Status, initGoal,
-} from '@cycle-robot-drivers/action'
+} from '@cycle-robot-drivers/action';
+
 
 // adapted from
 //   https://github.com/mjyc/tablet-robot-face/blob/709b731dff04033c08cf045adc4e038eefa750a2/index.js#L3-L184
@@ -68,7 +68,8 @@ class EyeController {
     exitDuration = 75,
   }) {
     if (!this._leftEye) {  // assumes all elements are always set together
-      console.warn('Skipping; eye elements are not set');
+      console.warn('Eye elements are not set; return;');
+      return;
     }
 
     const options = {
@@ -159,7 +160,7 @@ class EyeController {
         }
 
       default:
-        console.warn(`Invalid input type: ${type}`);
+        console.warn(`Invalid input type=${type}`);
     }
   }
 
@@ -167,7 +168,8 @@ class EyeController {
     duration = 150,  // in ms
   } = {}) {
     if (!this._leftEye) {  // assumes all elements are always set together
-      console.warn('Skipping; eye elements are not set');
+      console.warn('Eye elements are not set; return;');
+      return;
     }
 
     [this._leftEye, this._rightEye].map((eye) => {
@@ -186,7 +188,7 @@ class EyeController {
     maxInterval = 5000
   } = {}) {
     if (this._blinkTimeoutID) {
-      console.warn(`Skipping; already blinking with timeoutID: ${this._blinkTimeoutID}`);
+      console.warn(`Already blinking with timeoutID=${this._blinkTimeoutID}; return;`);
       return;
     }
     const blinkRandomly = (timeout) => {
@@ -202,35 +204,90 @@ class EyeController {
     clearTimeout(this._blinkTimeoutID);
     this._blinkTimeoutID = null;
   }
+
+  setEyePosition(eyeElem, x, y, isRight = false) {
+    if (!eyeElem) {  // assumes all elements are always set together
+      console.warn('Invalid inputs ', eyeElem, x, y, '; retuning');
+      return;
+    }
+
+    if (!!x) {
+      if (!isRight) {
+        eyeElem.style.left = `calc(${this._eyeSize} / 3 * 2 * ${x})`;
+      } else {
+        eyeElem.style.right = `calc(${this._eyeSize} / 3 * 2 * ${1-x})`;
+      }
+    }
+    if (!!y) {
+      eyeElem.style.bottom = `calc(${this._eyeSize} / 3 * 2 * ${1-y})`;
+    }
+  }
 }
 
-enum ActionType {
+
+enum CommandType {
   EXPRESS = 'EXPRESS',
   START_BLINKING = 'START_BLINKING',
   STOP_BLINKING = 'STOP_BLINKING',
   SET_STATE = 'SET_STATE',
+  SPEECHBUBBLES = 'SPEECHBUBBLES',
 }
 
-type Action = {
-  type: ActionType,
-  value: any,
+export enum ExpressCommandType {
+  HAPPY = 'happy',
+  SAD = 'sad',
+  ANGRY = 'angry',
+  FOCUSED = 'focused',
+  CONFUSED = 'confused',
 }
 
-export function makeTabletFaceDriver({
-  faceColor = 'whitesmoke',
-  faceHeight = '100vh',
-  faceWidth = '100vw',
-  eyeColor = 'black',
-  eyeSize = '33.33vh',
-  eyelidColor = 'whitesmoke',
+type ExpressCommandArgs = {
+  type: ExpressCommandType,
+  // level: number
+  duration: number,
+  enterDuration: number,
+  exitDuration: number,
+}
+
+type StartBlinkingCommandArgs = {
+  maxInterval: number,
+}
+
+type SetStateCommandArgs = {
+  leftEye: {
+    x: number,
+    y: number,
+  },
+  rightEye: {
+    x: number,
+    y: number,
+  },
+}
+
+type Command = {
+  type: CommandType,
+  value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
+}
+
+export function TabletFace(sources, {
+  styles: {
+    faceColor = 'whitesmoke',
+    faceHeight = '100vh',
+    faceWidth = '100vw',
+    eyeColor = 'black',
+    eyeSize = '33.33vh',
+    eyelidColor = 'whitesmoke',
+  }
 }: {
-  faceColor?: string,
-  faceHeight?: string,
-  faceWidth?: string,
-  eyeColor?: string,
-  eyeSize?: string,
-  eyelidColor?: string,
-} = {}) {
+  styles?: {
+    faceColor?: string,
+    faceHeight?: string,
+    faceWidth?: string,
+    eyeColor?: string,
+    eyeSize?: string,
+    eyelidColor?: string,
+  },
+} = {styles: {}}) {
   const styles = {
     face: {
       backgroundColor: faceColor,
@@ -272,115 +329,97 @@ export function makeTabletFaceDriver({
     },
   };
   const eyes = new EyeController();
+  const id = `face-${String(Math.random()).substr(2)}`;
 
-  function setEyePosition(
-    eyeElem: HTMLElement,
-    x: number,
-    y: number,
-    isRight = false,
-  ) {
-    if (!eyeElem) {
-      console.warn('Invalid input:', eyeElem, x, y, '; retuning');
-      return;
-    }
-
-    if (!!x) {
-      if (!isRight) {
-        eyeElem.style.left = `calc(${eyeSize} / 3 * 2 * ${x})`;
-      } else {
-        eyeElem.style.right = `calc(${eyeSize} / 3 * 2 * ${1-x})`;
-      }
-    }
-    if (!!y) {
-      eyeElem.style.bottom = `calc(${eyeSize} / 3 * 2 * ${1-y})`;
-    }
-  }
-
-  return function tabletFaceDriver(sink$) {
-    let animations = {};
-
-    fromEvent(window, 'load').addListener({next: () => {
-      eyes.setElements({
-        leftEye: document.querySelector('.left.eye'),
-        rightEye: document.querySelector('.right.eye'),
-        upperLeftEyelid: document.querySelector('.left .eyelid.upper'),
-        upperRightEyelid: document.querySelector('.right .eyelid.upper'),
-        lowerLeftEyelid: document.querySelector('.left .eyelid.lower'),
-        lowerRightEyelid: document.querySelector('.right .eyelid.lower'),
-      })
-    }});
-
-    const allFinish$$: Stream<Stream<any[]>> = xs.create();
-    sink$.addListener({
-      next: function(action: Action) {
-        if (!action) {
-          Object.keys(animations).map((key) => {
-            animations[key].cancel();
-          });
-          return;
-        }
-        switch (action.type) {
-          case ActionType.EXPRESS:
-            animations = eyes.express(action.value);
-            allFinish$$.shamefullySendNext(
-              xs.fromPromise(
-                Promise.all(Object.keys(animations).map((key) => {
-                  return new Promise((resolve, reject) => {
-                    animations[key].onfinish = resolve;
-                  })
-                }))
-              )
-            );
-            break;
-          case ActionType.START_BLINKING:
-            eyes.startBlinking(action.value);
-            break;
-          case ActionType.STOP_BLINKING:
-            eyes.startBlinking(action.value);
-            break;
-          case ActionType.SET_STATE:
-            const leftPos = action.value && action.value.leftEye || {};
-            const rightPos = action.value && action.value.rightEye || {};
-            setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
-            setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
-            break;
-        }
-      }
+  const faceElement$ = sources.DOM.select(`#${id}`).element();
+  faceElement$.addListener({next: (element) => {
+    eyes.setElements({
+      leftEye: element.querySelector('.left.eye'),
+      rightEye: element.querySelector('.right.eye'),
+      upperLeftEyelid: element.querySelector('.left .eyelid.upper'),
+      upperRightEyelid: element.querySelector('.right .eyelid.upper'),
+      lowerLeftEyelid: element.querySelector('.left .eyelid.lower'),
+      lowerRightEyelid: element.querySelector('.right .eyelid.lower'),
     });
+  }});
 
-    const vdom$ = xs.of((
-      <div className="face" style={styles.face}>
-        <div className="eye left" style={
-          (Object as any).assign({}, styles.eye, styles.left)
+  let animations = {};
+  const animationFinish$$: Stream<Stream<any[]>> = xs.create();
+  const speechbubblesDOM$ = xs.create();
+  xs.fromObservable(sources.command).addListener({
+    next: function(command: Command) {
+      if (!command) {
+        Object.keys(animations).map((key) => {
+          animations[key].cancel();
+        });
+        return;
+      }
+      switch (command.type) {
+        case CommandType.EXPRESS:
+          animations = eyes.express(command.value as ExpressCommandArgs) || {};
+          animationFinish$$.shamefullySendNext(
+            xs.fromPromise(
+              Promise.all(Object.keys(animations).map((key) => {
+                return new Promise((resolve, reject) => {
+                  animations[key].onfinish = resolve;
+                })
+              }))
+            )
+          );
+          break;
+        case CommandType.START_BLINKING:
+          eyes.startBlinking(command.value as StartBlinkingCommandArgs);
+          break;
+        case CommandType.STOP_BLINKING:
+          eyes.stopBlinking();
+          break;
+        case CommandType.SET_STATE:
+          const value = command.value as SetStateCommandArgs;
+          const leftPos = value && value.leftEye || {x: null, y: null};
+          const rightPos = value && value.rightEye || {x: null, y: null};
+          eyes.setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
+          eyes.setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
+          break;
+        case CommandType.SPEECHBUBBLES:
+          speechbubblesDOM$.shamefullySendNext(command.value);
+          break;
+      }
+    }
+  });
+
+  const vnode$ = xs.of(
+    <div className="face" style={styles.face} id={id}>
+      <div className="eye left" style={
+        (Object as any).assign({}, styles.eye, styles.left)
+      }>
+        <div className="eyelid upper" style={
+          (Object as any).assign({}, styles.eyelid, styles.upper)
         }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
         </div>
-
-        <div className="eye right" style={
-          (Object as any).assign({}, styles.eye, styles.right)
+        <div className="eyelid lower" style={
+          (Object as any).assign({}, styles.eyelid, styles.lower)
         }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
         </div>
       </div>
-    ));
 
-    return {
-      DOM: adapt(vdom$),
-      allFinish: adapt(allFinish$$.flatten()),
-    }
+      <div className="eye right" style={
+        (Object as any).assign({}, styles.eye, styles.right)
+      }>
+        <div className="eyelid upper" style={
+          (Object as any).assign({}, styles.eyelid, styles.upper)
+        }>
+        </div>
+        <div className="eyelid lower" style={
+          (Object as any).assign({}, styles.eyelid, styles.lower)
+        }>
+        </div>
+      </div>
+    </div>
+  );
+
+  return {
+    DOM: adapt(vnode$),
+    animationFinish: adapt(animationFinish$$.flatten()),
+    load: adapt(faceElement$.take(1).mapTo(null)),
   }
 }

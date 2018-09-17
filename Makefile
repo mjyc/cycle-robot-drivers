@@ -1,11 +1,11 @@
-.PHONY: lib action screen speech sound 3rdparty/cycle-posenet-drivers
+.PHONY: lib action screen speech sound 3rdparty/cycle-posenet-drivers run
 
 BINDIR=node_modules/.bin
 TSC=$(BINDIR)/tsc
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action screen speech sound 3rdparty/cycle-posenet-drivers
+PACKAGES := action screen speech sound 3rdparty/cycle-posenet-drivers run
 
 all:
 	@echo "npm install"
@@ -34,9 +34,11 @@ lib:
 
 test:
 	@if [ "$(ARG)" = "" ]; then \
+		exitcode=0; \
 		for d in $(PACKAGES); do \
-			make test $$d; \
+			make test $$d || exitcode=$$?; \
 		done; \
+		exit $$exitcode; \
 	else \
 		cd $(ARG) && npm run test && cd .. &&\
 		echo "✓ Tested $(ARG)" ;\
@@ -56,4 +58,7 @@ speech:
 	@:
 
 3rdparty/cycle-posenet-drivers:
+	@:
+
+run:
 	@:

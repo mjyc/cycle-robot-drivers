@@ -4,8 +4,8 @@ import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
   makeAudioPlayerDriver,
-  IsolatedAudioPlayerAction as AudioPlayerAction,
-} from '@cycle-robot-drivers/sound'
+  AudioPlayerAction,
+} from '@cycle-robot-drivers/sound';
 
 const files = [
   require('../public/snd/IWohoo1.ogg'),

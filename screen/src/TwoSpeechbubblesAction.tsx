@@ -1,17 +1,17 @@
 import Snabbdom from 'snabbdom-pragma';
-import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
-import {adapt} from '@cycle/run/lib/adapt'
+import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
+import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-
 import {
   GoalID, Goal, Status, GoalStatus, Result,
-  generateGoalID, initGoal, isEqual, powerup,
-} from '@cycle-robot-drivers/action'
+  generateGoalID, initGoal, isEqual,
+} from '@cycle-robot-drivers/action';
 import {
   SpeechbubbleType,
   IsolatedSpeechbubbleAction,
-} from './SpeechbubbleAction'
+} from './SpeechbubbleAction';
+
 
 export enum TwoSpeechbubblesType {
   SET_MESSAGE = 'SET_MESSAGE',
@@ -43,15 +43,24 @@ function main(sources) {
   }
 
   const goal$ = sources.goal.map(goal => {
-    if (!goal) {
+    if (goal === null) {
       return {
         type: 'CANCEL',
         value: null,
       };
     } else {
+      const value = !!(goal as any).goal_id ? goal as any: initGoal(goal);
       return {
         type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
+        value: !value.goal.type ? {
+          goal_id: value.goal_id,
+          goal: {
+            type: typeof value.goal === 'string'
+              ? TwoSpeechbubblesType.SET_MESSAGE
+              : TwoSpeechbubblesType.ASK_QUESTION,
+            value: value.goal,
+          }
+        } : value,
       };
     }
   });
@@ -192,14 +201,14 @@ function main(sources) {
             goal_id: state.goal_id,
             goal: {
               type: SpeechbubbleType.MESSAGE,
-              value: state.goal.value[0],
+              value: state.goal.value.message,
             },
           },
           second: {
             goal_id: state.goal_id,
             goal: {
               type: SpeechbubbleType.CHOICE,
-              value: state.goal.value[1],
+              value: state.goal.value.choices,
             },
           },
         };
@@ -228,10 +237,21 @@ function main(sources) {
   };
 }
 
+function powerup(main, connect) {
+  return (sources) => {
+    const sinks = main(sources);
+    Object.keys(sources.proxies).map(key => {
+      connect(sources.proxies[key], sinks.targets[key]);
+    });
+    const {targets, ...sinksNoTargets} = sinks;
+    return sinksNoTargets;
+  };
+}
+
 export function TwoSpeechbubblesAction(sources) {
   return powerup(main, (proxy, target) => proxy.imitate(target))(sources);
 }
 
 export function IsolatedTwoSpeechbubblesAction(sources) {
   return isolate(TwoSpeechbubblesAction)(sources);
-};
+}

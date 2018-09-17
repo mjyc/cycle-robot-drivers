@@ -1,8 +1,7 @@
-import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
-import {adapt} from '@cycle/run/lib/adapt'
+import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
+import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   initGoal, generateGoalID, isEqual,
@@ -23,10 +22,15 @@ export function AudioPlayerAction(sources) {
         value: null,  // goal MUST BE null on CANCEL
       };
     } else {
+      const value = !!(goal as any).goal_id ? goal as any : initGoal(goal);
       return {
         type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
-      }
+        value: typeof value.goal === 'string'
+          ? {
+            goal_id: value.goal_id,
+            goal: {src: value.goal},
+          } : value,
+      };
     }
   });
   const events$ = xs.merge(
@@ -156,6 +160,10 @@ export function AudioPlayerAction(sources) {
       },
       result: state.result,
     } as Result));
+
+  // IMPORTANT!! empty the streams manually; otherwise it emits the first
+  //   "SUCCEEDED" result
+  value$.addListener({next: () => {}});
 
 
   return {

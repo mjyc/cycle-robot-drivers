@@ -4,7 +4,6 @@ import {adapt} from '@cycle/run/lib/adapt';
 import {
   GoalID, Goal, Status, Result, initGoal,
 } from '@cycle-robot-drivers/action';
-import {makeSpeechSynthesisDriver} from './speech_synthesis';
 
 
 enum State {
@@ -55,9 +54,14 @@ function input(
           value: null,  // means "cancel"
         };
       } else {
+        const value = !!(goal as any).goal_id ? goal : initGoal(goal);
         return {
           type: InputType.GOAL,
-          value: !!(goal as any).goal_id ? goal : initGoal(goal),
+          value: typeof value.goal === 'string'
+            ? {
+              goal_id: value.goal_id,
+              goal: {text: value.goal},
+            } : value,
         };
       }
     }),
@@ -86,7 +90,7 @@ function transition(
 ): ReducerState {
   const states = transitionTable[prevState];
   if (!states) {
-    throw new Error(`Invalid prevState: "${prevState}"`);
+    throw new Error(`Invalid prevState="${prevState}"`);
   }
 
   let state = states[input.type];
@@ -202,18 +206,4 @@ export function SpeechSynthesisAction(sources) {
     output: adapt(outputs$.map(outputs => outputs.args)),
     result: adapt(result$),
   };
-}
-
-export function makeSpeechSynthesisActionDriver() {
-  const speechSynthesisDriver = makeSpeechSynthesisDriver();
-
-  return function speechSynthesisActionDriver(sink$) {
-    const proxy$ = xs.create();
-    const speechSynthesisAction = SpeechSynthesisAction({
-      goal: sink$,
-      SpeechSynthesis: speechSynthesisDriver(proxy$)
-    });
-    proxy$.imitate(speechSynthesisAction.output);
-    return speechSynthesisAction;
-  }
 }

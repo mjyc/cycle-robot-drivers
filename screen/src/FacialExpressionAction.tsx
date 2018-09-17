@@ -1,13 +1,11 @@
 import Snabbdom from 'snabbdom-pragma';
-import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
-import {adapt} from '@cycle/run/lib/adapt'
-import isolate from '@cycle/isolate';
-
+import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
+import {adapt} from '@cycle/run/lib/adapt';
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   generateGoalID, initGoal, isEqual,
-} from '@cycle-robot-drivers/action'
+} from '@cycle-robot-drivers/action';
 
 export function FacialExpressionAction(sources) {
   // Create action stream
@@ -23,20 +21,26 @@ export function FacialExpressionAction(sources) {
         value: null,
       };
     } else {
+      const value = !!(goal as any).goal_id ? goal as any : initGoal(goal);
       return {
         type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
+        value: typeof value.goal === 'string' ? {
+          goal_id: value.goal_id,
+          goal: {
+            type: value.goal,
+          }
+        } : value,
       };
     }
   });
 
   const action$ = xs.merge(
     goal$,
-    sources.TabletFace.allFinish.mapTo({
+    sources.TabletFace.animationFinish.mapTo({
       type: 'END',
       value: null,
     }),
-  ).debug(d => console.error('action', d));
+  );
 
   // Create state stream
   type State = {
@@ -108,7 +112,7 @@ export function FacialExpressionAction(sources) {
     .compose(dropRepeats(
       (x, y) => (x.status === y.status && isEqual(x.goal_id, y.goal_id))));
 
-  const value$ = stateStatusChanged$.debug(d => console.error('value', d))
+  const value$ = stateStatusChanged$
     .filter(state =>
       state.status === Status.ACTIVE || state.status === Status.PREEMPTED)
     .map(state => {
@@ -139,13 +143,13 @@ export function FacialExpressionAction(sources) {
       result: state.result,
     } as Result));
 
+  // IMPORTANT!! empty the streams manually; otherwise it emits the first
+  //   "SUCCEEDED" result
+  value$.addListener({next: () => {}});
+
   return {
     value: adapt(value$),
     status: adapt(status$),
     result: adapt(result$),
   };
 }
-
-export function IsolatedFacialExpressionAction(sources) {
-  return isolate(FacialExpressionAction)(sources);
-};

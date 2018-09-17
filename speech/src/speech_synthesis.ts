@@ -1,23 +1,25 @@
 import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
+import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
+import {EventSource} from '@cycle-robot-drivers/action';
 
 
-class UtteranceSource {
+class UtteranceSource implements EventSource {
   constructor(
     private _utterance: SpeechSynthesisUtterance,
   ) {}
 
-  events(eventName: string): Stream<Event> {
+  events(eventName: string) {
     return adapt(fromEvent(this._utterance, eventName));
   }
 }
 
-export function makeSpeechSynthesisDriver() {
+export function makeSpeechSynthesisDriver(): Driver<any, any> {
   const synthesis: SpeechSynthesis = window.speechSynthesis;
   const utterance: SpeechSynthesisUtterance = new SpeechSynthesisUtterance();
 
-  return function speechSynthesisDriver(sink$) {
+  return function(sink$) {
     sink$.addListener({
       next: (args) => {
         // array values are SpeechSynthesisUtterance properties that are not
@@ -36,6 +38,6 @@ export function makeSpeechSynthesisDriver() {
       }
     });
 
-    return new UtteranceSource(utterance);
+    return new UtteranceSource(utterance) as EventSource;
   }
 }

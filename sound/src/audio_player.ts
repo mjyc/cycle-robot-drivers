@@ -1,14 +1,15 @@
 import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {adapt} from '@cycle/run/lib/adapt';
+import {EventSource} from '@cycle-robot-drivers/action';
 
 
-class AudioSource {
+class AudioSource implements EventSource {
   constructor(
     private _audio: HTMLAudioElement,
   ) {}
 
-  events(eventName: string): Stream<Event> {
+  events(eventName: string) {
     return adapt(fromEvent(this._audio, eventName));
   }
 }
@@ -18,15 +19,15 @@ export function makeAudioPlayerDriver() {
 
   return function audioPlayerDriver(sink$) {
     sink$.addListener({
-      next: (props) => {
-        if (!props) {
+      next: (args) => {
+        if (!args) {
           audio.pause();
         } else {
           // array values are a subset of HTMLAudioElement properties; see
           //   https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement
-          ['src', 'volume', 'loop'].map(prop => {
-            if (prop in props) {
-              audio[prop] = props[prop];
+          ['src', 'volume', 'loop'].map(arg => {
+            if (arg in args) {
+              audio[arg] = args[arg];
             }
           });
           audio.play();
@@ -34,6 +35,6 @@ export function makeAudioPlayerDriver() {
       }
     });
 
-    return new AudioSource(audio);
+    return new AudioSource(audio) as EventSource;
   }
 }
