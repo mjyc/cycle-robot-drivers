@@ -119,7 +119,7 @@ export function FacialExpressionAction(sources) {
       if (state.status === Status.ACTIVE) {
         return {
           type: 'EXPRESS',
-          args: state.goal,
+          value: state.goal,
         };
       } else {  // state.status === Status.PREEMPTED
         return null;

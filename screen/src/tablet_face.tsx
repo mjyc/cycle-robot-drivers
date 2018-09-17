@@ -266,7 +266,7 @@ type SetStateCommandArgs = {
 
 type Command = {
   type: CommandType,
-  args: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
+  value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
 
 export function TabletFace(sources, {
@@ -347,16 +347,16 @@ export function TabletFace(sources, {
   const animationFinish$$: Stream<Stream<any[]>> = xs.create();
   const speechbubblesDOM$ = xs.create();
   xs.fromObservable(sources.command).addListener({
-    next: function(action: Command) {
-      if (!action) {
+    next: function(command: Command) {
+      if (!command) {
         Object.keys(animations).map((key) => {
           animations[key].cancel();
         });
         return;
       }
-      switch (action.type) {
+      switch (command.type) {
         case CommandType.EXPRESS:
-          animations = eyes.express(action.args as ExpressCommandArgs) || {};
+          animations = eyes.express(command.value as ExpressCommandArgs) || {};
           animationFinish$$.shamefullySendNext(
             xs.fromPromise(
               Promise.all(Object.keys(animations).map((key) => {
@@ -368,20 +368,20 @@ export function TabletFace(sources, {
           );
           break;
         case CommandType.START_BLINKING:
-          eyes.startBlinking(action.args as StartBlinkingCommandArgs);
+          eyes.startBlinking(command.value as StartBlinkingCommandArgs);
           break;
         case CommandType.STOP_BLINKING:
           eyes.stopBlinking();
           break;
         case CommandType.SET_STATE:
-          const args = action.args as SetStateCommandArgs;
-          const leftPos = args && args.leftEye || {x: null, y: null};
-          const rightPos = args && args.rightEye || {x: null, y: null};
+          const value = command.value as SetStateCommandArgs;
+          const leftPos = value && value.leftEye || {x: null, y: null};
+          const rightPos = value && value.rightEye || {x: null, y: null};
           eyes.setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
           eyes.setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
           break;
         case CommandType.SPEECHBUBBLES:
-          speechbubblesDOM$.shamefullySendNext(action.args);
+          speechbubblesDOM$.shamefullySendNext(command.value);
           break;
       }
     }
@@ -418,8 +418,8 @@ export function TabletFace(sources, {
   );
 
   return {
-    DOM: vnode$,
+    DOM: adapt(vnode$),
     animationFinish: adapt(animationFinish$$.flatten()),
-    load: faceElement$.take(1).mapTo(null),
+    load: adapt(faceElement$.take(1).mapTo(null)),
   }
 }
