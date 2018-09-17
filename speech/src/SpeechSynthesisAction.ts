@@ -1,11 +1,9 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
   GoalID, Goal, Status, Result, initGoal,
 } from '@cycle-robot-drivers/action';
-import {makeSpeechSynthesisDriver} from './speech_synthesis';
 
 
 enum State {
@@ -56,9 +54,14 @@ function input(
           value: null,  // means "cancel"
         };
       } else {
+        let value = !!(goal as any).goal_id ? goal : initGoal(goal);
         return {
           type: InputType.GOAL,
-          value: !!(goal as any).goal_id ? goal : initGoal(goal),
+          value: typeof value.goal === 'string'
+            ? {
+              goal_id: value.goal_id,
+              goal: {text: value.goal},
+            } : value,
         };
       }
     }),

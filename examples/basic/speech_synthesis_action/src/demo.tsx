@@ -1,7 +1,5 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import fromEvent from 'xstream/extra/fromEvent'
-import delay from 'xstream/extra/delay'
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
@@ -41,12 +39,10 @@ function main(sources) {
   // update the state
   const state$ = xs.combine(
     params$,
-    speechSynthesisAction.status.startWith(null),
     speechSynthesisAction.result.startWith(null),
-  ).map(([params, status, result]) => {
+  ).map(([params, result]) => {
     return {
       ...params,
-      status,
       result,
     }
   });
@@ -89,8 +85,6 @@ function main(sources) {
       <div>
         <h3>Action outputs</h3>
         <div>
-          <pre style={styles.code}>"status": {JSON.stringify(s.status, null, 2)}
-          </pre>
           <pre style={styles.code}>"result": {JSON.stringify(s.result, null, 2)}
           </pre>
         </div>
@@ -100,7 +94,7 @@ function main(sources) {
 
   return {
     DOM: vdom$,
-    SpeechSynthesis: speechSynthesisAction.value,
+    SpeechSynthesis: speechSynthesisAction.output,
   };
 }
 

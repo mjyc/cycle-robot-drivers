@@ -1,11 +1,9 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
   GoalID, Goal, Status, Result, initGoal,
 } from '@cycle-robot-drivers/action';
-import {makeSpeechRecognitionDriver} from './speech_recognition';
 
 
 enum State {
