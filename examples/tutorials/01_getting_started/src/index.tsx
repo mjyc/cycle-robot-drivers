@@ -1,26 +1,17 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import delay from 'xstream/extra/delay'
 import {makeDOMDriver} from '@cycle/dom';
 import {runRobotProgram as run} from '@cycle-robot-drivers/run';
-import { fromEvent } from '@cycle/dom/lib/cjs/fromEvent';
 
 
 function main(sources) { 
-  const src = require('../public/snd/IWohoo3.ogg');
-  const synthGoal$ = xs.of({text: 'Hello'}).compose(delay(1000));
-  const recogGoal$ = xs.of({}).compose(delay(1000));
-  const faceGoal$ = xs.of({type: 'happy'}).compose(delay(1000));
-  const speechGoal$ = xs.of({type: 'ASK_QUESTION', value: ['How are you?', ['Good', 'Bad']]}).compose(delay(1000));
-  const soundGoal$ = xs.of({src}).compose(delay(1000));
-
-  // goals$ = fromEvent().map(() => {
-  //   return {
-  //     face: {text: 'Hello'},
-  //     recognition: {},
-  //     goal1: '',
-  //   }
-  // });
+  const goals$ = sources.TabletFace.load.map(() => ({
+    face: {type: 'happy'},
+    sound: {src: require('../public/snd/IWohoo3.ogg')},
+    speechbubble: {type: 'ASK_QUESTION', value: ['How are you?', ['Good', 'Bad']]},
+    synthesis: {text: 'Hello there!'},
+    recognition: {},
+  }));
 
   sources.FacialExpressionAction.result
     .debug('FacialExpressionAction.result')
@@ -42,11 +33,11 @@ function main(sources) {
     .addListener({next: () => {}});
     
   return {
-    FacialExpressionAction: faceGoal$,
-    TwoSpeechbubblesAction: speechGoal$,
-    AudioPlayerAction: soundGoal$,
-    SpeechSynthesisAction: synthGoal$,
-    SpeechRecognitionAction: recogGoal$,
+    FacialExpressionAction: goals$.map(goals => goals.face),
+    TwoSpeechbubblesAction: goals$.map(goals => goals.speechbubble),
+    AudioPlayerAction: goals$.map(goals => goals.sound),
+    SpeechSynthesisAction: goals$.map(goals => goals.synthesis),
+    SpeechRecognitionAction: goals$.map(goals => goals.recognition),
   }
 }
 

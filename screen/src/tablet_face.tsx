@@ -331,7 +331,8 @@ export function TabletFace(sources, {
   const eyes = new EyeController();
   const id = `face-${String(Math.random()).substr(2)}`;
 
-  sources.DOM.select(`#${id}`).element().addListener({next: (element) => {
+  const faceElement$ = sources.DOM.select(`#${id}`).element();
+  faceElement$.addListener({next: (element) => {
     eyes.setElements({
       leftEye: element.querySelector('.left.eye'),
       rightEye: element.querySelector('.right.eye'),
@@ -419,5 +420,6 @@ export function TabletFace(sources, {
   return {
     DOM: vnode$,
     animationFinish: adapt(animationFinish$$.flatten()),
+    load: faceElement$.take(1).mapTo(null),
   }
 }
