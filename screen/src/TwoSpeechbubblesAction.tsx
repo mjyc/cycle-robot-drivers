@@ -43,7 +43,7 @@ function main(sources) {
   }
 
   const goal$ = sources.goal.map(goal => {
-    if (!goal) {
+    if (goal === null) {
       return {
         type: 'CANCEL',
         value: null,
