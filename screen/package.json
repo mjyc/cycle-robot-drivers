@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/screen",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -11,7 +11,7 @@
     "@cycle/dom": "20.4.0",
     "@cycle/isolate": "3.4.0",
     "@cycle/run": "4.4.0",
-    "@cycle-robot-drivers/action": "file:../action",
+    "@cycle-robot-drivers/action": "../action",
     "snabbdom": "0.7.1",
     "snabbdom-pragma": "2.7.0",
     "xstream": "11.7.0"
