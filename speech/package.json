@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/speech",
-  "version": "0.0.0",
+  "version": "0.0.3",
   "description": "",
   "repository": "https://gitlab.cs.washington.edu/mjyc/cycle-robot-drivers/tree/master/speech",
   "author": "Michael Jae-Yoon Chung",
@@ -11,7 +11,7 @@
   "dependencies": {
     "@cycle/isolate": "3.4.0",
     "@cycle/run": "4.4.0",
-    "@cycle-robot-drivers/action": "file:../action",
+    "@cycle-robot-drivers/action": "~0.0.0",
     "xstream": "11.7.0"
   },
   "devDependencies": {
