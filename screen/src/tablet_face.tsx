@@ -53,10 +53,10 @@ class EyeController {
     exitingOffset,
   }: any) {
     return [
-      { transform: `translateY(0px) rotate(0deg)`, offset: 0.0 },
-      { transform: `translateY(${tgtTranYVal}) rotate(${tgtRotVal})`, offset: enteredOffset },
-      { transform: `translateY(${tgtTranYVal}) rotate(${tgtRotVal})`, offset: exitingOffset },
-      { transform: `translateY(0px) rotate(0deg)`, offset: 1.0 },
+      {transform: `translateY(0px) rotate(0deg)`, offset: 0.0},
+      {transform: `translateY(${tgtTranYVal}) rotate(${tgtRotVal})`, offset: enteredOffset},
+      {transform: `translateY(${tgtTranYVal}) rotate(${tgtRotVal})`, offset: exitingOffset},
+      {transform: `translateY(0px) rotate(0deg)`, offset: 1.0},
     ];
   }
 
@@ -174,13 +174,13 @@ class EyeController {
 
     [this._leftEye, this._rightEye].map((eye) => {
       eye.animate([
-        { transform: 'rotateX(0deg)' },
-        { transform: 'rotateX(90deg)' },
-        { transform: 'rotateX(0deg)' },
+        {transform: 'rotateX(0deg)'},
+        {transform: 'rotateX(90deg)'},
+        {transform: 'rotateX(0deg)'},
       ], {
-          duration,
-          iterations: 1,
-        });
+        duration,
+        iterations: 1,
+      });
     });
   }
 
