@@ -1,37 +1,11 @@
 import Snabbdom from 'snabbdom-pragma';
-import xs from 'xstream'
-import {adapt} from '@cycle/run/lib/adapt'
+import xs from 'xstream';
+import {Driver} from '@cycle/run';
+import {adapt} from '@cycle/run/lib/adapt';
 import dat from 'dat.gui';
 import Stats from 'stats.js';
 import * as posenet from '@tensorflow-models/posenet';
-
-import {drawSkeleton, drawKeypoints, isMobile, setupCamera} from './utils'
-
-type Parameters = {
-  algorithm: string,
-  input: {
-    mobileNetArchitecture: string,
-    outputStride: number,
-    imageScaleFactor: number,
-  },
-  singlePoseDetection: {
-    minPoseConfidence: number,
-    minPartConfidence: number,
-  },
-  multiPoseDetection: {
-    maxPoseDetections: number,
-    minPoseConfidence: number,
-    minPartConfidence: number,
-    nmsRadius: number,
-  },
-  output: {
-    showVideo: boolean,
-    showSkeleton: boolean,
-    showPoints: boolean,
-  },
-  net: any,
-  changeToArchitecture: string,
-};
+import {drawSkeleton, drawKeypoints, isMobile, setupCamera} from './utils';
 
 
 // adapted from
@@ -120,6 +94,31 @@ function setupGui(cameras, net, guiState) {
   return gui;
 }
 
+type Parameters = {
+  algorithm: string,
+  input: {
+    mobileNetArchitecture: string,
+    outputStride: number,
+    imageScaleFactor: number,
+  },
+  singlePoseDetection: {
+    minPoseConfidence: number,
+    minPartConfidence: number,
+  },
+  multiPoseDetection: {
+    maxPoseDetections: number,
+    minPoseConfidence: number,
+    minPartConfidence: number,
+    nmsRadius: number,
+  },
+  output: {
+    showVideo: boolean,
+    showSkeleton: boolean,
+    showPoints: boolean,
+  },
+  net: any,
+  changeToArchitecture: string,
+};
 
 export function makePoseDetectionDriver({
   videoWidth = 640,
@@ -129,10 +128,10 @@ export function makePoseDetectionDriver({
   videoWidth?: number,
   videoHeight?: number,
   flipHorizontal?: boolean,
-} = {}) {
+} = {}): Driver<any, any> {
   const stats = new Stats();
 
-  return function poseDetectionDriver(sink$) {
+  return function(params$) {
     let params = null;
     let video = null;
     let context = null;
@@ -233,7 +232,7 @@ export function makePoseDetectionDriver({
       }
     }
 
-    // poll an element with id='#pose_detection_canvas'
+    // Poll for the element with id='#pose_detection_canvas'
     const intervalID = setInterval(async () => {
       if (!document.querySelector('#pose_detection_canvas')) {
         console.debug('Waiting for #pose_detection_canvas to appear...');
@@ -295,16 +294,16 @@ export function makePoseDetectionDriver({
       changeToArchitecture: null,
     };
 
-    sink$.fold((curParams: Parameters, newParams: Parameters) => {
-      Object.keys(newParams).map(key => {
-        if (typeof newParams[key] === 'object') {
-          Object.assign(curParams[key], newParams[key]);
+    params$.fold((prev: Parameters, params: Parameters) => {
+      Object.keys(params).map(key => {
+        if (typeof params[key] === 'object') {
+          Object.assign(prev[key], params[key]);
         } else {
-          curParams[key] = newParams[key];
+          prev[key] = params[key];
         }
-        return curParams;
+        return prev;
       });
-      return curParams;
+      return prev;
     }, initialParams).addListener({
       next: (newParams: Parameters) => {
         params = newParams;
