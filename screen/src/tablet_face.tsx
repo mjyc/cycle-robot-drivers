@@ -342,6 +342,9 @@ export function TabletFace(sources, {
       lowerRightEyelid: element.querySelector('.right .eyelid.lower'),
     });
   }});
+  const load$ = faceElement$
+    .filter(() => true)  // convert MemoryStream to Stream
+    .mapTo(null);
 
   let animations = {};
   const animationFinish$$: Stream<Stream<any[]>> = xs.create();
@@ -420,6 +423,6 @@ export function TabletFace(sources, {
   return {
     DOM: adapt(vnode$),
     animationFinish: adapt(animationFinish$$.flatten()),
-    load: adapt(faceElement$.take(1).mapTo(null)),
+    load: adapt(load$),
   }
 }
