@@ -2,6 +2,8 @@
 
 BINDIR=node_modules/.bin
 TSC=$(BINDIR)/tsc
+BUMP=.scripts/bump.js
+JASE=$(BINDIR)/jase
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
@@ -42,6 +44,18 @@ test:
 	else \
 		cd $(ARG) && npm run test && cd .. &&\
 		echo "✓ Tested $(ARG)" ;\
+	fi
+
+release-patch:
+	@if [ "$(ARG)" = "" ]; then \
+		echo "Error: please call 'make release-patch' with an argument, like 'make release-patch action'" ;\
+	else \
+		cd $(ARG); \
+		rm -rf node_modules package-lock.json; npm install; \
+		cd ../; make lib $(ARG); \
+		$(BUMP) $(ARG)/package.json --patch; \
+		git add -A ; git commit -m "Release $(ARG): $(shell cat $(ARG)/package.json | $(JASE) version)"; \
+		echo "✓ Released new patch for $(ARG)" ;\
 	fi
 
 # catch and do nothing
