@@ -50,12 +50,11 @@ release-patch:
 	@if [ "$(ARG)" = "" ]; then \
 		echo "Error: please call 'make release-patch' with an argument, like 'make release-patch action'" ;\
 	else \
-		cd $(ARG); \
-		rm -rf node_modules package-lock.json; npm install; \
-		cd ../; make lib $(ARG); \
+		pushd .; cd $(ARG); rm -rf node_modules package-lock.json; npm install; popd; \
+		make lib $(ARG); \
 		$(BUMP) $(ARG)/package.json --patch; \
-		git add -A ; git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)"; \
-		cd $(ARG); npm publish --access public; cd ../; \
+		git add -A; git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)"; \
+		pushd .; cd $(ARG); npm publish --access public; \
 		echo "✓ Released new patch for $(ARG)" ;\
 	fi
 
