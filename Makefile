@@ -46,15 +46,19 @@ test:
 		echo "✓ Tested $(ARG)" ;\
 	fi
 
+postbump:
+	pushd .; cd $(ARG); rm -rf node_modules package-lock.json; npm install; popd; \
+	make lib $(ARG); \
+	git add -A; git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)"; \
+	pushd .; cd $(ARG); npm publish --access public; popd;
+
+
 release-patch:
 	@if [ "$(ARG)" = "" ]; then \
 		echo "Error: please call 'make release-patch' with an argument, like 'make release-patch action'" ;\
 	else \
-		pushd .; cd $(ARG); rm -rf node_modules package-lock.json; npm install; popd; \
-		make lib $(ARG); \
 		$(BUMP) $(ARG)/package.json --patch; \
-		git add -A; git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)"; \
-		pushd .; cd $(ARG); npm publish --access public; popd;\
+		make postbump $(ARG); \
 		echo "✓ Released new patch for $(ARG)" ;\
 	fi
 
