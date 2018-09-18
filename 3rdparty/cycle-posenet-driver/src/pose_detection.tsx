@@ -266,7 +266,7 @@ export function makePoseDetectionDriver({
       } else {
         console.warn('video is already set');
       }
-    });
+    }, 1000);
 
     const initialParams = {
       algorithm: 'multi-pose',
