@@ -233,8 +233,14 @@ export function makePoseDetectionDriver({
       }
     }
 
-    // window.addEventListener('load', async () => {
-    setTimeout(async () => {
+    // poll an element with id='#pose_detection_canvas'
+    const intervalID = setInterval(async () => {
+      if (!document.querySelector('#pose_detection_canvas')) {
+        console.debug('Waiting for #pose_detection_canvas to appear...');
+        return;
+      }
+      clearInterval(intervalID);
+
       if (!video) {
         video = await setupCamera(
           document.querySelector('#pose_detection_video'), videoWidth, videoHeight);
@@ -258,9 +264,10 @@ export function makePoseDetectionDriver({
         gui.domElement.style.setProperty('right', '0px');
         document.querySelector('#pose_detection').appendChild(gui.domElement);
         gui.closed = true;
+      } else {
+        console.warn('video is already set');
       }
-    }, 1000);
-    // });
+    });
 
     const initialParams = {
       algorithm: 'multi-pose',
