@@ -1,6 +1,6 @@
 {
   "name": "cycle-posenet-driver",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -11,7 +11,7 @@
     "@cycle-robot-drivers/action": "~0.0.0",
     "@cycle/isolate": "3.4.0",
     "@cycle/run": "4.4.0",
-    "@tensorflow-models/posenet": "0.0.2-alpha1",
+    "@tensorflow-models/posenet": "0.2.2",
     "@tensorflow/tfjs": "0.10.3",
     "dat.gui": "0.7.2",
     "snabbdom": "0.7.1",
