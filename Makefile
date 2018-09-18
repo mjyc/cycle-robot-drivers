@@ -54,7 +54,8 @@ release-patch:
 		rm -rf node_modules package-lock.json; npm install; \
 		cd ../; make lib $(ARG); \
 		$(BUMP) $(ARG)/package.json --patch; \
-		git add -A ; git commit -m "Release $(ARG): $(shell cat $(ARG)/package.json | $(JASE) version)"; \
+		git add -A ; git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)"; \
+		cd $(ARG); npm publish --access public; cd ../; \
 		echo "✓ Released new patch for $(ARG)" ;\
 	fi
 
