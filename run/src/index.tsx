@@ -17,7 +17,7 @@ import {
   makeSpeechRecognitionDriver,
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
-import {makePoseDetectionDriver} from 'cycle-posenet-drivers';
+import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
 export function runRobotProgram(
   main: any,
