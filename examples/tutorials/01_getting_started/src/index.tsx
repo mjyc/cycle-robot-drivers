@@ -5,7 +5,7 @@ import xs from 'xstream';
 
 
 function main(sources) { 
-  const goals$ = sources.TabletFace.load.map(() => ({
+  const goals$ = sources.TabletFace.load.filter(() => true).map(() => ({
     face: 'happy',
     sound: require('../public/snd/IWohoo3.ogg'),
     speechbubble: {
