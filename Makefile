@@ -54,7 +54,7 @@ release-patch:
 		make lib $(ARG); \
 		$(BUMP) $(ARG)/package.json --patch; \
 		git add -A; git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)"; \
-		pushd .; cd $(ARG); npm publish --access public; \
+		pushd .; cd $(ARG); npm publish --access public; popd;\
 		echo "✓ Released new patch for $(ARG)" ;\
 	fi
 
