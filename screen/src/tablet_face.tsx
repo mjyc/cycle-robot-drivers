@@ -344,6 +344,7 @@ export function TabletFace(sources, {
   }});
   const load$ = faceElement$
     .filter(() => true)  // convert MemoryStream to Stream
+    .take(1)
     .mapTo(null);
 
   let animations = {};
