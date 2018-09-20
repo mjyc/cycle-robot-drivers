@@ -1,6 +1,5 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
-import {div, makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';
 import {powerup} from '@cycle-robot-drivers/action';
 import {
@@ -26,23 +25,23 @@ function main(sources) {
     SpeechRecognition: sources.SpeechRecognition,
   });
 
-
-  // Say "Hello there!"
+  
+  // main logic
   const synthGoal$ = xs.of('Hello there!').compose(delay(1000));
-  // Start listening when finished speacking
   const recogGoal$ = sources.SpeechSynthesisAction.result.mapTo({});
-  // Display text based on the latest event
-  const vdom$ = xs.merge(
-    sources.SpeechSynthesisAction.output,
-    sources.SpeechRecognitionAction.result,
-  ).map(result => div(`${!!result.text ? result.text : result.result}`));
+
+  sources.SpeechRecognitionAction.output.addListener({
+    next: (result) => console.log(`Listening...`)
+  });
+  sources.SpeechRecognitionAction.result.addListener({
+    next: (result) => console.log(`Heard "${result.result}"`)
+  });
 
   
   return {
-    DOM: vdom$,
     SpeechSynthesis: sources.SpeechSynthesisAction.output,
     SpeechRecognition: sources.SpeechRecognitionAction.output,
-    targets: {  // will be used by "proxies"
+    targets: {  // will be imitating "proxies"
       SpeechSynthesisAction: synthGoal$,
       SpeechRecognitionAction: recogGoal$,
     }
@@ -50,7 +49,6 @@ function main(sources) {
 }
 
 run(powerup(main, (proxy, target) => proxy.imitate(target)), {
-  DOM: makeDOMDriver('#app'),
   SpeechSynthesis: makeSpeechSynthesisDriver(),
   SpeechRecognition: makeSpeechRecognitionDriver(),
 });
