@@ -15,6 +15,7 @@ enum State {
 type Variables = {
   goal_id: GoalID,
   transcript: string,
+  error: string,
   newGoal: Goal,
 };
 
@@ -42,7 +43,7 @@ enum InputType {
 
 type Input = {
   type: InputType,
-  value: Goal | SpeechRecognitionEvent,
+  value: Goal | SpeechRecognitionEvent | SpeechRecognitionError,
 };
 
 
@@ -69,7 +70,7 @@ function input(
     }).filter(goal => typeof goal !== 'undefined'),
     startEvent$.mapTo({type: InputType.START, value: null}),
     endEvent$.mapTo({type: InputType.END, value: null}),
-    errorEvent$.mapTo({type: InputType.ERROR, value: null}),
+    errorEvent$.map(event => ({type: InputType.ERROR, value: event})),
     resultEvent$.map(event => ({type: InputType.RESULT, value: event})),
   );
 }
@@ -112,6 +113,7 @@ function transition(
       variables: {
         goal_id: goal.goal_id,
         transcript: null,
+        error: null,
         newGoal: null,
       },
       outputs: {
@@ -136,7 +138,16 @@ function transition(
         result: null,
       };
     } else if (input.type === InputType.ERROR) {
-      console.debug('No speech; transcript is null');
+      const event = (input.value as SpeechRecognitionError);
+      return {
+        state,
+        variables: {
+          ...prevVariables,
+          error: event.error,  // https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognitionError/error#Value
+        },
+        outputs: null,
+        result: null,
+      };
     }
   } else if (state === State.DONE) {
     if (prevState === State.RUNNING || prevState === State.PREEMPTING) {
@@ -147,6 +158,7 @@ function transition(
         variables: {
           goal_id: !!newGoal ? newGoal.goal_id : null,
           transcript: null,
+          error: null,
           newGoal: null,
         },
         outputs: !!newGoal ? {
@@ -155,10 +167,13 @@ function transition(
         result: {
           status: {
             goal_id: prevVariables.goal_id,
-            status: prevState === State.RUNNING
-              ? Status.SUCCEEDED : Status.PREEMPTED,
+            status: (prevState === State.RUNNING && !prevVariables.error)
+              ? Status.SUCCEEDED
+              : (!!prevVariables.error) ? Status.ABORTED : Status.PREEMPTED,
           },
-          result: prevVariables.transcript,
+          result: (prevState === State.RUNNING && !prevVariables.error)
+            ? (prevVariables.transcript || '')  // '' for non-speech inputs
+            : null,  // null for aborted & preempted
         },
       };
     }
@@ -198,6 +213,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
         variables: {
           goal_id: null,
           transcript: null,
+          error: null,
           newGoal: null,
         },
         outputs: null,

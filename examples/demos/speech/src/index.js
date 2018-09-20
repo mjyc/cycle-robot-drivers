@@ -31,11 +31,18 @@ function main(sources) {
   const recogGoal$ = sources.SpeechSynthesisAction.result.mapTo({});
 
   sources.SpeechRecognitionAction.output.addListener({
-    next: (result) => console.log(`Listening...`)
+    next: () => console.log(`Listening...`)
   });
-  sources.SpeechRecognitionAction.result.addListener({
-    next: (result) => console.log(`Heard "${result.result}"`)
-  });
+  sources.SpeechRecognitionAction.result
+    .addListener({
+      next: (result) => {
+        if (result.status.status === 'SUCCEEDED') {
+          console.log(`Heard "${result.result}"`);
+        } else {
+          console.log(`I didn't hear anything.`);
+        }
+      }
+    });
 
   
   return {
