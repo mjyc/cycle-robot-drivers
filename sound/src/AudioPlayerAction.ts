@@ -32,7 +32,7 @@ export function AudioPlayerAction(sources) {
           } : value,
       };
     }
-  });
+  }).filter(goal => typeof goal !== 'undefined');
   const events$ = xs.merge(
     sources.AudioPlayer.events('ended').map(
       event => ({type: 'ENDED', value: event})

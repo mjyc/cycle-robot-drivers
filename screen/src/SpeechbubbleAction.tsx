@@ -42,7 +42,7 @@ export function SpeechbubbleAction(sources) {
         } : value,
       };
     }
-  });
+  }).filter(goal => typeof goal !== 'undefined');
   // IMPORTANT!! force creating the click stream
   let click$ = sources.DOM.select('.choice').elements()
     .map(b => sources.DOM.select('.choice').events('click', {

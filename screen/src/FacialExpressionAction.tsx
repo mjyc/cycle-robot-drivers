@@ -32,7 +32,7 @@ export function FacialExpressionAction(sources) {
         } : value,
       };
     }
-  });
+  }).filter(goal => typeof goal !== 'undefined');
 
   const action$ = xs.merge(
     goal$,

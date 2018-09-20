@@ -64,7 +64,7 @@ function input(
             } : value,
         };
       }
-    }),
+    }).filter(goal => typeof goal !== 'undefined'),
     startEvent$.mapTo({type: InputType.START, value: null}),
     endEvent$.mapTo({type: InputType.END, value: null}),
   );

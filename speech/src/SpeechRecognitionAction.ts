@@ -66,7 +66,7 @@ function input(
           value: !!(goal as any).goal_id ? goal : initGoal(goal),
         };
       }
-    }),
+    }).filter(goal => typeof goal !== 'undefined'),
     startEvent$.mapTo({type: InputType.START, value: null}),
     endEvent$.mapTo({type: InputType.END, value: null}),
     errorEvent$.mapTo({type: InputType.ERROR, value: null}),

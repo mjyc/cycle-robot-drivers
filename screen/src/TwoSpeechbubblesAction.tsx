@@ -63,7 +63,7 @@ function main(sources) {
         } : value,
       };
     }
-  });
+  }).filter(goal => typeof goal !== 'undefined');
   const action$ = xs.merge(
     goal$,
     first.result.map(result => ({type: 'FIRST_RESULT', value: result})),
