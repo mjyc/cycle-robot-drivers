@@ -1,7 +1,6 @@
 import xs from 'xstream';
 import {makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';
-import {powerup} from '@cycle-robot-drivers/action';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
 
