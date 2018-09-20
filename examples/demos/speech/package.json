@@ -10,7 +10,6 @@
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
     "babel-core": "^6.26.3",
-    "cycle-posenet-driver": "~0.0.0",
     "live-server": "^1.2.0",
     "xstream": "11.7.0"
   },
