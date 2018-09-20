@@ -18,5 +18,9 @@
   },
   "devDependencies": {
     "@types/node": "^10.7.1"
+  },
+  "scripts": {
+    "build:cjs": "../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
+    "build:es6": "../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6"
   }
 }

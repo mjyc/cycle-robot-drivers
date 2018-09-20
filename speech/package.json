@@ -20,6 +20,8 @@
     "@types/webspeechapi": "0.0.29"
   },
   "scripts": {
+    "build:cjs": "../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outDir lib/cjs",
+    "build:es6": "../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",
     "test": "../node_modules/.bin/jest --config ../jest.config.common.js --rootDir ./"
   }
 }

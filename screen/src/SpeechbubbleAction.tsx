@@ -1,5 +1,6 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
+import {MemoryStream} from 'xstream';  // to return MemoryType in SpeechbubbleAction; for typescript 2.8.x
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';

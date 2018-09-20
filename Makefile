@@ -1,7 +1,6 @@
 .PHONY: lib action screen speech sound 3rdparty/cycle-posenet-driver run
 
 BINDIR=node_modules/.bin
-TSC=$(BINDIR)/tsc
 BUMP=.scripts/bump.js
 JASE=$(BINDIR)/jase
 
@@ -29,8 +28,10 @@ lib:
 	else \
 		rm -rf $(ARG)/lib; \
 		mkdir -p $(ARG)/lib; \
-		$(TSC) --project $(ARG) --module commonjs --outDir $(ARG)/lib/cjs ;\
-		$(TSC) --project $(ARG) --module es6 --outDir $(ARG)/lib/es6 ;\
+		pushd .; cd $(ARG); \
+		npm run build:cjs; \
+		npm run build:es6; \
+		popd; \
 		echo "✓ Compiled TypeScript to lib\n"; \
 	fi
 

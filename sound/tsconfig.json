@@ -1,8 +1,6 @@
 {
   "extends": "../tsconfig.common.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "outDir": "lib/cjs",
     "lib": ["dom", "es5", "scripthost", "es2015.collection"],
   },
   "files": [

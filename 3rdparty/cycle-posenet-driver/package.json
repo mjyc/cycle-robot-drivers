@@ -19,5 +19,9 @@
     "stats.js": "0.17.0",
     "xstream": "11.7.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "scripts": {
+    "build:cjs": "../../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
+    "build:es6": "../../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6"
+  }
 }
