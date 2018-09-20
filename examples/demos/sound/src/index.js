@@ -1,6 +1,5 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
-import {div, makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';
 import {powerup} from '@cycle-robot-drivers/action';
 import {
@@ -20,6 +19,7 @@ function main(sources) {
   });
 
 
+  // main logic
   const goal$ = xs.of(
     'https://raw.githubusercontent.com/aramadia/willow-sound/master/E/E01.ogg'
   ).compose(delay(1000));
@@ -27,13 +27,12 @@ function main(sources) {
   
   return {
     AudioPlayer: sources.AudioPlayerAction.value,
-    targets: {  // will be used by "proxies"
+    targets: {  // will be imitating "proxies"
       AudioPlayerAction: goal$,
     }
   }
 }
 
 run(powerup(main, (proxy, target) => proxy.imitate(target)), {
-  DOM: makeDOMDriver('#app'),
   AudioPlayer: makeAudioPlayerDriver(),
 });
