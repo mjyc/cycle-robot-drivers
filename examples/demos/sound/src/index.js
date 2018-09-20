@@ -26,7 +26,7 @@ function main(sources) {
 
   
   return {
-    AudioPlayer: sources.AudioPlayerAction.value,
+    AudioPlayer: sources.AudioPlayerAction.output,
     targets: {  // will be imitating "proxies"
       AudioPlayerAction: goal$,
     }

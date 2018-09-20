@@ -94,7 +94,7 @@ export function AudioPlayerAction(sources) {
         return {
           ...state,
           status: Status.SUCCEEDED,
-          result: action.value,
+          result: null,
         }
       } else if (action.type === 'CANCEL') {
         return {
@@ -167,7 +167,7 @@ export function AudioPlayerAction(sources) {
 
 
   return {
-    value: adapt(value$),
+    output: adapt(value$),
     status: adapt(status$),
     result: adapt(result$),
   };

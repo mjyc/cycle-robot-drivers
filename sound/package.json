@@ -18,6 +18,8 @@
     "@types/node": "^10.5.7"
   },
   "scripts": {
+    "build": "../node_modules/.bin/tsc --project tsconfig.json",
+    "build:es6": "../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",
     "test": "../node_modules/.bin/jest --config ../jest.config.common.js --rootDir ./"
   }
 }

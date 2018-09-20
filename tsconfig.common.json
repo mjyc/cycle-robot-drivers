@@ -8,7 +8,9 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "target": "es5"
+    "target": "es5",
+    "module": "commonjs",
+    "outDir": "lib/cjs"
   },
   "formatCodeOptions": {
     "indentSize": 2,
