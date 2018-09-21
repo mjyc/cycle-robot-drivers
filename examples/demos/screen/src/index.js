@@ -38,7 +38,8 @@ function main(sources) {
       message: 'How are you?',
       choices: ['Good', 'Bad']
     }).compose(delay(2000)),
-    sources.TwoSpeechbubblesAction.result.filter(result => !!result.result)
+    sources.TwoSpeechbubblesAction.result
+      .filter(result => !!result.result)
       .map(result => {
         if (result.result === 'Good') {
           return 'Great!';
@@ -48,7 +49,7 @@ function main(sources) {
       })
   );
   
-  const expression$ = sources.TwoSpeechbubblesAction.result.debug().map((result) => {
+  const expression$ = sources.TwoSpeechbubblesAction.result.map((result) => {
     if (result.result === 'Good') {
       return 'happy';
     } else if (result.result === 'Bad') {
