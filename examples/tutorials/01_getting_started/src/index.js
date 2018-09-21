@@ -1,28 +1,35 @@
 import Snabbdom from 'snabbdom-pragma';
 import {makeDOMDriver} from '@cycle/dom';
-import {runRobotProgram as run} from '@cycle-robot-drivers/run';
+import {runRobotProgram} from '@cycle-robot-drivers/run';
 import xs from 'xstream';
 
 
 function main(sources) {
-  const goals$ = sources.TabletFace.load.filter(() => true).map(() => ({
+  const goals$ = sources.TabletFace.load.map(() => ({
     face: 'happy',
-    sound: require('../public/snd/IWohoo3.ogg'),
+    sound: 'https://raw.githubusercontent.com/aramadia/willow-sound/master/G/G15.ogg',
     speechbubble: {
       message: 'How are you?',
       choices: ['Good', 'Bad'],
     },
-    synthesis: 'Hello there!',
+    synthesis: 'How are you?',
     recognition: {},
   }));
 
   sources.TwoSpeechbubblesAction.result
-    .addListener({next: result => console.log(result)});
+    .addListener({next: result => {
+      if (result.status.status === 'SUCCEEDED') {
+        console.log(`I received "${result.result}"`);
+      }
+    }});
   sources.SpeechRecognitionAction.result
-    .addListener({next: result => console.log(result)});
-  // see the visual outputs in the browser as well
+    .addListener({next: result => {
+      if (result.status.status === 'SUCCEEDED') {
+        console.log(`I heard "${result.result}"`);
+      }
+    }});
   sources.PoseDetection.poses
-    .addListener({next: poses => console.log(poses)});
+    .addListener({next: () => {}});  // see outputs on the browser
     
   return {
     FacialExpressionAction: goals$.map(goals => goals.face),
@@ -37,6 +44,6 @@ function main(sources) {
   }
 }
 
-run(main, {
+runRobotProgram(main, {
   DOM: makeDOMDriver('#app'),
 });

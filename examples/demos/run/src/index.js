@@ -1,4 +1,3 @@
-import Snabbdom from 'snabbdom-pragma';
 import {makeDOMDriver} from '@cycle/dom';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 import xs from 'xstream';
