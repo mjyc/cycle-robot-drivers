@@ -34,7 +34,7 @@ export function FacialExpressionAction(sources) {
         } : value,
       };
     }
-  }).debug();
+  });
 
   const action$ = xs.merge(
     goal$,
