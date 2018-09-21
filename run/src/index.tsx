@@ -119,7 +119,7 @@ export function runRobotProgram(
         ));
       }
       if (!sinks.targets.TabletFace) {
-        sinks.targets.TabletFace = sources.FacialExpressionAction.value;
+        sinks.targets.TabletFace = sources.FacialExpressionAction.output;
       }
       if (!sinks.AudioPlayer) {
         sinks.AudioPlayer = sources.AudioPlayerAction.output;
