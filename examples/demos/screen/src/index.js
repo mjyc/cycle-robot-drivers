@@ -10,7 +10,7 @@ import {
 } from '@cycle-robot-drivers/screen';
 
 
-function main(sources) { 
+function main(sources) {
   sources.proxies = {  // will be connected to "targets"
     TabletFace: xs.create(),
     FacialExpressionAction: xs.create(),

@@ -8,7 +8,7 @@ import {
 } from '@cycle-robot-drivers/sound';
 
 
-function main(sources) { 
+function main(sources) {
   sources.proxies = {  // will be connected to "targets"
   AudioPlayerAction: xs.create(),
   };

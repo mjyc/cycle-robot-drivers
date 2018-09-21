@@ -10,7 +10,7 @@ import {
 } from '@cycle-robot-drivers/speech';
 
 
-function main(sources) { 
+function main(sources) {
   sources.proxies = {  // will be connected to "targets"
     SpeechSynthesisAction: xs.create(),
     SpeechRecognitionAction: xs.create(),

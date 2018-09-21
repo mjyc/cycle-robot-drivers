@@ -4,7 +4,7 @@ import {runRobotProgram} from '@cycle-robot-drivers/run';
 import xs from 'xstream';
 
 
-function main(sources) { 
+function main(sources) {
   const goals$ = sources.TabletFace.load.map(() => ({
     face: 'happy',
     sound: 'https://raw.githubusercontent.com/aramadia/willow-sound/master/G/G15.ogg',

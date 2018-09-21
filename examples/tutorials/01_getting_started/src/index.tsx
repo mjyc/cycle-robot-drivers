@@ -4,7 +4,7 @@ import {runRobotProgram as run} from '@cycle-robot-drivers/run';
 import xs from 'xstream';
 
 
-function main(sources) { 
+function main(sources) {
   const goals$ = sources.TabletFace.load.filter(() => true).map(() => ({
     face: 'happy',
     sound: require('../public/snd/IWohoo3.ogg'),

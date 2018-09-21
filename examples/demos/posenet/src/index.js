@@ -4,7 +4,7 @@ import {run} from '@cycle/run';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
 
-function main(sources) { 
+function main(sources) {
   sources.proxies = {  // will be connected to "targets"
     PoseDetection: xs.create(),
   };
