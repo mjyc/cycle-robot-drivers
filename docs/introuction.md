@@ -36,6 +36,101 @@ Alternatively, you could use one of many existing robot programming frameworks, 
 
 ## Getting started
 
+The code examples in this documentation assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a building tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
+
+First, let's install the packages we'll be using:
+
+```
+npm install xstream @cycle/run @cycle-robot-drivers/speech
+```
+
+then create `index.html`:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=1.0">
+  <meta name="description" content="tutorial"/>
+  <title>tutorial</title>
+</head>
+<body>
+    <div id="app"></div>
+    <script src="./dist/index.js"></script>
+</body>
+</html>
+```
+
+<!-- <iframe src="https://stackblitz.com/edit/angular?embed=1"></iframe> -->
+
+and `index.js`:
+
+```js
+import Snabbdom from 'snabbdom-pragma';
+import xs from 'xstream';
+import {run} from '@cycle/run';
+import {makeDOMDriver} from '@cycle/dom';
+import {
+  makeSpeechSynthesisActionDriver,
+  makeSpeechRecognitionActionDriver,
+} from '@cycle-robot-drivers/speech'
+
+
+function main(sources) {
+  const goal$ = xs.create();
+
+  sources.SpeechSynthesisAction.output.addListener({
+    next: data => console.warn('output', data),
+  });
+  sources.SpeechSynthesisAction.result.addListener({
+    next: data => console.warn('result', data),
+  });
+
+  return {
+    DOM: vdom$,
+    SpeechSynthesisAction: goal$,
+    SpeechRecognitionAction: xs.of({}),
+  };
+}
+
+run(main, {
+  DOM: makeDOMDriver('#app'),
+  SpeechSynthesisAction: makeSpeechSynthesisActionDriver(),
+  SpeechRecognitionAction: makeSpeechRecognitionActionDriver(),
+});
+```
+
+<!-- Add demo here -->
+
+
+Let's investigate the code.
+
+```
+import xs from 'xstream';
+import {run} from '@cycle/run';
+import {makeDOMDriver} from '@cycle/dom';
+
+// ...
+```
+you will need to import libraries
+
+<!-- link to import libraries & create main & drivers -->
+<!-- highlight the difference;  -->
+<!-- the new DRIVERS -->
+
+
+<!-- sending (text) & catching (speech) -->
+
+
+<!-- TELEOP idea: commented out action params (and that's all) -->
+<!-- TELEOP idea: commented out action params -->
+
+
+<!-- Wiring things -->
+
+
+
 1. install library
 2. import libraries
 
