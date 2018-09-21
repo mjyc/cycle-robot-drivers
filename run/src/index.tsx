@@ -122,7 +122,7 @@ export function runRobotProgram(
         sinks.targets.TabletFace = sources.FacialExpressionAction.value;
       }
       if (!sinks.AudioPlayer) {
-        sinks.AudioPlayer = sources.AudioPlayerAction.value;
+        sinks.AudioPlayer = sources.AudioPlayerAction.output;
       }
       if (!sinks.SpeechSynthesis) {
         sinks.SpeechSynthesis = sources.SpeechSynthesisAction.output;
