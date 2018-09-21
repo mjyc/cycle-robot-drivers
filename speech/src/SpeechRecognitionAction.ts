@@ -55,7 +55,7 @@ function input(
   resultEvent$: Stream<any>
 ) {
   return xs.merge(
-    goal$.map(goal => {
+    goal$.filter(goal => typeof goal !== 'undefined').map(goal => {
       if (goal === null) {
         return {
           type: InputType.CANCEL,
@@ -67,7 +67,7 @@ function input(
           value: !!(goal as any).goal_id ? goal : initGoal(goal),
         };
       }
-    }).filter(goal => typeof goal !== 'undefined'),
+    }),
     startEvent$.mapTo({type: InputType.START, value: null}),
     endEvent$.mapTo({type: InputType.END, value: null}),
     errorEvent$.map(event => ({type: InputType.ERROR, value: event})),

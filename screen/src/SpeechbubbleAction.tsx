@@ -21,7 +21,9 @@ export function SpeechbubbleAction(sources) {
     value: Goal | string | boolean,
   };
 
-  const goal$ = xs.fromObservable(sources.goal).map(goal => {
+  const goal$ = xs.fromObservable(
+    sources.goal
+  ).filter(goal => typeof goal !== 'undefined').map(goal => {
     if (goal === null) {
       return {
         type: 'CANCEL',
@@ -42,7 +44,7 @@ export function SpeechbubbleAction(sources) {
         } : value,
       };
     }
-  }).filter(goal => typeof goal !== 'undefined');
+  });
   // IMPORTANT!! force creating the click stream
   let click$ = sources.DOM.select('.choice').elements()
     .map(b => sources.DOM.select('.choice').events('click', {

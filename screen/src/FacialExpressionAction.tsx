@@ -14,7 +14,9 @@ export function FacialExpressionAction(sources) {
     value: Goal,
   };
 
-  const goal$ = xs.fromObservable(sources.goal).map(goal => {
+  const goal$ = xs.fromObservable(
+    sources.goal
+  ).filter(goal => typeof goal !== 'undefined').map(goal => {
     if (goal === null) {
       return {
         type: 'CANCEL',
@@ -32,7 +34,7 @@ export function FacialExpressionAction(sources) {
         } : value,
       };
     }
-  }).filter(goal => typeof goal !== 'undefined');
+  }).debug();
 
   const action$ = xs.merge(
     goal$,

@@ -42,7 +42,9 @@ function main(sources) {
     value: any,
   }
 
-  const goal$ = sources.goal.map(goal => {
+  const goal$ = xs.fromObservable(
+    sources.goal
+  ).filter(goal => typeof goal !== 'undefined').map(goal => {
     if (goal === null) {
       return {
         type: 'CANCEL',
@@ -63,7 +65,7 @@ function main(sources) {
         } : value,
       };
     }
-  }).filter(goal => typeof goal !== 'undefined');
+  });
   const action$ = xs.merge(
     goal$,
     first.result.map(result => ({type: 'FIRST_RESULT', value: result})),
