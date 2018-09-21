@@ -136,7 +136,7 @@ export function runRobotProgram(
   }
 
   return runCycleProgram(
-    powerup(wrappedMain, (proxy, target) => proxy.imitate(target)),
+    powerup(wrappedMain, (proxy, target) => !!target && proxy.imitate(target)),
     drivers,
   );
 };
