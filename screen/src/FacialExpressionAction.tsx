@@ -148,7 +148,7 @@ export function FacialExpressionAction(sources) {
   value$.addListener({next: () => {}});
 
   return {
-    value: adapt(value$),
+    output: adapt(value$),
     status: adapt(status$),
     result: adapt(result$),
   };

@@ -54,7 +54,7 @@ function main(sources) {
     } else if (result.result === 'Bad') {
       return 'sad';
     }
-  }).filter(expression => !!expression).debug();  // TODO: remove this
+  });
 
   const vdom$ = xs.combine(
     sources.TwoSpeechbubblesAction.DOM,
@@ -65,7 +65,7 @@ function main(sources) {
   return {
     DOM: vdom$,
     targets: {  // will be imitating "proxies"
-      TabletFace: sources.FacialExpressionAction.value.debug(),
+      TabletFace: sources.FacialExpressionAction.output,
       TwoSpeechbubblesAction: speechbubbles$,
       FacialExpressionAction: expression$,
     },
