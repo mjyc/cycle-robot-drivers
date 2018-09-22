@@ -1,8 +1,8 @@
 {
   "name": "@cycle-robot-drivers/action",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "",
-  "repository": "https://gitlab.cs.washington.edu/mjyc/cycle-robot-drivers/tree/master/action",
+  "repository": "",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "main": "lib/cjs/index.js",
