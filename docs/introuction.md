@@ -38,13 +38,41 @@ Alternatively, you could use one of many existing robot programming frameworks, 
 
 The code examples in this documentation assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a building tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
 
-First, let's install the packages we'll be using:
 
+First, let's create a folder:
 ```
-npm install xstream @cycle/run @cycle-robot-drivers/speech
+mkdir -p my-robot-program/src
+cd my-robot-program
 ```
 
-then create `index.html`:
+and create `package.json`:
+```
+{
+  "dependencies": {
+    "@cycle-robot-drivers/run": "0.0.5",
+    "@cycle/dom": "20.4.0",
+    "@cycle/run": "4.4.0",
+    "xstream": "11.7.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babelify": "^8.0.0",
+    "browserify": "^16.2.2",
+    "live-server": "^1.2.0",
+    "mkdirp": "~0.5.0",
+    "watchify": "^3.11.0"
+  },
+  "scripts": {
+    "build": "browserify src/index.js -t babelify --outfile dist/index.js -dv",
+    "watch": "mkdirp dist && watchify src/index.js -t babelify --outfile dist/index.js -dv",
+    "start": "npm run watch & live-server"
+  }
+}
+```
+
+`index.html`:
 
 ```html
 <!DOCTYPE html>
@@ -64,56 +92,81 @@ then create `index.html`:
 
 <!-- <iframe src="https://stackblitz.com/edit/angular?embed=1"></iframe> -->
 
-and `index.js`:
+and `src/index.js`:
 
 ```js
-import Snabbdom from 'snabbdom-pragma';
-import xs from 'xstream';
-import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
-import {
-  makeSpeechSynthesisActionDriver,
-  makeSpeechRecognitionActionDriver,
-} from '@cycle-robot-drivers/speech'
-
+import {runRobotProgram} from '@cycle-robot-drivers/run';
+import xs from 'xstream';
 
 function main(sources) {
-  const goal$ = xs.create();
-
-  sources.SpeechSynthesisAction.output.addListener({
-    next: data => console.warn('output', data),
-  });
-  sources.SpeechSynthesisAction.result.addListener({
-    next: data => console.warn('result', data),
-  });
-
+  const hello$ = sources.TabletFace.load.mapTo('Hello!');
+  const nice$ = sources.SpeechSynthesisAction.result
+    .take(1)
+    .mapTo('Nice to meet you!');
+  const greet$ = xs.of(hello$, nice$);
+    
   return {
-    DOM: vdom$,
-    SpeechSynthesisAction: goal$,
-    SpeechRecognitionAction: xs.of({}),
-  };
+    TwoSpeechbubblesAction: greet$,
+    SpeechSynthesisAction: greet$,
+  }
 }
 
-run(main, {
+runRobotProgram(main, {
   DOM: makeDOMDriver('#app'),
-  SpeechSynthesisAction: makeSpeechSynthesisActionDriver(),
-  SpeechRecognitionAction: makeSpeechRecognitionActionDriver(),
 });
 ```
 
-<!-- Add demo here -->
+Then, install the libraries and start the 
+
+```
+npm install
+npm start
+```
+
+It should open a browser tab `127.0.0.1:8080`.
+
+
+<!-- First, let's install the packages we'll be using:
+
+```
+npm install xstream @cycle/run @cycle-robot-drivers/speech
+```
+
+Add demo here -->
 
 
 Let's investigate the code.
 
-```
-import xs from 'xstream';
-import {run} from '@cycle/run';
+```js
 import {makeDOMDriver} from '@cycle/dom';
+import {runRobotProgram} from '@cycle-robot-drivers/run';
+import xs from 'xstream';
 
 // ...
 ```
 you will need to import libraries
+
+```js
+// ...
+
+function main(sources) {
+  const hello$ = sources.TabletFace.load.mapTo('Hello!');
+  const nice$ = sources.SpeechSynthesisAction.result
+    .take(1)
+    .mapTo('Nice to meet you!');
+  const greet$ = xs.of(hello$, nice$);
+    
+  return {
+    TwoSpeechbubblesAction: greet$,
+    SpeechSynthesisAction: greet$,
+  }
+}
+
+// ...
+```
+
+is the main function that outputs a string 'Hello!' to `TwoSpeechbubblesAction` and `SpeechSynthesisAction` drivers
 
 <!-- link to import libraries & create main & drivers -->
 <!-- highlight the difference;  -->
