@@ -128,14 +128,19 @@ runRobotProgram(main, {
 });
 ```
 
-Then, install the libraries and start the 
+Then, install the libraries:
 
 ```
 npm install
+```
+
+and start the server:
+
+```
 npm start
 ```
 
-It should open a browser tab `127.0.0.1:8080`.
+The command should open a browser tab with `127.0.0.1:8080`.
 
 
 <!-- First, let's install the packages we'll be using:
@@ -147,18 +152,95 @@ npm install xstream @cycle/run @cycle-robot-drivers/speech
 Add demo here -->
 
 
-Let's investigate the code.
+Now, let's investigate the code. We'll only investigate `index.js` since the most other files are used for setting up a build system.
 
 ```js
+import xs from 'xstream';
 import {makeDOMDriver} from '@cycle/dom';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
-import xs from 'xstream';
-
 // ...
 ```
-you will need to import libraries
+
+The first three lines import [xstream](https://github.com/staltz/xstream) stream library, `makeDOMDriver` function for creating a [Cycle.js DOM driver](https://cycle.js.org/api/dom.html), and `runRobotProgram` function for connecting `main` function and `drivers` variable to run an application, for example:
 
 ```js
+// ...
+
+function main(sources) {
+  // ...
+
+  const sink = {
+    TwoSpeechbubblesAction: greet$,
+    SpeechSynthesisAction: greet$,
+  };
+  return sink;
+}
+
+const drivers = {
+  DOM: makeDOMDriver('#app')
+};
+
+runRobotProgram(main, drivers);
+```
+
+The `main` function takes a collection of streams as an input (`source`) and returns a collection of streams as an output (`sink`).
+
+output streams of main are used as an input for underlying actions and inputs are used as .
+
+For example
+
+```js
+function main(sources) {
+  const hello$ = sources.TabletFace.load.mapTo('Hello!');
+  const nice$ = sources.SpeechSynthesisAction.result
+    .take(1)
+    .mapTo('Nice to meet you!');
+  const greet$ = xs.merge(hello$, nice$);
+    
+  return {
+    TwoSpeechbubblesAction: greet$,
+    SpeechSynthesisAction: greet$,
+  }
+}
+```
+
+For example, in this main function, the program subscribes to `TabletFace.load` stream to produce a string `Hello!` and subcribe to `TabletFace.load` and take the first data from the stream (`take(1)`) to produce `Hello!`. Two produced outputs are merged as a stream `greet`, which is passed to two different action components `TwoSpeechbubblesAction` and `SpeechSynthesisAction` to make side effects, i.e., take action.
+
+
+
+<!-- source and sink contains 9 fields that are output streams from  -->
+
+
+<!-- 
+AudioPlayer,
+SpeechSynthesis,
+SpeechRecognition,
+TabletFace,
+PoseDetection,
+
+FacialExpressionAction,
+AudioPlayerAction,
+TwoSpeechbubblesAction,
+SpeechSynthesisAction,
+SpeechRecognitionAction,
+-->
+
+
+
+<!-- `runRobotProgram`
+
+The `main` function and `drivers` variable, and calls `runRobotProgram`. 
+
+The main function takes streams as input and return streams. Note that $ is convention used in cycle.js ...
+The drivers variable defines driver, and .
+
+We then define a main function that takes streams as input (`sources`) and return 
+
+drivers. -->
+
+
+
+<!-- ```js
 // ...
 
 function main(sources) {
@@ -177,7 +259,7 @@ function main(sources) {
 // ...
 ```
 
-is the main function that outputs a string 'Hello!' to `TwoSpeechbubblesAction` and `SpeechSynthesisAction` drivers
+is the main function that outputs a string 'Hello!' to `TwoSpeechbubblesAction` and `SpeechSynthesisAction` drivers -->
 
 <!-- link to import libraries & create main & drivers -->
 <!-- highlight the difference;  -->
@@ -195,7 +277,7 @@ is the main function that outputs a string 'Hello!' to `TwoSpeechbubblesAction` 
 
 
 
-1. install library
+<!-- 1. install library
 2. import libraries
 
 (download the one that has everything as submodules)
@@ -215,4 +297,4 @@ Play with the robot!
 ## Tutorial 2
 
 
-
+ -->
