@@ -46,7 +46,7 @@ cd my-robot-program
 ```
 
 and create `package.json`:
-```
+```json
 {
   "dependencies": {
     "@cycle-robot-drivers/run": "0.0.5",
@@ -69,6 +69,17 @@ and create `package.json`:
     "watch": "mkdirp dist && watchify src/index.js -t babelify --outfile dist/index.js -dv",
     "start": "npm run watch & live-server"
   }
+}
+```
+
+`.babelrc`:
+
+```json
+{
+  "presets": ["es2015"],
+  "plugins": [
+    "transform-object-rest-spread"
+  ]
 }
 ```
 
