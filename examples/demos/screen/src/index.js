@@ -4,7 +4,7 @@ import {div, makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';
 import {powerup} from '@cycle-robot-drivers/action';
 import {
-  TabletFace,
+  makeTabletFaceDriver,
   FacialExpressionAction,
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
@@ -12,15 +12,10 @@ import {
 
 function main(sources) {
   sources.proxies = {  // will be connected to "targets"
-    TabletFace: xs.create(),
     FacialExpressionAction: xs.create(),
     TwoSpeechbubblesAction: xs.create(),
   };
   // create action components
-  sources.TabletFace = TabletFace({
-    command: sources.proxies.TabletFace,
-    DOM: sources.DOM,
-  });
   sources.TwoSpeechbubblesAction = TwoSpeechbubblesAction({
     goal: sources.proxies.TwoSpeechbubblesAction,
     DOM: sources.DOM,
@@ -65,8 +60,8 @@ function main(sources) {
 
   return {
     DOM: vdom$,
+    TabletFace: sources.FacialExpressionAction.output,
     targets: {  // will be imitating "proxies"
-      TabletFace: sources.FacialExpressionAction.output,
       TwoSpeechbubblesAction: speechbubbles$,
       FacialExpressionAction: expression$,
     },
@@ -75,4 +70,5 @@ function main(sources) {
 
 run(powerup(main, (proxy, target) => proxy.imitate(target)), {
   DOM: makeDOMDriver('#app'),
+  TabletFace: makeTabletFaceDriver(),
 });
