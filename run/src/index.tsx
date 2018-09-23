@@ -3,7 +3,7 @@ import xs from 'xstream';
 import {run, Driver} from '@cycle/run';
 import {powerup} from '@cycle-robot-drivers/action';
 import {
-  TabletFace,
+  makeTabletFaceDriver,
   FacialExpressionAction,
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
@@ -23,6 +23,7 @@ export function runRobotProgram(
   main: any,
   drivers: {
     DOM: Driver<any, any>,
+    TabletFace: Driver<any, any>,
     AudioPlayer?: Driver<any, any>,
     SpeechSynthesis?: Driver<any, any>,
     SpeechRecognition?: Driver<any, any>,
@@ -35,6 +36,9 @@ export function runRobotProgram(
   }
   if (!drivers.DOM) {
     throw new Error('DOMDriver must be defined in drivers as "DOM"');
+  }
+  if (!drivers.TabletFace) {
+    drivers.TabletFace = makeTabletFaceDriver();
   }
   if (!drivers.AudioPlayer) {
     drivers.AudioPlayer = makeAudioPlayerDriver();
@@ -54,17 +58,12 @@ export function runRobotProgram(
 
   function wrappedMain(sources) {
     sources.proxies = {
-      TabletFace: xs.create(),
       FacialExpressionAction: xs.create(),
       TwoSpeechbubblesAction: xs.create(),
       AudioPlayerAction: xs.create(),
       SpeechSynthesisAction: xs.create(),
       SpeechRecognitionAction: xs.create(),
     };
-    sources.TabletFace = TabletFace({
-      command: sources.proxies.TabletFace,
-      DOM: sources.DOM,
-    });
     sources.FacialExpressionAction = FacialExpressionAction({
       goal: sources.proxies.FacialExpressionAction,
       TabletFace: sources.TabletFace,
@@ -118,8 +117,8 @@ export function runRobotProgram(
           </div>
         ));
       }
-      if (!sinks.targets.TabletFace) {
-        sinks.targets.TabletFace = sources.FacialExpressionAction.output;
+      if (!sinks.TabletFace) {
+        sinks.TabletFace = sources.FacialExpressionAction.output;
       }
       if (!sinks.AudioPlayer) {
         sinks.AudioPlayer = sources.AudioPlayerAction.output;
