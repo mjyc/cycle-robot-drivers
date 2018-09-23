@@ -1,4 +1,3 @@
-import {makeDOMDriver} from '@cycle/dom';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 import xs from 'xstream';
 
@@ -43,6 +42,4 @@ function main(sources) {
   }
 }
 
-runRobotProgram(main, {
-  DOM: makeDOMDriver('#app'),
-});
+runRobotProgram(main);
