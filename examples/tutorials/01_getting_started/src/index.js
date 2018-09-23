@@ -7,7 +7,7 @@ function main(sources) {
   const nice$ = sources.SpeechSynthesisAction.result
     .take(1)
     .mapTo('Nice to meet you!');
-  const greet$ = xs.of(hello$, nice$);
+  const greet$ = xs.merge(hello$, nice$);
     
   return {
     TwoSpeechbubblesAction: greet$,
