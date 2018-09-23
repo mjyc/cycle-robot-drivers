@@ -1,5 +1,6 @@
 import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
+import {makeDOMDriver} from '@cycle/dom';
 import {run, Driver} from '@cycle/run';
 import {powerup} from '@cycle-robot-drivers/action';
 import {
@@ -22,7 +23,7 @@ import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 export function runRobotProgram(
   main: any,
   drivers: {
-    DOM: Driver<any, any>,
+    DOM?: Driver<any, any>,
     TabletFace: Driver<any, any>,
     AudioPlayer?: Driver<any, any>,
     SpeechSynthesis?: Driver<any, any>,
@@ -34,8 +35,11 @@ export function runRobotProgram(
   if (!main) {
     throw new Error('Must pass the argument main');
   }
+  if (!drivers) {
+    (drivers as any) = {};
+  }
   if (!drivers.DOM) {
-    throw new Error('DOMDriver must be defined in drivers as "DOM"');
+    drivers.DOM = makeDOMDriver(document.body.firstElementChild);
   }
   if (!drivers.TabletFace) {
     drivers.TabletFace = makeTabletFaceDriver();
