@@ -22,7 +22,7 @@ import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
 export function runRobotProgram(
   main: any,
-  drivers: {
+  drivers?: {
     DOM?: Driver<any, any>,
     TabletFace: Driver<any, any>,
     AudioPlayer?: Driver<any, any>,
