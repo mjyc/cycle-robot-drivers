@@ -4,9 +4,9 @@ import {Stream} from 'xstream';
 import {run} from '@cycle/run';
 import {makeDOMDriver} from '@cycle/dom';
 import {
-  TabletFace,
-} from '@cycle-robot-drivers/screen'
-import {makePoseDetectionDriver} from 'cycle-posenet-drivers'
+  makeTabletFaceDriver,
+} from '@cycle-robot-drivers/screen';
+import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
 const videoWidth = 640;
 const videoHeight = 480;
@@ -45,15 +45,10 @@ function main(sources) {
     (text === "Start following face") ? faceMoving$ : faceStatic$
   ).flatten();
 
-  const tabletFace = TabletFace({
-    command: face$,
-    DOM: sources.DOM,
-  });
-
   const styles = {code: {"background-color": "#f6f8fa"}};
   const vdom$ = xs.combine(
     sources.PoseDetection.poses.startWith([]),
-    tabletFace.DOM,
+    sources.TabletFace.DOM,
     sources.PoseDetection.DOM,
     lastClick$,
   ).map(([p, f, d, l]) => (
@@ -99,5 +94,6 @@ function main(sources) {
 
 run(main, {
   DOM: makeDOMDriver('#app'),
+  TabletFace: makeTabletFaceDriver(),
   PoseDetection: makePoseDetectionDriver({videoWidth, videoHeight}),
 });
