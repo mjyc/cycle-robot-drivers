@@ -269,7 +269,7 @@ type Command = {
   value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
 
-export function TabletFace(sources, {
+export function makeTabletFaceDriver({
   styles: {
     faceColor = 'whitesmoke',
     faceHeight = '100vh',
@@ -331,99 +331,106 @@ export function TabletFace(sources, {
   const eyes = new EyeController();
   const id = `face-${String(Math.random()).substr(2)}`;
 
-  const faceElement$ = sources.DOM.select(`#${id}`).element();
-  faceElement$.addListener({next: (element) => {
-    eyes.setElements({
-      leftEye: element.querySelector('.left.eye'),
-      rightEye: element.querySelector('.right.eye'),
-      upperLeftEyelid: element.querySelector('.left .eyelid.upper'),
-      upperRightEyelid: element.querySelector('.right .eyelid.upper'),
-      lowerLeftEyelid: element.querySelector('.left .eyelid.lower'),
-      lowerRightEyelid: element.querySelector('.right .eyelid.lower'),
-    });
-  }});
-  const load$ = faceElement$
-    .filter(() => true)  // convert MemoryStream to Stream
-    .take(1)
-    .mapTo(null);
-
-  let animations = {};
-  const animationFinish$$: Stream<Stream<any[]>> = xs.create();
-  const speechbubblesDOM$ = xs.create();
-  xs.fromObservable(sources.command).addListener({
-    next: function(command: Command) {
-      if (!command) {
-        Object.keys(animations).map((key) => {
-          animations[key].cancel();
-        });
+  return function(command$) {
+    const load$ = xs.create();
+    const intervalID = setInterval(() => {
+      if (!document.querySelector(`#${id}`)) {
+        console.debug('Waiting for `#${id}` to appear...');
         return;
       }
-      switch (command.type) {
-        case CommandType.EXPRESS:
-          animations = eyes.express(command.value as ExpressCommandArgs) || {};
-          animationFinish$$.shamefullySendNext(
-            xs.fromPromise(
-              Promise.all(Object.keys(animations).map((key) => {
-                return new Promise((resolve, reject) => {
-                  animations[key].onfinish = resolve;
-                })
-              }))
-            )
-          );
-          break;
-        case CommandType.START_BLINKING:
-          eyes.startBlinking(command.value as StartBlinkingCommandArgs);
-          break;
-        case CommandType.STOP_BLINKING:
-          eyes.stopBlinking();
-          break;
-        case CommandType.SET_STATE:
-          const value = command.value as SetStateCommandArgs;
-          const leftPos = value && value.leftEye || {x: null, y: null};
-          const rightPos = value && value.rightEye || {x: null, y: null};
-          eyes.setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
-          eyes.setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
-          break;
-        case CommandType.SPEECHBUBBLES:
-          speechbubblesDOM$.shamefullySendNext(command.value);
-          break;
+      clearInterval(intervalID);
+
+      const element = document.querySelector(`#${id}`);
+      eyes.setElements({
+        leftEye: element.querySelector('.left.eye'),
+        rightEye: element.querySelector('.right.eye'),
+        upperLeftEyelid: element.querySelector('.left .eyelid.upper'),
+        upperRightEyelid: element.querySelector('.right .eyelid.upper'),
+        lowerLeftEyelid: element.querySelector('.left .eyelid.lower'),
+        lowerRightEyelid: element.querySelector('.right .eyelid.lower'),
+      });
+
+      load$.shamefullySendNext(null);
+    }, 1000);
+
+    let animations = {};
+    const animationFinish$$: Stream<Stream<any[]>> = xs.create();
+    const speechbubblesDOM$ = xs.create();
+    xs.fromObservable(command$).addListener({
+      next: function(command: Command) {
+        if (!command) {
+          Object.keys(animations).map((key) => {
+            animations[key].cancel();
+          });
+          return;
+        }
+        switch (command.type) {
+          case CommandType.EXPRESS:
+            animations = eyes.express(command.value as ExpressCommandArgs) || {};
+            animationFinish$$.shamefullySendNext(
+              xs.fromPromise(
+                Promise.all(Object.keys(animations).map((key) => {
+                  return new Promise((resolve, reject) => {
+                    animations[key].onfinish = resolve;
+                  })
+                }))
+              )
+            );
+            break;
+          case CommandType.START_BLINKING:
+            eyes.startBlinking(command.value as StartBlinkingCommandArgs);
+            break;
+          case CommandType.STOP_BLINKING:
+            eyes.stopBlinking();
+            break;
+          case CommandType.SET_STATE:
+            const value = command.value as SetStateCommandArgs;
+            const leftPos = value && value.leftEye || {x: null, y: null};
+            const rightPos = value && value.rightEye || {x: null, y: null};
+            eyes.setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
+            eyes.setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
+            break;
+          case CommandType.SPEECHBUBBLES:
+            speechbubblesDOM$.shamefullySendNext(command.value);
+            break;
+        }
       }
+    });
+
+    const vnode$ = xs.of(
+      <div className="face" style={styles.face} id={id}>
+        <div className="eye left" style={
+          (Object as any).assign({}, styles.eye, styles.left)
+        }>
+          <div className="eyelid upper" style={
+            (Object as any).assign({}, styles.eyelid, styles.upper)
+          }>
+          </div>
+          <div className="eyelid lower" style={
+            (Object as any).assign({}, styles.eyelid, styles.lower)
+          }>
+          </div>
+        </div>
+
+        <div className="eye right" style={
+          (Object as any).assign({}, styles.eye, styles.right)
+        }>
+          <div className="eyelid upper" style={
+            (Object as any).assign({}, styles.eyelid, styles.upper)
+          }>
+          </div>
+          <div className="eyelid lower" style={
+            (Object as any).assign({}, styles.eyelid, styles.lower)
+          }>
+          </div>
+        </div>
+      </div>
+    );
+
+    return {
+      DOM: adapt(vnode$),
+      animationFinish: adapt(animationFinish$$.flatten()),
+      load: adapt(load$),
     }
-  });
-
-  const vnode$ = xs.of(
-    <div className="face" style={styles.face} id={id}>
-      <div className="eye left" style={
-        (Object as any).assign({}, styles.eye, styles.left)
-      }>
-        <div className="eyelid upper" style={
-          (Object as any).assign({}, styles.eyelid, styles.upper)
-        }>
-        </div>
-        <div className="eyelid lower" style={
-          (Object as any).assign({}, styles.eyelid, styles.lower)
-        }>
-        </div>
-      </div>
-
-      <div className="eye right" style={
-        (Object as any).assign({}, styles.eye, styles.right)
-      }>
-        <div className="eyelid upper" style={
-          (Object as any).assign({}, styles.eyelid, styles.upper)
-        }>
-        </div>
-        <div className="eyelid lower" style={
-          (Object as any).assign({}, styles.eyelid, styles.lower)
-        }>
-        </div>
-      </div>
-    </div>
-  );
-
-  return {
-    DOM: adapt(vnode$),
-    animationFinish: adapt(animationFinish$$.flatten()),
-    load: adapt(load$),
   }
 }

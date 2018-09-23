@@ -130,6 +130,10 @@ export function makePoseDetectionDriver({
   flipHorizontal?: boolean,
 } = {}): Driver<any, any> {
   const stats = new Stats();
+  const id = String(Math.random()).substr(2);
+  const divID = `posenet-${id}`;
+  const videoID = `pose-video-${id}`;
+  const canvasID = `pose-canvas-${id}`;
 
   return function(params$) {
     let params = null;
@@ -232,20 +236,23 @@ export function makePoseDetectionDriver({
       }
     }
 
-    // Poll for the element with id='#pose_detection_canvas'
+    // Poll for the element with id=`#${canvasID}`
     const intervalID = setInterval(async () => {
-      if (!document.querySelector('#pose_detection_canvas')) {
-        console.debug('Waiting for #pose_detection_canvas to appear...');
+      if (!document.querySelector(`#${canvasID}`)) {
+        console.debug(`Waiting for #${canvasID} to appear...`);
         return;
       }
       clearInterval(intervalID);
 
       if (!video) {
         video = await setupCamera(
-          document.querySelector('#pose_detection_video'), videoWidth, videoHeight);
+          document.querySelector(`#${videoID}`),
+          videoWidth,
+          videoHeight
+        );
         video.play();
 
-        const canvas: any = document.querySelector('#pose_detection_canvas');
+        const canvas: any = document.querySelector(`#${canvasID}`);
         context = canvas.getContext('2d');
         canvas.width = videoWidth;
         canvas.height = videoHeight;
@@ -255,13 +262,14 @@ export function makePoseDetectionDriver({
 
         stats.showPanel(0);
         stats.dom.style.setProperty('position', 'absolute');
-        document.querySelector('#pose_detection').appendChild(stats.dom);
+        document.querySelector(`#${divID}`).appendChild(stats.dom);
 
         const gui = setupGui(video, params.net, params);
         gui.domElement.style.setProperty('position', 'absolute');
         gui.domElement.style.setProperty('top', '0px');
         gui.domElement.style.setProperty('right', '0px');
-        document.querySelector('#pose_detection').appendChild(gui.domElement);
+        document.querySelector(`#${divID}`)
+          .appendChild(gui.domElement);
         gui.closed = true;
       } else {
         console.warn('video is already set');
@@ -311,13 +319,13 @@ export function makePoseDetectionDriver({
     });
 
     const vdom$ = xs.of((
-      <div id="pose_detection" style={{position: "relative"}}>
+      <div id={divID} style={{position: "relative"}}>
         <video
-          id="pose_detection_video"
+          id={videoID}
           style={{display: 'none'}}
           autoPlay
         />
-        <canvas id="pose_detection_canvas" />
+        <canvas id={canvasID} />
       </div>
     ));
     return {
