@@ -45,61 +45,7 @@ mkdir -p my-robot-program/src
 cd my-robot-program
 ```
 
-and create `package.json`:
-```json
-{
-  "dependencies": {
-    "@cycle-robot-drivers/run": "0.0.5",
-    "@cycle/dom": "20.4.0",
-    "@cycle/run": "4.4.0",
-    "xstream": "11.7.0"
-  },
-  "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babelify": "^8.0.0",
-    "browserify": "^16.2.2",
-    "live-server": "^1.2.0",
-    "mkdirp": "~0.5.0",
-    "watchify": "^3.11.0"
-  },
-  "scripts": {
-    "build": "browserify src/index.js -t babelify --outfile dist/index.js -dv",
-    "watch": "mkdirp dist && watchify src/index.js -t babelify --outfile dist/index.js -dv",
-    "start": "npm run watch & live-server"
-  }
-}
-```
-
-`.babelrc`:
-
-```json
-{
-  "presets": ["es2015"],
-  "plugins": [
-    "transform-object-rest-spread"
-  ]
-}
-```
-
-`index.html`:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=1.0">
-  <meta name="description" content="tutorial"/>
-  <title>tutorial</title>
-</head>
-<body>
-    <div id="app"></div>
-    <script src="./dist/index.js"></script>
-</body>
-</html>
-```
+and download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and place `index.js` in `src/` folder.
 
 <!-- <iframe src="https://stackblitz.com/edit/angular?embed=1"></iframe> -->
 
