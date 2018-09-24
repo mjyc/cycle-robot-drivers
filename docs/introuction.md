@@ -1,6 +1,6 @@
 # Programming a social robot using Cycle.js
 
-In this post, I'll show you how to program a social robot using Cycle.js. I assume you are familiar reactive programming. If you are not, check out [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
+In this post, we'll show you how to program a social robot using Cycle.js. I assume you are familiar reactive programming. If you are not, check out [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
 
 ## What is a social robot?
 
@@ -38,83 +38,54 @@ Alternatively, you could use one of many existing robot programming frameworks, 
 
 The code examples in this documentation assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a building tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
 
+<!-- Note that we are creating a Cycle.js app -->
+<!-- TODO: Explain what we are doing here? show the end product (stackblitz or github link) here? -->
 
 First, let's create a folder:
+
 ```
-mkdir -p my-robot-program/src
+mkdir my-robot-program
 cd my-robot-program
 ```
 
-and download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and place `index.js` in `src/` folder.
-
-<!-- <iframe src="https://stackblitz.com/edit/angular?embed=1"></iframe> -->
-
-and `src/index.js`:
-
-```js
-import {makeDOMDriver} from '@cycle/dom';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
-import xs from 'xstream';
-
-function main(sources) {
-  const hello$ = sources.TabletFace.load.mapTo('Hello!');
-  const nice$ = sources.SpeechSynthesisAction.result
-    .take(1)
-    .mapTo('Nice to meet you!');
-  const greet$ = xs.of(hello$, nice$);
-    
-  return {
-    TwoSpeechbubblesAction: greet$,
-    SpeechSynthesisAction: greet$,
-  }
-}
-
-runRobotProgram(main, {
-  DOM: makeDOMDriver('#app'),
-});
-```
-
-Then, install the libraries:
-
-```
-npm install
-```
-
-and start the server:
-
-```
-npm start
-```
-
-The command should open a browser tab with `127.0.0.1:8080`.
-
-
-<!-- First, let's install the packages we'll be using:
-
-```
-npm install xstream @cycle/run @cycle-robot-drivers/speech
-```
-
-Add demo here -->
-
+and download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and [`index.js`](../examples/tutorials/01_getting_started/index.js) in the folder. You can now run `npm install` to install required npm packages. After installing, you can run `npm start` to serve the example web application locally.
 
 Now, let's investigate the code. We'll only investigate `index.js` since the most other files are used for setting up a build system.
 
 ```js
 import xs from 'xstream';
-import {makeDOMDriver} from '@cycle/dom';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
+
 // ...
 ```
 
-The first three lines import [xstream](https://github.com/staltz/xstream) stream library, `makeDOMDriver` function for creating a [Cycle.js DOM driver](https://cycle.js.org/api/dom.html), and `runRobotProgram` function for connecting `main` function and `drivers` variable to run an application, for example:
+The first line import [xstream](https://github.com/staltz/xstream) stream library as `xs` and the second line import `runRobotProgram` function that takes `main` function to run an application, like this:
+
+<!-- TODO: put a link to runRobotProgram -->
 
 ```js
 // ...
 
 function main(sources) {
   // ...
+  return sink;
+}
 
+runRobotProgram(main);
+```
+
+The `main` function takes a collection of streams as an input (`sources`) and returns a collection of streams as an output (`sink`). When `runRobotProgram` is called with `main`, it creates functions that produces side effects, the `Drivers` in Cycle.js, and connects the outputs of the drivers with the input of the `main` and the output of `main` with the inputs of the drivers. This structure allows programmers to write the pure, reactive `main` function.
+
+```js
+// ...
+
+function main(sources) {
+  const hello$ = sources.TabletFace.load.mapTo('Hello!');
+  const nice$ = sources.SpeechSynthesisAction.result
+    .take(1)
+    .mapTo('Nice to meet you!');
+  const greet$ = xs.merge(hello$, nice$);
+  
   const sink = {
     TwoSpeechbubblesAction: greet$,
     SpeechSynthesisAction: greet$,
@@ -122,37 +93,22 @@ function main(sources) {
   return sink;
 }
 
-const drivers = {
-  DOM: makeDOMDriver('#app')
-};
-
-runRobotProgram(main, drivers);
+// ...
 ```
 
-The `main` function takes a collection of streams as an input (`source`) and returns a collection of streams as an output (`sink`).
+This is a example main function that simple reactive robot behavior.
+We first subscribe to `sources.TabletFace.load` stream to convert "TabletFace loaded" event to a new event carrying a string `Hello!` using `mapTo` operator.
+We also subscribe to `sources.SpeechSynthesisAction.result` stream to convert the first "SpeechSynthesisAction finished" event to a new event carrying a string `Nice to meet you!`. Here `take` oeprator was used in addition to capture the only the first event.
+The two newly created stream varibales based on the subscriptions are then merged, and returned as `sink.TwoSpeechbubblesAction` and `sink.SpeechSynthesisAction` trigger an action displaying text on screen and an action speacking the given text.
 
-output streams of main are used as an input for underlying actions and inputs are used as .
-
-For example
-
-```js
-function main(sources) {
-  const hello$ = sources.TabletFace.load.mapTo('Hello!');
-  const nice$ = sources.SpeechSynthesisAction.result
-    .take(1)
-    .mapTo('Nice to meet you!');
-  const greet$ = xs.merge(hello$, nice$);
-    
-  return {
-    TwoSpeechbubblesAction: greet$,
-    SpeechSynthesisAction: greet$,
-  }
-}
-```
-
-For example, in this main function, the program subscribes to `TabletFace.load` stream to produce a string `Hello!` and subcribe to `TabletFace.load` and take the first data from the stream (`take(1)`) to produce `Hello!`. Two produced outputs are merged as a stream `greet`, which is passed to two different action components `TwoSpeechbubblesAction` and `SpeechSynthesisAction` to make side effects, i.e., take action.
+<!-- explain what $ means -->
 
 
+## Action drivers
+
+The example we provided is a Cycle.js app. What we did is we provided a wrapper funcation for Cycle.js' `run` and defined all the drivers required for working with a tablet face robot in that wrapper function, which we call runRobotProgram, as you can see in the source code. If you are comfortable working with Cycle.js, I recommend you to use without wrappers.
+
+<!-- Create an example that demonstrates how the action works -->
 
 <!-- source and sink contains 9 fields that are output streams from  -->
 
@@ -244,3 +200,56 @@ Play with the robot!
 
 
  -->
+
+
+
+
+
+
+<!-- and `src/index.js`:
+
+```js
+import {makeDOMDriver} from '@cycle/dom';
+import {runRobotProgram} from '@cycle-robot-drivers/run';
+import xs from 'xstream';
+
+function main(sources) {
+  const hello$ = sources.TabletFace.load.mapTo('Hello!');
+  const nice$ = sources.SpeechSynthesisAction.result
+    .take(1)
+    .mapTo('Nice to meet you!');
+  const greet$ = xs.of(hello$, nice$);
+    
+  return {
+    TwoSpeechbubblesAction: greet$,
+    SpeechSynthesisAction: greet$,
+  }
+}
+
+runRobotProgram(main, {
+  DOM: makeDOMDriver('#app'),
+});
+```
+
+Then, install the libraries:
+
+```
+npm install
+```
+
+and start the server:
+
+```
+npm start
+```
+
+The command should open a browser tab with `127.0.0.1:8080`. -->
+
+
+<!-- First, let's install the packages we'll be using:
+
+```
+npm install xstream @cycle/run @cycle-robot-drivers/speech
+```
+
+Add demo here -->
