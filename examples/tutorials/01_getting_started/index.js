@@ -1,5 +1,4 @@
 import xs from 'xstream';
-import {makeDOMDriver} from '@cycle/dom';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 function main(sources) {
@@ -8,13 +7,12 @@ function main(sources) {
     .take(1)
     .mapTo('Nice to meet you!');
   const greet$ = xs.merge(hello$, nice$);
-    
-  return {
+  
+  const sink = {
     TwoSpeechbubblesAction: greet$,
     SpeechSynthesisAction: greet$,
-  }
+  };
+  return sink;
 }
 
-runRobotProgram(main, {
-  DOM: makeDOMDriver('#app'),
-});
+runRobotProgram(main);

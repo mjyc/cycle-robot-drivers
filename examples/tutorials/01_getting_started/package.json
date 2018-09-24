@@ -6,8 +6,7 @@
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "dependencies": {
-    "@cycle-robot-drivers/run": "0.0.5",
-    "@cycle/dom": "20.4.0",
+    "@cycle-robot-drivers/run": "0.0.8",
     "@cycle/run": "4.4.0",
     "xstream": "11.7.0"
   },
@@ -22,8 +21,8 @@
     "watchify": "^3.11.0"
   },
   "scripts": {
-    "build": "browserify src/index.js -t babelify --outfile dist/index.js -dv",
-    "watch": "mkdirp dist && watchify src/index.js -t babelify --outfile dist/index.js -dv",
+    "build": "browserify index.js -t babelify --outfile dist/index.js -dv",
+    "watch": "mkdirp dist && watchify index.js -t babelify --outfile dist/index.js -dv",
     "start": "npm run watch & live-server"
   }
 }
