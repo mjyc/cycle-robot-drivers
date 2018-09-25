@@ -23,17 +23,9 @@ function main(sources) {
           rightEye: eyePosition,
         }
       };
-    }).debug();
-
-    face$.addListener({next: () => {}});
+    });
   
   return {
-    // TabletFace: xs.periodic(2000).map(() => {
-    //   return {
-    //     type: 'EXPRESS',
-    //     value: 'happy'
-    //   };
-    // }).debug(),
     TabletFace: face$,
     PoseDetection: xs.of({
       algorithm: 'single-pose',
