@@ -1,6 +1,13 @@
 # Programming a social robot using Cycle.js
 
-In this post, we'll show you how to program a social robot using Cycle.js. I assume you are familiar reactive programming. If you are not, check out [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
+In this post, I'll show you how to program a social robot using Cycle.js. I assume you are familiar reactive programming. If you are not, check out [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
+
+## Table of contents
+
+* [What is a social robot?](#what-is-a-social-robot)
+* [What is Cycle.js?](#what-is-cyclejs)
+* [Why Cycle.js for social robots?](#why-cyclejs-for-social-robots)
+* [Getting started](#getting-started)
 
 ## What is a social robot?
 
@@ -17,7 +24,7 @@ For me, a social robot is an embodied agent whose main task is to communicate wi
 
 ## What is Cycle.js
 
-[Cycle.js](http://cycle.js.org) is a functional and reactive JavaScript framework. It is an abstraction that separates all [side effect](https://en.wikipedia.org/wiki/Side_effect_(computer_science)) producing code into `Drivers` so the core application logic code remains [pure](https://en.wikipedia.org/wiki/Pure_function) in `main` function. The author of Cycle.js describes a web application as a _dialogue_ between a human and a computer. If we assume both are functions, the human as `y = Driver(x)` and the computer as `x = main(y)` where `x` and `y` are streams in the context of reactive programming, then the dialogue is simply two functions in a circular dependency, which I believe is why the author named the framework "Cycle.js". See [Dialogue abstraction](https://cycle.js.org/dialogue.html#dialogue-abstraction) and [Streams](https://cycle.js.org/streams.html#streams) for the detailed explanation, or [Getting started](https://cycle.js.org/getting-started.html) and [try it live](http://widdersh.in/tricycle/) for getting your hands dirty.
+[Cycle.js](http://cycle.js.org) is a functional and reactive JavaScript framework. It is an abstraction that separates all [side effect](https://en.wikipedia.org/wiki/Side_effect_(computer_science)) producing code into _Drivers_ so the core application logic code remains [pure](https://en.wikipedia.org/wiki/Pure_function) in _main_ function. The author of Cycle.js describes a web application as a _dialogue_ between a human and a computer. If we assume both are functions, the human as `y = driver(x)` and the computer as `x = main(y)` where `x` and `y` are streams in the context of reactive programming, then the dialogue is simply two functions in a circular dependency, which I believe is why the author named the framework "Cycle.js". See [Dialogue abstraction](https://cycle.js.org/dialogue.html#dialogue-abstraction) and [Streams](https://cycle.js.org/streams.html#streams) for the detailed explanation, or [Getting started](https://cycle.js.org/getting-started.html) and [try it live](http://widdersh.in/tricycle/) for getting your hands dirty.
 
 It is interesting to notice the similar abstractions could be found in older works of others, such as [Yampa](https://wiki.haskell.org/Yampa)'s [reactimate](https://wiki.haskell.org/Yampa/reactimate) and [ports and adapters architecture](http://wiki.c2.com/?PortsAndAdaptersArchitecture). Although [it seems Cycle.js was independently developed](https://gist.github.com/zudov/65447685838ea8b2569f), it is reassuring to see Cycle.js uses the robust pattern discovered from the past.
 
@@ -25,21 +32,20 @@ It is interesting to notice the similar abstractions could be found in older wor
 ## Why Cycle.js for social robots?
 <!-- ## Why reactive programming for social robots? -->
 
-_If we assume perfect robotic sensing and control_, programming a robot is like programming a web application. An web application receives inputs from human (e.g., a button click) and outputs information, just like a robot program receives inputs from environment including humans (e.g., speech) and outputs actions. In both cases, the main logic require to handle highly concurrent inputs and outputs and scale spatially (e.g., for web applications) or temporarily (e.g., for robot programs). I believe these requirements make Cycle.js a great candidate for programming a social robot as it encourages reactive programming and predictable (and hence scalable) coding by separating side effects. In fact, I believe any language or framework that supports similar abstractions is also a good candidate.
+_If we assume perfect robotic sensing and control_, programming a robot is like programming a web application. A web application receives inputs from human (e.g., a button click) and outputs information, just like a robot program receives inputs from the environment including humans (e.g., speech) and outputs actions. In both cases, the main logic requires to handle highly concurrent inputs and outputs and scale spatially (e.g., for web applications) or temporarily (e.g., for robot programs). I believe these requirements make Cycle.js a great candidate for programming a social robot as it encourages reactive programming and predictable (and hence scalable) coding by separating side effects. In fact, I believe any language or framework that supports similar abstractions is also a good candidate.
 <!-- To me, [the social robots that has a screen face](https://spectrum.ieee.org/automaton/robotics/humanoids/what-people-see-in-157-robot-faces) seems like physical browsers running a single page web application.  -->
 
 I understand my first assumption above will make roboticists laugh; I understand robotics researchers have not figured out general sensing and control. However, I believe they have made enough progress to use such technology in _constrained environments_ with confidence, for example, check out [Amazon Echo](https://www.google.com/aclk?sa=L&ai=DChcSEwiHnMbni63dAhWP_mQKHUYxAkgYABAAGgJwag&sig=AOD64_0pyA_aplrmSQlW_P1_aeNb1kyX6A&q=&ved=2ahUKEwiHocHni63dAhV-HzQIHW44D9wQ0Qx6BAgFEAI&adurl=), [Google Home](https://assistant.google.com/platforms/speakers/), or even [robots in indoor commercial spaces](https://spectrum.ieee.org/automaton/robotics/robotics-hardware/indoor-robots-for-commercial-spaces) if you haven't already.
 
-Alternatively, you could use one of many existing robot programming frameworks, like [ROS](http://www.ros.org/). While ROS provides ample libraries (e.g., for sensing and control) and tools (e.g., for visualization and data analysis), it is [too heavy](http://wiki.ros.org/hydro/Installation/UbuntuARM#Installation-1) and [constrained in platform](http://www.ros.org/reps/rep-0003.html#platforms-by-distribution) for writing simple interactive programs. I also found it difficult to create clean reactive programs that express complex dependencies between multiple input and output channels using [ROS communication patterns](http://wiki.ros.org/ROS/Patterns/Communication) in [python](http://wiki.ros.org/rospy) or [C++](http://wiki.ros.org/roscpp).
+Alternatively, you could use one of many existing robot programming frameworks, like [ROS](http://www.ros.org/). While ROS provides ample libraries (e.g., for sensing and control) and tools (e.g., for visualization and data analysis), it is [too heavy](http://wiki.ros.org/hydro/Installation/UbuntuARM#Installation-1) and [constrained](http://www.ros.org/reps/rep-0003.html#platforms-by-distribution) for writing simple interactive programs. I also found it difficult to create clean reactive programs that express complex dependencies between multiple input and output channels using [ROS communication patterns](http://wiki.ros.org/ROS/Patterns/Communication) in [python](http://wiki.ros.org/rospy) or [C++](http://wiki.ros.org/roscpp).
 <!-- in python or C/C++ even with [RxPY](https://github.com/ReactiveX/RxPY) or [RxCPP](https://github.com/ReactiveX/RxCpp). -->
 
 
 ## Getting started
 
-The code examples in this documentation assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a building tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
+The code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a building tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
 
-<!-- Note that we are creating a Cycle.js app -->
-<!-- TODO: Explain what we are doing here? show the end product (stackblitz or github link) here? -->
+We'll create [a simple web application](https://stackblitz.com/edit/cycle-robot-drivers-run-demo)--which I consider as a social robot in this post. You can download the final code from [here](../examples/tutorials/01_getting_started/).
 
 First, let's create a folder:
 
@@ -48,9 +54,9 @@ mkdir my-robot-program
 cd my-robot-program
 ```
 
-and download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and [`index.js`](../examples/tutorials/01_getting_started/index.js) in the folder. You can now run `npm install` to install required npm packages. After installing, you can run `npm start` to serve the example web application locally.
+Then download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and [`index.js`](../examples/tutorials/01_getting_started/index.js) in the folder. You can now run `npm install` to install the required npm packages. After installing, you can run `npm start` to serve the web application locally.
 
-Now, let's investigate the code. We'll only investigate `index.js` since the most other files are used for setting up a build system.
+Now, let's investigate the code. We'll only investigate `index.js` since the most other files are used for setting up the build system.
 
 ```js
 import xs from 'xstream';
@@ -59,9 +65,9 @@ import {runRobotProgram} from '@cycle-robot-drivers/run';
 // ...
 ```
 
-The first line import [xstream](https://github.com/staltz/xstream) stream library as `xs` and the second line import `runRobotProgram` function that takes `main` function to run an application, like this:
+The first line imports [xstream](https://github.com/staltz/xstream) stream library as `xs`. The second line import `runRobotProgram` function that takes `main` function to run an application, like this:
 
-<!-- TODO: put a link to runRobotProgram -->
+<!-- TODO: provide a runRobotProgram doc link -->
 
 ```js
 // ...
@@ -74,7 +80,7 @@ function main(sources) {
 runRobotProgram(main);
 ```
 
-The `main` function takes a collection of streams as an input (`sources`) and returns a collection of streams as an output (`sink`). When `runRobotProgram` is called with `main`, it creates functions that produces side effects, the `Drivers` in Cycle.js, and connects the outputs of the drivers with the input of the `main` and the output of `main` with the inputs of the drivers. This structure allows programmers to write the pure, reactive `main` function.
+The `main` function takes a collection of streams as an input (`sources`) and returns a collection of streams as an output (`sink`). When `runRobotProgram` is called, it creates functions that produce side effects (_Drivers_ in Cycle.js terms) and connects the outputs of the drivers with the input of `main` and the output of `main` with the inputs of the drivers. This structure enforced by Cycle.js allows programmers to write the pure, reactive `main` function.
 
 ```js
 // ...
@@ -96,12 +102,14 @@ function main(sources) {
 // ...
 ```
 
-This is a example main function that simple reactive robot behavior.
-We first subscribe to `sources.TabletFace.load` stream to convert "TabletFace loaded" event to a new event carrying a string `Hello!` using `mapTo` operator.
-We also subscribe to `sources.SpeechSynthesisAction.result` stream to convert the first "SpeechSynthesisAction finished" event to a new event carrying a string `Nice to meet you!`. Here `take` oeprator was used in addition to capture the only the first event.
-The two newly created stream varibales based on the subscriptions are then merged, and returned as `sink.TwoSpeechbubblesAction` and `sink.SpeechSynthesisAction` trigger an action displaying text on screen and an action speacking the given text.
+The code above is an example main function that makes the robot say something, reactively. We achieve this by first subscribing to the `sources.TabletFace.load` stream to convert the "TabletFace screen loaded" event to a new event carrying a string `Hello!` using xstream's [`mapTo`](https://github.com/staltz/xstream#mapTo) operator.
+We also subscribe to the `sources.SpeechSynthesisAction.result` stream to convert the first "SpeechSynthesisAction finished" event to a new event carrying a string `Nice to meet you!`. Notice that we use xstream's [`take`](https://github.com/staltz/xstream#mapTo) with the argument `1` to respond to the "SpeechSynthesisAction finished" event only once.
 
-<!-- explain what $ means -->
+The two subscriptions produce two streams, `hello$` and `nice$`, which we merge to create a single multiplexed stream `greet$` using xstream's [`merge`](https://github.com/staltz/xstream#merge) factory. We return the `greet$` stream as `sink.TwoSpeechbubblesAction` and `sink.SpeechSynthesisAction` to trigger an action displaying the given texts on screen (TwoSpeechbubblesAction) and an action speaking the given texts (SpeechSynthesisAction). Note that I attach `$` at the end of the stream variable names to distinguish them as the Cycle.js team does this, e.g., see their [examples](https://github.com/cyclejs/cyclejs/tree/master/examples).
+
+Upon loading this web application, it will first say and display "Hello!" and "Nice to meet you!" immediately after finished saying "Hello".
+
+<!-- TODO: provide links to TwoSpeechbubblesAction and SpeechSynthesisAction -->
 
 
 ## Action drivers
