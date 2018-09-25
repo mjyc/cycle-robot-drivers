@@ -1,6 +1,6 @@
+import xs from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
-import xs from 'xstream';
 
 const videoWidth = 640;
 const videoHeight = 480;

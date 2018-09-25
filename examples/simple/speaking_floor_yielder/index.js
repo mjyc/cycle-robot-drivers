@@ -1,6 +1,6 @@
-import {runRobotProgram} from '@cycle-robot-drivers/run';
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
+import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 function main(sources) {
   const start$ = xs.merge(
