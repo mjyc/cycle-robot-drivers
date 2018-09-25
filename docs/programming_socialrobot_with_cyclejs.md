@@ -105,16 +105,114 @@ function main(sources) {
 The code above is an example main function that makes the robot say something, reactively. We achieve this by first subscribing to the `sources.TabletFace.load` stream to convert the "TabletFace screen loaded" event to a new event carrying a string `Hello!` using xstream's [`mapTo`](https://github.com/staltz/xstream#mapTo) operator.
 We also subscribe to the `sources.SpeechSynthesisAction.result` stream to convert the first "SpeechSynthesisAction finished" event to a new event carrying a string `Nice to meet you!`. Notice that we use xstream's [`take`](https://github.com/staltz/xstream#mapTo) with the argument `1` to respond to the "SpeechSynthesisAction finished" event only once.
 
-The two subscriptions produce two streams, `hello$` and `nice$`, which we merge to create a single multiplexed stream `greet$` using xstream's [`merge`](https://github.com/staltz/xstream#merge) factory. We return the `greet$` stream as `sink.TwoSpeechbubblesAction` and `sink.SpeechSynthesisAction` to trigger an action displaying the given texts on screen (TwoSpeechbubblesAction) and an action speaking the given texts (SpeechSynthesisAction). Note that I attach `$` at the end of the stream variable names to distinguish them as the Cycle.js team does this, e.g., see their [examples](https://github.com/cyclejs/cyclejs/tree/master/examples).
-
-Upon loading this web application, it will first say and display "Hello!" and "Nice to meet you!" immediately after finished saying "Hello".
+The two subscriptions produce two streams, `hello$` and `nice$`, which we merge to create a single multiplexed stream `greet$` using xstream's [`merge`](https://github.com/staltz/xstream#merge) factory. We return the `greet$` stream as `sink.TwoSpeechbubblesAction` and `sink.SpeechSynthesisAction` to trigger an action displaying the given texts on screen and an action speaking the given texts. Note that I attach `$` at the end of the stream variable names to distinguish stream variables from others as the Cycle.js team does this in [their codebase](https://github.com/cyclejs/cyclejs). Upon loading this web application, it will first say and display "Hello!" and "Nice to meet you!" immediately after finished saying "Hello".
 
 <!-- TODO: provide links to TwoSpeechbubblesAction and SpeechSynthesisAction -->
 
 
-## Action drivers
+## Actions
+ 
+If you are familiar with writing a Cycle.js application, you probably noticed what we did in the previous section is almost like writing a regular Cycle.js application except (i) we used `runRobotProgram` from `'@cycle-robot-drivers/run'` instead of `run` from `@cycle/run` and (ii) we did not provide any drivers to `runRobotProgram` but reciving data from somewhere via `sources` and sending data to somewhere via `sinks`. This is because `runRobotProgram` is a wrapper function for Cycle.js's `run`  (see the implementation of `runRobotProgram` [here](../run/src/index.tsx)). In `runRobotProgram`, it creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection`, and five _actions_, `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction`, that are setup to act like drivers in `runRobotProgram`. In fact, if you are comfortable with Cycle.js, you could use Cycle.js' `run` insated of `runRobotProgram` to have more control over drivers and actions.
 
-The example we provided is a Cycle.js app. What we did is we provided a wrapper funcation for Cycle.js' `run` and defined all the drivers required for working with a tablet face robot in that wrapper function, which we call runRobotProgram, as you can see in the source code. If you are comfortable working with Cycle.js, I recommend you to use without wrappers.
+What are _actions_? Actions are Cycle.js components that implement an interface for preemptable tasks. The interface is modeled after [ROS's acitonlib interface](http://wiki.ros.org/actionlib/DetailedDescription#Action_Interface_.26_Transport_Layer); it takes the `goal` stream to receive start or preempt signals from a client and outputs the `output` and `result` streams to send control signals to drivers and send action result data to a client. For simplicity purposes, we constrained action components to allow running only one action at a time. In other words, one cannot queue multiple actions; if a new action is requested while an action is already running, the action component will cancel the running action and start the newly requested action.
+
+<!-- TODO: provide a link -->
+
+Let's look at an example:
+
+<!-- TODO: Add a link to stackblitz here -->
+
+```js
+import xs from 'xstream';
+import delay from 'xstream/extra/delay';
+import {runRobotProgram} from '@cycle-robot-drivers/run';
+
+function main(sources) {
+  const message$ = xs.merge(
+    xs.of('Hello').compose(delay(1000)),
+    // xs.of(null).compose(delay(1500)),
+    // xs.of('World').compose(delay(1500)),
+  );
+
+  sources.SpeechSynthesisAction.output.addListener({
+    next: output => console.log('output', output),
+  });
+  sources.SpeechSynthesisAction.result.addListener({
+    next: result => console.log('result', result),
+  });
+  
+  return {
+    // SpeechSynthesis: sources.SpeechSynthesisAction.output.drop(1),
+    SpeechSynthesisAction: message$,
+  };
+}
+
+runRobotProgram(main);
+```
+
+This example program will make the robot to say "Hello". You can change the amount of delay 1000(ms) to see how the new delay amount effects the timing of `output` and `result` events, which will be printed to console. You can also stop the speech in the middle by uncommenting `// xs.of(null).compose(delay(1500)),` or `// xs.of('World').compose(delay(1500)),`. In the latter case, the action component will also start a new action with the string "World".
+
+Since actions are components, they do not make side effects but work with drivers to make side effects. The connection between actions and drivers are setup inside of the `runRobotProgram`. However, if you want to override the connection between an output of an action and an input of a driver, you can define one in the return value of `main`. For example, if you uncomment `// SpeechSynthesis: sources.SpeechSynthesisAction.output.drop(1),`, the action will be there after the first one.
+
+<!-- TODO: provide a link? -->
+
+
+## Working with streams
+
+Let's make a bit more interesting robot.
+
+## Finite state machine
+
+<!-- Action allows running 
+Actions take "goal" stream, which emits data to trigger or null to cancel.
+Actions  -->
+
+
+
+<!-- components that 
+
+implements preemptable tasks
+
+
+Basically is a cycle.js app that uses runRobotProgram.
+
+runRobotProgram provides five drivers
+
+AudioPlayer,
+SpeechSynthesis,
+SpeechRecognition,
+TabletFace,
+PoseDetection,
+
+And five actions
+
+FacialExpressionAction,
+AudioPlayerAction,
+TwoSpeechbubblesAction,
+SpeechSynthesisAction,
+SpeechRecognitionAction,
+
+That behaves like drivers but actually implemented as components. -->
+
+
+
+<!-- that are meant to be treated as drivers in the `main` function that `runRobotProgram` take -->
+
+<!-- the major differences are (i) I used `runRobotProgram` from `'@cycle-robot-drivers/run'` instead of `run` from `@cycle/run` to run the application and (ii) we did not provide any drivers to `runRobotProgram`, however, in the `main`, we 
+
+If you are familiar with writing a Cycle.js application, you probably noticed I used `runRobotProgram` imported from `'@cycle-robot-drivers/run'` instead of `run` that is available from `@cycle/run` . -->
+
+<!-- If you are familiar with writing Cycle.js applications, you probably noticed only thing we did differently than writing a regular Cycle.js web application was using `runRobotProgram` imported from `'@cycle-robot-drivers/run'` instead of using `run` that is available from `@cycle/run`. -->
+
+<!-- import {runRobotProgram} from '@cycle-robot-drivers/run'; -->
+
+
+
+
+<!-- The example we provided is a Cycle.js app. What we did is we provided a wrapper funcation for Cycle.js' `run` and defined all the drivers required for working with a tablet face robot in that wrapper function, which we call runRobotProgram, as you can see in the source code. If you are comfortable working with Cycle.js, I recommend you to use without wrappers. -->
+
+
+
 
 <!-- Create an example that demonstrates how the action works -->
 
@@ -261,3 +359,35 @@ npm install xstream @cycle/run @cycle-robot-drivers/speech
 ```
 
 Add demo here -->
+
+
+
+<!-- This program . -->
+
+<!-- * Check out the timing of outputs w.r.t. to the input.
+* If you send the null as a goal it will. Try this by uncommenting `// ...`
+* Note that actions, you can check this out by xs.never(), if you don't define  -->
+
+<!--  -->
+
+<!-- In this example, we are sending a string 'Hello' to `SpeechSynthesisAction` as a goal to make the robot say 'Hello'. When `SpeechSynthesisAction` receives this goal, it will send a control signal to the `SpeechSynthesis` driver, which you can see it in console as `output ...`, to actually produce the synthesized sound 'Hello'. Once the sound is finished playing, the `SpeechSynthesisAction` will emit a result data, which will be displayed in console as `result ...`. You can also comment out `// xs.of(null).compose(delay(1500))` to cancel the running action and see what the result looks like in such case.
+
+
+
+Finally, for simplicity purposes, 
+
+we only allow actions to run 
+
+For simplicity purposes, we only allow actions to run only one action at a time.
+
+Let's look at an example. -->
+
+<!-- TODO: provide an example here -->
+
+
+<!-- We recommend programmers to use actions instead of drivers. Actions drivers are modeled after but ActionInterface but simplified. -->
+
+<!-- Actions take "goal" stream, which should emit `null` to cancel the running action or other expected types of data to start an action.
+When the running action is done, either by succeeding the started action, preemed by user request, or aborted due to errornous condition, it will emit contains two fields: result and status. result is the return value from the action and status contains two fields `goal_id` and `status`, which indicate unique id for triggered action and end state of the action, which takes one of the three values. -->
+
+<!-- Note that ... -->
