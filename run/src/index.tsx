@@ -91,7 +91,6 @@ export function runRobotProgram(
 
     return (() => {
       const {
-        TabletFace,
         FacialExpressionAction,
         AudioPlayerAction,
         TwoSpeechbubblesAction,
@@ -100,7 +99,6 @@ export function runRobotProgram(
         ...sinks
       } = main(sources);
       sinks.targets = {
-        TabletFace,
         FacialExpressionAction,
         AudioPlayerAction,
         TwoSpeechbubblesAction,
