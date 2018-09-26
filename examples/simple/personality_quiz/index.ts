@@ -1,10 +1,8 @@
 // Implements the travel quiz presented at
 //   http://www.nomadwallet.com/afford-travel-quiz-personality/
 import xs from 'xstream';
-import delay from 'xstream/extra/delay';
 import {Stream} from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
-import {GoalID, Goal, Result, initGoal} from '@cycle-robot-drivers/action'
 
 enum State {
   ASK_CAREER_QUESTION = 'It\'s import that I reach my full career potential',
@@ -96,13 +94,13 @@ function transition(
       state === State.TELL_THEM_THEY_ARE_NOMAD
       || state === State.TELL_THEM_THEY_ARE_VACATIONER
       || state === State.TELL_THEM_THEY_ARE_EXPAT
-    ) ? initGoal({
+    ) ? {
       message: state,
       choices: [Input.RECEIVED_RESTART],
-    }) : initGoal({
+    } : {
       message: state,
       choices: [Input.RECEIVED_YES, Input.RECEIVED_NO],
-    }),
+    },
   };
   return {
     state,
@@ -116,10 +114,10 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
       return {
         state: State.ASK_CAREER_QUESTION,
         outputs: {
-          args: initGoal({
+          args: {
             message: State.ASK_CAREER_QUESTION,
             choices: [Input.RECEIVED_YES, Input.RECEIVED_NO],
-          }),
+          },
         },
       }
     }
@@ -141,7 +139,6 @@ function main(sources) {
     .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
     .drop(1);  // drop "null"
   const outputs$ = state$.map(state => state.outputs)
-    .debug()
     .filter(outputs => !!outputs);
   
   return {
