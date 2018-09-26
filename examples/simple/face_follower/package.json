@@ -20,7 +20,7 @@
     "watchify": "^3.11.0"
   },
   "scripts": {
-    "build": "browserify index.js -t babelify --outfile dist/index.js -dv",
+    "build": "mkdirp dist && browserify index.js -t babelify --outfile dist/index.js -dv",
     "watch": "mkdirp dist && watchify index.js -t babelify --outfile dist/index.js -dv",
     "start": "npm run watch & live-server"
   }
