@@ -78,45 +78,45 @@ type Input = {
 //   );
 // }
 
-// const transitionTable = {
-//   [State.ASK_CAREER_QUESTION]: {
-//     [SMEvent.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
-//     [SMEvent.RECEIVED_NO]: State.ASK_FAMILY_QUESTION,
-//   },
-//   [State.ASK_WORKING_ONLINE_QUESTION]: {
-//     [SMEvent.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_NOMAD,
-//     [SMEvent.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_VACATIONER,
-//   },
-//   [State.ASK_FAMILY_QUESTION]: {
-//     [SMEvent.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
-//     [SMEvent.RECEIVED_NO]: State.ASK_SHORT_TRIPS_QUESTION,
-//   },
-//   [State.ASK_SHORT_TRIPS_QUESTION]: {
-//     [SMEvent.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
-//     [SMEvent.RECEIVED_NO]: State.ASK_HOME_OWNERSHIP_QUESTION,
-//   },
-//   [State.ASK_HOME_OWNERSHIP_QUESTION]: {
-//     [SMEvent.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
-//     [SMEvent.RECEIVED_NO]: State.ASK_ROUTINE_QUESTION,
-//   },
-//   [State.ASK_ROUTINE_QUESTION]: {
-//     [SMEvent.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
-//     [SMEvent.RECEIVED_NO]: State.ASK_JOB_SECURITY_QUESTION,
-//   },
-//   [State.ASK_JOB_SECURITY_QUESTION]: {
-//     [SMEvent.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
-//     [SMEvent.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_NOMAD,
-//   },
-//   [State.TELL_THEM_THEY_ARE_NOMAD]: {
-//     [SMEvent.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
-//   },
-//   [State.TELL_THEM_THEY_ARE_VACATIONER]: {
-//     [SMEvent.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
-//   },
-//   [State.TELL_THEM_THEY_ARE_EXPAT]: {
-//     [SMEvent.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
-//   },
-// };
+const transitionTable = {
+  [State.ASK_CAREER_QUESTION]: {
+    [InputType.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
+    [InputType.RECEIVED_NO]: State.ASK_FAMILY_QUESTION,
+  },
+  [State.ASK_WORKING_ONLINE_QUESTION]: {
+    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_NOMAD,
+    [InputType.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_VACATIONER,
+  },
+  [State.ASK_FAMILY_QUESTION]: {
+    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
+    [InputType.RECEIVED_NO]: State.ASK_SHORT_TRIPS_QUESTION,
+  },
+  [State.ASK_SHORT_TRIPS_QUESTION]: {
+    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
+    [InputType.RECEIVED_NO]: State.ASK_HOME_OWNERSHIP_QUESTION,
+  },
+  [State.ASK_HOME_OWNERSHIP_QUESTION]: {
+    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
+    [InputType.RECEIVED_NO]: State.ASK_ROUTINE_QUESTION,
+  },
+  [State.ASK_ROUTINE_QUESTION]: {
+    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
+    [InputType.RECEIVED_NO]: State.ASK_JOB_SECURITY_QUESTION,
+  },
+  [State.ASK_JOB_SECURITY_QUESTION]: {
+    [InputType.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
+    [InputType.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_NOMAD,
+  },
+  [State.TELL_THEM_THEY_ARE_NOMAD]: {
+    [InputType.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
+  },
+  [State.TELL_THEM_THEY_ARE_VACATIONER]: {
+    [InputType.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
+  },
+  [State.TELL_THEM_THEY_ARE_EXPAT]: {
+    [InputType.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
+  },
+};
 
 // function transition(transTable, state: SMState, event: SMEvent) {
 //   const events = transTable[state];
@@ -131,6 +131,32 @@ type Input = {
 //   }
 //   return newState;
 // }
+
+function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
+  const initReducer$: Stream<Reducer> = xs.of(
+    function initReducer(prev: ReducerState): ReducerState {
+      return {
+        state: State.ASK_CAREER_QUESTION,
+        variables: {
+          goal_id: null,
+          transcript: null,
+          error: null,
+          newGoal: null,
+        },
+        outputs: null,
+        result: null,
+      }
+    }
+  );
+
+  const inputReducer$: Stream<Reducer> = input$
+    .map(input => function inputReducer(prev: ReducerState): ReducerState {
+      return prev;
+      // return transition(prev.state, prev.variables, input);
+    });
+
+  return xs.merge(initReducer$, inputReducer$);
+}
 
 // function model(result$: Actions): Stream<State> {
 //   const transTable = {
@@ -241,9 +267,7 @@ function main(sources) {
   //     };
   //   });
   
-  // return {
-  //   TabletFace: face$
-  // };
+  return {};
 }
 
 runRobotProgram(main);
