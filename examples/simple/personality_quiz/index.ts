@@ -26,7 +26,6 @@ type Outputs = {
 type ReducerState = {
   state: State,
   outputs: Outputs,
-  result: Result,
 };
 
 type Reducer = (prev?: ReducerState) => ReducerState | undefined;
@@ -108,7 +107,6 @@ function transition(
   return {
     state,
     outputs,
-    result: null,
   };
 }
 
@@ -123,14 +121,12 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
             choices: [Input.RECEIVED_YES, Input.RECEIVED_NO],
           }),
         },
-        result: null,
       }
     }
   );
 
   const inputReducer$: Stream<Reducer> = input$
     .map(input => function inputReducer(prev: ReducerState): ReducerState {
-      // return prev;
       return transition(prev.state, input);
     });
 
@@ -147,7 +143,6 @@ function main(sources) {
   const outputs$ = state$.map(state => state.outputs)
     .debug()
     .filter(outputs => !!outputs);
-  const result$ = state$.map(state => state.result).filter(result => !!result);
   
   return {
     TwoSpeechbubblesAction: outputs$.map(outputs => outputs.args),
