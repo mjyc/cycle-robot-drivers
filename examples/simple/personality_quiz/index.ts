@@ -31,53 +31,49 @@ type ReducerState = {
 
 type Reducer = (prev?: ReducerState) => ReducerState | undefined;
 
-enum InputType {
+enum Input {
   RECEIVED_YES = 'Yes',
   RECEIVED_NO = 'No',
   RECEIVED_RESTART = 'Restart',
 }
 
-type Input = {
-  type: InputType,
-};
-
 const transitionTable = {
   [State.ASK_CAREER_QUESTION]: {
-    [InputType.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
-    [InputType.RECEIVED_NO]: State.ASK_FAMILY_QUESTION,
+    [Input.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
+    [Input.RECEIVED_NO]: State.ASK_FAMILY_QUESTION,
   },
   [State.ASK_WORKING_ONLINE_QUESTION]: {
-    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_NOMAD,
-    [InputType.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_VACATIONER,
+    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_NOMAD,
+    [Input.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_VACATIONER,
   },
   [State.ASK_FAMILY_QUESTION]: {
-    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
-    [InputType.RECEIVED_NO]: State.ASK_SHORT_TRIPS_QUESTION,
+    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
+    [Input.RECEIVED_NO]: State.ASK_SHORT_TRIPS_QUESTION,
   },
   [State.ASK_SHORT_TRIPS_QUESTION]: {
-    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
-    [InputType.RECEIVED_NO]: State.ASK_HOME_OWNERSHIP_QUESTION,
+    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
+    [Input.RECEIVED_NO]: State.ASK_HOME_OWNERSHIP_QUESTION,
   },
   [State.ASK_HOME_OWNERSHIP_QUESTION]: {
-    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
-    [InputType.RECEIVED_NO]: State.ASK_ROUTINE_QUESTION,
+    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
+    [Input.RECEIVED_NO]: State.ASK_ROUTINE_QUESTION,
   },
   [State.ASK_ROUTINE_QUESTION]: {
-    [InputType.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
-    [InputType.RECEIVED_NO]: State.ASK_JOB_SECURITY_QUESTION,
+    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
+    [Input.RECEIVED_NO]: State.ASK_JOB_SECURITY_QUESTION,
   },
   [State.ASK_JOB_SECURITY_QUESTION]: {
-    [InputType.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
-    [InputType.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_NOMAD,
+    [Input.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
+    [Input.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_NOMAD,
   },
   [State.TELL_THEM_THEY_ARE_NOMAD]: {
-    [InputType.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
+    [Input.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
   },
   [State.TELL_THEM_THEY_ARE_VACATIONER]: {
-    [InputType.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
+    [Input.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
   },
   [State.TELL_THEM_THEY_ARE_EXPAT]: {
-    [InputType.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
+    [Input.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
   },
 };
 
@@ -89,28 +85,28 @@ function transition(
     throw new Error(`Invalid prevState="${prevState}"`);
   }
 
-  let state = states[input.type];
+  let state = states[input];
   if (!state) {
-    console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
+    console.debug(`Undefined transition for "${prevState}" "${input}"; `
       + `set state to prevState`);
     state = prevState;
   }
 
   const outputs = {
     args: (
-      state.question === State.TELL_THEM_THEY_ARE_NOMAD
-      || state.question === State.TELL_THEM_THEY_ARE_VACATIONER
-      || state.question === State.TELL_THEM_THEY_ARE_EXPAT
-    ) ? initGoal({type: 'ASK_QUESTION', value: [
-      state.question,
-      [InputType.RECEIVED_RESTART],
-    ]}) : initGoal({type: 'ASK_QUESTION', value: [
-      state.question,
-      [InputType.RECEIVED_YES, InputType.RECEIVED_NO],
-    ]}),
-  }
+      state === State.TELL_THEM_THEY_ARE_NOMAD
+      || state === State.TELL_THEM_THEY_ARE_VACATIONER
+      || state === State.TELL_THEM_THEY_ARE_EXPAT
+    ) ? initGoal({
+      message: state,
+      choices: [Input.RECEIVED_RESTART],
+    }) : initGoal({
+      message: state,
+      choices: [Input.RECEIVED_YES, Input.RECEIVED_NO],
+    }),
+  };
   return {
-    state: prevState,
+    state,
     outputs,
     result: null,
   };
@@ -124,7 +120,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
         outputs: {
           args: initGoal({
             message: State.ASK_CAREER_QUESTION,
-            choices: [InputType.RECEIVED_YES, InputType.RECEIVED_NO],
+            choices: [Input.RECEIVED_YES, Input.RECEIVED_NO],
           }),
         },
         result: null,
@@ -154,8 +150,7 @@ function main(sources) {
   const result$ = state$.map(state => state.result).filter(result => !!result);
   
   return {
-    TwoSpeechbubblesAction: outputs$.map(outputs => outputs.args).compose(delay(2000)).debug(),
-    // result: adapt(result$),
+    TwoSpeechbubblesAction: outputs$.map(outputs => outputs.args),
   };
 }
 
