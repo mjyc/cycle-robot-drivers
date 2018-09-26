@@ -15,6 +15,9 @@ class UtteranceSource implements EventSource {
   }
 }
 
+/**
+ * A factory for the speech synthesis driver.
+ */
 export function makeSpeechSynthesisDriver(): Driver<any, any> {
   const synthesis: SpeechSynthesis = window.speechSynthesis;
   const utterance: SpeechSynthesisUtterance = new SpeechSynthesisUtterance();
