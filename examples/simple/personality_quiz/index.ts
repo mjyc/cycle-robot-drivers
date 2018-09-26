@@ -1,6 +1,7 @@
 // Implements the travel quiz presented at
 //   http://www.nomadwallet.com/afford-travel-quiz-personality/
 import xs from 'xstream';
+import delay from 'xstream/extra/delay';
 import {Stream} from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 import {GoalID, Goal, Result, initGoal} from '@cycle-robot-drivers/action'
@@ -18,20 +19,12 @@ enum State {
   TELL_THEM_THEY_ARE_NOMAD = 'You are a nomad!',
 }
 
-type Variables = {
-  goal_id: GoalID,
-  transcript: string,
-  error: string,
-  newGoal: Goal,
-};
-
 type Outputs = {
   args: any,
 };
 
 type ReducerState = {
   state: State,
-  variables: Variables,
   outputs: Outputs,
   result: Result,
 };
@@ -46,37 +39,7 @@ enum InputType {
 
 type Input = {
   type: InputType,
-  // value: Goal | SpeechRecognitionEvent | SpeechRecognitionError,
 };
-
-
-// function input(
-//   goal$: Stream<any>,
-//   startEvent$: Stream<any>,
-//   endEvent$: Stream<any>,
-//   errorEvent$: Stream<any>,
-//   resultEvent$: Stream<any>
-// ) {
-//   return xs.merge(
-//     goal$.filter(goal => typeof goal !== 'undefined').map(goal => {
-//       if (goal === null) {
-//         return {
-//           type: InputType.CANCEL,
-//           value: null,  // means "cancel"
-//         };
-//       } else {
-//         return {
-//           type: InputType.GOAL,
-//           value: !!(goal as any).goal_id ? goal : initGoal(goal),
-//         };
-//       }
-//     }),
-//     startEvent$.mapTo({type: InputType.START, value: null}),
-//     endEvent$.mapTo({type: InputType.END, value: null}),
-//     errorEvent$.map(event => ({type: InputType.ERROR, value: event})),
-//     resultEvent$.map(event => ({type: InputType.RESULT, value: event})),
-//   );
-// }
 
 const transitionTable = {
   [State.ASK_CAREER_QUESTION]: {
@@ -118,32 +81,52 @@ const transitionTable = {
   },
 };
 
-// function transition(transTable, state: SMState, event: SMEvent) {
-//   const events = transTable[state];
-//   if (!events) {
-//     console.debug(`Invalid state: "${state}"; returning null`);
-//     return null;
-//   }
-//   const newState = events[event];
-//   if (!newState) {
-//     console.debug(`Invalid event: "${event}"; returning null`);
-//     return null;
-//   }
-//   return newState;
-// }
+function transition(
+  prevState: State, input: Input
+): ReducerState {
+  const states = transitionTable[prevState];
+  if (!states) {
+    throw new Error(`Invalid prevState="${prevState}"`);
+  }
+
+  let state = states[input.type];
+  if (!state) {
+    console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
+      + `set state to prevState`);
+    state = prevState;
+  }
+
+  const outputs = {
+    args: (
+      state.question === State.TELL_THEM_THEY_ARE_NOMAD
+      || state.question === State.TELL_THEM_THEY_ARE_VACATIONER
+      || state.question === State.TELL_THEM_THEY_ARE_EXPAT
+    ) ? initGoal({type: 'ASK_QUESTION', value: [
+      state.question,
+      [InputType.RECEIVED_RESTART],
+    ]}) : initGoal({type: 'ASK_QUESTION', value: [
+      state.question,
+      [InputType.RECEIVED_YES, InputType.RECEIVED_NO],
+    ]}),
+  }
+  return {
+    state: prevState,
+    outputs,
+    result: null,
+  };
+}
 
 function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   const initReducer$: Stream<Reducer> = xs.of(
     function initReducer(prev: ReducerState): ReducerState {
       return {
         state: State.ASK_CAREER_QUESTION,
-        variables: {
-          goal_id: null,
-          transcript: null,
-          error: null,
-          newGoal: null,
+        outputs: {
+          args: initGoal({
+            message: State.ASK_CAREER_QUESTION,
+            choices: [InputType.RECEIVED_YES, InputType.RECEIVED_NO],
+          }),
         },
-        outputs: null,
         result: null,
       }
     }
@@ -151,123 +134,29 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 
   const inputReducer$: Stream<Reducer> = input$
     .map(input => function inputReducer(prev: ReducerState): ReducerState {
-      return prev;
-      // return transition(prev.state, prev.variables, input);
+      // return prev;
+      return transition(prev.state, input);
     });
 
   return xs.merge(initReducer$, inputReducer$);
 }
 
-// function model(result$: Actions): Stream<State> {
-//   const transTable = {
-//     [SMState.ASK_CAREER_QUESTION]: {
-//       [SMEvent.RECEIVED_YES]: SMState.ASK_WORKING_ONLINE_QUESTION,
-//       [SMEvent.RECEIVED_NO]: SMState.ASK_FAMILY_QUESTION,
-//     },
-//     [SMState.ASK_WORKING_ONLINE_QUESTION]: {
-//       [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_NOMAD,
-//       [SMEvent.RECEIVED_NO]: SMState.TELL_THEM_THEY_ARE_VACATIONER,
-//     },
-//     [SMState.ASK_FAMILY_QUESTION]: {
-//       [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_VACATIONER,
-//       [SMEvent.RECEIVED_NO]: SMState.ASK_SHORT_TRIPS_QUESTION,
-//     },
-//     [SMState.ASK_SHORT_TRIPS_QUESTION]: {
-//       [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_VACATIONER,
-//       [SMEvent.RECEIVED_NO]: SMState.ASK_HOME_OWNERSHIP_QUESTION,
-//     },
-//     [SMState.ASK_HOME_OWNERSHIP_QUESTION]: {
-//       [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_EXPAT,
-//       [SMEvent.RECEIVED_NO]: SMState.ASK_ROUTINE_QUESTION,
-//     },
-//     [SMState.ASK_ROUTINE_QUESTION]: {
-//       [SMEvent.RECEIVED_YES]: SMState.TELL_THEM_THEY_ARE_EXPAT,
-//       [SMEvent.RECEIVED_NO]: SMState.ASK_JOB_SECURITY_QUESTION,
-//     },
-//     [SMState.ASK_JOB_SECURITY_QUESTION]: {
-//       [SMEvent.RECEIVED_YES]: SMState.ASK_WORKING_ONLINE_QUESTION,
-//       [SMEvent.RECEIVED_NO]: SMState.TELL_THEM_THEY_ARE_NOMAD,
-//     },
-//     [SMState.TELL_THEM_THEY_ARE_NOMAD]: {
-//       [SMEvent.RECEIVED_RESTART]: SMState.ASK_CAREER_QUESTION,
-//     },
-//     [SMState.TELL_THEM_THEY_ARE_VACATIONER]: {
-//       [SMEvent.RECEIVED_RESTART]: SMState.ASK_CAREER_QUESTION,
-//     },
-//     [SMState.TELL_THEM_THEY_ARE_EXPAT]: {
-//       [SMEvent.RECEIVED_RESTART]: SMState.ASK_CAREER_QUESTION,
-//     },
-//   };
-
-//   const initReducer$ = fromEvent(window, 'load').mapTo(function initReducer(prev) {
-//     const question = SMState.ASK_CAREER_QUESTION;
-//     const graph = createGraph(
-//       Object.keys(SMState).map(k => SMState[k]),
-//       Object.keys(SMEvent).map(k => SMEvent[k]),
-//       transTable,
-//     );
-//     graph.node(question).style = 'fill: #f77';
-//     return {question, graph};
-//   });
-
-//   const resultReducer$ = result$
-//     .filter(result => result.status.status === 'SUCCEEDED')
-//     .map(result => function resultReducer(prevState: State): State {
-//       // make a transition
-//       const question = transition(
-//         transTable,
-//         prevState.question,
-//         result.result,
-//       );
-//       // update the graph
-//       if (!!question) {
-//         prevState.graph.setNode(prevState.question, {
-//           label: prevState.question,
-//           style: 'stroke: #333; fill: #fff;',
-//         });
-//         prevState.graph.setNode(question, {
-//           label: question,
-//           style: 'stroke: #333; fill: #f77',
-//         });
-//       }
-//       return !!question ? {
-//         question,
-//         graph: prevState.graph
-//       } : prevState;
-//     });
-
-//   return xs.merge(initReducer$, resultReducer$)
-//     .fold((state: State, reducer: Reducer) => reducer(state), null)
-//     .drop(1)  // drop "null"
-//     .compose(dropRepeats());
-// }
-
 function main(sources) {
+  const input$ = sources.TwoSpeechbubblesAction.result
+    .map(result => result.result);
 
-  console.log('Hello world!!!!');
-
-  // const input$ = sources.TwoSpeechbubblesAction.result;
-
-  // const face$ = sources.PoseDetection.poses
-  //   .filter(poses => 
-  //     poses.length === 1
-  //     && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
-  //   ).map(poses => {
-  //     const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
-  //     const eyePosition = {
-  //       x: nose.position.x / videoWidth,
-  //       y: nose.position.y / videoHeight,
-  //     };
-  //     return {
-  //       type: 'SET_STATE',
-  //       value: {
-  //         leftEye: eyePosition,
-  //         rightEye: eyePosition,
-  //       }
-  //     };
-  //   });
+  const state$ = transitionReducer(input$)
+    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
+    .drop(1);  // drop "null"
+  const outputs$ = state$.map(state => state.outputs)
+    .debug()
+    .filter(outputs => !!outputs);
+  const result$ = state$.map(state => state.result).filter(result => !!result);
   
-  return {};
+  return {
+    TwoSpeechbubblesAction: outputs$.map(outputs => outputs.args).compose(delay(2000)).debug(),
+    // result: adapt(result$),
+  };
 }
 
 runRobotProgram(main);
