@@ -22,7 +22,7 @@
   },
   "scripts": {
     "build": "mkdirp dist && browserify index.ts -p tsify > dist/index.js",
-    "watch": "watchify index.js -t tsify -o index.js -dv",
+    "watch": "watchify index.ts -p tsify  --outfile index.js -dv",
     "start": "npm run watch & live-server"
   }
 }
