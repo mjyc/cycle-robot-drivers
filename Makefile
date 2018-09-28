@@ -1,5 +1,6 @@
 .PHONY: lib action screen speech sound run 3rdparty/cycle-posenet-driver
 
+ROOTDIR=$(shell pwd)
 BINDIR=node_modules/.bin
 BUMP=.scripts/bump.js
 JASE=$(BINDIR)/jase
@@ -59,10 +60,10 @@ test:
 	fi
 
 postbump:
-	pushd . && cd $(ARG) && rm -rf node_modules package-lock.json && npm install && popd && \
-	make lib $(ARG) && \
+	cd $(ARG) && rm -rf node_modules package-lock.json && npm install && popd && \
+	cd $(ROOTDIR) && make lib $(ARG) && \
 	git add -A && git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)" && \
-	pushd . && cd $(ARG) && npm publish --access public && popd;
+	cd $(ROOTDIR) && cd $(ARG) && npm publish --access public;
 
 release-patch:
 	@if [ "$(ARG)" = "" ]; then \
