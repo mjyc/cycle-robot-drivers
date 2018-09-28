@@ -1,4 +1,4 @@
-.PHONY: lib action screen speech sound 3rdparty/cycle-posenet-driver run
+.PHONY: lib action screen speech sound run 3rdparty/cycle-posenet-driver
 
 BINDIR=node_modules/.bin
 BUMP=.scripts/bump.js
@@ -6,7 +6,7 @@ JASE=$(BINDIR)/jase
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action screen speech sound 3rdparty/cycle-posenet-driver run
+PACKAGES := action screen speech sound run 3rdparty/cycle-posenet-driver
 
 all:
 	@echo "npm install"
@@ -35,6 +35,18 @@ lib:
 		echo "✓ Compiled TypeScript to lib\n"; \
 	fi
 
+doc:
+	@if [ "$(ARG)" = "" ]; then \
+		exitcode=0; \
+		for d in $(PACKAGES); do \
+			make doc $$d || exitcode=$$?; \
+		done; \
+		exit $$exitcode; \
+	else \
+		pushd . &&gs cd $(ARG) && npm run build:doc && popd && \
+		echo "✓ Docs for $(ARG)"; \
+	fi
+
 test:
 	@if [ "$(ARG)" = "" ]; then \
 		exitcode=0; \
@@ -43,8 +55,8 @@ test:
 		done; \
 		exit $$exitcode; \
 	else \
-		cd $(ARG) && npm run test && cd .. &&\
-		echo "✓ Tested $(ARG)" ;\
+		pushd . && cd $(ARG) && npm run test && popd && \
+		echo "✓ Tested $(ARG)"; \
 	fi
 
 postbump:
@@ -53,14 +65,13 @@ postbump:
 	git add -A; git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)"; \
 	pushd .; cd $(ARG); npm publish --access public; popd;
 
-
 release-patch:
 	@if [ "$(ARG)" = "" ]; then \
-		echo "Error: please call 'make release-patch' with an argument, like 'make release-patch action'" ;\
+		echo "Error: please call 'make release-patch' with an argument, like 'make release-patch action'"; \
 	else \
 		$(BUMP) $(ARG)/package.json --patch; \
 		make postbump $(ARG); \
-		echo "✓ Released new patch for $(ARG)" ;\
+		echo "✓ Released new patch for $(ARG)"; \
 	fi
 
 # catch and do nothing
@@ -76,8 +87,8 @@ sound:
 speech:
 	@:
 
-3rdparty/cycle-posenet-driver:
+run:
 	@:
 
-run:
+3rdparty/cycle-posenet-driver:
 	@:

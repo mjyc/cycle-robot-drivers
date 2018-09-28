@@ -68,11 +68,11 @@ describe('AudioPlayerAction', () => {
     const expectedStatus$ = expectedStatusStr$.map(str => toStatus(str));
     const expectedResult$ = expectedResultStr$.map(str => ({
       status: toStatus(str),
-      result: toStatus(str).status === 'PREEMPTED' ? null : 'x',
+      result: null,
     }));
 
     // Run test
-    Time.assertEqual(audioPlayerAction.value, expectedValue$);
+    Time.assertEqual(audioPlayerAction.output, expectedValue$);
     Time.assertEqual(audioPlayerAction.status, expectedStatus$);
     Time.assertEqual(audioPlayerAction.result, expectedResult$);
 
@@ -115,11 +115,11 @@ describe('AudioPlayerAction', () => {
     const expectedStatus$ = expectedStatusStr$.map(str => toStatus(str));
     const expectedResult$ = expectedResultStr$.map(str => ({
       status: toStatus(str),
-      result: toStatus(str).status === 'PREEMPTED' ? null : 'x',
+      result: null,
     }));
 
     // Run test
-    Time.assertEqual(audioPlayerAction.value, expectedValue$);
+    Time.assertEqual(audioPlayerAction.output, expectedValue$);
     Time.assertEqual(audioPlayerAction.status, expectedStatus$);
     Time.assertEqual(audioPlayerAction.result, expectedResult$);
 
@@ -151,7 +151,7 @@ describe('AudioPlayerAction', () => {
     });
 
     // Run test
-    Time.assertEqual(audioPlayerAction.value, expectedValue$);
+    Time.assertEqual(audioPlayerAction.output, expectedValue$);
     Time.assertEqual(audioPlayerAction.status, expectedStatus$);
     Time.assertEqual(audioPlayerAction.result, expectedResult$);
 
@@ -192,11 +192,11 @@ describe('AudioPlayerAction', () => {
     const expectedStatus$ = expectedStatusStr$.map(str => toStatus(str));
     const expectedResult$ = expectedResultStr$.map(str => ({
       status: toStatus(str),
-      result: toStatus(str).status === 'PREEMPTED' ? null : 'x',
+      result: null,
     }));
 
     // Run test
-    Time.assertEqual(audioPlayerAction.value, expectedValue$);
+    Time.assertEqual(audioPlayerAction.output, expectedValue$);
     Time.assertEqual(audioPlayerAction.status, expectedStatus$);
     Time.assertEqual(audioPlayerAction.result, expectedResult$);
 
@@ -237,11 +237,11 @@ describe('AudioPlayerAction', () => {
     const expectedStatus$ = expectedStatusStr$.map(str => toStatus(str));
     const expectedResult$ = expectedResultStr$.map(str => ({
       status: toStatus(str),
-      result: toStatus(str).status === 'PREEMPTED' ? null : 'x',
+      result: null,
     }));
 
     // Run test
-    Time.assertEqual(audioPlayerAction.value, expectedValue$);
+    Time.assertEqual(audioPlayerAction.output, expectedValue$);
     Time.assertEqual(audioPlayerAction.status, expectedStatus$);
     Time.assertEqual(audioPlayerAction.result, expectedResult$);
 
@@ -290,7 +290,7 @@ describe('AudioPlayerAction', () => {
       expected.status = expected.status.map(str => toStatus(str));
       expected.result = expected.result.map(str => ({
         status: toStatus(str),
-        result: toStatus(str).status === 'PREEMPTED' ? null : 'x',
+        result: null,
       }));
     });
     const expectedValue$ = xs.merge(expecteds[0].value, expecteds[1].value);
@@ -298,7 +298,7 @@ describe('AudioPlayerAction', () => {
     const expectedResult$ = xs.merge(expecteds[0].result, expecteds[1].result);
 
     // Run test
-    Time.assertEqual(audioPlayerAction.value, expectedValue$);
+    Time.assertEqual(audioPlayerAction.output, expectedValue$);
     Time.assertEqual(audioPlayerAction.status, expectedStatus$);
     Time.assertEqual(audioPlayerAction.result, expectedResult$);
 
