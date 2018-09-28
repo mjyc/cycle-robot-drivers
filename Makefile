@@ -28,10 +28,9 @@ lib:
 	else \
 		rm -rf $(ARG)/lib; \
 		mkdir -p $(ARG)/lib; \
-		pushd .; cd $(ARG); \
+		cd $(ARG); \
 		npm run build:cjs; \
 		npm run build:es6; \
-		popd; \
 		echo "✓ Compiled TypeScript to lib\n"; \
 	fi
 
@@ -43,7 +42,7 @@ doc:
 		done; \
 		exit $$exitcode; \
 	else \
-		pushd . &&gs cd $(ARG) && npm run build:doc && popd && \
+		cd $(ARG) && npm run build:doc && \
 		echo "✓ Docs for $(ARG)"; \
 	fi
 
@@ -55,7 +54,7 @@ test:
 		done; \
 		exit $$exitcode; \
 	else \
-		pushd . && cd $(ARG) && npm run test && popd && \
+		cd $(ARG) && npm run test && popd && \
 		echo "✓ Tested $(ARG)"; \
 	fi
 
