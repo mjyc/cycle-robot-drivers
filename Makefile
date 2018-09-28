@@ -60,10 +60,10 @@ test:
 	fi
 
 postbump:
-	pushd .; cd $(ARG); rm -rf node_modules package-lock.json; npm install; popd; \
-	make lib $(ARG); \
-	git add -A; git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)"; \
-	pushd .; cd $(ARG); npm publish --access public; popd;
+	pushd . && cd $(ARG) && rm -rf node_modules package-lock.json && npm install && popd && \
+	make lib $(ARG) && \
+	git add -A && git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)" && \
+	pushd . && cd $(ARG) && npm publish --access public && popd;
 
 release-patch:
 	@if [ "$(ARG)" = "" ]; then \
