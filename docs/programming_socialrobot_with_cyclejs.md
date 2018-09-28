@@ -45,7 +45,7 @@ Alternatively, you could use one of many existing robot programming frameworks, 
 
 The code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a building tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
 
-We'll create [a simple web application](https://stackblitz.com/edit/cycle-robot-drivers-run-demo) or a social robot program as I consider it. You can download the final code from [here](../examples/tutorials/01_getting_started/).
+We'll create [a simple web application](https://stackblitz.com/edit/cycle-robot-drivers-demos-run) or a social robot program as I consider it. You can download the final code from [here](../examples/tutorials/01_getting_started/).
 
 First, let's create a folder:
 
