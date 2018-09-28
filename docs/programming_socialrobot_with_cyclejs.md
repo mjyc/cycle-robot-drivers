@@ -45,7 +45,7 @@ Alternatively, you could use one of many existing robot programming frameworks, 
 
 The code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a building tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
 
-We'll create [a simple web application](https://stackblitz.com/edit/cycle-robot-drivers-demos-run) or a social robot program as I consider it. You can download the final code from [here](../examples/tutorials/01_getting_started/).
+We'll create [a simple web application](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-getting-started) or a social robot program as I consider it. You can download the final code from [here](../examples/tutorials/01_getting_started/).
 
 First, let's create a folder:
 
@@ -118,7 +118,7 @@ If you are familiar with writing a Cycle.js application, you probably noticed wh
 
 What are _actions_? Actions are Cycle.js components that implement an interface for preemptable tasks. The interface is modeled after [ROS's acitonlib interface](http://wiki.ros.org/actionlib/DetailedDescription#Action_Interface_.26_Transport_Layer); it takes the `goal` stream to receive start or preempt signals from a client and outputs the `output` and `result` streams to send control signals to drivers and send action result data to a client. For simplicity purposes, we constrain the action components to run only one action at a time. In other words, one cannot queue multiple actions. If a new action is requested while a previously requested action is running, the action component will cancel the running action and start the newly requested action.
 
-Let's look at an example below (or [at StackBlitz](https://stackblitz.com/edit/cycle-robot-drivers-tutorial2)):
+Let's look at an example below (or [at StackBlitz](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-actions)):
 
 ```js
 import xs from 'xstream';
@@ -160,11 +160,11 @@ You might ask, _"Well, if I can send signals to the drivers directly, why do I w
 
 Let's make a more interesting program!
 
-Try the program [here](https://stackblitz.com/edit/cycle-robot-drivers-tutorial3)!
+Try the program [here](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-03-working-with-streams)!
 
 
 ## Finite state machine
 
 Let's make a more interesting program!
 
-Try the program [here](https://stackblitz.com/edit/cycle-robot-drivers-tutorial4)!
+Try the program [here](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-04-fsm)!
