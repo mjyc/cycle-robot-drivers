@@ -55,12 +55,12 @@ test:
 		done; \
 		exit $$exitcode; \
 	else \
-		cd $(ARG) && npm run test && popd && \
+		cd $(ARG) && npm run test && \
 		echo "✓ Tested $(ARG)"; \
 	fi
 
 postbump:
-	cd $(ARG) && rm -rf node_modules package-lock.json && npm install && popd && \
+	cd $(ARG) && rm -rf node_modules package-lock.json && npm install && \
 	cd $(ROOTDIR) && make lib $(ARG) && \
 	git add -A && git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)" && \
 	cd $(ROOTDIR) && cd $(ARG) && npm publish --access public;
