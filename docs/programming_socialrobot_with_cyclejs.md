@@ -31,17 +31,6 @@ Programming social robots is similar to programming web applications.
 In both cases, programmers write code for handling inputs, e.g., a button click or sensor reading, and outputing data accordingly, e.g., displaying information on screen or sending control signals to motors.
 The major difference is programming social robots involve working with multi-channel inputs and outputs, e.g., speech and motion, to interact with humans instead of solely using a screen interface.
 
-<!-- In terms of programming social robots, social robot programs must handle various human inputs.
-When a person interact with a social robot for the first time, they will not interact with the robot as the programmer intended them to; they will pat, poke, scratch, shake, or do anything but the allowed things.
-The robot must react to such inputs to help them understand how to properly interact with the robot. -->
-
-<!-- In terms of programming social robots, social robot programs must handle various human inputs and utilize multiple resources it has, e.g., by coordinating gaze and gesture. -->
-
-<!-- Since the interactivity is a key property of social robots, social robot programs must handle various human inputs. -->
-
-<!-- The robot programs also must use multiple resources it has.
-People expect to interact with robots in a human-like way and the social robots are the robots that aspire to meet this expectation. -->
-
 In this post, I'll use a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) for demonstration purposes.
 The tablet-face robot is just a web application running on a tablet, but I believe it is representitive of a social robot since faces are the critical part of a social robot and [many social robots today use a screen as a face](https://spectrum.ieee.org/automaton/robotics/humanoids/what-people-see-in-157-robot-faces).
 
