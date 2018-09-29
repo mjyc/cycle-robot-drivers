@@ -43,8 +43,6 @@ It is an abstraction that separates all [side effect](https://en.wikipedia.org/w
 The author of Cycle.js describes a web application as a [dialogue between a human and a computer](https://cycle.js.org/dialogue.html#dialogue-abstraction).
 If we assume both are functions, the human as `y = driver(x)` and the computer as `x = main(y)` where `x` and `y` are streams in the context of [reactive programming](https://cycle.js.org/streams.html#streams-reactive-programming), then the dialogue is simply two functions that react to each other via their input stream, which is an output of the another function.
 
-<!-- To me, Cycle.js essentially makes creating and understanding interactive programs easy by enforcing functional reactive programming, e.g., using streams, and [ports and adapters architecture](http://wiki.c2.com/?PortsAndAdaptersArchitecture), e.g., separating side effects. -->
-
 
 ## Why Cycle.js for social robots?
 
@@ -52,26 +50,6 @@ To me, Cycle.js essentially enforces functional reactive programming, e.g., usin
 
 In fact, you don't need to use Cycle.js to program social robots without writing spaghetti code; you just need to separate side effect producing code and take a functional reactive programming approach.
 For example, you could use [Yampa with reactimate](https://wiki.haskell.org/Yampa/reactimate), [Flapjax](http://www.flapjax-lang.org/), or one of [ReactiveX](http://reactivex.io/) stream libraries to do this in a language in which your robot's API is available.
-
-<!-- I chose Cycle.js because it is consise and is compatible with javascript, which made it ease for me to learn and use. -->
-
-<!-- As I mentioned in the "What is a social robot?" section, programming social robots involve working with multi-channel inputs and outputs that invites concurrency programs.
-The concurrency programs become even harder to manage when the complexity of a desired robot behavior is high or when the robot has a large number of sensors and actuators. -->
-
-<!-- Cycle.js framework helps programmers to organize the code and focus on  -->
-<!-- The principles enforced by Cycle.js helps programmers to create while organizing . -->
-<!-- Cycle.js makes it easy to create programs with complex and conccurent inputs and outputs by enforcing the separation of side-effects, i.e., [ports and adapters pattern](http://wiki.c2.com/?PortsAndAdaptersArchitecture), and taking functional reactive programming approach. -->
-
-<!-- In fact, you don't need to use Cycle.js as long as you adapt ports and adapters pattern and functional reactive programming yourself.
-For example you could use Yampa, Flapjax, or stream javascipt libraries like RxJS to do this.
-I chose Cycle.js because it is consise and is compatible with javascript, which made it ease for me to learn and use. -->
-
-<!-- _If we assume perfect robotic sensing and control_, programming a robot is like programming a web application. A web application receives inputs from human (e.g., a button click) and outputs information, just like a robot program receives inputs from the environment including humans (e.g., speech) and outputs actions. In both cases, the main logic requires to handle highly concurrent inputs and outputs and scale spatially (e.g., for web applications) or temporarily (e.g., for robot programs). I believe these requirements make Cycle.js a great candidate for programming a social robot as it encourages reactive programming and predictable (and hence scalable) coding by separating side effects. In fact, I believe any language or framework that supports similar abstractions is also a good candidate.
-
-I understand my first assumption above will make roboticists laugh; I understand robotics researchers have not figured out general sensing and control. However, I believe they have made enough progress to use such technology in _constrained environments_ with confidence, for example, check out [Amazon Echo](https://www.google.com/aclk?sa=L&ai=DChcSEwiHnMbni63dAhWP_mQKHUYxAkgYABAAGgJwag&sig=AOD64_0pyA_aplrmSQlW_P1_aeNb1kyX6A&q=&ved=2ahUKEwiHocHni63dAhV-HzQIHW44D9wQ0Qx6BAgFEAI&adurl=), [Google Home](https://assistant.google.com/platforms/speakers/), or even [robots in indoor commercial spaces](https://spectrum.ieee.org/automaton/robotics/robotics-hardware/indoor-robots-for-commercial-spaces) if you haven't already.
-
-Alternatively, you could use one of many existing robot programming frameworks, like [ROS](http://www.ros.org/). While ROS provides ample libraries (e.g., for sensing and control) and tools (e.g., for visualization and data analysis), it is [too heavy](http://wiki.ros.org/hydro/Installation/UbuntuARM#Installation-1) and [constrained](http://www.ros.org/reps/rep-0003.html#platforms-by-distribution) for writing simple interactive programs. I also found it difficult to create clean reactive programs that express complex dependencies between multiple input and output channels using [ROS communication patterns](http://wiki.ros.org/ROS/Patterns/Communication) in [python](http://wiki.ros.org/rospy) or [C++](http://wiki.ros.org/roscpp). -->
-<!-- in python or C/C++ even with [RxPY](https://github.com/ReactiveX/RxPY) or [RxCPP](https://github.com/ReactiveX/RxCpp). -->
 
 
 ## Getting started
