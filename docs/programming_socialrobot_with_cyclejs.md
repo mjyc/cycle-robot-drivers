@@ -46,9 +46,9 @@ If we assume both are functions, the human as `y = driver(x)` and the computer a
 
 ## Why Cycle.js for social robots?
 
-To me, Cycle.js essentially enforces functional reactive programming, e.g., using streams, and [ports and adapters architecture](http://wiki.c2.com/?PortsAndAdaptersArchitecture), e.g., separating side effects, to make it easy to create and understand complex and concurrent interactive programs--beyond web applications. This is why I chose Cycle.js for programming a social robot. I believe the patterns enforced by Cycle.js will help programmers to battle the concurrency problems originated from supporting multi-modal interactions and stay in control when complexity of the desired robot behavior grows.
-
-In fact, you don't need to use Cycle.js to program social robots without writing spaghetti code; you just need to separate side effect producing code and take a functional reactive programming approach.
+To me, Cycle.js essentially enforces functional reactive programming, e.g., using streams, and [ports and adapters architecture](http://wiki.c2.com/?PortsAndAdaptersArchitecture), e.g., separating side effects, to make it easy to create and understand complex and concurrent interactive programs--beyond web applications. This is why I chose Cycle.js for programming a social robot.
+I believe the patterns enforced by Cycle.js will help programmers to battle the concurrency problems originated from supporting multi-modal interactions and stay in control when complexity of the desired robot behavior grows.
+In fact, you don't need to use Cycle.js if you can enforce the patterns yourself.
 For example, you could use [Yampa with reactimate](https://wiki.haskell.org/Yampa/reactimate), [Flapjax](http://www.flapjax-lang.org/), or one of [ReactiveX](http://reactivex.io/) stream libraries to do this in a language in which your robot's API is available.
 
 
