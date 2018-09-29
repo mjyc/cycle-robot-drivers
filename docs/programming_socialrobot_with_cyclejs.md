@@ -28,13 +28,12 @@ So, interactive robots for [education](http://robotic.media.mit.edu/portfolio/st
 <!-- However, sometimes I also consider less embodied agents that have a potential to create a relationship with us, such as fitbit, as a social robot. -->
 
 Programming social robots is similar to programming web applications.
-In both cases, programmers write code for handling inputs, e.g., a button click or sensor reading, and outputing data accordingly, e.g., displaying information on screen or sending control signals to motors.
-The major difference is programming social robots involve working with multi-channel inputs and outputs, e.g., speech and motion, to interact with humans instead of solely using a screen interface.
+In both cases, programmers write code for handling inputs, e.g., a button click or sensor reading, and outputting data accordingly, e.g., displaying information on screen or sending control signals to motors.
+The major difference is programming social robots involve working with multi-modal inputs and outputs, e.g., speech and motion, to interact with humans instead of solely using a screen interface.
 
 In this post, I'll use a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) for demonstration purposes.
-The tablet-face robot is just a web application running on a tablet, but I believe it is representitive of a social robot since faces are the critical part of a social robot and [many social robots today use a screen as a face](https://spectrum.ieee.org/automaton/robotics/humanoids/what-people-see-in-157-robot-faces).
-
-<!-- TODO: Update it to focus on multi-channel issue. -->
+The tablet-face robot is just a web application running on a tablet, but we'll make it speak, listen, and see you to make it more like a "social robot".
+<!-- but I believe it is representitive of a social robot since faces are the critical part of a social robot and [many social robots today use a screen as a face](https://spectrum.ieee.org/automaton/robotics/humanoids/what-people-see-in-157-robot-faces). -->
 
 
 ## What is Cycle.js?
@@ -44,16 +43,28 @@ It is an abstraction that separates all [side effect](https://en.wikipedia.org/w
 The author of Cycle.js describes a web application as a [dialogue between a human and a computer](https://cycle.js.org/dialogue.html#dialogue-abstraction).
 If we assume both are functions, the human as `y = driver(x)` and the computer as `x = main(y)` where `x` and `y` are streams in the context of [reactive programming](https://cycle.js.org/streams.html#streams-reactive-programming), then the dialogue is simply two functions that react to each other via their input stream, which is an output of the another function.
 
+<!-- To me, Cycle.js essentially makes creating and understanding interactive programs easy by enforcing functional reactive programming, e.g., using streams, and [ports and adapters architecture](http://wiki.c2.com/?PortsAndAdaptersArchitecture), e.g., separating side effects. -->
+
 
 ## Why Cycle.js for social robots?
 
-I chose Cycle.js for its ability to work with concurrent inputs and outputs.
-As I mentioned in the "What is a social robot?" section, programming social robots involve multi-channel inputs and outputs that invites concurrency issues.
-Cycle.js makes it easy to create programs with complex and conccurent inputs and outputs by enforcing the separation of side-effects, i.e., [ports and adapters pattern](http://wiki.c2.com/?PortsAndAdaptersArchitecture), and taking functional reactive programming approach.
+To me, Cycle.js essentially enforces functional reactive programming, e.g., using streams, and [ports and adapters architecture](http://wiki.c2.com/?PortsAndAdaptersArchitecture), e.g., separating side effects, to make it easy to create and understand complex and concurrent interactive programs--beyond web applications. This is why I chose Cycle.js for programming a social robot. I believe the patterns enforced by Cycle.js will help programmers to battle the concurrency problems originated from supporting multi-modal interactions and stay in control when complexity of the desired robot behavior grows.
 
-In fact, you don't need to use Cycle.js as long as you adapt ports and adapters pattern and functional reactive programming yourself.
+In fact, you don't need to use Cycle.js to program social robots without writing spaghetti code; you just need to separate side effect producing code and take a functional reactive programming approach.
+For example, you could use [Yampa with reactimate](https://wiki.haskell.org/Yampa/reactimate), [Flapjax](http://www.flapjax-lang.org/), or one of [ReactiveX](http://reactivex.io/) stream libraries to do this in a language in which your robot's API is available.
+
+<!-- I chose Cycle.js because it is consise and is compatible with javascript, which made it ease for me to learn and use. -->
+
+<!-- As I mentioned in the "What is a social robot?" section, programming social robots involve working with multi-channel inputs and outputs that invites concurrency programs.
+The concurrency programs become even harder to manage when the complexity of a desired robot behavior is high or when the robot has a large number of sensors and actuators. -->
+
+<!-- Cycle.js framework helps programmers to organize the code and focus on  -->
+<!-- The principles enforced by Cycle.js helps programmers to create while organizing . -->
+<!-- Cycle.js makes it easy to create programs with complex and conccurent inputs and outputs by enforcing the separation of side-effects, i.e., [ports and adapters pattern](http://wiki.c2.com/?PortsAndAdaptersArchitecture), and taking functional reactive programming approach. -->
+
+<!-- In fact, you don't need to use Cycle.js as long as you adapt ports and adapters pattern and functional reactive programming yourself.
 For example you could use Yampa, Flapjax, or stream javascipt libraries like RxJS to do this.
-I chose Cycle.js because it is consise and is compatible with javascript, which made it ease for me to learn and use.
+I chose Cycle.js because it is consise and is compatible with javascript, which made it ease for me to learn and use. -->
 
 <!-- _If we assume perfect robotic sensing and control_, programming a robot is like programming a web application. A web application receives inputs from human (e.g., a button click) and outputs information, just like a robot program receives inputs from the environment including humans (e.g., speech) and outputs actions. In both cases, the main logic requires to handle highly concurrent inputs and outputs and scale spatially (e.g., for web applications) or temporarily (e.g., for robot programs). I believe these requirements make Cycle.js a great candidate for programming a social robot as it encourages reactive programming and predictable (and hence scalable) coding by separating side effects. In fact, I believe any language or framework that supports similar abstractions is also a good candidate.
 
