@@ -1,9 +1,11 @@
+<!-- TODO: introduce FSM on top -->
+
 # Programming a social robot using Cycle.js
 
 In this post, I'll show you how to program a social robot using [Cycle.js](https://cycle.js.org/).
 I assume you are familiar reactive programming.
 If you are not, check out [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
-
+<!-- TODO: Tell them you can skip the motivation sections -->
 
 <!-- ## Table of contents
 
@@ -52,49 +54,175 @@ In fact, you don't need to use Cycle.js if you can enforce the patterns yourself
 For example, you could use [Yampa with reactimate](https://wiki.haskell.org/Yampa/reactimate), [Flapjax](http://www.flapjax-lang.org/), or one of [ReactiveX](http://reactivex.io/) stream libraries to do this in a language in which your robot's API is available.
 
 
-## Getting started
+## Implementing "travel personality test"
 
-The code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a building tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
+Enough backgrounds, we'll now create a robot program that tests your travel personality.
+Specifically, we'll make the robot to
 
-<!-- We'll create a face looking robot behavior. -->
-We'll create a robot face that looks at your face.
+1. look at you while you are interacting with the robot and
+2. ask questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/).
+<!-- Maybe further explain what I mean by "ask" -->
 
-<!-- We'll create [a simple web application](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-getting-started) or a social robot program as I consider it. You can download the final code from [here](../examples/tutorials/01_getting_started/). -->
+Note that the code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a build tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
 
-First, let's create a folder:
+First, let's set up a Cycle.js application.
+Create a folder:
 
 ```
 mkdir my-robot-program
 cd my-robot-program
 ```
 
-Then download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and [`index.js`](../examples/tutorials/01_getting_started/index.js) in the folder. You can now run `npm install` to install the required npm packages. After installing, you can run `npm start` to serve the web application locally.
+Then download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and create an empty `index.js` file in the folder.
+You can now run `npm install` to install the required npm packages.
+After installing, you can run `npm start` to build and start the web application that does nothing.
+I provided a setup using browserify and babel here, but feel free to switch to a build tool you prefer.
 
-Now, let's investigate the code. We'll only investigate `index.js` since the most other files are used for setting up the build system.
+Now add the following code in index.js:
 
 ```js
 import xs from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
-// ...
+function main(sources) { }
+
+runRobotProgram(main);
 ```
 
-The first line imports [xstream](https://github.com/staltz/xstream) stream library as `xs`. The second line import `runRobotProgram` function that takes `main` function to run an application, like this:
+Then run this application, e.g., by running `npm start`.
+It should print `Hello world!` to your browser's console.
+<!-- TODO: update the sentence above -->
+We just successfully set up and run a Cycle.js application!
 
-<!-- TODO: provide a runRobotProgram doc link -->
+### Robot, look at a face
+
+Since we want the robot to look at the person who is interacting with the robot, we'll first try to control the robot's eyes by adding some code in `main`:
 
 ```js
 // ...
 
 function main(sources) {
-  // ...
-  return sink;
+  const sinks = {
+    TabletFace: xs.periodic(1000)
+      .map(i => i % 2 === 0 ? 1 : -1)
+  };
+  return sinks;
 }
 
-runRobotProgram(main);
+// ...
 ```
 
-The `main` function takes a collection of streams as input (`sources`) and returns a collection of streams as output (`sink`). When `runRobotProgram` is called, it creates functions that produce side effects (_Drivers_ in Cycle.js) and connects the outputs of the drivers with the input of `main` and the output of `main` with the inputs of the drivers. This structure enforced by Cycle.js allows programmers to write the pure, reactive `main` function.
+Here we are sending control signals to the `TabletFace` driver by returning the `sink.TabletFace` stream returned from `main`.
+The stream is returned from the [`map`](https://github.com/staltz/xstream#map) xstream operator and it emits a number, 1 or -1, every 1s.
+If you run the updated application, the robot should look left and right repeatedly.
+
+<!-- TODO: explain where the rubber hits the road -->
+
+Now that we can move the eyes, let's work on detecting a face.
+
+```js
+// ...
+
+function main(sources) {
+  sources.poses
+    .addListener({
+      next: (poses) => console.log(poses);
+    });
+
+  const sinks = {
+    TabletFace: xs.periodic(1000)
+      .map(i => i % 2 === 0 ? 1 : -1)
+  };
+  return sinks;
+}
+
+// ...
+```
+
+When you run the app you should see an array of objects printed to your browser's console:
+
+```js
+{
+  "score": 0.32371445304906,
+  "keypoints": [
+    {
+      "position": {
+        "y": 76.291801452637,
+        "x": 253.36747741699
+      },
+      "part": "nose",
+      "score": 0.99539834260941
+    },
+    {
+      "position": {
+        "y": 71.10383605957,
+        "x": 253.54365539551
+      },
+      "part": "leftEye",
+      "score": 0.98781454563141
+    },
+    ...
+},
+{}
+```
+
+If you move away from ... , if you hide your by turning your head ... then you should see some they are disappearing. so we'll add that to...
+
+<!-- since the robot should only move its eyes when it sees a person -->
+
+```js
+// ...
+  sources.poses
+    .filter()
+    .addListener({
+      next: (poses) => console.log(poses);
+    });
+
+  // ...
+```
+
+finally...
+
+```js
+// ...
+
+function main(sources) {
+
+  sources.poses
+    .filter(poses.length === 1)
+    .addListener({
+      next: (poses) => console.log(poses);
+    });
+
+  const sinks = {
+    TabletFace: xs.periodic(1000)
+  }
+  return {
+    TabletFace: 
+  };
+}
+
+// ...
+```
+
+
+<!-- that emits incremental numbers in every 1s and  -->
+<!-- The stream is created by `map` xstream operator from the stream stream by , which emits  -->
+<!-- using the `xs.periodic` xstream factory that emits . -->
+
+### `runRobotProgram` vs `run`
+
+If you are familiar with writing Cycle.js application, you probably noticed 
+
+I used and didn't create any drivers, not even DOMDriver.
+
+
+### Robot, asks questions
+
+
+
+
+<!-- The `main` function takes a collection of streams as input (`sources`) and returns a collection of streams as output (`sink`). When `runRobotProgram` is called, it creates functions that produce side effects (_Drivers_ in Cycle.js) and connects the outputs of the drivers with the input of `main` and the output of `main` with the inputs of the drivers. This structure enforced by Cycle.js allows programmers to write the pure, reactive `main` function. -->
 
 ```js
 // ...
