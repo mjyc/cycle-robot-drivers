@@ -73,10 +73,10 @@ mkdir my-robot-program
 cd my-robot-program
 ```
 
-Then download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and create an empty `index.js` file in the folder, e.g., by running `echo '' > index.js`.
-You can now run `npm install` to install the required npm packages.
+Then download [`package.json`](../examples/tutorials/01_personality_quiz/package.json), [`.babelrc`](../examples/tutorials/01_personality_quiz/.babelrc), [`index.html`](../examples/tutorials/01_personality_quiz/index.html) and create an empty `index.js` file in the folder.
+Run `npm install` to install the required npm packages.
 After installing, you can run `npm start` to build and start the web application that does nothing.
-I provided a setup using browserify and babel here, but feel free to switch to a build tool you prefer.
+I provided a setup using browserify and babel here, but feel free to use build tools you prefer.
 
 Now add the following code in index.js:
 
@@ -90,13 +90,14 @@ runRobotProgram(main);
 ```
 
 Then run this application, e.g., by running `npm start`.
-It should print `Hello world!` to your browser's console.
-<!-- TODO: update the sentence above -->
+It should load a robot face on your browser.
 We just successfully set up and run a Cycle.js application!
 
 ### Robot, look at a face
 
-Since we want the robot to look at the person who is interacting with the robot, we'll first try to control the robot's eyes by adding some code in `main`:
+We'll now focus on implementing the first feature--looking at a face.
+
+Let's move around the robot's eyes by adding the following code in `main`:
 
 ```js
 // ...
@@ -112,13 +113,15 @@ function main(sources) {
 // ...
 ```
 
-Here we are sending control signals to the `TabletFace` driver by returning the `sink.TabletFace` stream returned from `main`.
-The stream is returned from the [`map`](https://github.com/staltz/xstream#map) xstream operator and it emits a number, 1 or -1, every 1s.
+Here we are sending control signals to the `TabletFace` driver by returning the `sink.TabletFace` stream from `main`.
+The stream is created by the [`map`](https://github.com/staltz/xstream#map) xstream operator and it emits a number, 1 or -1, in every 1 second.
 If you run the updated application, the robot should look left and right repeatedly.
 
-<!-- TODO: explain where the rubber hits the road -->
+You may be wondering where is the `TabletFace` driver, how and when a driver produces side effects, and how the `main` function is connected to drivers.
+I'll answer those questions in the "" section below.
+<!-- TODO: provide a link -->
 
-Now that we can move the eyes, let's work on detecting a face.
+Let's work on detecting a face by add more code in `main`:
 
 ```js
 // ...
