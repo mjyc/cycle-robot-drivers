@@ -1,5 +1,3 @@
-<!-- TODO: introduce FSM on top -->
-
 # Programming a social robot using Cycle.js
 
 In this post, I'll show you how to program a social robot using [Cycle.js](https://cycle.js.org/).
@@ -61,9 +59,10 @@ Specifically, we'll make the robot to
 
 1. look at you while you are interacting with the robot and
 2. ask questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/).
-<!-- Maybe further explain what I mean by "ask" -->
 
-Note that the code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2). I recommend using a build tool such as [browserify](http://browserify.org/) or [webpack](https://webpack.js.org/) through a transpiler (e.g. [Babel](https://babeljs.io/) or [TypeScript](https://www.typescriptlang.org/)).
+Note that the code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2).
+To build code, I use [browserify](http://browserify.org/) and [Babel](https://babeljs.io/) here, but feel free to use a build tool and a transpiler you prefer.
+ <!-- , e.g., [webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/). -->
 
 First, let's set up a Cycle.js application.
 Create a folder:
@@ -76,7 +75,6 @@ cd my-robot-program
 Then download [`package.json`](../examples/tutorials/01_personality_quiz/package.json), [`.babelrc`](../examples/tutorials/01_personality_quiz/.babelrc), [`index.html`](../examples/tutorials/01_personality_quiz/index.html) and create an empty `index.js` file in the folder.
 Run `npm install` to install the required npm packages.
 After installing, you can run `npm start` to build and start the web application that does nothing.
-I provided a setup using browserify and babel here, but feel free to use build tools you prefer.
 
 Now add the following code in index.js:
 
@@ -91,21 +89,30 @@ runRobotProgram(main);
 
 Then run this application, e.g., by running `npm start`.
 It should load a robot face on your browser.
+
 We just successfully set up and run a Cycle.js application!
 
 ### Robot, look at a face
 
 We'll now focus on implementing the first feature--looking at a face.
 
-Let's move around the robot's eyes by adding the following code in `main`:
+Let's make the robot to just move its eyes by adding the following code in `main`:
 
 ```js
 // ...
 
 function main(sources) {
   const sinks = {
-    TabletFace: xs.periodic(1000)
-      .map(i => i % 2 === 0 ? 1 : -1)
+    TabletFace: xs.periodic(1000).map(i => ({
+        x: i % 2 === 0 ? 0 : 1,  // horizontal left or right
+        y: 0.5  // vertical center
+      })).map(position => ({
+        type: 'SET_STATE',
+        value: {
+          leftEye: position,
+          rightEye: position
+        }
+      }))
   };
   return sinks;
 }
@@ -113,105 +120,123 @@ function main(sources) {
 // ...
 ```
 
-Here we are sending control signals to the `TabletFace` driver by returning the `sink.TabletFace` stream from `main`.
-The stream is created by the [`map`](https://github.com/staltz/xstream#map) xstream operator and it emits a number, 1 or -1, in every 1 second.
+Here we are sending commands to the `TabletFace` driver by returning the `sink.TabletFace` stream from `main`.
+The [`periodic`](https://github.com/staltz/xstream#periodic) xstream factory creates a stream emitting an incremental number every second and the [`map`](https://github.com/staltz/xstream#map) xstream operator create a new stream that turns the emitted numbers into positions and another new stream that turns the emitted positions into control commands.
 If you run the updated application, the robot should look left and right repeatedly.
 
-You may be wondering where is the `TabletFace` driver, how and when a driver produces side effects, and how the `main` function is connected to drivers.
-I'll answer those questions in the "" section below.
-<!-- TODO: provide a link -->
+<!-- You may be wondering:
 
-Let's work on detecting a face by add more code in `main`:
+1. when and where is the `TabletFace` driver created
+2. how and when a driver produces side effects
+3. how the `main` function is connected to drivers
+
+I'll answer those questions in the "" section below. -->
+
+Let's work on detecting a face by adding more code in `main`:
 
 ```js
 // ...
 
 function main(sources) {
-  sources.poses
-    .addListener({
-      next: (poses) => console.log(poses);
-    });
+  sources.PoseDetection.poses.addListener({
+    next: (poses) => console.log('poses', poses)
+  });
 
+  // ...
+}
+
+// ...
+```
+
+Here we use the [addListener](https://github.com/staltz/xstream#addListener) xstream operator to add a callback function that prints the detected pose data to the `poses` stream, the stream returned from the `PoseDetection` driver.
+
+When you run the application you should see arrays of objects printed to your browser's console, in the following format:
+
+```js
+const poses = [
+  // the first detected person
+  {
+    "score": 0.32371445304906,
+    "keypoints": [
+      {
+        "part": "nose",
+        "position": {
+          "x": 253.36747741699,
+          "y": 76.291801452637
+        },
+        "score": 0.99539834260941
+      },
+      {
+        "part": "leftEye",
+        "position": {
+          "x": 253.54365539551,
+          "y": 71.10383605957
+        },
+        "score": 0.98781454563141
+      },
+      // ...
+  },
+  // the second detected person if there is one
+  {
+    "score": 0.22838506316132706,
+    "keypoints": [
+      {
+        "part": "nose",
+        "position": {
+          "x": 236.58547523373466,
+          "y": 360.03672892252604
+        },
+        "score": 0.9979155659675598
+      },
+      // ...
+    ]
+  },
+  // ...
+]
+```
+
+While the application is running, try disappearing from the camera.
+You should see one less object in the `poses` array.
+Also try hiding one of your ears by turning your head left or right.
+You should not see an object that has a string `nose` for its `part` field in the `keypoints` array.
+
+Now that we know how to move the robot's eyes and retrieve detected face data, let's make the robot's eyes to follow the nose of the first detected person.
+Update `main` as follows:
+
+```js
+//...
+
+function main(sources) {
   const sinks = {
-    TabletFace: xs.periodic(1000)
-      .map(i => i % 2 === 0 ? 1 : -1)
+    TabletFace: sources.PoseDetection.poses
+      .filter(poses => 
+        // must see one person
+        poses.length === 1
+        // must see the nose
+        && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
+      ).map(poses => {
+        const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
+        return {
+          x: nose.position.x / 640,  // max value of position.x is 640
+          y: nose.position.y / 480  // max value of position.y is 480
+        };
+      }).map(position => ({
+        type: 'SET_STATE',
+        value: {
+          leftEye: position,
+          rightEye: position
+        }
+      }))
   };
   return sinks;
 }
 
-// ...
+//...
 ```
+Here we are sending commands to the `TabletDriver` by using the stream created from the output stream of the `PoseDetection` driver (`sources.PoseDetection.poses`) instead of creating one from scratch as we did above when we made the robot to look left and right.
+To convert pose data into control commands, we use the [`filter`](https://github.com/staltz/xstream#filter) xstream operator to filter pose data to the ones containing only one person whose nose is visible. Then we use the [`map`](https://github.com/staltz/xstream#map) xstream operator twice to convert the detected nose positions into eye positions and turn the eye positions into control commands.
 
-When you run the app you should see an array of objects printed to your browser's console:
-
-```js
-{
-  "score": 0.32371445304906,
-  "keypoints": [
-    {
-      "position": {
-        "y": 76.291801452637,
-        "x": 253.36747741699
-      },
-      "part": "nose",
-      "score": 0.99539834260941
-    },
-    {
-      "position": {
-        "y": 71.10383605957,
-        "x": 253.54365539551
-      },
-      "part": "leftEye",
-      "score": 0.98781454563141
-    },
-    ...
-},
-{}
-```
-
-If you move away from ... , if you hide your by turning your head ... then you should see some they are disappearing. so we'll add that to...
-
-<!-- since the robot should only move its eyes when it sees a person -->
-
-```js
-// ...
-  sources.poses
-    .filter()
-    .addListener({
-      next: (poses) => console.log(poses);
-    });
-
-  // ...
-```
-
-finally...
-
-```js
-// ...
-
-function main(sources) {
-
-  sources.poses
-    .filter(poses.length === 1)
-    .addListener({
-      next: (poses) => console.log(poses);
-    });
-
-  const sinks = {
-    TabletFace: xs.periodic(1000)
-  }
-  return {
-    TabletFace: 
-  };
-}
-
-// ...
-```
-
-
-<!-- that emits incremental numbers in every 1s and  -->
-<!-- The stream is created by `map` xstream operator from the stream stream by , which emits  -->
-<!-- using the `xs.periodic` xstream factory that emits . -->
+We have made the robot to look at a face!
 
 ### `runRobotProgram` vs `run`
 
