@@ -2,22 +2,26 @@ import xs from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 function main(sources) {
-  sources.PoseDetection.poses.addListener({
-    next: (poses) => console.log('poses =', poses)
-  });
-
   const sinks = {
-    TabletFace: xs.periodic(1000).map(i => ({
-        x: i % 2 === 0 ? 0 : 1,  // horizontal left or right
-        y: 0.5,  // vertical center
-      })).map(position => ({
+    TabletFace: sources.PoseDetection.poses
+      .filter(poses => 
+        // must see one person
+        poses.length === 1
+        // must see the nose
+        && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1  
+      ).map(poses => {
+        const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
+        return {
+          x: nose.position.x / 640,  // max value of position.x is 640
+          y: nose.position.y / 480  // max value of position.y is 480
+        };
+      }).map(position => ({
         type: 'SET_STATE',
         value: {
           leftEye: position,
-          rightEye: position,
+          rightEye: position
         }
-      }));
-    })
+      }))
   };
   return sinks;
 }
