@@ -251,24 +251,6 @@ You could also create a new `runRobotProgram` function that provides drivers for
 
 Regarding the second question, check out [this page](https://cycle.js.org/drivers.html) from the Cycle.js' website.
 
-<!-- We didn't do this because `runRobotProgram` is [just a wrapper function for Cycle.js' `run`](../run/src/index.tsx)
-
-We didn't do this because we used `runRobotProgram` from the `@cycle-robot-drivers/run` package that creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection` and create and set up five `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction` 
-
-
-We didn't do this because `runRobotProgram` is [just a wrapper function for Cycle.js' `run`](../run/src/index.tsx) and it creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection` and five _actions_, `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction`, sets the actions up to make them act like drivers, and  -->
-
-
-<!-- The `runRobotProgram` is 
-
-are all created in  -->
-
-<!-- This is because `runRobotProgram` is [just a wrapper function for Cycle.js' `run`](../run/src/index.tsx); it creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection` and five _actions_, `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction`, sets the actions up to make them act like drivers, and calls Cycle's run with the created drivers and actions. In fact, if you are comfortable with Cycle.js, you could use Cycle.js' `run` instead of `runRobotProgram` to have more control over drivers and actions. -->
-
-<!-- If you are already familiar with Cycle.js you may noticed  -->
-
-<!-- If you are familiar with writing Cycle.js application, you probably noticed 
-I used and didn't create any drivers, not even DOMDriver. -->
 
 ### Robot, asks questions
 
