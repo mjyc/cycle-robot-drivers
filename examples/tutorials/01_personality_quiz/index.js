@@ -2,6 +2,10 @@ import xs from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 function main(sources) {
+  sources.PoseDetection.poses.addListener({
+    next: (poses) => console.log('poses =', poses)
+  });
+
   const sinks = {
     TabletFace: xs.periodic(1000).map(i => {
       const position = {
