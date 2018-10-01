@@ -124,14 +124,6 @@ Here we are sending commands to the `TabletFace` driver by returning the `sink.T
 The [`periodic`](https://github.com/staltz/xstream#periodic) xstream factory creates a stream emitting an incremental number every second and the [`map`](https://github.com/staltz/xstream#map) xstream operator create a new stream that turns the emitted numbers into positions and another new stream that turns the emitted positions into control commands.
 If you run the updated application, the robot should look left and right repeatedly.
 
-<!-- You may be wondering:
-
-1. when and where is the `TabletFace` driver created
-2. how and when a driver produces side effects
-3. how the `main` function is connected to drivers
-
-I'll answer those questions in the "" section below. -->
-
 Let's work on detecting a face by adding more code in `main`:
 
 ```js
@@ -238,17 +230,47 @@ To convert pose data into control commands, we use the [`filter`](https://github
 
 We have made the robot to look at a face!
 
-### `runRobotProgram` vs `run`
+#### Taking a closer look at `runRobotProgram`
 
-If you are familiar with writing Cycle.js application, you probably noticed 
+While following code examples above, you may have wondered:
 
-I used and didn't create any drivers, not even DOMDriver.
+1. when and where is the `TabletFace` driver created
+2. how and when a driver produces side effects
 
+Here is the answer to the first question: the two drivers we used in the example code, `TabletFace` and `PoseDetection`, are created in `runRobotProgram`.
+Normally when you program a Cycle.js app, you need to [create drivers explicitly](https://cycle.js.org/getting-started.html#getting-started-coding-create-main-and-drivers) and pass them to the [Cycle.js' `run`](https://cycle.js.org/api/run.html) function.
+We skipped this step because we used `runRobotProgram` that creates the required drivers for programming a tablet-face robot and calls Cycle.js' `run` for us.
+The `runRobotProgram` function is [a wrapper function for Cycle.js' `run`](../run/src/index.tsx) that
+
+1. creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection`
+2. creates and sets up five action components `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction` to allow programmers to use them as drivers, and
+3. calls  Cycle.js' run with the created drivers and actions.
+
+In fact, if you are comfortable with Cycle.js, you could use Cycle.js' `run` instead of `runRobotProgram` to have more control over drivers and actions.
+You could also create a new `runRobotProgram` function that provides drivers for your own robot that is not a tablet-face robot!
+
+Regarding the second question, check out [this page](https://cycle.js.org/drivers.html) from the Cycle.js' website.
+
+<!-- We didn't do this because `runRobotProgram` is [just a wrapper function for Cycle.js' `run`](../run/src/index.tsx)
+
+We didn't do this because we used `runRobotProgram` from the `@cycle-robot-drivers/run` package that creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection` and create and set up five `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction` 
+
+
+We didn't do this because `runRobotProgram` is [just a wrapper function for Cycle.js' `run`](../run/src/index.tsx) and it creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection` and five _actions_, `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction`, sets the actions up to make them act like drivers, and  -->
+
+
+<!-- The `runRobotProgram` is 
+
+are all created in  -->
+
+<!-- This is because `runRobotProgram` is [just a wrapper function for Cycle.js' `run`](../run/src/index.tsx); it creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection` and five _actions_, `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction`, sets the actions up to make them act like drivers, and calls Cycle's run with the created drivers and actions. In fact, if you are comfortable with Cycle.js, you could use Cycle.js' `run` instead of `runRobotProgram` to have more control over drivers and actions. -->
+
+<!-- If you are already familiar with Cycle.js you may noticed  -->
+
+<!-- If you are familiar with writing Cycle.js application, you probably noticed 
+I used and didn't create any drivers, not even DOMDriver. -->
 
 ### Robot, asks questions
-
-
-
 
 <!-- The `main` function takes a collection of streams as input (`sources`) and returns a collection of streams as output (`sink`). When `runRobotProgram` is called, it creates functions that produce side effects (_Drivers_ in Cycle.js) and connects the outputs of the drivers with the input of `main` and the output of `main` with the inputs of the drivers. This structure enforced by Cycle.js allows programmers to write the pure, reactive `main` function. -->
 
