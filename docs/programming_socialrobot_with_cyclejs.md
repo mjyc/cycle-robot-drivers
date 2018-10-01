@@ -73,7 +73,7 @@ mkdir my-robot-program
 cd my-robot-program
 ```
 
-Then download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and create an empty `index.js` file in the folder.
+Then download [`package.json`](../examples/tutorials/01_getting_started/package.json), [`.babelrc`](../examples/tutorials/01_getting_started/.babelrc), [`index.html`](../examples/tutorials/01_getting_started/index.html) and create an empty `index.js` file in the folder, e.g., by running `echo '' > index.js`.
 You can now run `npm install` to install the required npm packages.
 After installing, you can run `npm start` to build and start the web application that does nothing.
 I provided a setup using browserify and babel here, but feel free to switch to a build tool you prefer.
