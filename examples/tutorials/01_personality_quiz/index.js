@@ -7,18 +7,16 @@ function main(sources) {
   });
 
   const sinks = {
-    TabletFace: xs.periodic(1000).map(i => {
-      const position = {
+    TabletFace: xs.periodic(1000).map(i => ({
         x: i % 2 === 0 ? 0 : 1,  // horizontal left or right
         y: 0.5,  // vertical center
-      };
-      return {
+      })).map(position => ({
         type: 'SET_STATE',
         value: {
           leftEye: position,
           rightEye: position,
         }
-      };
+      }));
     })
   };
   return sinks;
