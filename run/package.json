@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/run",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "",
   "repository": "",
   "author": "Michael Jae-Yoon Chung",
@@ -15,6 +15,8 @@
     "@cycle-robot-drivers/speech": "~0.0.0",
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
+    "@tensorflow-models/posenet": "0.2.2",
+    "@tensorflow/tfjs": "0.10.3",
     "cycle-posenet-driver": "~0.0.0",
     "snabbdom": "0.7.1",
     "snabbdom-pragma": "2.7.0",
