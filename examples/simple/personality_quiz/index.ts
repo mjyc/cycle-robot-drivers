@@ -5,13 +5,13 @@ import {Stream} from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 enum State {
-  ASK_CAREER_QUESTION = 'It\'s import that I reach my full career potential',
-  ASK_WORKING_ONLINE_QUESTION = 'I can see myself working online',
-  ASK_FAMILY_QUESTION = 'I have to be near my family/friends/pets',
+  ASK_CAREER_QUESTION = 'It\'s important that I reach my full career potential.',
+  ASK_WORKING_ONLINE_QUESTION = 'I can see myself working online.',
+  ASK_FAMILY_QUESTION = 'I have to be near my family/friends/pets.',
   ASK_SHORT_TRIPS_QUESTION = 'Short trips are awesome!',
-  ASK_HOME_OWNERSHIP_QUESTION = 'I want to have a home and nice things',
-  ASK_ROUTINE_QUESTION = 'A routine gives my life structure',
-  ASK_JOB_SECURITY_QUESTION = 'I need a secure job and a stable income',
+  ASK_HOME_OWNERSHIP_QUESTION = 'I want to have a home and nice things.',
+  ASK_ROUTINE_QUESTION = 'A routine gives my life structure.',
+  ASK_JOB_SECURITY_QUESTION = 'I need a secure job and a stable income.',
   TELL_THEM_THEY_ARE_VACATIONER = 'You are a vacationer!',
   TELL_THEM_THEY_ARE_EXPAT = 'You are an expat!',
   TELL_THEM_THEY_ARE_NOMAD = 'You are a nomad!',
