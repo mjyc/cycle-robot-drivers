@@ -142,7 +142,8 @@ function main(sources) {
 
 Here we use the [addListener](https://github.com/staltz/xstream#addListener) xstream operator to add a callback function that prints the detected pose data to the `poses` stream, the stream returned from the `PoseDetection` driver.
 
-When you run the application you should see arrays of objects printed to your browser's console, in the following format:
+When you run the application you should see arrays of objects printed to your browser's console.
+Each array represent detected poses at moment has the following format:
 
 ```js
 const poses = [
@@ -255,7 +256,7 @@ Regarding the second question, check out [this page](https://cycle.js.org/driver
 <!-- TODO: Add an example of manually defining a driver here -->
 
 
-### Robot, asks questions
+### Robot, ask questions
 
 We'll now focus on implementing the second feature--asking the travel personality quiz questions.
 
@@ -319,6 +320,7 @@ function main(sources) {
 ```
 Notice that I modified the quiz questions to change all response choices to "yes" and "no".
 
+<!-- Now let's make the robot to ask questions and take your verbal responses. We'll first make it just say the first question and then listen to your response  -->
 We'll now make the robot to say the first question on start, i.e., on loading the face, and start listening when it finishes saying the question: 
 
 ```js
@@ -341,10 +343,13 @@ We'll now make the robot to say the first question on start, i.e., on loading th
 // ...
 ```
 
-Here we are sending commands to `SpeechSynthesisAction` and `SpeechRecognitionAction` by returning the created streams via `sink.SpeechSynthesisAction` and `sink.SpeechRecognitionAction` from `main`.
+Here we are sending commands to the `SpeechSynthesisAction` driver and the `SpeechRecognitionAction` driver by returning the created streams via `sink.SpeechSynthesisAction` and `sink.SpeechRecognitionAction` from `main`.
+The stream for the `SpeechSynthesisAction` driver emits `Question.Career` on tablet-face-loaded event, emitted in the `sources.TabletFace.load` stream.
+The stream for the `SpeechRecognitionAction` driver emits an empty object (`{}`) on finishing speech synthesis action event, emitted in the `sources.SpeechSynthesisAction.result` stream.
+Both streams are created using the [`mapTo`](https://github.com/staltz/xstream#mapTo) xstream operator.
+We also print out events emitted in the `sources.SpeechRecognitionAction.result` stream using the [addListener](https://github.com/staltz/xstream#addListener) xstream operator.
 
-When you run the application, you should hear the robot saying "Is reaching your full career potential important to you?".
-After that, it starts to listen and print outputs of `SpeechRecognitionAction` to your browser's console, in the following format:
+When you run the application, you should hear the robot saying "Is reaching your full career potential important to you?" and then see the output of the `SpeechRecognitionAction` printed to your browser's console, in the following format:
 
 ```js
 const result = {
@@ -362,7 +367,7 @@ const result = {
 Try saying something and see how well it hears you.
 
 Now we want to improve the program to make the robot to ask more than one question.
-For example, we can try to send commands to `SpeechSynthesisAction` whenever the robot hears an appropriate answer, i.e., "yes" or "no", to a question.
+For example, we can try to send questions as commands to the `SpeechSynthesisAction` driver whenever the robot hears an appropriate answer, i.e., "yes" or "no", to a question.
 Let's try to express this behavior as follows:
 
 ```js
@@ -383,20 +388,22 @@ Let's try to express this behavior as follows:
 // ...
 ```
 
-Here we are merging the commands from the stream that emits the first question on loading the robot face and the commands from the stream that emits a subsequent question on hearing "yes" or "no" using the [`merge`](https://github.com/staltz/xstream#merge) xstream factory.
+Here we are merging the commands from the stream that emits the first question (`sources.TabletFace.load.mapTo(Question.CAREER)`) and the commands from the stream that emits a subsequent question on hearing "yes" or "no" using the [`merge`](https://github.com/staltz/xstream#merge) xstream factory.
 
-However, we cannot create a stream that returns a "next" question since we need know the "last" question, the event that will be emitted by the stream we are creating.
+However, we cannot figure out which question to return since the question is dependent on the last question the robot asked, which also is dependent on the last last question and so on.
+In other words, we need a previous output of the current stream we are creating as a input to the current stream.
 
-So solve this problem, we adapt the proxy pattern.
+To solve this problem, we adapt the proxy pattern as follows:
 
 ```js
-  //...
+//...
+function main(sources) {
   const lastQuestion$ = xs.create();
   const question$ = xs.merge(
     sources.TabletFace.load.mapTo(Question.CAREER),
     sources.SpeechRecognitionAction.result.filter(result =>
       result.status.status === 'SUCCEEDED'  // must succeed
-      && (result.result === 'yes' || result.result === 'no')  // only yes or no
+      && (result.result === 'yes' || result.result === 'no') // only yes or no
     ).map(result => result.result)
     .startWith('')
     .compose(sampleCombine(
@@ -406,16 +413,19 @@ So solve this problem, we adapt the proxy pattern.
     })
   );
   lastQuestion$.imitate(question$);
+
   //...
 ```
 
-First, we moved code outside of the block that defines the sink variable.
+Here we first create an empty stream `lastQuestion$` and use while creating the stream we need, `question$`, then use the [`imitate`](https://github.com/staltz/xstream#imitate) xstream operator to connect the proxy stream, `lastQuestion$`, to its source stream, `question$`.
+We also use the [sampleCombine](https://github.com/staltz/xstream/blob/master/EXTRA_DOCS.md#sampleCombine) xstream operator to keep events from both streams, `lastQuestion$` and the one `.compose` is called on.
+
+<!-- First, we moved code outside of the block that defines the sink variable.
 We created a lastQuestion proxy signal, which we use while defining the `question$` stream and connect to the source stream `question$` right after it is created.
 We use sampleCombine operator combine user response and 
 lastQuestion proxy is used by `sampleCombine` to combine speech recognition result events with events emitted in the proxy ,
-
 We use the sampleCombine to only emit events when last question emits an event.
-Otherwise it will be an infinite loop.
+Otherwise it will be an infinite loop. -->
 
 
 Now we want to improve the program so the robot starts listening
@@ -541,12 +551,11 @@ We also subscribe to the `sources.SpeechSynthesisAction.result` stream to conver
 
 The two subscriptions produce two streams, `hello$` and `nice$`. We merge the two streams to create a single multiplexed stream `greet$` using xstream's [`merge`](https://github.com/staltz/xstream#merge) factory. Finally, the `main` function returns the `$greet` stream as `sink.TwoSpeechbubblesAction` and `sink.SpeechSynthesisAction` to trigger an display message action and an speech synthesis action outside of `main`. Note that I attach `$` at the end of the stream variable names to distinguish stream variables from others as the Cycle.js team does this in [their codebase](https://github.com/cyclejs/cyclejs). Upon loading this program, the robot will first say and display "Hello!" and "Nice to meet you!" immediately after finished saying "Hello". -->
 
+<!-- ======================================================================= -->
 
-## Actions
+<!-- ## Actions
  
 If you are familiar with writing a Cycle.js application, you probably noticed what we did in the previous section is exactly like writing a Cycle.js application except (i) we used `runRobotProgram` from `@cycle-robot-drivers/run` instead of `run` from `@cycle/run` and (ii) we did not provide any drivers to `runRobotProgram` but receiving data from somewhere via `sources` and sending data to somewhere via `sinks`. This is because `runRobotProgram` is [just a wrapper function for Cycle.js' `run`](../run/src/index.tsx); it creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection` and five _actions_, `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction`, sets the actions up to make them act like drivers, and calls Cycle's run with the created drivers and actions. In fact, if you are comfortable with Cycle.js, you could use Cycle.js' `run` instead of `runRobotProgram` to have more control over drivers and actions.
-
-<!-- TODO: provide links for drivers and components  -->
 
 What are _actions_? Actions are Cycle.js components that implement an interface for preemptable tasks. The interface is modeled after [ROS's acitonlib interface](http://wiki.ros.org/actionlib/DetailedDescription#Action_Interface_.26_Transport_Layer); it takes the `goal` stream to receive start or preempt signals from a client and outputs the `output` and `result` streams to send control signals to drivers and send action result data to a client. For simplicity purposes, we constrain the action components to run only one action at a time. In other words, one cannot queue multiple actions. If a new action is requested while a previously requested action is running, the action component will cancel the running action and start the newly requested action.
 
@@ -599,4 +608,4 @@ Try the program [here](https://stackblitz.com/edit/cycle-robot-drivers-tutorials
 
 Let's make a more interesting program!
 
-Try the program [here](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-04-fsm)!
+Try the program [here](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-04-fsm)! -->
