@@ -143,7 +143,7 @@ function main(sources) {
 Here we use the [addListener](https://github.com/staltz/xstream#addListener) xstream operator to add a callback function that prints the detected pose data to the `poses` stream, the stream returned from the `PoseDetection` driver.
 
 When you run the application you should see arrays of objects printed to your browser's console.
-Each array represent detected poses at moment has the following format:
+Each array represent detected poses at moment, which has the following format:
 
 ```js
 const poses = [
@@ -198,7 +198,7 @@ Concretely, we'll make the robot's eyes to follow a detected person's nose.
 Update `main` as follows:
 
 ```js
-//...
+// ...
 
 function main(sources) {
   const sinks = {
@@ -225,9 +225,9 @@ function main(sources) {
   return sinks;
 }
 
-//...
+// ...
 ```
-Here we are sending commands to the `TabletDriver` by using the stream created from the output stream of the `PoseDetection` driver (`sources.PoseDetection.poses`) instead of creating one from scratch as we did above when we made the robot to look left and right.
+Here we are sending commands to the `TabletDriver` by using the stream created from the output stream of the `PoseDetection` driver (`sources.PoseDetection.poses`). <!-- instead of creating one from scratch as we did above when we made the robot to look left and right. -->
 To convert pose data into control commands, we use the [`filter`](https://github.com/staltz/xstream#filter) xstream operator to filter pose data to the ones containing only one person whose nose is visible. Then we use the [`map`](https://github.com/staltz/xstream#map) xstream operator twice to convert the detected nose positions into eye positions and turn the eye positions into control commands.
 
 We have made the robot to look at a face!
@@ -260,7 +260,7 @@ Regarding the second question, check out [this page](https://cycle.js.org/driver
 
 We'll now focus on implementing the second feature--asking the travel personality quiz questions.
 
-First, we'll represent [the quiz flowchart](http://www.nomadwallet.com/wp-content/uploads/2014/03/travel-quiz-flowchart.jpg) as a dictionary of dictionaries for convenience:
+First, we'll represent [the quiz flowchart](http://www.nomadwallet.com/wp-content/uploads/2014/03/travel-quiz-flowchart.jpg) as a dictionary of dictionaries for convenience. Add the following code:
 
 ```js
 // ...
@@ -321,45 +321,45 @@ function main(sources) {
 Notice that I modified the quiz questions to change all response choices to "yes" and "no".
 
 <!-- Now let's make the robot to ask questions and take your verbal responses. We'll first make it just say the first question and then listen to your response  -->
-We'll now make the robot to say the first question on start, i.e., on loading the face, and start listening when it finishes saying the question: 
+We'll now make the robot to say the first question on start, i.e., on loading the robot's face, and start listening when it finishes saying the question: 
 
 ```js
 // ...
-  function main(sources) {
-    sources.SpeechRecognitionAction.result.addListener({
-      next: (result) => console.log('result', result)
-    });
-    //...
-    const sinks = {
-      TabletFace: sources.PoseDetection.poses
-        .filter(poses =>
-        // ...
-      SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
-      SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
-    };
-    return sinks;
-  }
+function main(sources) {
+  sources.SpeechRecognitionAction.result.addListener({
+    next: (result) => console.log('result', result)
+  });
+  // ...
+  const sinks = {
+    TabletFace: sources.PoseDetection.poses
+      .filter(poses =>
+      // ...
+    SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
+    SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
+  };
+  return sinks;
 }
 // ...
 ```
 
 Here we are sending commands to the `SpeechSynthesisAction` driver and the `SpeechRecognitionAction` driver by returning the created streams via `sink.SpeechSynthesisAction` and `sink.SpeechRecognitionAction` from `main`.
-The stream for the `SpeechSynthesisAction` driver emits `Question.Career` on tablet-face-loaded event, emitted in the `sources.TabletFace.load` stream.
-The stream for the `SpeechRecognitionAction` driver emits an empty object (`{}`) on finishing speech synthesis action event, emitted in the `sources.SpeechSynthesisAction.result` stream.
+The input stream for the `SpeechSynthesisAction` driver emits `Question.Career` on tablet-face-loaded event emitted in the `sources.TabletFace.load` stream.
+The input stream for the `SpeechRecognitionAction` driver emits an empty object (`{}`) on finishing speech synthesis action event emitted in the `sources.SpeechSynthesisAction.result` stream.
 Both streams are created using the [`mapTo`](https://github.com/staltz/xstream#mapTo) xstream operator.
 We also print out events emitted in the `sources.SpeechRecognitionAction.result` stream using the [addListener](https://github.com/staltz/xstream#addListener) xstream operator.
 
-When you run the application, you should hear the robot saying "Is reaching your full career potential important to you?" and then see the output of the `SpeechRecognitionAction` printed to your browser's console, in the following format:
+When you run the application, you should hear the robot saying "Is reaching your full career potential important to you?" and see the output of the `SpeechRecognitionAction` printed to your browser's console.
+The output has the following format:
 
 ```js
 const result = {
   "result": "yes",  // transcribed texts
   "status": {
-    "goal_id": {
+    "goal_id": {  // a unique id for the executed action
       "stamp": "Mon Oct 01 2018 21:49:00 GMT-0700 (PDT)",  // "Date" object
       "id": "h0fogq2x0zo-1538455335646"
     },
-    "status": "SUCCEEDED"
+    "status": "SUCCEEDED"  // "SUCCEEDED", "PREEMPTED", or "ABORTED"
   }
 }
 ```
@@ -367,11 +367,17 @@ const result = {
 Try saying something and see how well it hears you.
 
 Now we want to improve the program to make the robot to ask more than one question.
-For example, we can try to send questions as commands to the `SpeechSynthesisAction` driver whenever the robot hears an appropriate answer, i.e., "yes" or "no", to a question.
-Let's try to express this behavior as follows:
+For example, we can try to send questions as commands to the `SpeechSynthesisAction` driver whenever the robot hears an appropriate answer, i.e., "yes" or "no".
+Let's try to express this by updating the code above as follows:
 
 ```js
 // ...
+function main(sources) {
+  // ...
+  const sinks = {
+    TabletFace: sources.PoseDetection.poses
+      .filter(poses =>
+      // ...
     SpeechSynthesisAction: xs.merge(
       sources.TabletFace.load.mapTo(Question.CAREER),
       sources.SpeechRecognitionAction.result.filter(result =>
@@ -388,16 +394,18 @@ Let's try to express this behavior as follows:
 // ...
 ```
 
-Here we are merging the commands from the stream that emits the first question (`sources.TabletFace.load.mapTo(Question.CAREER)`) and the commands from the stream that emits a subsequent question on hearing "yes" or "no" using the [`merge`](https://github.com/staltz/xstream#merge) xstream factory.
+Here we are merging the commands from the stream that emits the first question (`sources.TabletFace.load.mapTo(Question.CAREER)`) and the commands from the stream that emits a subsequent question on hearing "yes" or "no" (`sources.SpeechRecognitionAction.result.filter(// ...`) using the [`merge`](https://github.com/staltz/xstream#merge) xstream factory.
 
-However, we cannot figure out which question to return since the question is dependent on the last question the robot asked, which also is dependent on the last last question and so on.
+There is one problem with this approach.
+We cannot figure out which question to return in the second stream since the question is dependent on the last question the robot asked, which also is dependent on the last last question and so on.
 In other words, we need a previous output of the current stream we are creating as a input to the current stream.
 
-To solve this problem, we adapt the proxy pattern as follows:
+To solve this circular dependency problem, we adapt the proxy pattern by updating the `main` function as follows:
 
 ```js
-//...
+// ...
 function main(sources) {
+  // ...
   const lastQuestion$ = xs.create();
   const question$ = xs.merge(
     sources.TabletFace.load.mapTo(Question.CAREER),
@@ -414,29 +422,61 @@ function main(sources) {
   );
   lastQuestion$.imitate(question$);
 
-  //...
+  const sink = {
+    TabletFace: sources.PoseDetection.poses
+      .filter(poses =>
+      // ...
+    SpeechSynthesisAction: question$,
+    SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
+  };
+  return sink;
+}
+// ...
 ```
 
-Here we first create an empty stream `lastQuestion$` and use while creating the stream we need, `question$`, then use the [`imitate`](https://github.com/staltz/xstream#imitate) xstream operator to connect the proxy stream, `lastQuestion$`, to its source stream, `question$`.
-We also use the [sampleCombine](https://github.com/staltz/xstream/blob/master/EXTRA_DOCS.md#sampleCombine) xstream operator to keep events from both streams, `lastQuestion$` and the one `.compose` is called on.
+Here we move creating a stream for `sink.SpeechSynthesisAction` outside of the `sink` object definition.
+We create a empty, proxy stream `lastQuestion$` using the [`create`](https://github.com/staltz/xstream#create) xstream factory and use it when creating the `question$` stream.
+Then use the [`imitate`](https://github.com/staltz/xstream#imitate) xstream operator to connect the proxy stream, `lastQuestion$`, to its source stream, `question$`.
+We also use the [`compose`](https://github.com/staltz/xstream#compose) and [`sampleCombine`](https://github.com/staltz/xstream/blob/master/EXTRA_DOCS.md#sampleCombine) xstream operators to combine events from the stream originated from `sources.SpeechRecognitionAction.result` and the `lastQuestion$` stream.
+Try the updated application and see if the robot asks more than one question if you respond to it with "yes" or "no".
 
-<!-- First, we moved code outside of the block that defines the sink variable.
-We created a lastQuestion proxy signal, which we use while defining the `question$` stream and connect to the source stream `question$` right after it is created.
-We use sampleCombine operator combine user response and 
-lastQuestion proxy is used by `sampleCombine` to combine speech recognition result events with events emitted in the proxy ,
-We use the sampleCombine to only emit events when last question emits an event.
-Otherwise it will be an infinite loop. -->
+You may have wondered when did we update the code to send the "start listening" command ({}) after _all_ questions.
+We didn't update the code; the code we had before already take care of this since the `sources.SpeechSynthesisAction.result` stream emits data on finishing every synthesized speech.
 
+<!-- explain $? -->
 
-Now we want to improve the program so the robot starts listening
-
-1. every time it finishes saying something and
-2. whenever it heard an unacceptable answer, i.e., an answer that is not "yes" and "no".
-
-Actually, the current code already starts speech recognition in 1. since the `sources.SpeechSynthesisAction.result` stream emits data on finishing every synthesized speech.
-To start listening in 2., update the `sink.SpeechRecognitionAction` as follows:
+One problem you may have faced is that the robot is failing to ask the next question if it hears an answer that is not "yes" or "no", e.g., by mistake.
+In such case, the robot should start listening again to give the person a chance to correct their answer.
+Let's update the code to fix this:
 
 ```js
+// ...
+    SpeechSynthesisAction: question$,
+    SpeechRecognitionAction: xs.merge(
+      sources.SpeechSynthesisAction.result,
+      sources.SpeechRecognitionAction.result.filter(result =>
+        result.status.status !== 'SUCCEEDED'
+        || (result.result !== 'yes' && result.result !== 'no')
+      )
+    ).mapTo({})
+  };
+  return sinks;
+}
+// ...
+```
+
+If you run the updated application, you will see the robot will continue to listen and print whatever it heard to the console after asking the first question once as long as you don't say "yes" or "no".
+
+Yay! You have implemented the robot asking personality quiz!!!
+
+<!-- Now we want to improve the program so the robot starts listening
+1. every time it finishes saying something and
+2. whenever it heard an unacceptable answer, i.e., an answer that is not "yes" and "no". -->
+
+<!-- Actually, the current code already starts speech recognition in 1. since the `sources.SpeechSynthesisAction.result` stream emits data on finishing every synthesized speech. -->
+<!-- To start listening in 2., update the `sink.SpeechRecognitionAction` as follows: -->
+
+<!-- ```js
 // ...
     SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
     SpeechRecognitionAction: xs.merge(
@@ -452,7 +492,7 @@ To start listening in 2., update the `sink.SpeechRecognitionAction` as follows:
 // ...
 ```
 
-If you run the updated application, you will see the robot will continue to listen and print whatever it heard to the console after asking the first question once as long as you don't say "yes" or "no".
+If you run the updated application, you will see the robot will continue to listen and print whatever it heard to the console after asking the first question once as long as you don't say "yes" or "no". -->
 
 
 <!-- Then we used sampleCombine to combine the data from  -->
