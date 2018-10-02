@@ -3,7 +3,7 @@
 In this post, I'll show you how to program a social robot using [Cycle.js](https://cycle.js.org/).
 I assume you are familiar reactive programming.
 If you are not, check out [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
-<!-- TODO: Tell them you can skip the motivation sections -->
+If you are eager to get your hands dirty, jump to the [Implementing "travel personality test"](#implementing-travel-personality-test) section
 
 
 ## What is a social robot?
@@ -53,11 +53,14 @@ Specifically, we'll make the robot to
 1. look at you while you are interacting with the robot and
 2. ask questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/).
 
-Note that the code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2).
+If you are curious, check out [the complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) at Stackblitz.
+
+
+The code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2).
 To build code, I use [browserify](http://browserify.org/) and [Babel](https://babeljs.io/) here, but feel free to use a build tool and a transpiler you prefer.
  <!-- , e.g., [webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/). -->
 
-First, let's set up a Cycle.js application.
+Let's set up a Cycle.js application.
 Create a folder:
 
 ```
@@ -117,7 +120,7 @@ Here we are sending commands to the `TabletFace` driver by returning the `sink.T
 The [`periodic`](https://github.com/staltz/xstream#periodic) xstream factory creates a stream emitting an incremental number every second and the [`map`](https://github.com/staltz/xstream#map) xstream operator create a new stream that turns the emitted numbers into positions and another new stream that turns the emitted positions into control commands.
 If you run the updated application, the robot should look left and right repeatedly.
 
-Let's work on detecting a face by adding more code in `main`:
+Let's now work on detecting a face by adding more code in `main`:
 
 ```js
 // ...
@@ -312,7 +315,7 @@ function main(sources) {
 ```
 Notice that I modified the quiz questions to change all response choices to "yes" and "no".
 
-Let's make the robot to ask questions and take your verbal responses.
+Let's now make the robot to ask questions and take your verbal responses.
 First, we'll make the robot to just say the first question on start, i.e., on loading the robot's face, and start listening after saying something:
 
 ```js
@@ -459,5 +462,5 @@ Let's update the code to fix the problem:
 Run the updated application.
 You should see that the robot will continue to listen and print whatever it hears to the console until it hears "yes" or "no" before asking a next question.
 
-We are done at this point!
-Try taking the travel personality quiz to find out your travel personality or creating a new program for your robot!
+We are done at this point.
+Try taking the travel personality quiz to find out your travel personality and enjoy!
