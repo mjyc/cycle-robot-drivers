@@ -247,13 +247,12 @@ The `runRobotProgram` function is [a wrapper function for Cycle.js' `run`](../ru
 1. creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection`
 2. creates and sets up five action components `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction` to allow programmers to use them as drivers, and
 3. calls  Cycle.js' run with the created drivers and actions.
+<!-- TODO: Add an example of manually defining a driver here -->
 
 In fact, if you are comfortable with Cycle.js, you could use Cycle.js' `run` instead of `runRobotProgram` to have more control over drivers and actions.
 You could also create a new `runRobotProgram` function that provides drivers for your own robot that is not a tablet-face robot!
 
 Regarding the second question, check out [this page](https://cycle.js.org/drivers.html) from the Cycle.js' website.
-
-<!-- TODO: Add an example of manually defining a driver here -->
 
 
 ### Robot, ask questions
@@ -320,8 +319,8 @@ function main(sources) {
 ```
 Notice that I modified the quiz questions to change all response choices to "yes" and "no".
 
-<!-- Now let's make the robot to ask questions and take your verbal responses. We'll first make it just say the first question and then listen to your response  -->
-We'll now make the robot to say the first question on start, i.e., on loading the robot's face, and start listening when it finishes saying the question: 
+Let's make the robot to ask questions and take your verbal responses.
+First, we'll make the robot to just say the first question on start, i.e., on loading the robot's face, and start listening after saying something:
 
 ```js
 // ...
@@ -400,7 +399,7 @@ There is one problem with this approach.
 We cannot figure out which question to return in the second stream since the question is dependent on the last question the robot asked, which also is dependent on the last last question and so on.
 In other words, we need a previous output of the current stream we are creating as a input to the current stream.
 
-To solve this circular dependency problem, we adapt the proxy pattern by updating the `main` function as follows:
+To solve this circular dependency problem, we adopt the proxy pattern by updating the `main` function as follows:
 
 ```js
 // ...
@@ -434,20 +433,19 @@ function main(sources) {
 // ...
 ```
 
-Here we move creating a stream for `sink.SpeechSynthesisAction` outside of the `sink` object definition.
-We create a empty, proxy stream `lastQuestion$` using the [`create`](https://github.com/staltz/xstream#create) xstream factory and use it when creating the `question$` stream.
+Here we have moved creating the code for a stream for `sink.SpeechSynthesisAction` outside of the `sink` object definition.
+We create an empty proxy stream `lastQuestion$` using the [`create`](https://github.com/staltz/xstream#create) xstream factory and use it when creating the `question$` stream.
 Then use the [`imitate`](https://github.com/staltz/xstream#imitate) xstream operator to connect the proxy stream, `lastQuestion$`, to its source stream, `question$`.
 We also use the [`compose`](https://github.com/staltz/xstream#compose) and [`sampleCombine`](https://github.com/staltz/xstream/blob/master/EXTRA_DOCS.md#sampleCombine) xstream operators to combine events from the stream originated from `sources.SpeechRecognitionAction.result` and the `lastQuestion$` stream.
+Note that I add `$` at the end of stream variable names to distinguish them from others as Cycle.js authors do.
 Try the updated application and see if the robot asks more than one question if you respond to it with "yes" or "no".
 
 You may have wondered when did we update the code to send the "start listening" command ({}) after _all_ questions.
-We didn't update the code; the code we had before already take care of this since the `sources.SpeechSynthesisAction.result` stream emits data on finishing every synthesized speech.
+We didn't update the code; the code we had before already works as desired since the `sources.SpeechSynthesisAction.result` stream emits data on finishing _every_ synthesized speech.
 
-<!-- explain $? -->
-
-One problem you may have faced is that the robot is failing to ask the next question if it hears an answer that is not "yes" or "no", e.g., by mistake.
+One problem you may have faced is the robot failing to ask a next question when it hears an answer that is not "yes" or "no", e.g., by mistake.
 In such case, the robot should start listening again to give the person a chance to correct their answer.
-Let's update the code to fix this:
+Let's update the code to fix the problem:
 
 ```js
 // ...
@@ -465,187 +463,8 @@ Let's update the code to fix this:
 // ...
 ```
 
-If you run the updated application, you will see the robot will continue to listen and print whatever it heard to the console after asking the first question once as long as you don't say "yes" or "no".
+Run the updated application.
+You should see that the robot will continue to listen and print whatever it hears to the console until it hears "yes" or "no" before asking a next question.
 
-Yay! You have implemented the robot asking personality quiz!!!
-
-<!-- Now we want to improve the program so the robot starts listening
-1. every time it finishes saying something and
-2. whenever it heard an unacceptable answer, i.e., an answer that is not "yes" and "no". -->
-
-<!-- Actually, the current code already starts speech recognition in 1. since the `sources.SpeechSynthesisAction.result` stream emits data on finishing every synthesized speech. -->
-<!-- To start listening in 2., update the `sink.SpeechRecognitionAction` as follows: -->
-
-<!-- ```js
-// ...
-    SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
-    SpeechRecognitionAction: xs.merge(
-      sources.SpeechSynthesisAction.result,
-      sources.SpeechRecognitionAction.result.filter(result =>
-        result.status.status !== 'SUCCEEDED'
-        || (result.result !== 'yes' && result.result !== 'no')
-      )
-    ).mapTo({})
-  };
-  return sinks;
-}
-// ...
-```
-
-If you run the updated application, you will see the robot will continue to listen and print whatever it heard to the console after asking the first question once as long as you don't say "yes" or "no". -->
-
-
-<!-- Then we used sampleCombine to combine the data from  -->
-
-
-<!-- Now we want to improve the program so the robot starts listening
-
-1. every time it finishes saying something and
-2. whenever it heard an unacceptable answer, i.e., an answer that is not "yes" and "no".
-
-Actually, the current code already starts speech recognition in 1. since the `sources.SpeechSynthesisAction.result` stream emits data on finishing every synthesized speech.
-To start listening in 2., update the `sink.SpeechRecognitionAction` as follows:
-
-```js
-// ...
-    SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
-    SpeechRecognitionAction: xs.merge(
-      sources.SpeechSynthesisAction.result,
-      sources.SpeechRecognitionAction.result.filter(result =>
-        result.status.status !== 'SUCCEEDED'
-        || (result.result !== 'yes' && result.result !== 'no')
-      )
-    ).mapTo({})
-  };
-  return sinks;
-}
-// ...
-```
-
-If you run the updated application, you will see the robot will continue to listen and print whatever it heard to the console after asking the first question once as long as you don't say "yes" or "no".
-
-Let's now make the robot to ask more than one question.
-
-```js
-    SpeechSynthesisAction: xs.merge(
-      sources.TabletFace.load.mapTo(Question.CAREER),
-      sources.SpeechRecognitionAction.result.filter(result =>
-        result.status.status === 'SUCCEEDED'  // must succeed
-        && (result.result === 'yes' || result.result === 'no')  // only yes or no
-      ).map(result => result.result).map(result => {
-        // Urr... I need something here...
-      })
-    ),
-    SpeechRecognitionAction: xs.merge(
-      // ...
-    ).mapTo({})
-  };
-  return sinks;
-}
-// ...
-```
-
-but this does not work... because what? -->
-
-
-
-<!-- You can have it say ... -->
-
-<!-- Now we want the robot to start listen to you whenever it is done saying the question.
-Whenever the robot hears yes and no from  -->
-
-<!-- Here we create a stream that emits the first question (`Question.CAREER`) to the `SpeechSynthesisAction` to say it on tablet face load event using the [`mapTo`](https://github.com/staltz/xstream#periodic) xstream operator.
-We also create a stream that emits an empty signal (`{}`) to the `SpeechRecognitionAction` to start listening on finishing speech event (events in the `sources.SpeechSynthesisAction.result`) using `mapTo`. -->
-
-<!-- emit  the tablet face load event that occurs once in the `sources.TabletFace.load` stream to the first question (`Question.CAREER`).
-We also convert the 
-
-Here we convert the tablet face load event, which gets emitted once in the `sources.TabletFace.load` stream, to a string representing the first question that is stored in the `Question.CAREER` variable. -->
-
-<!-- Talk about what kind of results you'll be seeing -->
-
-<!-- Update SpeechRecognitionAction: -->
-
-<!-- Update SpeechSynthesisAction; work without proxy pattern -->
-
-<!-- when else to trigger the speech recognition... (and provide the updated ...)
-
-```js
-  const question$ = xs.merge(
-    sources.TabletFace.load.mapTo(Question.CAREER),
-    sources.SpeechRecognitionAction.result.filter(result =>
-      result.status.status === 'SUCCEEDED'  // must succeed
-      && (result.result === 'yes' || result.result === 'no')  // only yes or no
-    ).map(result => result.result)
-    .startWith('')
-    .compose(sampleCombine(
-      lastQuestion$
-    )).map(([response, question]) => {
-      return transitionTable[question][response];
-    })
-  );
-```
-
-The code above is an example main function that makes the robot to say something. We first subscribe to the `sources.TabletFace.load` stream to convert the "TabletFace screen loaded" event to a new event carrying a string `Hello!` using xstream's [`mapTo`](https://github.com/staltz/xstream#mapTo) operator.
-We also subscribe to the `sources.SpeechSynthesisAction.result` stream to convert the first "SpeechSynthesisAction finished" event to a new event carrying a string `Nice to meet you!`. Notice that we use xstream's [`take`](https://github.com/staltz/xstream#mapTo) with the argument `1` to capture the "SpeechSynthesisAction finished" event only once.
-
-The two subscriptions produce two streams, `hello$` and `nice$`. We merge the two streams to create a single multiplexed stream `greet$` using xstream's [`merge`](https://github.com/staltz/xstream#merge) factory. Finally, the `main` function returns the `$greet` stream as `sink.TwoSpeechbubblesAction` and `sink.SpeechSynthesisAction` to trigger an display message action and an speech synthesis action outside of `main`. Note that I attach `$` at the end of the stream variable names to distinguish stream variables from others as the Cycle.js team does this in [their codebase](https://github.com/cyclejs/cyclejs). Upon loading this program, the robot will first say and display "Hello!" and "Nice to meet you!" immediately after finished saying "Hello". -->
-
-<!-- ======================================================================= -->
-
-<!-- ## Actions
- 
-If you are familiar with writing a Cycle.js application, you probably noticed what we did in the previous section is exactly like writing a Cycle.js application except (i) we used `runRobotProgram` from `@cycle-robot-drivers/run` instead of `run` from `@cycle/run` and (ii) we did not provide any drivers to `runRobotProgram` but receiving data from somewhere via `sources` and sending data to somewhere via `sinks`. This is because `runRobotProgram` is [just a wrapper function for Cycle.js' `run`](../run/src/index.tsx); it creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection` and five _actions_, `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction`, sets the actions up to make them act like drivers, and calls Cycle's run with the created drivers and actions. In fact, if you are comfortable with Cycle.js, you could use Cycle.js' `run` instead of `runRobotProgram` to have more control over drivers and actions.
-
-What are _actions_? Actions are Cycle.js components that implement an interface for preemptable tasks. The interface is modeled after [ROS's acitonlib interface](http://wiki.ros.org/actionlib/DetailedDescription#Action_Interface_.26_Transport_Layer); it takes the `goal` stream to receive start or preempt signals from a client and outputs the `output` and `result` streams to send control signals to drivers and send action result data to a client. For simplicity purposes, we constrain the action components to run only one action at a time. In other words, one cannot queue multiple actions. If a new action is requested while a previously requested action is running, the action component will cancel the running action and start the newly requested action.
-
-Let's look at an example below (or [at StackBlitz](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-actions)):
-
-```js
-import xs from 'xstream';
-import delay from 'xstream/extra/delay';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
-
-function main(sources) {
-  const message$ = xs.merge(
-    xs.of('Hello').compose(delay(1000)),
-    // xs.of(null).compose(delay(1500)),
-    // xs.of('World').compose(delay(1500)),
-  );
-
-  sources.SpeechSynthesisAction.output.addListener({
-    next: output => console.log('output', output),
-  });
-  sources.SpeechSynthesisAction.result.addListener({
-    next: result => console.log('result', result),
-  });
-  
-  return {
-    // SpeechSynthesis: sources.SpeechSynthesisAction.output.drop(1),
-    // SpeechSynthesis: xs.of('What?!').compose(delay(1000)),
-    SpeechSynthesisAction: message$,
-  };
-}
-
-runRobotProgram(main);
-```
-
-This example program will make the robot to say "Hello". You can change the amount of delay 1000(ms) to see how the new delay amount effects the timing of `output` and `result` events, which will be printed to console. You can also stop the speech in the middle by uncommenting `// xs.of(null).compose(delay(1500)),` or `// xs.of('World').compose(delay(1500)),`. In the latter case, the action component will also start a new action, i.e., the robot will say "World".
-
-Since actions are Cycle.js components, they do not make side effects but work with drivers to do so. The connection between actions and drivers are set up inside of the `runRobotProgram` function. However, if you want to override the connection between action outputs and driver inputs, you can do this by returning an action output in `main` with the name of a driver. For example, if you uncomment `// SpeechSynthesis: sources.SpeechSynthesisAction.output.drop(1),`, the action component will send control signals to the `SpeechSynthesis` driver only after the first action request. In the fact, the input to the `SpeechSynthesis` driver does not need to be dependent on `sources.SpeechSynthesisAction.output`, e.g., try uncommenting `// SpeechSynthesis: xs.of('What?!').compose(delay(1000)),`.
-
-You might ask, _"Well, if I can send signals to the drivers directly, why do I want to use actions at all?"_. It is true you can write a program that do not use actions, but then you need to figure out how to trigger and stop the desired side effects and return relevant values per each driver. Actions provide a consistent way of working with preemptable tasks so programmers could write more predictable code, which is in line with Cycle.js' spirit.
-
-
-## Working with streams
-
-Let's make a more interesting program!
-
-Try the program [here](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-03-working-with-streams)!
-
-
-## Finite state machine
-
-Let's make a more interesting program!
-
-Try the program [here](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-04-fsm)! -->
+We are done at this point!
+Try taking the travel personality quiz to find out your travel personality or creating a new program for your robot!
