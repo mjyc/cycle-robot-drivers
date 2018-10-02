@@ -257,36 +257,206 @@ Regarding the second question, check out [this page](https://cycle.js.org/driver
 
 ### Robot, asks questions
 
-We'll now focus on implementing the second feature--asking questions for testing travel personality.
+We'll now focus on implementing the second feature--asking the travel personality quiz questions.
 
-
+First, we'll represent [the quiz flowchart](http://www.nomadwallet.com/wp-content/uploads/2014/03/travel-quiz-flowchart.jpg) as a dictionary of dictionaries for convenience:
 
 ```js
 // ...
+import {runRobotProgram} from '@cycle-robot-drivers/run';
+
+const Question = {
+  CAREER: 'Is reaching your full career potential important to you?',
+  ONLINE: 'Can you see yourself working online.',
+  FAMILY: 'Do you have to be near my family/friends/pets?',
+  TRIPS: 'Do you think short trips are awesome?',
+  HOME: 'Do you want to have a home and nice things?',
+  ROUTINE: 'Do you think a routine gives your life structure?',
+  JOB: 'Do you need a secure job and a stable income?',
+  VACATIONER: 'You are a vacationer!',
+  EXPAT: 'You are an expat!',
+  NOMAD: 'You are a nomad!'
+};
+
+const Response = {
+  YES: 'yes',
+  NO: 'no'
+};
+
+const transitionTable = {
+  [Question.CAREER]: {
+    [Response.YES]: Question.ONLINE,
+    [Response.NO]: Question.FAMILY,
+  },
+  [Question.ONLINE]: {
+    [Response.YES]: Question.NOMAD,
+    [Response.NO]: Question.VACATIONER,
+  },
+  [Question.FAMILY]: {
+    [Response.YES]: Question.VACATIONER,
+    [Response.NO]: Question.TRIPS,
+  },
+  [Question.TRIPS]: {
+    [Response.YES]: Question.VACATIONER,
+    [Response.NO]: Question.HOME,
+  },
+  [Question.HOME]: {
+    [Response.YES]: Question.EXPAT,
+    [Response.NO]: Question.ROUTINE,
+  },
+  [Question.ROUTINE]: {
+    [Response.YES]: Question.EXPAT,
+    [Response.NO]: Question.JOB,
+  },
+  [Question.JOB]: {
+    [Response.YES]: Question.ONLINE,
+    [Response.NO]: Question.NOMAD,
+  }
+};
 
 function main(sources) {
-  const hello$ = sources.TabletFace.load.mapTo('Hello!');
-  const nice$ = sources.SpeechSynthesisAction.result
-    .take(1)
-    .mapTo('Nice to meet you!');
-  const greet$ = xs.merge(hello$, nice$);
-  
-  const sink = {
-    TwoSpeechbubblesAction: greet$,
-    SpeechSynthesisAction: greet$,
-  };
-  return sink;
-}
-
 // ...
+```
+Notice that I modified the quiz questions to change all response choices to "yes" and "no".
+
+We'll now make the robot to say the first question on start, i.e., on loading the face, and start listening when it finishes saying the question: 
+
+```js
+// ...
+  function main(sources) {
+    sources.SpeechRecognitionAction.result.addListener({
+      next: (result) => console.log('result', result)
+    });
+    //...
+    const sinks = {
+      // ...
+      }).map(position => ({
+        type: 'SET_STATE',
+        value: {
+          leftEye: position,
+          rightEye: position
+        }
+      })),
+    SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
+    SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
+  };
+  return sinks;
+}
+// ...
+```
+
+Here we are sending commands to `SpeechSynthesisAction` and `SpeechRecognitionAction` by returning the created streams via `sink.SpeechSynthesisAction` and `sink.SpeechRecognitionAction` from `main`.
+
+When you run the application, you should hear the robot saying "Is reaching your full career potential important to you?".
+After that, it starts to listen and print outputs of `SpeechRecognitionAction` to your browser's console, in the following format:
+
+```js
+const result = {
+  "result": "yes",  // transcribed texts
+  "status": {
+    "goal_id": {
+      "stamp": "Mon Oct 01 2018 21:49:00 GMT-0700 (PDT)",  // "Date" object
+      "id": "h0fogq2x0zo-1538455335646"
+    },
+    "status": "SUCCEEDED"
+  }
+}
+```
+
+Try saying something and see how well it hears you.
+
+Now we want to improve the program so the robot starts listening
+
+1. every time it finishes saying something and
+2. whenever it heard an unacceptable answer, i.e., an answer that is not "yes" and "no".
+
+Actually, the current code already starts speech recognition in 1. since the `sources.SpeechSynthesisAction.result` stream emits data on finishing every synthesized speech.
+To start listening in 2., update the `sink.SpeechRecognitionAction` as follows:
+
+```js
+// ...
+    SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
+    SpeechRecognitionAction: xs.merge(
+      sources.SpeechSynthesisAction.result,
+      sources.SpeechRecognitionAction.result.filter(result =>
+        result.status.status !== 'SUCCEEDED'
+        || (result.result !== 'yes' && result.result !== 'no')
+      )
+    ).mapTo({})
+  };
+  return sinks;
+}
+// ...
+```
+
+If you run the updated application, you will see the robot will continue to listen and print whatever it heard to the console after asking the first question once as long as you don't say "yes" or "no".
+
+Let's now make the robot to ask more than one question.
+
+```js
+    SpeechSynthesisAction: xs.merge(
+      sources.TabletFace.load.mapTo(Question.CAREER),
+      sources.SpeechRecognitionAction.result.filter(result =>
+        result.status.status === 'SUCCEEDED'  // must succeed
+        && (result.result === 'yes' || result.result === 'no')  // only yes or no
+      ).map(result => result.result).map(result => {
+        // Urr... I need something here...
+      })
+    ),
+    SpeechRecognitionAction: xs.merge(
+      // ...
+    ).mapTo({})
+  };
+  return sinks;
+}
+// ...
+```
+
+but this does not work... because what?
+
+
+
+<!-- You can have it say ... -->
+
+<!-- Now we want the robot to start listen to you whenever it is done saying the question.
+Whenever the robot hears yes and no from  -->
+
+<!-- Here we create a stream that emits the first question (`Question.CAREER`) to the `SpeechSynthesisAction` to say it on tablet face load event using the [`mapTo`](https://github.com/staltz/xstream#periodic) xstream operator.
+We also create a stream that emits an empty signal (`{}`) to the `SpeechRecognitionAction` to start listening on finishing speech event (events in the `sources.SpeechSynthesisAction.result`) using `mapTo`. -->
+
+<!-- emit  the tablet face load event that occurs once in the `sources.TabletFace.load` stream to the first question (`Question.CAREER`).
+We also convert the 
+
+Here we convert the tablet face load event, which gets emitted once in the `sources.TabletFace.load` stream, to a string representing the first question that is stored in the `Question.CAREER` variable. -->
+
+<!-- Talk about what kind of results you'll be seeing -->
+
+<!-- Update SpeechRecognitionAction: -->
+
+<!-- Update SpeechSynthesisAction; work without proxy pattern -->
+
+<!-- when else to trigger the speech recognition... (and provide the updated ...)
+
+```js
+  const question$ = xs.merge(
+    sources.TabletFace.load.mapTo(Question.CAREER),
+    sources.SpeechRecognitionAction.result.filter(result =>
+      result.status.status === 'SUCCEEDED'  // must succeed
+      && (result.result === 'yes' || result.result === 'no')  // only yes or no
+    ).map(result => result.result)
+    .startWith('')
+    .compose(sampleCombine(
+      lastQuestion$
+    )).map(([response, question]) => {
+      return transitionTable[question][response];
+    })
+  );
 ```
 
 The code above is an example main function that makes the robot to say something. We first subscribe to the `sources.TabletFace.load` stream to convert the "TabletFace screen loaded" event to a new event carrying a string `Hello!` using xstream's [`mapTo`](https://github.com/staltz/xstream#mapTo) operator.
 We also subscribe to the `sources.SpeechSynthesisAction.result` stream to convert the first "SpeechSynthesisAction finished" event to a new event carrying a string `Nice to meet you!`. Notice that we use xstream's [`take`](https://github.com/staltz/xstream#mapTo) with the argument `1` to capture the "SpeechSynthesisAction finished" event only once.
 
-The two subscriptions produce two streams, `hello$` and `nice$`. We merge the two streams to create a single multiplexed stream `greet$` using xstream's [`merge`](https://github.com/staltz/xstream#merge) factory. Finally, the `main` function returns the `$greet` stream as `sink.TwoSpeechbubblesAction` and `sink.SpeechSynthesisAction` to trigger an display message action and an speech synthesis action outside of `main`. Note that I attach `$` at the end of the stream variable names to distinguish stream variables from others as the Cycle.js team does this in [their codebase](https://github.com/cyclejs/cyclejs). Upon loading this program, the robot will first say and display "Hello!" and "Nice to meet you!" immediately after finished saying "Hello".
-
-<!-- TODO: provide links to Speechbubble and SpeechSynthesis APIs -->
+The two subscriptions produce two streams, `hello$` and `nice$`. We merge the two streams to create a single multiplexed stream `greet$` using xstream's [`merge`](https://github.com/staltz/xstream#merge) factory. Finally, the `main` function returns the `$greet` stream as `sink.TwoSpeechbubblesAction` and `sink.SpeechSynthesisAction` to trigger an display message action and an speech synthesis action outside of `main`. Note that I attach `$` at the end of the stream variable names to distinguish stream variables from others as the Cycle.js team does this in [their codebase](https://github.com/cyclejs/cyclejs). Upon loading this program, the robot will first say and display "Hello!" and "Nice to meet you!" immediately after finished saying "Hello". -->
 
 
 ## Actions
