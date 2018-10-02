@@ -3,13 +3,13 @@ import sampleCombine from 'xstream/extra/sampleCombine';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 const Question = {
-  CAREER: 'It\'s important that I reach my full career potential.',
-  ONLINE: 'I can see myself working online.',
-  FAMILY: 'I have to be near my family/friends/pets.',
-  TRIPS: 'Short trips are awesome!',
-  HOME: 'I want to have a home and nice things.',
-  ROUTINE: 'A routine gives my life structure.',
-  JOB: 'I need a secure job and a stable income.',
+  CAREER: 'Is it important that you reach your full career potential?',
+  ONLINE: 'Can you see yourself working online.',
+  FAMILY: 'Do you have to be near my family/friends/pets?',
+  TRIPS: 'Do you think short trips are awesome?',
+  HOME: 'Do you want to have a home and nice things?',
+  ROUTINE: 'Do you think a routine gives your life structure?',
+  JOB: 'Do you need a secure job and a stable income?',
   VACATIONER: 'You are a vacationer!',
   EXPAT: 'You are an expat!',
   NOMAD: 'You are a nomad!'
@@ -52,21 +52,24 @@ const transitionTable = {
 };
 
 function main(sources) {
-  const lastQuestion$ = xs.create();
-  const question$ = xs.merge(
-    sources.TabletFace.load.mapTo(Question.CAREER),
-    sources.SpeechRecognitionAction.result.filter(result =>
-      result.status.status === 'SUCCEEDED'  // must succeed
-      && (result.result === 'yes' || result.result === 'no')  // only yes or no
-    ).map(result => result.result)
-    .startWith('')
-    .compose(sampleCombine(
-      lastQuestion$
-    )).map(([response, question]) => {
-      return transitionTable[question][response];
-    })
-  );
-  lastQuestion$.imitate(question$);
+  sources.SpeechRecognitionAction.result.addListener({
+    next: (result) => console.log('result', result)
+  });
+  // const lastQuestion$ = xs.create();
+  // const question$ = xs.merge(
+  //   sources.TabletFace.load.mapTo(Question.CAREER),
+  //   sources.SpeechRecognitionAction.result.filter(result =>
+  //     result.status.status === 'SUCCEEDED'  // must succeed
+  //     && (result.result === 'yes' || result.result === 'no') // only yes or no
+  //   ).map(result => result.result)
+  //   .startWith('')
+  //   .compose(sampleCombine(
+  //     lastQuestion$
+  //   )).map(([response, question]) => {
+  //     return transitionTable[question][response];
+  //   })
+  // );
+  // lastQuestion$.imitate(question$);
 
   const sinks = {
     TabletFace: sources.PoseDetection.poses
@@ -88,7 +91,18 @@ function main(sources) {
           rightEye: position
         }
       })),
-    SpeechSynthesisAction: question$,
+    // SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
+    // SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
+    SpeechSynthesisAction: xs.merge(
+      sources.TabletFace.load.mapTo(Question.CAREER),
+      sources.SpeechRecognitionAction.result.filter(result =>
+        result.status.status === 'SUCCEEDED'  // must succeed
+        && (result.result === 'yes' || result.result === 'no') // only yes or no
+      ).map(result => result.result).map(result => {
+        // ...
+      })
+    ),
+    // SpeechSynthesisAction: question$,
     SpeechRecognitionAction: xs.merge(
       sources.SpeechSynthesisAction.result,
       sources.SpeechRecognitionAction.result.filter(result =>
