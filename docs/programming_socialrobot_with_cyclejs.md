@@ -5,13 +5,6 @@ I assume you are familiar reactive programming.
 If you are not, check out [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
 <!-- TODO: Tell them you can skip the motivation sections -->
 
-<!-- ## Table of contents
-
-* [What is a social robot?](#what-is-a-social-robot)
-* [What is Cycle.js?](#what-is-cyclejs)
-* [Why Cycle.js for social robots?](#why-cyclejs-for-social-robots)
-* [Getting started](#getting-started) -->
-
 
 ## What is a social robot?
 
