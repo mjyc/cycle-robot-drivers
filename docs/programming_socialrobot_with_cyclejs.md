@@ -192,7 +192,8 @@ You should see one less object in the `poses` array.
 Also try hiding one of your ears by turning your head left or right.
 You should not see an object that has a string `nose` for its `part` field in the `keypoints` array.
 
-Now that we know how to move the robot's eyes and retrieve detected face data, let's make the robot's eyes to follow the nose of the first detected person.
+Now that we know how to move the robot's eyes and retrieve detected face data, let's put them together to make the robot look at a face.
+Concretely, we'll make the robot's eyes to follow a detected person's nose.
 Update `main` as follows:
 
 ```js
@@ -251,10 +252,14 @@ You could also create a new `runRobotProgram` function that provides drivers for
 
 Regarding the second question, check out [this page](https://cycle.js.org/drivers.html) from the Cycle.js' website.
 
+<!-- TODO: Add an example of manually defining a driver here -->
+
 
 ### Robot, asks questions
 
-<!-- The `main` function takes a collection of streams as input (`sources`) and returns a collection of streams as output (`sink`). When `runRobotProgram` is called, it creates functions that produce side effects (_Drivers_ in Cycle.js) and connects the outputs of the drivers with the input of `main` and the output of `main` with the inputs of the drivers. This structure enforced by Cycle.js allows programmers to write the pure, reactive `main` function. -->
+We'll now focus on implementing the second feature--asking questions for testing travel personality.
+
+
 
 ```js
 // ...
