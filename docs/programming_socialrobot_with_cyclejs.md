@@ -329,18 +329,14 @@ We'll now make the robot to say the first question on start, i.e., on loading th
     });
     //...
     const sinks = {
-      // ...
-      }).map(position => ({
-        type: 'SET_STATE',
-        value: {
-          leftEye: position,
-          rightEye: position
-        }
-      })),
-    SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
-    SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
-  };
-  return sinks;
+      TabletFace: sources.PoseDetection.poses
+        .filter(poses =>
+        // ...
+      SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
+      SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
+    };
+    return sinks;
+  }
 }
 // ...
 ```
@@ -365,7 +361,94 @@ const result = {
 
 Try saying something and see how well it hears you.
 
+Now we want to improve the program to make the robot to ask more than one question.
+For example, we can try to send commands to `SpeechSynthesisAction` whenever the robot hears an appropriate answer, i.e., "yes" or "no", to a question.
+Let's try to express this behavior as follows:
+
+```js
+// ...
+    SpeechSynthesisAction: xs.merge(
+      sources.TabletFace.load.mapTo(Question.CAREER),
+      sources.SpeechRecognitionAction.result.filter(result =>
+        result.status.status === 'SUCCEEDED'  // must succeed
+        && (result.result === 'yes' || result.result === 'no') // only yes or no
+      ).map(result => result.result).map(result => {
+        // Hmm...
+      })
+    ),
+    SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
+  };
+  return sinks;
+}
+// ...
+```
+
+Here we are merging the commands from the stream that emits the first question on loading the robot face and the commands from the stream that emits a subsequent question on hearing "yes" or "no" using the [`merge`](https://github.com/staltz/xstream#merge) xstream factory.
+
+However, we cannot create a stream that returns a "next" question since we need know the "last" question, the event that will be emitted by the stream we are creating.
+
+So solve this problem, we adapt the proxy pattern.
+
+```js
+  //...
+  const lastQuestion$ = xs.create();
+  const question$ = xs.merge(
+    sources.TabletFace.load.mapTo(Question.CAREER),
+    sources.SpeechRecognitionAction.result.filter(result =>
+      result.status.status === 'SUCCEEDED'  // must succeed
+      && (result.result === 'yes' || result.result === 'no')  // only yes or no
+    ).map(result => result.result)
+    .startWith('')
+    .compose(sampleCombine(
+      lastQuestion$
+    )).map(([response, question]) => {
+      return transitionTable[question][response];
+    })
+  );
+  lastQuestion$.imitate(question$);
+  //...
+```
+
+First, we moved code outside of the block that defines the sink variable.
+We created a lastQuestion proxy signal, which we use while defining the `question$` stream and connect to the source stream `question$` right after it is created.
+We use sampleCombine operator combine user response and 
+lastQuestion proxy is used by `sampleCombine` to combine speech recognition result events with events emitted in the proxy ,
+
+We use the sampleCombine to only emit events when last question emits an event.
+Otherwise it will be an infinite loop.
+
+
 Now we want to improve the program so the robot starts listening
+
+1. every time it finishes saying something and
+2. whenever it heard an unacceptable answer, i.e., an answer that is not "yes" and "no".
+
+Actually, the current code already starts speech recognition in 1. since the `sources.SpeechSynthesisAction.result` stream emits data on finishing every synthesized speech.
+To start listening in 2., update the `sink.SpeechRecognitionAction` as follows:
+
+```js
+// ...
+    SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
+    SpeechRecognitionAction: xs.merge(
+      sources.SpeechSynthesisAction.result,
+      sources.SpeechRecognitionAction.result.filter(result =>
+        result.status.status !== 'SUCCEEDED'
+        || (result.result !== 'yes' && result.result !== 'no')
+      )
+    ).mapTo({})
+  };
+  return sinks;
+}
+// ...
+```
+
+If you run the updated application, you will see the robot will continue to listen and print whatever it heard to the console after asking the first question once as long as you don't say "yes" or "no".
+
+
+<!-- Then we used sampleCombine to combine the data from  -->
+
+
+<!-- Now we want to improve the program so the robot starts listening
 
 1. every time it finishes saying something and
 2. whenever it heard an unacceptable answer, i.e., an answer that is not "yes" and "no".
@@ -412,7 +495,7 @@ Let's now make the robot to ask more than one question.
 // ...
 ```
 
-but this does not work... because what?
+but this does not work... because what? -->
 
 
 
