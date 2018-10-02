@@ -2,7 +2,7 @@
 
 # @cycle-robot-drivers/screen
 
-[Cycle.js](http://cycle.js.org/) [drivers](https://cycle.js.org/drivers.html) and action [components](https://cycle.js.org/components.html) for a tablet robot face.
+[Cycle.js](http://cycle.js.org/) [drivers](https://cycle.js.org/drivers.html) and action [components](https://cycle.js.org/components.html) for a [tablet robot face](https://github.com/mjyc/tablet-robot-face).
 
 Try [the demo](https://stackblitz.com/edit/cycle-robot-drivers-demos-screen) at StackBlitz!
 
