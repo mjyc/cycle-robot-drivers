@@ -211,14 +211,14 @@ class EyeController {
       return;
     }
 
-    if (!!x) {
+    if (!isNaN(x)) {
       if (!isRight) {
         eyeElem.style.left = `calc(${this._eyeSize} / 3 * 2 * ${x})`;
       } else {
         eyeElem.style.right = `calc(${this._eyeSize} / 3 * 2 * ${1-x})`;
       }
     }
-    if (!!y) {
+    if (!isNaN(y)) {
       eyeElem.style.bottom = `calc(${this._eyeSize} / 3 * 2 * ${1-y})`;
     }
   }

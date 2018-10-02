@@ -97,7 +97,13 @@ export function runRobotProgram(
         SpeechSynthesisAction,
         SpeechRecognitionAction,
         ...sinks
-      } = main(sources);
+      } = main(sources) || {
+        FacialExpressionAction: null,
+        AudioPlayerAction: null,
+        TwoSpeechbubblesAction: null,
+        SpeechSynthesisAction: null,
+        SpeechRecognitionAction: null,
+      };
       sinks.targets = {
         FacialExpressionAction,
         AudioPlayerAction,
