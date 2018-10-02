@@ -55,21 +55,21 @@ function main(sources) {
   sources.SpeechRecognitionAction.result.addListener({
     next: (result) => console.log('result', result)
   });
-  // const lastQuestion$ = xs.create();
-  // const question$ = xs.merge(
-  //   sources.TabletFace.load.mapTo(Question.CAREER),
-  //   sources.SpeechRecognitionAction.result.filter(result =>
-  //     result.status.status === 'SUCCEEDED'  // must succeed
-  //     && (result.result === 'yes' || result.result === 'no') // only yes or no
-  //   ).map(result => result.result)
-  //   .startWith('')
-  //   .compose(sampleCombine(
-  //     lastQuestion$
-  //   )).map(([response, question]) => {
-  //     return transitionTable[question][response];
-  //   })
-  // );
-  // lastQuestion$.imitate(question$);
+  const lastQuestion$ = xs.create();
+  const question$ = xs.merge(
+    sources.TabletFace.load.mapTo(Question.CAREER),
+    sources.SpeechRecognitionAction.result.filter(result =>
+      result.status.status === 'SUCCEEDED'  // must succeed
+      && (result.result === 'yes' || result.result === 'no') // only yes or no
+    ).map(result => result.result)
+    .startWith('')
+    .compose(sampleCombine(
+      lastQuestion$
+    )).map(([response, question]) => {
+      return transitionTable[question][response];
+    })
+  );
+  lastQuestion$.imitate(question$);
 
   const sinks = {
     TabletFace: sources.PoseDetection.poses
@@ -91,23 +91,12 @@ function main(sources) {
           rightEye: position
         }
       })),
-    // SpeechSynthesisAction: sources.TabletFace.load.mapTo(Question.CAREER),
-    // SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
-    SpeechSynthesisAction: xs.merge(
-      sources.TabletFace.load.mapTo(Question.CAREER),
-      sources.SpeechRecognitionAction.result.filter(result =>
-        result.status.status === 'SUCCEEDED'  // must succeed
-        && (result.result === 'yes' || result.result === 'no') // only yes or no
-      ).map(result => result.result).map(result => {
-        // ...
-      })
-    ),
-    // SpeechSynthesisAction: question$,
+    SpeechSynthesisAction: question$,
     SpeechRecognitionAction: xs.merge(
       sources.SpeechSynthesisAction.result,
       sources.SpeechRecognitionAction.result.filter(result =>
-        result.status.status !== 'SUCCEEDED'
-        || (result.result !== 'yes' && result.result !== 'no')
+        result.status.status !== 'SUCCEEDED'  // must succeed
+        || (result.result !== 'yes' && result.result !== 'no') // only yes or no
       )
     ).mapTo({})
   };
