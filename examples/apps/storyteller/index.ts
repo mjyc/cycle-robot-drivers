@@ -5,16 +5,9 @@ import {Stream} from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 enum State {
-  ASK_CAREER_QUESTION = 'It\'s important that I reach my full career potential.',
-  ASK_WORKING_ONLINE_QUESTION = 'I can see myself working online.',
-  ASK_FAMILY_QUESTION = 'I have to be near my family/friends/pets.',
-  ASK_SHORT_TRIPS_QUESTION = 'Short trips are awesome!',
-  ASK_HOME_OWNERSHIP_QUESTION = 'I want to have a home and nice things.',
-  ASK_ROUTINE_QUESTION = 'A routine gives my life structure.',
-  ASK_JOB_SECURITY_QUESTION = 'I need a secure job and a stable income.',
-  TELL_THEM_THEY_ARE_VACATIONER = 'You are a vacationer!',
-  TELL_THEM_THEY_ARE_EXPAT = 'You are an expat!',
-  TELL_THEM_THEY_ARE_NOMAD = 'You are a nomad!',
+  START = 'START',
+  ASK = 'ASK',
+  WAIT = 'WAIT',
 }
 
 type Outputs = {
@@ -28,49 +21,32 @@ type ReducerState = {
 
 type Reducer = (prev?: ReducerState) => ReducerState | undefined;
 
-enum Input {
-  RECEIVED_YES = 'Yes',
-  RECEIVED_NO = 'No',
-  RECEIVED_RESTART = 'Restart',
+enum InputType {
+  DONE = 'DONE',
+}
+
+type Input = {
+  type: InputType,
+  value: any
+};
+
+function input(
+  load$: Stream<any>,
+) {
+  return xs.merge(
+    load$.mapTo({type: InputType.DONE, value: null}),
+  );
 }
 
 const transitionTable = {
-  [State.ASK_CAREER_QUESTION]: {
-    [Input.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
-    [Input.RECEIVED_NO]: State.ASK_FAMILY_QUESTION,
+  [State.START]: {
+    [InputType.DONE]: State.WAIT,
   },
-  [State.ASK_WORKING_ONLINE_QUESTION]: {
-    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_NOMAD,
-    [Input.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_VACATIONER,
+  [State.ASK]: {
+    [InputType.DONE]: State.WAIT,
   },
-  [State.ASK_FAMILY_QUESTION]: {
-    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
-    [Input.RECEIVED_NO]: State.ASK_SHORT_TRIPS_QUESTION,
-  },
-  [State.ASK_SHORT_TRIPS_QUESTION]: {
-    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_VACATIONER,
-    [Input.RECEIVED_NO]: State.ASK_HOME_OWNERSHIP_QUESTION,
-  },
-  [State.ASK_HOME_OWNERSHIP_QUESTION]: {
-    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
-    [Input.RECEIVED_NO]: State.ASK_ROUTINE_QUESTION,
-  },
-  [State.ASK_ROUTINE_QUESTION]: {
-    [Input.RECEIVED_YES]: State.TELL_THEM_THEY_ARE_EXPAT,
-    [Input.RECEIVED_NO]: State.ASK_JOB_SECURITY_QUESTION,
-  },
-  [State.ASK_JOB_SECURITY_QUESTION]: {
-    [Input.RECEIVED_YES]: State.ASK_WORKING_ONLINE_QUESTION,
-    [Input.RECEIVED_NO]: State.TELL_THEM_THEY_ARE_NOMAD,
-  },
-  [State.TELL_THEM_THEY_ARE_NOMAD]: {
-    [Input.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
-  },
-  [State.TELL_THEM_THEY_ARE_VACATIONER]: {
-    [Input.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
-  },
-  [State.TELL_THEM_THEY_ARE_EXPAT]: {
-    [Input.RECEIVED_RESTART]: State.ASK_CAREER_QUESTION,
+  [State.WAIT]: {
+    [InputType.DONE]: State.WAIT,
   },
 };
 
@@ -82,29 +58,16 @@ function transition(
     throw new Error(`Invalid prevState="${prevState}"`);
   }
 
-  let state = states[input];
+  let state = states[input.type];
   if (!state) {
-    console.debug(`Undefined transition for "${prevState}" "${input}"; `
+    console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
       + `set state to prevState`);
     state = prevState;
   }
 
-  const outputs = {
-    args: (
-      state === State.TELL_THEM_THEY_ARE_NOMAD
-      || state === State.TELL_THEM_THEY_ARE_VACATIONER
-      || state === State.TELL_THEM_THEY_ARE_EXPAT
-    ) ? {
-      message: state,
-      choices: [Input.RECEIVED_RESTART],
-    } : {
-      message: state,
-      choices: [Input.RECEIVED_YES, Input.RECEIVED_NO],
-    },
-  };
   return {
-    state,
-    outputs,
+    state: State.START,
+    outputs: null,
   };
 }
 
@@ -112,13 +75,8 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   const initReducer$: Stream<Reducer> = xs.of(
     function initReducer(prev: ReducerState): ReducerState {
       return {
-        state: State.ASK_CAREER_QUESTION,
-        outputs: {
-          args: {
-            message: State.ASK_CAREER_QUESTION,
-            choices: [Input.RECEIVED_YES, Input.RECEIVED_NO],
-          },
-        },
+        state: State.START,
+        outputs: null,
       }
     }
   );
@@ -132,8 +90,9 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 }
 
 function main(sources) {
-  const input$ = sources.TwoSpeechbubblesAction.result
-    .map(result => result.result);
+  const input$ = input(
+    xs.fromObservable(sources.TabletFace.load),
+  );
 
   const state$ = transitionReducer(input$)
     .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
@@ -142,7 +101,7 @@ function main(sources) {
     .filter(outputs => !!outputs);
   
   return {
-    TwoSpeechbubblesAction: outputs$.map(outputs => outputs.args),
+    SpeechSynthesisAction: outputs$.map(outputs => outputs.args),
   };
 }
 
