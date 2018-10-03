@@ -19,7 +19,7 @@
     "watchify": "^3.11.0"
   },
   "scripts": {
-    "build": "mkdirp dist && browserify index.ts -p tsify --outfile dist/index.js",
+    "build": "mkdirp dist && browserify index.ts -p tsify --outfile dist/index.js -dv",
     "watch": "mkdirp dist && watchify index.ts -p tsify --outfile dist/index.js -dv",
     "start": "concurrently \"npm run watch\" \"live-server\""
   }
