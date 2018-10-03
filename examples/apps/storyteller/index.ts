@@ -11,7 +11,12 @@ enum State {
 }
 
 type Outputs = {
-  args: any,
+  say: {
+    args: any
+  },
+  listen: {
+    args: any
+  },
 };
 
 type ReducerState = {
@@ -23,30 +28,35 @@ type Reducer = (prev?: ReducerState) => ReducerState | undefined;
 
 enum InputType {
   DONE = 'DONE',
+  RECEIVED_RESPONSE = 'RECEIVED_RESPONSE',
 }
 
 type Input = {
   type: InputType,
-  value: any
+  value: any,
 };
 
 function input(
   load$: Stream<any>,
+  speechSynthesisActionResult$: Stream<any>,  // consider passing the entire object
+  speechRecognitionActionResult$: Stream<any>,  // consider passing the entire object
 ) {
   return xs.merge(
     load$.mapTo({type: InputType.DONE, value: null}),
+    speechSynthesisActionResult$.map(result => ({type: InputType.DONE, value: result})),
+    speechRecognitionActionResult$.debug().map(result => ({type: InputType.RECEIVED_RESPONSE, value: result})),
   );
 }
 
 const transitionTable = {
   [State.START]: {
-    [InputType.DONE]: State.WAIT,
+    [InputType.DONE]: State.ASK,
   },
   [State.ASK]: {
     [InputType.DONE]: State.WAIT,
   },
   [State.WAIT]: {
-    [InputType.DONE]: State.WAIT,
+    [InputType.RECEIVED_RESPONSE]: State.ASK,
   },
 };
 
@@ -63,6 +73,42 @@ function transition(
     console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
       + `set state to prevState`);
     state = prevState;
+  }
+
+  console.log(prevState, input.type, state);
+
+  if ((prevState === State.START || prevState === State.WAIT) && state === State.ASK) {
+    return {
+      state,
+      // variables: {
+      //   goal_id: goal.goal_id,
+      //   transcript: null,
+      //   error: null,
+      //   newGoal: null,
+      // },
+      outputs: {
+        say: {
+          args: 'Brown bear',
+        },
+        listen: null,
+      },
+    };
+  } else if (prevState === State.ASK && state === State.WAIT) {
+    return {
+      state,
+      // variables: {
+      //   goal_id: goal.goal_id,
+      //   transcript: null,
+      //   error: null,
+      //   newGoal: null,
+      // },
+      outputs: {
+        say: null,
+        listen: {
+          args: {},
+        }
+      },
+    };
   }
 
   return {
@@ -92,6 +138,8 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 function main(sources) {
   const input$ = input(
     xs.fromObservable(sources.TabletFace.load),
+    xs.fromObservable(sources.SpeechSynthesisAction.result),
+    xs.fromObservable(sources.SpeechRecognitionAction.result),
   );
 
   const state$ = transitionReducer(input$)
@@ -101,7 +149,8 @@ function main(sources) {
     .filter(outputs => !!outputs);
   
   return {
-    SpeechSynthesisAction: outputs$.map(outputs => outputs.args),
+    SpeechSynthesisAction: outputs$.filter(outputs => !!outputs.say).map(outputs => outputs.say.args),
+    SpeechRecognitionAction: outputs$.filter(outputs => !!outputs.listen).map(outputs => outputs.listen.args).debug(),
   };
 }
 
