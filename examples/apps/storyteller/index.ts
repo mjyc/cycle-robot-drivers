@@ -1,14 +1,31 @@
-// Implements the travel quiz presented at
-//   http://www.nomadwallet.com/afford-travel-quiz-personality/
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
+
+
+const story = [
+  "Brown bear, brown bear, what do you see? I see a red bird looking at me.",
+  "Red bird, red bird, what do you see? I see a yellow duck looking at me.",
+  "Yellow duck, yellow duck, what do you see? I see a blue horse looking at me.",
+  "Blue horse, blue horse, what do you see? I see a green frog looking at me.",
+  "Green frog, green frog, what do you see? I see a purple cat looking at me.",
+  "Purple cat, purple cat, what do you see? I see a white dog looking at me.",
+  "white dog, white dog, what do you see?",
+  "I see a black sheep looking at me.",
+  "Black sheep, black sheep , what do you see? I see a goldfish looking at me.",
+  "Goldfish, goldfish, what do you see? I see a teacher looking at me.",
+];
+
 
 enum State {
   START = 'START',
   ASK = 'ASK',
   WAIT = 'WAIT',
 }
+
+type Variables = {
+  storyIdx: number,
+};
 
 type Outputs = {
   say: {
@@ -21,6 +38,7 @@ type Outputs = {
 
 type ReducerState = {
   state: State,
+  variables: Variables,
   outputs: Outputs,
 };
 
@@ -61,7 +79,7 @@ const transitionTable = {
 };
 
 function transition(
-  prevState: State, input: Input
+  prevState: State, prevVariables: Variables, input: Input
 ): ReducerState {
   const states = transitionTable[prevState];
   if (!states) {
@@ -78,17 +96,15 @@ function transition(
   console.log(prevState, input.type, state);
 
   if ((prevState === State.START || prevState === State.WAIT) && state === State.ASK) {
+    const storyIdx = prevVariables.storyIdx + 1;
     return {
       state,
-      // variables: {
-      //   goal_id: goal.goal_id,
-      //   transcript: null,
-      //   error: null,
-      //   newGoal: null,
-      // },
+      variables: {
+        storyIdx,
+      },
       outputs: {
         say: {
-          args: 'Brown bear',
+          args: story[storyIdx],
         },
         listen: null,
       },
@@ -96,12 +112,7 @@ function transition(
   } else if (prevState === State.ASK && state === State.WAIT) {
     return {
       state,
-      // variables: {
-      //   goal_id: goal.goal_id,
-      //   transcript: null,
-      //   error: null,
-      //   newGoal: null,
-      // },
+      variables: prevVariables,
       outputs: {
         say: null,
         listen: {
@@ -113,6 +124,7 @@ function transition(
 
   return {
     state: State.START,
+    variables: prevVariables,
     outputs: null,
   };
 }
@@ -122,6 +134,9 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
     function initReducer(prev: ReducerState): ReducerState {
       return {
         state: State.START,
+        variables: {
+          storyIdx: -1,
+        },
         outputs: null,
       }
     }
@@ -129,7 +144,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 
   const inputReducer$: Stream<Reducer> = input$
     .map(input => function inputReducer(prev: ReducerState): ReducerState {
-      return transition(prev.state, input);
+      return transition(prev.state, prev.variables, input);
     });
 
   return xs.merge(initReducer$, inputReducer$);
