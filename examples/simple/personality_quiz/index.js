@@ -114,6 +114,10 @@ function transition(prevState, input) {
     state === State.ASK && input.type === InputType.RECEIVED_VALID
   ) ? {say: flowchart[prevState.question][input.value]} : null;
 
+  // TODOs:
+  // 1. start speech recognition at right times
+  // 2. send control signals
+
   return prevState;
 }
 
