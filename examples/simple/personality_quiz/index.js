@@ -1,9 +1,35 @@
 import xs from 'xstream';
-import sampleCombine from 'xstream/extra/sampleCombine';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
-import { reduceEachLeadingCommentRange, isNonNullExpression } from 'typescript';
+
+const State = {
+  START: 'START',
+  ASK: 'ASK',
+  WAIT: 'WAIT'
+};
+
+const InputType = {
+  LOADED: 'LOADED',
+  DONE_SPEAKING: 'DONE_SPEAKING',
+  RECEIVED_VALID: 'RECEIVED_VALID',
+  RECEIVED_INVALID: 'RECEIVED_INVALID',
+};
+
+const transitionTable = {
+  [State.START]: {
+    [InputType.LOADED]: State.ASK,
+  },
+  [State.ASK]: {
+    [InputType.RECEIVED_VALID]: State.ASK,
+    [InputType.RECEIVED_INVALID]: State.ASK,
+  },
+  [State.ASK]: {
+    [InputType.RECEIVED_VALID]: State.ASK,
+    [InputType.RECEIVED_INVALID]: State.ASK,
+  },
+};
 
 const Question = {
+  EMPTY: '',
   CAREER: 'Is it important that you reach your full career potential?',
   ONLINE: 'Can you see yourself working online.',
   FAMILY: 'Do you have to be near my family/friends/pets?',
@@ -16,124 +42,105 @@ const Question = {
   NOMAD: 'You are a nomad!'
 };
 
-const Response = {
-  YES: 'yes',
-  NO: 'no'
-};
-
-const transitionTable = {
+const flowchart = {
   [Question.CAREER]: {
-    [Response.YES]: Question.ONLINE,
-    [Response.NO]: Question.FAMILY,
+    [InputType.RECEIVED_YES]: Question.ONLINE,
+    [InputType.RECEIVED_NO]: Question.FAMILY,
   },
   [Question.ONLINE]: {
-    [Response.YES]: Question.NOMAD,
-    [Response.NO]: Question.VACATIONER,
+    [InputType.RECEIVED_YES]: Question.NOMAD,
+    [InputType.RECEIVED_NO]: Question.VACATIONER,
   },
   [Question.FAMILY]: {
-    [Response.YES]: Question.VACATIONER,
-    [Response.NO]: Question.TRIPS,
+    [InputType.RECEIVED_YES]: Question.VACATIONER,
+    [InputType.RECEIVED_NO]: Question.TRIPS,
   },
   [Question.TRIPS]: {
-    [Response.YES]: Question.VACATIONER,
-    [Response.NO]: Question.HOME,
+    [InputType.RECEIVED_YES]: Question.VACATIONER,
+    [InputType.RECEIVED_NO]: Question.HOME,
   },
   [Question.HOME]: {
-    [Response.YES]: Question.EXPAT,
-    [Response.NO]: Question.ROUTINE,
+    [InputType.RECEIVED_YES]: Question.EXPAT,
+    [InputType.RECEIVED_NO]: Question.ROUTINE,
   },
   [Question.ROUTINE]: {
-    [Response.YES]: Question.EXPAT,
-    [Response.NO]: Question.JOB,
+    [InputType.RECEIVED_YES]: Question.EXPAT,
+    [InputType.RECEIVED_NO]: Question.JOB,
   },
   [Question.JOB]: {
-    [Response.YES]: Question.ONLINE,
-    [Response.NO]: Question.NOMAD,
+    [InputType.RECEIVED_YES]: Question.ONLINE,
+    [InputType.RECEIVED_NO]: Question.NOMAD,
   }
-};
-
-const InputType = {
-  LOADED: 'LOADED',
-  RECEIVED_RESPONSE: 'RECEIVED_RESPONSE',
 };
 
 function input(
   load$,
   speechRecognitionActionResult$,
+  speechSynthesisActionResult$,
 ) {
   return xs.merge(
-    load.mapTo({type: InputType.LOADED, value: null}),
+    load$.mapTo({type: InputType.LOADED}),
     speechRecognitionActionResult$.filter(result =>
       result.status.status === 'SUCCEEDED'
       && (result.result === 'yes' || result.result === 'no')
     ).map(result => ({
-      type: InputType.RECEIVED_RESPONSE,
-      value: result.result
+      type: InputType.RECEIVED_VALID,
+      value: result.result,
     })),
-    // SpeechRecognitionAction: xs.merge(
-    //   sources.SpeechSynthesisAction.result,
-    //   sources.SpeechRecognitionAction.result.filter(result =>
-    //     result.status.status !== 'SUCCEEDED'  // must succeed
-    //     || (result.result !== 'yes' && result.result !== 'no') // only yes or no
-    //   )
-    // ).mapTo({})
+    speechSynthesisActionResult$.mapTo({type: InputType.DONE_SPEAKING}),
+    speechRecognitionActionResult$.filter(result =>
+      result.status.status !== 'SUCCEEDED'  // must succeed
+      || (result.result !== 'yes' && result.result !== 'no') // only yes or no
+    ).mapTo({type: InputType.RECEIVED_INVALID}),
   );
 }
 
+function transition(prevState, input) {
+  const states = transitionTable[prevState];
+  if (!states) {
+    throw new Error(`Invalid prevState="${prevState}"`);
+  }
+
+  let state = states[input];
+  if (!state) {
+    console.debug(`Undefined transition for "${prevState}" "${input}"; `
+      + `set state to prevState`);
+    state = prevState;
+  }
+
+  console.log(prevState, state, input);
+
+  const outputs = (
+    state === State.ASK && input.type === InputType.RECEIVED_VALID
+  ) ? {say: flowchart[prevState.question][input.value]} : null;
+
+  return prevState;
+}
+
 function main(sources) {
-  console.log('Hello world!');
+  const input$ = input(
+    sources.TabletFace.load,
+    sources.SpeechRecognitionAction.result,
+    sources.SpeechSynthesisAction.result,
+  );
 
-  const input$ = input(sources);
+  const model$ = input$.fold((machine, input) => transition(
+    machine.state, input
+  ), {
+    state: State.START,
+    variables: {
+      questionIdx: 0,
+    },
+    outputs: null,
+  });
 
-  // sources.SpeechRecognitionAction.result.addListener({
-  //   next: (result) => console.log('result', result)
+  // input$.addListener({
+  //   next: (input) => console.log('input', input)
   // });
-  // const lastQuestion$ = xs.create();
-  // const question$ = xs.merge(
-  //   sources.TabletFace.load.mapTo(Question.CAREER),
-  //   sources.SpeechRecognitionAction.result.filter(result =>
-  //     result.status.status === 'SUCCEEDED'  // must succeed
-  //     && (result.result === 'yes' || result.result === 'no') // only yes or no
-  //   ).map(result => result.result)
-  //   .startWith('')
-  //   .compose(sampleCombine(
-  //     lastQuestion$
-  //   )).map(([response, question]) => {
-  //     return transitionTable[question][response];
-  //   })
-  // );
-  // lastQuestion$.imitate(question$);
+  model$.addListener({
+    next: (model) => console.log('model', model)
+  });
 
-  // const sinks = {
-  //   TabletFace: sources.PoseDetection.poses
-  //     .filter(poses =>
-  //       // must see one person
-  //       poses.length === 1
-  //       // must see the nose
-  //       && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
-  //     ).map(poses => {
-  //       const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
-  //       return {
-  //         x: nose.position.x / 640,  // max value of position.x is 640
-  //         y: nose.position.y / 480  // max value of position.y is 480
-  //       };
-  //     }).map(position => ({
-  //       type: 'SET_STATE',
-  //       value: {
-  //         leftEye: position,
-  //         rightEye: position
-  //       }
-  //     })),
-  //   SpeechSynthesisAction: question$,
-  //   SpeechRecognitionAction: xs.merge(
-  //     sources.SpeechSynthesisAction.result,
-  //     sources.SpeechRecognitionAction.result.filter(result =>
-  //       result.status.status !== 'SUCCEEDED'  // must succeed
-  //       || (result.result !== 'yes' && result.result !== 'no') // only yes or no
-  //     )
-  //   ).mapTo({})
-  // };
-  // return sinks;
 }
 
 runRobotProgram(main);
