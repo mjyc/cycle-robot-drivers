@@ -19,12 +19,11 @@ const transitionTable = {
     [InputType.LOADED]: State.ASK,
   },
   [State.ASK]: {
-    [InputType.RECEIVED_VALID]: State.ASK,
-    [InputType.RECEIVED_INVALID]: State.ASK,
+    [InputType.DONE_SPEAKING]: State.WAIT,
   },
-  [State.ASK]: {
+  [State.WAIT]: {
     [InputType.RECEIVED_VALID]: State.ASK,
-    [InputType.RECEIVED_INVALID]: State.ASK,
+    [InputType.RECEIVED_INVALID]: State.WAIT,
   },
 };
 
@@ -42,34 +41,39 @@ const Question = {
   NOMAD: 'You are a nomad!'
 };
 
+const Response = {
+  YES: 'yes',
+  NO: 'no',
+}
+
 const flowchart = {
   [Question.CAREER]: {
-    [InputType.RECEIVED_YES]: Question.ONLINE,
-    [InputType.RECEIVED_NO]: Question.FAMILY,
+    [Response.YES]: Question.ONLINE,
+    [Response.NO]: Question.FAMILY,
   },
   [Question.ONLINE]: {
-    [InputType.RECEIVED_YES]: Question.NOMAD,
-    [InputType.RECEIVED_NO]: Question.VACATIONER,
+    [Response.YES]: Question.NOMAD,
+    [Response.NO]: Question.VACATIONER,
   },
   [Question.FAMILY]: {
-    [InputType.RECEIVED_YES]: Question.VACATIONER,
-    [InputType.RECEIVED_NO]: Question.TRIPS,
+    [Response.YES]: Question.VACATIONER,
+    [Response.NO]: Question.TRIPS,
   },
   [Question.TRIPS]: {
-    [InputType.RECEIVED_YES]: Question.VACATIONER,
-    [InputType.RECEIVED_NO]: Question.HOME,
+    [Response.YES]: Question.VACATIONER,
+    [Response.NO]: Question.HOME,
   },
   [Question.HOME]: {
-    [InputType.RECEIVED_YES]: Question.EXPAT,
-    [InputType.RECEIVED_NO]: Question.ROUTINE,
+    [Response.YES]: Question.EXPAT,
+    [Response.NO]: Question.ROUTINE,
   },
   [Question.ROUTINE]: {
-    [InputType.RECEIVED_YES]: Question.EXPAT,
-    [InputType.RECEIVED_NO]: Question.JOB,
+    [Response.YES]: Question.EXPAT,
+    [Response.NO]: Question.JOB,
   },
   [Question.JOB]: {
-    [InputType.RECEIVED_YES]: Question.ONLINE,
-    [InputType.RECEIVED_NO]: Question.NOMAD,
+    [Response.YES]: Question.ONLINE,
+    [Response.NO]: Question.NOMAD,
   }
 };
 
@@ -95,30 +99,63 @@ function input(
   );
 }
 
-function transition(prevState, input) {
+function transition(prevState, prevVariables, input) {
   const states = transitionTable[prevState];
   if (!states) {
     throw new Error(`Invalid prevState="${prevState}"`);
   }
 
-  let state = states[input];
+  let state = states[input.type];
   if (!state) {
-    console.debug(`Undefined transition for "${prevState}" "${input}"; `
+    console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
       + `set state to prevState`);
     state = prevState;
   }
 
-  console.log(prevState, state, input);
+  console.log(prevState, prevVariables, input, state);
 
-  const outputs = (
-    state === State.ASK && input.type === InputType.RECEIVED_VALID
-  ) ? {say: flowchart[prevState.question][input.value]} : null;
+  if (
+    state === State.ASK
+  ) {
+    const question = (input.type === InputType.LOADED)
+      ? Question.CAREER
+      : flowchart[prevVariables.question][input.value];
+    return {
+      state,
+      variables: {
+        question,
+      },
+      outputs: {
+        SpeechSynthesisAction: {
+          goal: question,
+        }
+      },
+    }
+  } else if (
+    state === State.WAIT
+    && input.type === InputType.DONE_SPEAKING
+    && (
+      prevVariables.question !== Question.VACATIONER
+      && prevVariables.question !== Question.EXPAT
+      && prevVariables.question !== Question.NOMAD
+    )
+  ) {
+    return {
+      state,
+      variables: prevVariables,
+      outputs: {
+        SpeechRecognitionAction: {
+          goal: {},
+        }
+      },
+    }
+  }
 
-  // TODOs:
-  // 1. start speech recognition at right times
-  // 2. send control signals
-
-  return prevState;
+  return {
+    state: prevState,
+    variables: prevVariables,
+    outputs: null,
+  };
 }
 
 function main(sources) {
@@ -128,23 +165,29 @@ function main(sources) {
     sources.SpeechSynthesisAction.result,
   );
 
-  const model$ = input$.fold((machine, input) => transition(
-    machine.state, input
-  ), {
+  const defaultMachine = {
     state: State.START,
     variables: {
-      questionIdx: 0,
+      question: null,
     },
     outputs: null,
-  });
+  };
+  const machine$ = input$.fold((machine, input) => transition(
+    machine.state, machine.variables, input
+  ), defaultMachine);
 
-  // input$.addListener({
-  //   next: (input) => console.log('input', input)
-  // });
-  model$.addListener({
-    next: (model) => console.log('model', model)
-  });
+  const outputs$ = machine$
+    .filter(machine => !!machine.outputs)
+    .map(machine => machine.outputs);
 
+  return {
+    SpeechSynthesisAction: outputs$
+      .filter(outputs => !!outputs.SpeechSynthesisAction)
+      .map(output => output.SpeechSynthesisAction.goal),
+    SpeechRecognitionAction: outputs$
+      .filter(outputs => !!outputs.SpeechRecognitionAction)
+      .map(output => output.SpeechRecognitionAction.goal),
+  }
 }
 
 runRobotProgram(main);
