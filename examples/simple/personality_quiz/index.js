@@ -1,10 +1,13 @@
 import xs from 'xstream';
+import pairwise from 'xstream/extra/pairwise';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 const State = {
   PEND: 'PEND',
   ASK: 'ASK',
-  WAIT: 'WAIT',
+  WAIT_FOR_RESPONSE: 'WAIT_FOR_RESPONSE',
+  WAIT_FOR_PERSON: 'WAIT_FOR_PERSON',
+
 };
 
 const InputType = {
@@ -13,6 +16,8 @@ const InputType = {
   VALID_RESPONSE: 'VALID_RESPONSE',
   INVALID_RESPONSE: 'INVALID_RESPONSE',
   DETECTED_FACE: 'DETECTED_FACE',
+  FOUND_PERSON: 'FOUND_PERSON',
+  LOST_PERSON: 'LOST_PERSON',
 };
 
 const transitionTable = {
@@ -20,11 +25,15 @@ const transitionTable = {
     [InputType.GOAL]: State.ASK,
   },
   [State.ASK]: {
-    [InputType.ASK_DONE]: State.WAIT,
+    [InputType.ASK_DONE]: State.WAIT_FOR_RESPONSE,
+    [InputType.LOST_PERSON]: State.WAIT_FOR_PERSON,
   },
-  [State.WAIT]: {
+  [State.WAIT_FOR_RESPONSE]: {
     [InputType.VALID_RESPONSE]: State.ASK,
-    [InputType.INVALID_RESPONSE]: State.WAIT,
+    [InputType.INVALID_RESPONSE]: State.WAIT_FOR_RESPONSE,
+  },
+  [State.WAIT_FOR_PERSON]: {
+    [InputType.FOUND_PERSON]: State.ASK,
   },
 };
 
@@ -86,7 +95,7 @@ function input(
 ) {
   return xs.merge(
     start$.mapTo({type: InputType.GOAL}),
-    speechRecognitionActionSource.result.filter(result =>
+    speechRecognitionActionSource.result.debug().filter(result =>
       result.status.status === 'SUCCEEDED'
       && (result.result === Response.YES || result.result === Response.NO)
     ).map(result => ({
@@ -111,15 +120,28 @@ function input(
         },
       };
     }),
+    poseDetectionSource.poses
+      .map(poses => poses.length)
+      .compose(pairwise)
+      .filter(([prev, cur]) => prev !== cur)
+      .map(([prev, cur]) => {
+        if (prev < cur) {
+          return {type: InputType.FOUND_PERSON};
+        } else if (prev > cur) {
+          return {type: InputType.LOST_PERSON};
+        }
+      }),
   );
 }
+
+
 
 function transition(prevState, prevVariables, input) {
   if (input.type === InputType.DETECTED_FACE) {
     return {
       state: prevState,
       variables: prevVariables,
-      outputs: (prevState === State.WAIT)
+      outputs: (prevState === State.WAIT_FOR_RESPONSE)
         ? {
           TabletFace: {
             goal: {
@@ -144,12 +166,14 @@ function transition(prevState, prevVariables, input) {
       + `set state to prevState`);
     state = prevState;
   }
-  // console.log(prevState, prevVariables, input, state);
+  console.log(prevState, prevVariables, input, state);
 
   if (state === State.ASK) {
     const question = (input.type === InputType.GOAL)
       ? Question.CAREER
-      : flowchart[prevVariables.question][input.value];
+      : (input.type === InputType.FOUND_PERSON)
+        ? prevVariables.question
+        : flowchart[prevVariables.question][input.value];
     return {
       state,
       variables: {
@@ -170,7 +194,13 @@ function transition(prevState, prevVariables, input) {
         },
       },
     }
-  } else if (state === State.WAIT) {
+  } else if (
+    state === State.WAIT_FOR_RESPONSE
+    && (
+      input.type !== InputType.LOST_PERSON
+      && input.type !== InputType.FOUND_PERSON
+    )
+  ) {
     if (
       prevVariables.question !== Question.VACATIONER
       && prevVariables.question !== Question.EXPAT
@@ -194,6 +224,16 @@ function transition(prevState, prevVariables, input) {
         outputs: null,
       };  // == defaultMachine
     }
+  } else if (state === State.WAIT_FOR_PERSON) {
+    return {
+      state,
+      variables: prevVariables,
+      outputs: {
+        SpeechSynthesisAction: {
+          goal: null,  // cancel
+        },
+      },
+    };
   }
 
   return {
