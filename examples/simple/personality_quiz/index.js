@@ -8,22 +8,22 @@ const State = {
 };
 
 const InputType = {
-  REQUESTED_START: 'REQUESTED_START',
-  DONE_SPEAKING: 'DONE_SPEAKING',
-  RECEIVED_VALID: 'RECEIVED_VALID',
-  RECEIVED_INVALID: 'RECEIVED_INVALID',
+  GOAL: 'GOAL',
+  ASK_DONE: 'ASK_DONE',
+  VALID_RESPONSE: 'VALID_RESPONSE',
+  INVALID_RESPONSE: 'INVALID_RESPONSE',
 };
 
 const transitionTable = {
   [State.PEND]: {
-    [InputType.REQUESTED_START]: State.ASK,
+    [InputType.GOAL]: State.ASK,
   },
   [State.ASK]: {
-    [InputType.DONE_SPEAKING]: State.WAIT,
+    [InputType.ASK_DONE]: State.WAIT,
   },
   [State.WAIT]: {
-    [InputType.RECEIVED_VALID]: State.ASK,
-    [InputType.RECEIVED_INVALID]: State.WAIT,
+    [InputType.VALID_RESPONSE]: State.ASK,
+    [InputType.INVALID_RESPONSE]: State.WAIT,
   },
 };
 
@@ -81,22 +81,21 @@ function input(
   start$,
   speechRecognitionActionSource,
   speechSynthesisActionSource,
-  // poseDetectionSource,
 ) {
   return xs.merge(
-    start$.mapTo({type: InputType.REQUESTED_START}),
+    start$.mapTo({type: InputType.GOAL}),
     speechRecognitionActionSource.result.filter(result =>
       result.status.status === 'SUCCEEDED'
-      && (result.result === 'yes' || result.result === 'no')
+      && (result.result === Response.YES || result.result === Response.NO)
     ).map(result => ({
-      type: InputType.RECEIVED_VALID,
+      type: InputType.VALID_RESPONSE,
       value: result.result,
     })),
-    speechSynthesisActionSource.result.mapTo({type: InputType.DONE_SPEAKING}),
+    speechSynthesisActionSource.result.mapTo({type: InputType.ASK_DONE}),
     speechRecognitionActionSource.result.filter(result =>
       result.status.status !== 'SUCCEEDED'
-      || (result.result !== 'yes' && result.result !== 'no')
-    ).mapTo({type: InputType.RECEIVED_INVALID}),
+      || (result.result !== Response.YES && result.result !== Response.NO)
+    ).mapTo({type: InputType.INVALID_RESPONSE}),
   );
 }
 
@@ -116,7 +115,7 @@ function transition(prevState, prevVariables, input) {
   if (
     state === State.ASK
   ) {
-    const question = (input.type === InputType.REQUESTED_START)
+    const question = (input.type === InputType.GOAL)
       ? Question.CAREER
       : flowchart[prevVariables.question][input.value];
     return {
@@ -132,7 +131,7 @@ function transition(prevState, prevVariables, input) {
     }
   } else if (
     state === State.WAIT
-    && input.type === InputType.DONE_SPEAKING
+    && input.type === InputType.ASK_DONE
   ) {
     if (
       prevVariables.question !== Question.VACATIONER
@@ -171,7 +170,6 @@ function main(sources) {
     sources.TabletFace.load.mapTo({}),
     sources.SpeechRecognitionAction,
     sources.SpeechSynthesisAction,
-    // sources.PoseDetection,
   );
 
   const defaultMachine = {
