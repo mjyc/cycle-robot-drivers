@@ -95,8 +95,8 @@ function main(sources) {
     SpeechRecognitionAction: xs.merge(
       sources.SpeechSynthesisAction.result,
       sources.SpeechRecognitionAction.result.filter(result =>
-        result.status.status !== 'SUCCEEDED'  // must succeed
-        || (result.result !== 'yes' && result.result !== 'no') // only yes or no
+        result.status.status !== 'SUCCEEDED'
+        || (result.result !== 'yes' && result.result !== 'no')
       )
     ).mapTo({})
   };
