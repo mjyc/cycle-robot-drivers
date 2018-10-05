@@ -4,7 +4,7 @@ import {runRobotProgram} from '@cycle-robot-drivers/run';
 const State = {
   PEND: 'PEND',
   ASK: 'ASK',
-  WAIT: 'WAIT'
+  WAIT: 'WAIT',
 };
 
 const InputType = {
@@ -12,6 +12,7 @@ const InputType = {
   ASK_DONE: 'ASK_DONE',
   VALID_RESPONSE: 'VALID_RESPONSE',
   INVALID_RESPONSE: 'INVALID_RESPONSE',
+  DETECTED_FACE: 'DETECTED_FACE',
 };
 
 const transitionTable = {
@@ -38,7 +39,7 @@ const Question = {
   JOB: 'Do you need a secure job and a stable income?',
   VACATIONER: 'You are a vacationer!',
   EXPAT: 'You are an expat!',
-  NOMAD: 'You are a nomad!'
+  NOMAD: 'You are a nomad!',
 };
 
 const Response = {
@@ -74,13 +75,14 @@ const flowchart = {
   [Question.JOB]: {
     [Response.YES]: Question.ONLINE,
     [Response.NO]: Question.NOMAD,
-  }
+  },
 };
 
 function input(
   start$,
   speechRecognitionActionSource,
   speechSynthesisActionSource,
+  poseDetectionSource,
 ) {
   return xs.merge(
     start$.mapTo({type: InputType.GOAL}),
@@ -96,10 +98,42 @@ function input(
       result.status.status !== 'SUCCEEDED'
       || (result.result !== Response.YES && result.result !== Response.NO)
     ).mapTo({type: InputType.INVALID_RESPONSE}),
+    poseDetectionSource.poses.filter(poses =>
+      poses.length === 1
+      && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
+    ).map(poses => {
+      const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
+      return {
+        type: InputType.DETECTED_FACE,
+        value: {
+          x: nose.position.x / 640,  // max value of position.x is 640
+          y: nose.position.y / 480,  // max value of position.y is 480
+        },
+      };
+    }),
   );
 }
 
 function transition(prevState, prevVariables, input) {
+  if (input.type === InputType.DETECTED_FACE) {
+    return {
+      state: prevState,
+      variables: prevVariables,
+      outputs: (prevState === State.WAIT)
+        ? {
+          TabletFace: {
+            goal: {
+              type: 'SET_STATE',
+              value: {
+                leftEye: input.value,
+                rightEye: input.value,
+              },
+            },
+          },
+        } : null,
+    };
+  }
+
   const states = transitionTable[prevState];
   if (!states) {
     throw new Error(`Invalid prevState="${prevState}"`);
@@ -112,9 +146,7 @@ function transition(prevState, prevVariables, input) {
   }
   // console.log(prevState, prevVariables, input, state);
 
-  if (
-    state === State.ASK
-  ) {
+  if (state === State.ASK) {
     const question = (input.type === InputType.GOAL)
       ? Question.CAREER
       : flowchart[prevVariables.question][input.value];
@@ -126,13 +158,19 @@ function transition(prevState, prevVariables, input) {
       outputs: {
         SpeechSynthesisAction: {
           goal: question,
-        }
+        },
+        TabletFace: {
+          goal: {
+            type: 'SET_STATE',
+            value: {
+              leftEye: {x: 0.5, y: 0.5},
+              rightEye: {x: 0.5, y: 0.5},
+            },
+          },
+        },
       },
     }
-  } else if (
-    state === State.WAIT
-    && input.type === InputType.ASK_DONE
-  ) {
+  } else if (state === State.WAIT) {
     if (
       prevVariables.question !== Question.VACATIONER
       && prevVariables.question !== Question.EXPAT
@@ -144,7 +182,7 @@ function transition(prevState, prevVariables, input) {
         outputs: {
           SpeechRecognitionAction: {
             goal: {},
-          }
+          },
         },
       }
     } else {
@@ -170,6 +208,7 @@ function main(sources) {
     sources.TabletFace.load.mapTo({}),
     sources.SpeechRecognitionAction,
     sources.SpeechSynthesisAction,
+    sources.PoseDetection,
   );
 
   const defaultMachine = {
@@ -193,7 +232,10 @@ function main(sources) {
       .map(output => output.SpeechSynthesisAction.goal),
     SpeechRecognitionAction: outputs$
       .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal),
+      .map(output => output.SpeechRecognitionAction.goal).debug(),
+    TabletFace: outputs$
+      .filter(outputs => !!outputs.TabletFace)
+      .map(output => output.TabletFace.goal),
   }
 }
 
