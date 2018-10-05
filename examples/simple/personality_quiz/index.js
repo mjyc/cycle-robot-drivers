@@ -2,21 +2,21 @@ import xs from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 const State = {
-  START: 'START',
+  PEND: 'PEND',
   ASK: 'ASK',
   WAIT: 'WAIT'
 };
 
 const InputType = {
-  LOADED: 'LOADED',
+  REQUESTED_START: 'REQUESTED_START',
   DONE_SPEAKING: 'DONE_SPEAKING',
   RECEIVED_VALID: 'RECEIVED_VALID',
   RECEIVED_INVALID: 'RECEIVED_INVALID',
 };
 
 const transitionTable = {
-  [State.START]: {
-    [InputType.LOADED]: State.ASK,
+  [State.PEND]: {
+    [InputType.REQUESTED_START]: State.ASK,
   },
   [State.ASK]: {
     [InputType.DONE_SPEAKING]: State.WAIT,
@@ -78,23 +78,24 @@ const flowchart = {
 };
 
 function input(
-  load$,
-  speechRecognitionActionResult$,
-  speechSynthesisActionResult$,
+  start$,
+  speechRecognitionActionSource,
+  speechSynthesisActionSource,
+  // poseDetectionSource,
 ) {
   return xs.merge(
-    load$.mapTo({type: InputType.LOADED}),
-    speechRecognitionActionResult$.filter(result =>
+    start$.mapTo({type: InputType.REQUESTED_START}),
+    speechRecognitionActionSource.result.filter(result =>
       result.status.status === 'SUCCEEDED'
       && (result.result === 'yes' || result.result === 'no')
     ).map(result => ({
       type: InputType.RECEIVED_VALID,
       value: result.result,
     })),
-    speechSynthesisActionResult$.mapTo({type: InputType.DONE_SPEAKING}),
-    speechRecognitionActionResult$.filter(result =>
-      result.status.status !== 'SUCCEEDED'  // must succeed
-      || (result.result !== 'yes' && result.result !== 'no') // only yes or no
+    speechSynthesisActionSource.result.mapTo({type: InputType.DONE_SPEAKING}),
+    speechRecognitionActionSource.result.filter(result =>
+      result.status.status !== 'SUCCEEDED'
+      || (result.result !== 'yes' && result.result !== 'no')
     ).mapTo({type: InputType.RECEIVED_INVALID}),
   );
 }
@@ -104,20 +105,18 @@ function transition(prevState, prevVariables, input) {
   if (!states) {
     throw new Error(`Invalid prevState="${prevState}"`);
   }
-
   let state = states[input.type];
   if (!state) {
     console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
       + `set state to prevState`);
     state = prevState;
   }
-
-  console.log(prevState, prevVariables, input, state);
+  // console.log(prevState, prevVariables, input, state);
 
   if (
     state === State.ASK
   ) {
-    const question = (input.type === InputType.LOADED)
+    const question = (input.type === InputType.REQUESTED_START)
       ? Question.CAREER
       : flowchart[prevVariables.question][input.value];
     return {
@@ -134,20 +133,29 @@ function transition(prevState, prevVariables, input) {
   } else if (
     state === State.WAIT
     && input.type === InputType.DONE_SPEAKING
-    && (
+  ) {
+    if (
       prevVariables.question !== Question.VACATIONER
       && prevVariables.question !== Question.EXPAT
       && prevVariables.question !== Question.NOMAD
-    )
-  ) {
-    return {
-      state,
-      variables: prevVariables,
-      outputs: {
-        SpeechRecognitionAction: {
-          goal: {},
-        }
-      },
+    ) {
+      return {
+        state,
+        variables: prevVariables,
+        outputs: {
+          SpeechRecognitionAction: {
+            goal: {},
+          }
+        },
+      }
+    } else {
+      return {
+        state: State.PEND,
+        variables: {
+          question: null,
+        },
+        outputs: null,
+      };  // == defaultMachine
     }
   }
 
@@ -160,13 +168,14 @@ function transition(prevState, prevVariables, input) {
 
 function main(sources) {
   const input$ = input(
-    sources.TabletFace.load,
-    sources.SpeechRecognitionAction.result,
-    sources.SpeechSynthesisAction.result,
+    sources.TabletFace.load.mapTo({}),
+    sources.SpeechRecognitionAction,
+    sources.SpeechSynthesisAction,
+    // sources.PoseDetection,
   );
 
   const defaultMachine = {
-    state: State.START,
+    state: State.PEND,
     variables: {
       question: null,
     },
