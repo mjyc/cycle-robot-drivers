@@ -20,23 +20,6 @@ const InputType = {
   LOST_PERSON: 'LOST_PERSON',
 };
 
-const transitionTable = {
-  [State.PEND]: {
-    [InputType.GOAL]: State.ASK,
-  },
-  [State.ASK]: {
-    [InputType.ASK_DONE]: State.WAIT_FOR_RESPONSE,
-    [InputType.LOST_PERSON]: State.WAIT_FOR_PERSON,
-  },
-  [State.WAIT_FOR_RESPONSE]: {
-    [InputType.VALID_RESPONSE]: State.ASK,
-    [InputType.INVALID_RESPONSE]: State.WAIT_FOR_RESPONSE,
-  },
-  [State.WAIT_FOR_PERSON]: {
-    [InputType.FOUND_PERSON]: State.ASK,
-  },
-};
-
 const Question = {
   EMPTY: '',
   CAREER: 'Is it important that you reach your full career potential?',
@@ -134,9 +117,39 @@ function input(
   );
 }
 
+const transitionTable = {
+  [State.PEND]: {
+    [InputType.GOAL]: State.ASK,
+  },
+  [State.ASK]: {
+    [InputType.ASK_DONE]: State.WAIT_FOR_RESPONSE,
+    [InputType.LOST_PERSON]: State.WAIT_FOR_PERSON,
+  },
+  [State.WAIT_FOR_RESPONSE]: {
+    [InputType.VALID_RESPONSE]: State.ASK,
+    [InputType.INVALID_RESPONSE]: State.WAIT_FOR_RESPONSE,
+  },
+  [State.WAIT_FOR_PERSON]: {
+    [InputType.FOUND_PERSON]: State.ASK,
+  },
+};
 
+function isQuestion(sentence) {
+  return sentence !== Question.VACATIONER
+    && sentence !== Question.EXPAT
+    && sentence !== Question.NOMAD;
+}
 
 function transition(prevState, prevVariables, input) {
+  const states = !!transitionTable[prevState] ? transitionTable[prevState] : {};
+  const state = !!states[input.type] ? states[input.type] : prevState;
+  if (state === State.ASK && !isQuestion(prevVariables.question)) {
+    return State.PEND;
+  }
+  return state;
+}
+
+function update(prevState, prevVariables, input) {
   if (input.type === InputType.DETECTED_FACE) {
     return {
       state: prevState,
@@ -156,17 +169,8 @@ function transition(prevState, prevVariables, input) {
     };
   }
 
-  const states = transitionTable[prevState];
-  if (!states) {
-    throw new Error(`Invalid prevState="${prevState}"`);
-  }
-  let state = states[input.type];
-  if (!state) {
-    console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
-      + `set state to prevState`);
-    state = prevState;
-  }
-  console.log(prevState, prevVariables, input, state);
+  const state = transition(prevState, prevVariables, input);
+  // console.log(prevState, prevVariables, input, state);
 
   if (state === State.ASK) {
     const question = (input.type === InputType.GOAL)
@@ -201,28 +205,15 @@ function transition(prevState, prevVariables, input) {
       && input.type !== InputType.FOUND_PERSON
     )
   ) {
-    if (
-      prevVariables.question !== Question.VACATIONER
-      && prevVariables.question !== Question.EXPAT
-      && prevVariables.question !== Question.NOMAD
-    ) {
-      return {
-        state,
-        variables: prevVariables,
-        outputs: {
-          SpeechRecognitionAction: {
-            goal: {},
-          },
+    console.log(prevState, prevVariables, input, state);
+    return {
+      state,
+      variables: prevVariables,
+      outputs: {
+        SpeechRecognitionAction: {
+          goal: {},
         },
-      }
-    } else {
-      return {
-        state: State.PEND,
-        variables: {
-          question: null,
-        },
-        outputs: null,
-      };  // == defaultMachine
+      },
     }
   } else if (state === State.WAIT_FOR_PERSON) {
     return {
@@ -258,7 +249,7 @@ function main(sources) {
     },
     outputs: null,
   };
-  const machine$ = input$.fold((machine, input) => transition(
+  const machine$ = input$.fold((machine, input) => update(
     machine.state, machine.variables, input
   ), defaultMachine);
 
@@ -272,7 +263,7 @@ function main(sources) {
       .map(output => output.SpeechSynthesisAction.goal),
     SpeechRecognitionAction: outputs$
       .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal).debug(),
+      .map(output => output.SpeechRecognitionAction.goal),
     TabletFace: outputs$
       .filter(outputs => !!outputs.TabletFace)
       .map(output => output.TabletFace.goal),
