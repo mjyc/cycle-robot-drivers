@@ -149,6 +149,52 @@ function transition(prevState, prevVariables, input) {
   return state;
 }
 
+// function emission(prevState, state, prevVariables, input) {
+//   if (state === State.ASK) {
+//     const question = (input.type === InputType.GOAL)
+//       ? Question.CAREER
+//       : (input.type === InputType.FOUND_PERSON)
+//         ? prevVariables.question
+//         : flowchart[prevVariables.question][input.value];
+//     return {
+//       variables: {
+//         question,
+//       },
+//       outputs: {
+//         SpeechSynthesisAction: {
+//           goal: question,
+//         },
+//         TabletFace: {
+//           goal: {
+//             type: 'SET_STATE',
+//             value: {
+//               leftEye: {x: 0.5, y: 0.5},
+//               rightEye: {x: 0.5, y: 0.5},
+//             },
+//           },
+//         },
+//       }
+//     }
+//   } else if (
+//     state === State.WAIT_FOR_RESPONSE
+//     && (
+//       input.type !== InputType.LOST_PERSON
+//       && input.type !== InputType.FOUND_PERSON
+//     )
+//   ) {
+//     return {
+//       variables: prevVariables,
+//       outputs: {
+//         SpeechRecognitionAction: {
+//           goal: {},
+//         },
+//       }
+//     }
+//   } else if (state === State.WAIT_FOR_PERSON) {
+
+//   }
+// }
+
 function update(prevState, prevVariables, input) {
   if (input.type === InputType.DETECTED_FACE) {
     return {
