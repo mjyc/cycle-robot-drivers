@@ -12,7 +12,7 @@ const State = {
 
 const InputType = {
   GOAL: 'GOAL',
-  ASK_DONE: 'ASK_DONE',
+  ASK_SUCCESS: 'ASK_SUCCESS',
   VALID_RESPONSE: 'VALID_RESPONSE',
   INVALID_RESPONSE: 'INVALID_RESPONSE',
   DETECTED_FACE: 'DETECTED_FACE',
@@ -78,14 +78,14 @@ function input(
 ) {
   return xs.merge(
     start$.mapTo({type: InputType.GOAL}),
-    speechRecognitionActionSource.result.debug().filter(result =>
+    speechRecognitionActionSource.result.filter(result =>
       result.status.status === 'SUCCEEDED'
       && (result.result === Response.YES || result.result === Response.NO)
     ).map(result => ({
       type: InputType.VALID_RESPONSE,
       value: result.result,
     })),
-    speechSynthesisActionSource.result.mapTo({type: InputType.ASK_DONE}),
+    speechSynthesisActionSource.result.mapTo({type: InputType.ASK_SUCCESS}),
     speechRecognitionActionSource.result.filter(result =>
       result.status.status !== 'SUCCEEDED'
       || (result.result !== Response.YES && result.result !== Response.NO)
@@ -117,167 +117,130 @@ function input(
   );
 }
 
-const transitionTable = {
-  [State.PEND]: {
-    [InputType.GOAL]: State.ASK,
-  },
-  [State.ASK]: {
-    [InputType.ASK_DONE]: State.WAIT_FOR_RESPONSE,
-    [InputType.LOST_PERSON]: State.WAIT_FOR_PERSON,
-  },
-  [State.WAIT_FOR_RESPONSE]: {
-    [InputType.VALID_RESPONSE]: State.ASK,
-    [InputType.INVALID_RESPONSE]: State.WAIT_FOR_RESPONSE,
-  },
-  [State.WAIT_FOR_PERSON]: {
-    [InputType.FOUND_PERSON]: State.ASK,
-  },
-};
-
 function isQuestion(sentence) {
   return sentence !== Question.VACATIONER
     && sentence !== Question.EXPAT
     && sentence !== Question.NOMAD;
 }
 
-function transition(prevState, prevVariables, input) {
-  const states = !!transitionTable[prevState] ? transitionTable[prevState] : {};
-  const state = !!states[input.type] ? states[input.type] : prevState;
-  if (state === State.ASK && !isQuestion(prevVariables.question)) {
-    return State.PEND;
+function createTransition() {
+  const transitionTable = {
+    [State.PEND]: {
+      [InputType.GOAL]: (variables) => State.ASK,
+    },
+    [State.ASK]: {
+      [InputType.ASK_SUCCESS]: (variables) => isQuestion(variables.question)
+        ? State.WAIT_FOR_RESPONSE : State.PEND,
+      [InputType.LOST_PERSON]: (variables) => State.WAIT_FOR_PERSON,
+    },
+    [State.WAIT_FOR_RESPONSE]: {
+      [InputType.VALID_RESPONSE]: (variables) => State.ASK,
+      [InputType.INVALID_RESPONSE]: (variables) => State.WAIT_FOR_RESPONSE,
+    },
+    [State.WAIT_FOR_PERSON]: {
+      [InputType.FOUND_PERSON]: (variables) => State.ASK,
+    },
+  };
+
+  return function(state, variables, input) {
+    return !transitionTable[state]
+      ? state
+      : !transitionTable[state][input.type]
+        ? state
+        : transitionTable[state][input.type](variables);
   }
-  return state;
 }
 
-// function emission(prevState, state, prevVariables, input) {
-//   if (state === State.ASK) {
-//     const question = (input.type === InputType.GOAL)
-//       ? Question.CAREER
-//       : (input.type === InputType.FOUND_PERSON)
-//         ? prevVariables.question
-//         : flowchart[prevVariables.question][input.value];
-//     return {
-//       variables: {
-//         question,
-//       },
-//       outputs: {
-//         SpeechSynthesisAction: {
-//           goal: question,
-//         },
-//         TabletFace: {
-//           goal: {
-//             type: 'SET_STATE',
-//             value: {
-//               leftEye: {x: 0.5, y: 0.5},
-//               rightEye: {x: 0.5, y: 0.5},
-//             },
-//           },
-//         },
-//       }
-//     }
-//   } else if (
-//     state === State.WAIT_FOR_RESPONSE
-//     && (
-//       input.type !== InputType.LOST_PERSON
-//       && input.type !== InputType.FOUND_PERSON
-//     )
-//   ) {
-//     return {
-//       variables: prevVariables,
-//       outputs: {
-//         SpeechRecognitionAction: {
-//           goal: {},
-//         },
-//       }
-//     }
-//   } else if (state === State.WAIT_FOR_PERSON) {
-
-//   }
-// }
-
-function update(prevState, prevVariables, input) {
-  if (input.type === InputType.DETECTED_FACE) {
-    return {
-      state: prevState,
-      variables: prevVariables,
-      outputs: (prevState === State.WAIT_FOR_RESPONSE)
+function createEmission() {
+  const emissionTable = {
+    [State.PEND]: {
+      [InputType.GOAL]: (variables, input) => ({
+        variables: {question: Question.CAREER},
+        outputs: {SpeechSynthesisAction: {goal: Question.CAREER}},
+      }),
+    },
+    [State.ASK]: {
+      [InputType.ASK_SUCCESS]: (variables, input) => isQuestion(variables.question)
         ? {
-          TabletFace: {
-            goal: {
-              type: 'SET_STATE',
-              value: {
-                leftEye: input.value,
-                rightEye: input.value,
-              },
-            },
+          variables,
+          outputs: {SpeechRecognitionAction: {goal: {}}},
+        } : {variables, outputs: {done: true}},
+      [InputType.LOST_PERSON]: (variables, input) => ({
+        variables,
+        outputs: {SpeechSynthesisAction: {goal: null}},
+      }),
+    },
+    [State.WAIT_FOR_RESPONSE]: {
+      [InputType.VALID_RESPONSE]: (variables, input) => ({
+        variables: {question: flowchart[variables.question][input.value]},
+        outputs: {
+          SpeechSynthesisAction: {
+            goal: flowchart[variables.question][input.value],
           },
-        } : null,
-    };
-  }
-
-  const state = transition(prevState, prevVariables, input);
-  // console.log(prevState, prevVariables, input, state);
-
-  if (state === State.ASK) {
-    const question = (input.type === InputType.GOAL)
-      ? Question.CAREER
-      : (input.type === InputType.FOUND_PERSON)
-        ? prevVariables.question
-        : flowchart[prevVariables.question][input.value];
-    return {
-      state,
-      variables: {
-        question,
-      },
-      outputs: {
-        SpeechSynthesisAction: {
-          goal: question,
-        },
-        TabletFace: {
-          goal: {
+          TabletFace: {goal: {
             type: 'SET_STATE',
             value: {
               leftEye: {x: 0.5, y: 0.5},
               rightEye: {x: 0.5, y: 0.5},
             },
-          },
+          }},
         },
-      },
-    }
-  } else if (
-    state === State.WAIT_FOR_RESPONSE
-    && (
-      input.type !== InputType.LOST_PERSON
-      && input.type !== InputType.FOUND_PERSON
-    )
-  ) {
-    console.log(prevState, prevVariables, input, state);
-    return {
-      state,
-      variables: prevVariables,
-      outputs: {
-        SpeechRecognitionAction: {
-          goal: {},
-        },
-      },
-    }
-  } else if (state === State.WAIT_FOR_PERSON) {
-    return {
-      state,
-      variables: prevVariables,
-      outputs: {
-        SpeechSynthesisAction: {
-          goal: null,  // cancel
-        },
-      },
-    };
-  }
-
-  return {
-    state: prevState,
-    variables: prevVariables,
-    outputs: null,
+      }),
+      [InputType.INVALID_RESPONSE]: (variables, input) => ({
+        variables,
+        outputs: {SpeechRecognitionAction: {goal: {}}},
+      }),
+      [InputType.DETECTED_FACE]: (variables, input) => ({
+        variables,
+        outputs: {
+          TabletFace: {goal: {
+            type: 'SET_STATE',
+            value: {
+              leftEye: input.value,
+              rightEye: input.value,
+            },
+          }},
+        }
+      }),
+    },
+    [State.WAIT_FOR_PERSON]: {
+      [InputType.FOUND_PERSON]: (variables, input) => ({
+        variables,
+        outputs: {SpeechSynthesisAction: {goal: variables.question}},
+      }),
+    },
   };
+
+  return function(state, variables, input) {
+    return !emissionTable[state]
+      ? {variables, outputs: null}
+      : !emissionTable[state][input.type]
+        ? {variables, outputs: null}
+        : emissionTable[state][input.type](variables, input);
+  }
+}
+
+const transition = createTransition();
+const emission = createEmission();
+
+function update(state, variables, input) {
+  // const newState = transition(state, variables, input);
+  // const e = emission(state, variables, input);
+  // console.warn(state, input, variables, newState, e.outputs, e.variables);
+
+  const e = emission(state, variables, input);
+  const returnMe = {
+    state: transition(state, variables, input),
+    variables: e.variables,
+    outputs: e.outputs,
+  };
+  console.log(state, returnMe, input);
+  return returnMe;
+  // return {
+  //   state,
+  //   variables,
+  //   outputs: null,
+  // };
 }
 
 function main(sources) {
