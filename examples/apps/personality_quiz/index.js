@@ -267,7 +267,7 @@ function main(sources) {
     TabletFace: outputs$
       .filter(outputs => !!outputs.TabletFace)
       .map(output => output.TabletFace.goal),
-  }
+  };
 }
 
 runRobotProgram(main);
