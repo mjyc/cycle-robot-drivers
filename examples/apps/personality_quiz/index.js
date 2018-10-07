@@ -225,10 +225,13 @@ function createEmission() {
 const transition = createTransition();
 const emission = createEmission();
 
-function update(state, variables, input) {
+function update(prevState, prevVariables, input) {
+  const state = transition(prevState, prevVariables, input);
+  const {variables, outputs} = emission(prevState, prevVariables, input);
   return {
-    state: transition(state, variables, input),
-    ...emission(state, variables, input)
+    state,
+    variables,
+    outputs,
   };
 }
 
