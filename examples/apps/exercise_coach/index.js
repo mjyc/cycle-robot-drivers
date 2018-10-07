@@ -22,9 +22,11 @@ const Instruction = {
 
 function input(
   start$,
+  speechSynthesisActionSource,
 ) {
   return xs.merge(
     start$.mapTo({type: InputType.GOAL}),
+    speechSynthesisActionSource.result.mapTo({type: InputType.INSTRUCT_DONE}),
   );
 }
 
@@ -33,6 +35,9 @@ function createTransition() {
     [State.PEND]: {
       [InputType.GOAL]: (variables) => State.INSTRUCT,
     },
+    [State.INSTRUCT]: {
+      [State.INSTRUCT_DONE]: (variables) => State.INSTRUCT,
+    }
   };
 
   return function(state, variables, input) {
@@ -45,7 +50,65 @@ function createTransition() {
 }
 
 function createEmission() {
-  const emissionTable = {};
+  const emissionTable = {
+    [State.PEND]: {
+      [InputType.GOAL]: (variables, input) => ({
+        variables: {instruction: Instruction.FORWARD, rep: 0},
+        outputs: {SpeechSynthesisAction: {goal: Instruction.FORWARD}},
+      }),
+    },
+    [State.INSTRUCT]: {
+      [InputType.INSTRUCT_DONE]: (variables, input) => {
+
+        if (variables.instruction === Instruction.FORWARD) {
+          return {
+            variables: {
+              instruction: Instruction.RIGHT,
+              rep: variables.rep,
+            },
+            outputs: {
+              SpeechSynthesisAction: {goal: Instruction.RIGHT},
+            },
+          };
+        } else if (variables.instruction === Instruction.RIGHT) {
+          return {
+            variables: {
+              instruction: Instruction.LEFT,
+              rep: variables.rep + 1,
+            },
+            outputs: {
+              SpeechSynthesisAction: {goal: Instruction.LEFT,},
+            },
+          };
+        } else if (variables.instruction === Instruction.LEFT) {
+          if (variables.rep < 2) {  // repeat
+            return {
+              variables: {
+                instruction: Instruction.RIGHT,
+                rep: variables.rep,
+              },
+              outputs: {
+                SpeechSynthesisAction: {goal: Instruction.RIGHT},
+              },
+            };
+          } else { // done
+            return {
+              variables: {
+                instruction: Instruction.GREAT,
+                rep: variables.rep,
+              },
+              outputs: {
+                SpeechSynthesisAction: {goal: Instruction.GREAT},
+              },
+            };
+          }
+        } else {  // TODO: Instruction.GERAT
+          return {variables, outputs: null};
+        }
+        // TODO: throw error in the final else case?
+      },
+    }
+  };
 
   return function(state, variables, input) {
     return !emissionTable[state]
@@ -62,7 +125,7 @@ const emission = createEmission();
 function update(prevState, prevVariables, input) {
   const state = transition(prevState, prevVariables, input);
   const {variables, outputs} = emission(prevState, prevVariables, input);
-  console.log('----', prevState, input.type, state);
+  console.log('----', prevState, input.type, state, outputs);
   return {
     state,
     variables,
@@ -73,6 +136,7 @@ function update(prevState, prevVariables, input) {
 function main(sources) {
   const input$ = input(
     sources.TabletFace.load.mapTo({}),
+    sources.SpeechSynthesisAction,
   );
 
   const defaultMachine = {
@@ -90,11 +154,11 @@ function main(sources) {
     .filter(machine => !!machine.outputs)
     .map(machine => machine.outputs);
 
-    outputs$.addListener({
-      next: (value) => console.log('outputs', value)
-    })
-
-  return {};
+  return {
+    SpeechSynthesisAction: outputs$
+      .filter(outputs => !!outputs.SpeechSynthesisAction)
+      .map(output => output.SpeechSynthesisAction.goal),
+  };
 }
 
 runRobotProgram(main);
