@@ -85,7 +85,9 @@ function input(
       type: InputType.VALID_RESPONSE,
       value: result.result,
     })),
-    speechSynthesisActionSource.result.mapTo({type: InputType.ASK_SUCCESS}),
+    speechSynthesisActionSource.result
+      .filter(result => result.status.status === 'SUCCEEDED')
+      .mapTo({type: InputType.ASK_SUCCESS}),
     speechRecognitionActionSource.result.filter(result =>
       result.status.status !== 'SUCCEEDED'
       || (result.result !== Response.YES && result.result !== Response.NO)
@@ -224,23 +226,10 @@ const transition = createTransition();
 const emission = createEmission();
 
 function update(state, variables, input) {
-  // const newState = transition(state, variables, input);
-  // const e = emission(state, variables, input);
-  // console.warn(state, input, variables, newState, e.outputs, e.variables);
-
-  const e = emission(state, variables, input);
-  const returnMe = {
+  return {
     state: transition(state, variables, input),
-    variables: e.variables,
-    outputs: e.outputs,
+    ...emission(state, variables, input)
   };
-  console.log(state, returnMe, input);
-  return returnMe;
-  // return {
-  //   state,
-  //   variables,
-  //   outputs: null,
-  // };
 }
 
 function main(sources) {
