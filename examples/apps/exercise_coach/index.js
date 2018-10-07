@@ -7,6 +7,7 @@ const State = {
   ASK: 'ASK',
   WAIT_FOR_RESPONSE: 'WAIT_FOR_RESPONSE',
   WAIT_FOR_PERSON: 'WAIT_FOR_PERSON',
+
 };
 
 const InputType = {
