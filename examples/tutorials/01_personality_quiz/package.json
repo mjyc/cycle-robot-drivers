@@ -22,6 +22,6 @@
   "scripts": {
     "build": "mkdirp dist && browserify index.js -t babelify --outfile dist/index.js -dv",
     "watch": "mkdirp dist && watchify index.js -t babelify --outfile dist/index.js -dv",
-    "start": "concurrently \"npm run watch\" \"live-server\""
+    "start": "concurrently \"npm run watch\" live-server"
   }
 }
