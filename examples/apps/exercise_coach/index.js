@@ -196,7 +196,6 @@ const emission = createEmission();
 function update(prevState, prevVariables, input) {
   const state = transition(prevState, prevVariables, input);
   const {variables, outputs} = emission(prevState, prevVariables, input);
-  console.log('----', prevState, input.type, state, outputs);
   return {
     state,
     variables,
