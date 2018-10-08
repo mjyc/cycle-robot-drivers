@@ -36,7 +36,7 @@ function input(
     start$.mapTo({type: InputType.GOAL}),
     speechSynthesisActionSource.result
       .filter(result => result.status.goal_id.id !== InputType.REP_END)
-      .mapTo({type: InputType.INSTRUCT_DONE}).debug(),
+      .mapTo({type: InputType.INSTRUCT_DONE}),
     speechSynthesisActionSource.result
       .filter(result => result.status.goal_id.id === InputType.REP_END)
       .compose(delay(repDuration))
