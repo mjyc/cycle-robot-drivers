@@ -1,5 +1,7 @@
 import xs from 'xstream';
-import {delay} from 'xstream/extra/delay';
+import delay from 'xstream/extra/delay';
+import throttle from 'xstream/extra/throttle';
+import pairwise from 'xstream/extra/pairwise';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 const State = {
@@ -140,6 +142,26 @@ function main(sources) {
     sources.TabletFace.load.mapTo({}),
     sources.SpeechSynthesisAction,
   );
+
+  sources.PoseDetection.poses
+    .filter(poses =>
+      poses.length === 1
+      && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
+    ).map(poses => {
+      const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
+      return {
+        x: nose.position.x / 640,  // max value of position.x is 640
+        y: nose.position.y / 480,  // max value of position.y is 480
+      };
+    })
+    .compose(throttle(200))  // 5hz
+    .compose(pairwise)
+    .map(([prev, cur]) => {
+      console.log(cur.x - prev.x, cur.x - prev.x > 0);
+      return cur;
+    })
+    // .addListener({next: value => console.log('poses', value)});
+    .addListener({next: value => {}});
 
   const defaultMachine = {
     state: State.PEND,
