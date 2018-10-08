@@ -7,12 +7,12 @@ import {runRobotProgram} from '@cycle-robot-drivers/run';
 const State = {
   PEND: 'PEND',
   INSTRUCT: 'INSTRUCT',
-  WATCH: 'WATCH',
 };
 
 const InputType = {
   GOAL: 'GOAL',
   INSTRUCT_DONE: 'INSTRUCT_DONE',
+  REP_END: 'REP_DONE',
 };
 
 const Instruction = {
@@ -24,11 +24,19 @@ const Instruction = {
 
 function input(
   start$,
+  speechSynthesisActionGoal$,
   speechSynthesisActionSource,
+  poseDetectionSource,
 ) {
+  const repDuration = 5000;  // ms
+
   return xs.merge(
     start$.mapTo({type: InputType.GOAL}),
     speechSynthesisActionSource.result.mapTo({type: InputType.INSTRUCT_DONE}),
+    speechSynthesisActionGoal$
+      .filter(goal => goal === Instruction.RIGHT || goal === Instruction.LEFT)
+      .compose(delay(repDuration))
+      .mapTo({type: InputType.REP_END}),
   );
 }
 
@@ -38,7 +46,13 @@ function createTransition() {
       [InputType.GOAL]: (variables) => State.INSTRUCT,
     },
     [State.INSTRUCT]: {
-      [State.INSTRUCT_DONE]: (variables) => State.INSTRUCT,
+      [InputType.INSTRUCT_DONE]: (variables) => {
+        if (variables.instruction === Instruction.GREAT) {
+          return State.PEND;
+        } else {
+          return State.INSTRUCT;
+        }
+      },
     }
   };
 
@@ -72,28 +86,35 @@ function createEmission() {
               SpeechSynthesisAction: {goal: Instruction.RIGHT},
             },
           };
-        } else if (variables.instruction === Instruction.RIGHT) {  // rep start
+        } else if (variables.instruction === Instruction.GREAT) {// exercise end
+          return {variables, outputs: {done: true}};
+        } else {
+          return {variables, outputs: null};
+        }
+      },
+      [InputType.REP_END]: (variables, input) => {
+        if (variables.instruction === Instruction.RIGHT) {
           return {
             variables: {
               instruction: Instruction.LEFT,
-              rep: variables.rep + 1,
+              rep: variables.rep,
             },
             outputs: {
               SpeechSynthesisAction: {goal: Instruction.LEFT},
             },
           };
-        } else if (variables.instruction === Instruction.LEFT) {  // rep end
-          if (variables.rep < maxRep) {  // repeat
+        } else if (variables.instruction === Instruction.LEFT) {  // rep ended
+          if (variables.rep < maxRep - 1) {  // repeat
             return {
               variables: {
                 instruction: Instruction.RIGHT,
-                rep: variables.rep,
+                rep: variables.rep + 1,
               },
               outputs: {
                 SpeechSynthesisAction: {goal: Instruction.RIGHT},
               },
             };
-          } else {  // done
+          } else {
             return {
               variables: {
                 instruction: Instruction.GREAT,
@@ -104,14 +125,11 @@ function createEmission() {
               },
             };
           }
-        } else if (variables.instruction === Instruction.GREAT) {// exercise end
-          return {variables, outputs: {done: true}};
         } else {
-          console.warn('Unexpected inputs', State.INSTRUCT, variables, input);  
           return {variables, outputs: null};
         }
-      },
-    }
+      }
+    },
   };
 
   return function(state, variables, input) {
@@ -140,28 +158,30 @@ function update(prevState, prevVariables, input) {
 function main(sources) {
   const input$ = input(
     sources.TabletFace.load.mapTo({}),
+    sources.proxies.SpeechSynthesisAction,
     sources.SpeechSynthesisAction,
+    sources.PoseDetection.poses,
   );
 
-  sources.PoseDetection.poses
-    .filter(poses =>
-      poses.length === 1
-      && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
-    ).map(poses => {
-      const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
-      return {
-        x: nose.position.x / 640,  // max value of position.x is 640
-        y: nose.position.y / 480,  // max value of position.y is 480
-      };
-    })
-    .compose(throttle(200))  // 5hz
-    .compose(pairwise)
-    .map(([prev, cur]) => {
-      console.log(cur.x - prev.x, cur.x - prev.x > 0);
-      return cur;
-    })
-    // .addListener({next: value => console.log('poses', value)});
-    .addListener({next: value => {}});
+  // sources.PoseDetection.poses
+  //   .filter(poses =>
+  //     poses.length === 1
+  //     && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
+  //   ).map(poses => {
+  //     const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
+  //     return {
+  //       x: nose.position.x / 640,  // max value of position.x is 640
+  //       y: nose.position.y / 480,  // max value of position.y is 480
+  //     };
+  //   })
+  //   .compose(throttle(200))  // 5hz
+  //   .compose(pairwise)
+  //   .map(([prev, cur]) => {
+  //     console.log(cur.x - prev.x, cur.x - prev.x > 0);
+  //     return cur;
+  //   })
+  //   // .addListener({next: value => console.log('poses', value)});
+  //   .addListener({next: value => {}});
 
   const defaultMachine = {
     state: State.PEND,
