@@ -25,19 +25,20 @@ const Instruction = {
 
 function input(
   start$,
-  speechSynthesisActionGoal$,
   speechSynthesisActionSource,
   poseDetectionSource,
 ) {
-  const repDuration = 5000;  // in ms
+  const repDuration = 3000;  // in ms
   const deltaThreshold = 0.1;  // in %
   const throttleDelay = 1000; // 1hz
 
   return xs.merge(
     start$.mapTo({type: InputType.GOAL}),
-    speechSynthesisActionSource.result.mapTo({type: InputType.INSTRUCT_DONE}),
-    speechSynthesisActionGoal$  // TODO: replace it with a stream using _id
-      .filter(goal => goal === Instruction.RIGHT || goal === Instruction.LEFT)
+    speechSynthesisActionSource.result
+      .filter(result => result.status.goal_id.id !== InputType.REP_END)
+      .mapTo({type: InputType.INSTRUCT_DONE}).debug(),
+    speechSynthesisActionSource.result
+      .filter(result => result.status.goal_id.id === InputType.REP_END)
       .compose(delay(repDuration))
       .mapTo({type: InputType.REP_END}),
     poseDetectionSource
@@ -105,14 +106,14 @@ function createEmission() {
               rep: variables.rep,
             },
             outputs: {
-              SpeechSynthesisAction: {goal: Instruction.RIGHT},
+              SpeechSynthesisAction: {goal: {
+                goal_id: {stamp: new Date(), id: InputType.REP_END},
+                goal: Instruction.RIGHT,
+              }},
             },
           };
         } else if (variables.instruction === Instruction.GREAT) {// exercise end
           return {variables, outputs: {done: true}};
-        } else {
-          // TODO: add warning
-          return {variables, outputs: null};
         }
       },
       [InputType.REP_END]: (variables, input) => {
@@ -123,7 +124,10 @@ function createEmission() {
               rep: variables.rep,
             },
             outputs: {
-              SpeechSynthesisAction: {goal: Instruction.LEFT},
+              SpeechSynthesisAction: {goal: {
+                goal_id: {stamp: new Date(), id: InputType.REP_END},
+                goal: Instruction.LEFT,
+              }},
             },
           };
         } else if (variables.instruction === Instruction.LEFT) {  // rep ended
@@ -134,7 +138,10 @@ function createEmission() {
                 rep: variables.rep + 1,
               },
               outputs: {
-                SpeechSynthesisAction: {goal: Instruction.RIGHT},
+                SpeechSynthesisAction: {goal: {
+                  goal_id: {stamp: new Date(), id: InputType.REP_END},
+                  goal: Instruction.RIGHT,
+                }},
               },
             };
           } else {
@@ -148,9 +155,6 @@ function createEmission() {
               },
             };
           }
-        } else {
-          // TODO: add warning
-          return {variables, outputs: null};
         }
       },
       [InputType.MOVED_FACE]: (variables, input) => {
@@ -172,8 +176,6 @@ function createEmission() {
               }
             }
           };
-        } else {
-          return {variables, outputs: null};
         }
       }
     },
@@ -205,7 +207,6 @@ function update(prevState, prevVariables, input) {
 function main(sources) {
   const input$ = input(
     sources.TabletFace.load.mapTo({}),
-    sources.proxies.SpeechSynthesisAction,
     sources.SpeechSynthesisAction,
     sources.PoseDetection.poses,
   );
