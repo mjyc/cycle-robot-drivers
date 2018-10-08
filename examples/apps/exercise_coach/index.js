@@ -50,6 +50,7 @@ function createTransition() {
 }
 
 function createEmission() {
+  const maxRep = 2;
   const emissionTable = {
     [State.PEND]: {
       [InputType.GOAL]: (variables, input) => ({
@@ -59,8 +60,7 @@ function createEmission() {
     },
     [State.INSTRUCT]: {
       [InputType.INSTRUCT_DONE]: (variables, input) => {
-
-        if (variables.instruction === Instruction.FORWARD) {
+        if (variables.instruction === Instruction.FORWARD) {  // exercise start
           return {
             variables: {
               instruction: Instruction.RIGHT,
@@ -70,18 +70,18 @@ function createEmission() {
               SpeechSynthesisAction: {goal: Instruction.RIGHT},
             },
           };
-        } else if (variables.instruction === Instruction.RIGHT) {
+        } else if (variables.instruction === Instruction.RIGHT) {  // rep start
           return {
             variables: {
               instruction: Instruction.LEFT,
               rep: variables.rep + 1,
             },
             outputs: {
-              SpeechSynthesisAction: {goal: Instruction.LEFT,},
+              SpeechSynthesisAction: {goal: Instruction.LEFT},
             },
           };
-        } else if (variables.instruction === Instruction.LEFT) {
-          if (variables.rep < 2) {  // repeat
+        } else if (variables.instruction === Instruction.LEFT) {  // rep end
+          if (variables.rep < maxRep) {  // repeat
             return {
               variables: {
                 instruction: Instruction.RIGHT,
@@ -91,7 +91,7 @@ function createEmission() {
                 SpeechSynthesisAction: {goal: Instruction.RIGHT},
               },
             };
-          } else { // done
+          } else {  // done
             return {
               variables: {
                 instruction: Instruction.GREAT,
@@ -102,10 +102,12 @@ function createEmission() {
               },
             };
           }
-        } else {  // TODO: Instruction.GERAT
+        } else if (variables.instruction === Instruction.GREAT) {// exercise end
+          return {variables, outputs: {done: true}};
+        } else {
+          console.warn('Unexpected inputs', State.INSTRUCT, variables, input);  
           return {variables, outputs: null};
         }
-        // TODO: throw error in the final else case?
       },
     }
   };
@@ -161,6 +163,4 @@ function main(sources) {
   };
 }
 
-runRobotProgram(main, {
-  Time: timeDriver,
-});
+runRobotProgram(main);
