@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import pairwise from 'xstream/extra/pairwise';
+import {delay} from 'xstream/extra/delay';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 const State = {
@@ -161,4 +161,6 @@ function main(sources) {
   };
 }
 
-runRobotProgram(main);
+runRobotProgram(main, {
+  Time: timeDriver,
+});
