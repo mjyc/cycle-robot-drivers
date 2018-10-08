@@ -13,6 +13,7 @@ const InputType = {
   GOAL: 'GOAL',
   INSTRUCT_DONE: 'INSTRUCT_DONE',
   REP_END: 'REP_DONE',
+  MOVED_FACE: 'MOVED_FACE',
 };
 
 const Instruction = {
@@ -28,15 +29,35 @@ function input(
   speechSynthesisActionSource,
   poseDetectionSource,
 ) {
-  const repDuration = 5000;  // ms
+  const repDuration = 5000;  // in ms
+  const deltaThreshold = 0.1;  // in %
+  const throttleDelay = 1000; // 1hz
 
   return xs.merge(
     start$.mapTo({type: InputType.GOAL}),
     speechSynthesisActionSource.result.mapTo({type: InputType.INSTRUCT_DONE}),
-    speechSynthesisActionGoal$
+    speechSynthesisActionGoal$  // TODO: replace it with a stream using _id
       .filter(goal => goal === Instruction.RIGHT || goal === Instruction.LEFT)
       .compose(delay(repDuration))
       .mapTo({type: InputType.REP_END}),
+    poseDetectionSource
+      .filter(poses =>
+        poses.length === 1
+        && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
+      ).map(poses => {
+        const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
+        return {
+          x: nose.position.x / 640,  // max value of position.x is 640
+          y: nose.position.y / 480,  // max value of position.y is 480
+        };
+      })
+      .compose(throttle(throttleDelay))
+      .compose(pairwise)
+      .map(([prev, cur]) => {
+        return cur.x - prev.x;
+      })
+      .filter(delta => Math.abs(delta) > deltaThreshold)
+      .map(delta => ({type: InputType.MOVED_FACE, value: delta}))
   );
 }
 
@@ -67,6 +88,7 @@ function createTransition() {
 
 function createEmission() {
   const maxRep = 2;
+
   const emissionTable = {
     [State.PEND]: {
       [InputType.GOAL]: (variables, input) => ({
@@ -89,6 +111,7 @@ function createEmission() {
         } else if (variables.instruction === Instruction.GREAT) {// exercise end
           return {variables, outputs: {done: true}};
         } else {
+          // TODO: add warning
           return {variables, outputs: null};
         }
       },
@@ -125,6 +148,30 @@ function createEmission() {
               },
             };
           }
+        } else {
+          // TODO: add warning
+          return {variables, outputs: null};
+        }
+      },
+      [InputType.MOVED_FACE]: (variables, input) => {
+        if (
+          variables.instruction === Instruction.RIGHT
+          || variables.instruction === Instruction.LEFT
+        ) {
+          return {
+            variables,
+            outputs: {
+              AudioPlayerAction: {
+                goal: variables.instruction === Instruction.RIGHT ?
+                  input.value > 0
+                    ? 'https://raw.githubusercontent.com/aramadia/willow-sound/master/I/IGotIt1.ogg'  // pos
+                    : 'https://raw.githubusercontent.com/aramadia/willow-sound/master/I/IHey1.ogg'  // neg
+                  : input.value < 0
+                    ? 'https://raw.githubusercontent.com/aramadia/willow-sound/master/I/IGotIt1.ogg'  // neg
+                    : 'https://raw.githubusercontent.com/aramadia/willow-sound/master/I/IHey1.ogg'  // pos
+              }
+            }
+          };
         } else {
           return {variables, outputs: null};
         }
@@ -163,26 +210,6 @@ function main(sources) {
     sources.PoseDetection.poses,
   );
 
-  // sources.PoseDetection.poses
-  //   .filter(poses =>
-  //     poses.length === 1
-  //     && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
-  //   ).map(poses => {
-  //     const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
-  //     return {
-  //       x: nose.position.x / 640,  // max value of position.x is 640
-  //       y: nose.position.y / 480,  // max value of position.y is 480
-  //     };
-  //   })
-  //   .compose(throttle(200))  // 5hz
-  //   .compose(pairwise)
-  //   .map(([prev, cur]) => {
-  //     console.log(cur.x - prev.x, cur.x - prev.x > 0);
-  //     return cur;
-  //   })
-  //   // .addListener({next: value => console.log('poses', value)});
-  //   .addListener({next: value => {}});
-
   const defaultMachine = {
     state: State.PEND,
     variables: {
@@ -202,6 +229,9 @@ function main(sources) {
     SpeechSynthesisAction: outputs$
       .filter(outputs => !!outputs.SpeechSynthesisAction)
       .map(output => output.SpeechSynthesisAction.goal),
+    AudioPlayerAction: outputs$
+      .filter(outputs => !!outputs.AudioPlayerAction)
+      .map(output => output.AudioPlayerAction.goal),
   };
 }
 
