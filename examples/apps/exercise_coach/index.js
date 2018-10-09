@@ -213,7 +213,8 @@ function main(sources) {
   const defaultMachine = {
     state: State.PEND,
     variables: {
-      question: null,
+      instruction: null,
+      rep: 0,
     },
     outputs: null,
   };
