@@ -2,6 +2,25 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
+enum State {
+  START = 'START',
+  ASK = 'ASK',
+  WAIT = 'WAIT',
+}
+
+enum InputType {
+  READ_DONE = 'DONE',
+}
+
+type Variables = {
+  storyIdx: number,
+};
+
+type Outputs = {
+  SpeechSynthesisAction: {
+    goal: any
+  },
+};
 
 const story = [
   "Brown bear, brown bear, what do you see? I see a red bird looking at me.",
@@ -16,26 +35,6 @@ const story = [
   "Goldfish, goldfish, what do you see? I see a teacher looking at me.",
 ];
 
-
-enum State {
-  START = 'START',
-  ASK = 'ASK',
-  WAIT = 'WAIT',
-}
-
-type Variables = {
-  storyIdx: number,
-};
-
-type Outputs = {
-  say: {
-    args: any
-  },
-  listen: {
-    args: any
-  },
-};
-
 type ReducerState = {
   state: State,
   variables: Variables,
@@ -43,11 +42,6 @@ type ReducerState = {
 };
 
 type Reducer = (prev?: ReducerState) => ReducerState | undefined;
-
-enum InputType {
-  DONE = 'DONE',
-  RECEIVED_RESPONSE = 'RECEIVED_RESPONSE',
-}
 
 type Input = {
   type: InputType,
