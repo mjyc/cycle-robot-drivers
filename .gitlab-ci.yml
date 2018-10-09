@@ -1,0 +1,11 @@
+stages:
+  - build
+  - test
+
+job 1:
+  stage: build
+  script: make all
+
+job 3:
+  stage: test
+  script: make test
