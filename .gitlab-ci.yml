@@ -1,11 +1,8 @@
-stages:
-  - build
-  - test
-
-job 1:
-  stage: build
-  script: make all
-
-job 3:
-  stage: test
-  script: make test
+test:
+  tags:
+    - cycle-robot-drivers
+  script:
+  - export NVM_DIR="/home/mjyc/.nvm"
+  - source "$NVM_DIR/nvm.sh"
+  - make all
+  - make test
