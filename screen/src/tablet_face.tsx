@@ -350,7 +350,7 @@ export function makeTabletFaceDriver({
         lowerRightEyelid: element.querySelector('.right .eyelid.lower'),
       });
 
-      load$.shamefullySendNext(null);
+      load$.shamefullySendNext(true);
     }, 1000);
 
     let animations = {};

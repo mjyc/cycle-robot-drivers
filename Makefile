@@ -15,7 +15,7 @@ all:
 	@echo ""
 	@for d in $(PACKAGES); do \
 		echo "$$d: npm install"; \
-		cd $$d; npm install; cd ..; \
+		cd $$d && npm install && cd .. && \
 		echo ""; \
 	done
 	@make lib
@@ -27,11 +27,11 @@ lib:
 			make lib $$d; \
 		done; \
 	else \
-		rm -rf $(ARG)/lib; \
-		mkdir -p $(ARG)/lib; \
-		cd $(ARG); \
-		npm run build:cjs; \
-		npm run build:es6; \
+		rm -rf $(ARG)/lib && \
+		mkdir -p $(ARG)/lib && \
+		cd $(ARG) && \
+		npm run build:cjs && \
+		npm run build:es6 && \
 		echo "✓ Compiled TypeScript to lib\n"; \
 	fi
 
@@ -69,8 +69,8 @@ release-patch:
 	@if [ "$(ARG)" = "" ]; then \
 		echo "Error: please call 'make release-patch' with an argument, like 'make release-patch action'"; \
 	else \
-		$(BUMP) $(ARG)/package.json --patch; \
-		make postbump $(ARG); \
+		$(BUMP) $(ARG)/package.json --patch && \
+		make postbump $(ARG) && \
 		echo "✓ Released new patch for $(ARG)"; \
 	fi
 

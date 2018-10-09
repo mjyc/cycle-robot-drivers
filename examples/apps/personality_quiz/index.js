@@ -7,7 +7,6 @@ const State = {
   ASK: 'ASK',
   WAIT_FOR_RESPONSE: 'WAIT_FOR_RESPONSE',
   WAIT_FOR_PERSON: 'WAIT_FOR_PERSON',
-
 };
 
 const InputType = {
@@ -225,10 +224,13 @@ function createEmission() {
 const transition = createTransition();
 const emission = createEmission();
 
-function update(state, variables, input) {
+function update(prevState, prevVariables, input) {
+  const state = transition(prevState, prevVariables, input);
+  const {variables, outputs} = emission(prevState, prevVariables, input);
   return {
-    state: transition(state, variables, input),
-    ...emission(state, variables, input)
+    state,
+    variables,
+    outputs,
   };
 }
 
@@ -265,7 +267,7 @@ function main(sources) {
     TabletFace: outputs$
       .filter(outputs => !!outputs.TabletFace)
       .map(output => output.TabletFace.goal),
-  }
+  };
 }
 
 runRobotProgram(main);
