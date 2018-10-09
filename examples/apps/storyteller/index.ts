@@ -4,13 +4,9 @@ import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 enum State {
   START = 'START',
-  ASK = 'ASK',
-  WAIT = 'WAIT',
+  TELL = 'TELL',
 }
 
-enum InputType {
-  READ_DONE = 'DONE',
-}
 
 type Variables = {
   storyIdx: number,
@@ -22,36 +18,27 @@ type Outputs = {
   },
 };
 
-const story = [
-  "Brown bear, brown bear, what do you see? I see a red bird looking at me.",
-  "Red bird, red bird, what do you see? I see a yellow duck looking at me.",
-  "Yellow duck, yellow duck, what do you see? I see a blue horse looking at me.",
-  "Blue horse, blue horse, what do you see? I see a green frog looking at me.",
-  "Green frog, green frog, what do you see? I see a purple cat looking at me.",
-  "Purple cat, purple cat, what do you see? I see a white dog looking at me.",
-  "white dog, white dog, what do you see?",
-  "I see a black sheep looking at me.",
-  "Black sheep, black sheep , what do you see? I see a goldfish looking at me.",
-  "Goldfish, goldfish, what do you see? I see a teacher looking at me.",
-];
-
-type ReducerState = {
+type Machine = {
   state: State,
   variables: Variables,
   outputs: Outputs,
 };
 
-type Reducer = (prev?: ReducerState) => ReducerState | undefined;
+enum InputType {
+  READ_DONE = 'DONE',
+}
 
 type Input = {
   type: InputType,
   value: any,
 };
 
+type Reducer = (prev?: Machine) => Machine | undefined;
+
 function input(
-  load$: Stream<any>,
-  speechSynthesisActionResult$: Stream<any>,  // consider passing the entire object
-  speechRecognitionActionResult$: Stream<any>,  // consider passing the entire object
+  start$: Stream<boolean>,
+  speechSynthesisActionSource,
+  speechRecognitionActionSource,
 ) {
   return xs.merge(
     load$.mapTo({type: InputType.DONE, value: null}),
@@ -74,7 +61,7 @@ const transitionTable = {
 
 function transition(
   prevState: State, prevVariables: Variables, input: Input
-): ReducerState {
+): Machine {
   const states = transitionTable[prevState];
   if (!states) {
     throw new Error(`Invalid prevState="${prevState}"`);
@@ -125,7 +112,7 @@ function transition(
 
 function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   const initReducer$: Stream<Reducer> = xs.of(
-    function initReducer(prev: ReducerState): ReducerState {
+    function initReducer(prev: Machine): Machine {
       return {
         state: State.START,
         variables: {
@@ -137,7 +124,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   );
 
   const inputReducer$: Stream<Reducer> = input$
-    .map(input => function inputReducer(prev: ReducerState): ReducerState {
+    .map(input => function inputReducer(prev: Machine): Machine {
       return transition(prev.state, prev.variables, input);
     });
 
@@ -152,7 +139,7 @@ function main(sources) {
   );
 
   const state$ = transitionReducer(input$)
-    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
+    .fold((state: Machine, reducer: Reducer) => reducer(state), null)
     .drop(1);  // drop "null"
   const outputs$ = state$.map(state => state.outputs)
     .filter(outputs => !!outputs);
