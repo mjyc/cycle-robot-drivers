@@ -3,13 +3,12 @@ import {Stream} from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 enum State {
-  START = 'START',
+  PEND = 'PEND',
   TELL = 'TELL',
 }
 
-
 type Variables = {
-  storyIdx: number,
+  index: number,
 };
 
 type Outputs = {
@@ -25,7 +24,8 @@ type Machine = {
 };
 
 enum InputType {
-  READ_DONE = 'DONE',
+  GOAL = 'GOAL',
+  TELL_DONE = 'DONE',
 }
 
 type Input = {
@@ -33,99 +33,100 @@ type Input = {
   value: any,
 };
 
-type Reducer = (prev?: Machine) => Machine | undefined;
+type Reducer = (machine?: Machine) => Machine;
 
 function input(
   start$: Stream<boolean>,
   speechSynthesisActionSource,
-  speechRecognitionActionSource,
-) {
+): Stream<Input> {
   return xs.merge(
-    load$.mapTo({type: InputType.DONE, value: null}),
-    speechSynthesisActionResult$.map(result => ({type: InputType.DONE, value: result})),
-    speechRecognitionActionResult$.debug().map(result => ({type: InputType.RECEIVED_RESPONSE, value: result})),
+    start$.debug()
+      .mapTo({type: InputType.GOAL, value: null}),
+    xs.fromObservable<Input>(
+      speechSynthesisActionSource.result
+        .map(result => ({type: InputType.TELL_DONE, value: result})),
+    ),
   );
 }
 
-const transitionTable = {
-  [State.START]: {
-    [InputType.DONE]: State.ASK,
-  },
-  [State.ASK]: {
-    [InputType.DONE]: State.WAIT,
-  },
-  [State.WAIT]: {
-    [InputType.RECEIVED_RESPONSE]: State.ASK,
-  },
-};
+const story = [
+  'Brown bear, brown bear, what do you see? I see a red bird looking at me.',
+  'Red bird, red bird, what do you see? I see a yellow duck looking at me.',
+  'Yellow duck, yellow duck, what do you see? I see a blue horse looking at me.',
+  'Blue horse, blue horse, what do you see? I see a green frog looking at me.',
+  'Green frog, green frog, what do you see? I see a purple cat looking at me.',
+  'Purple cat, purple cat, what do you see? I see a white dog looking at me.',
+  'White dog, white dog, what do you see? I see a black sheep looking at me.',
+  'Black sheep, black sheep , what do you see? I see a goldfish looking at me.',
+  'Goldfish, goldfish, what do you see? I see a teacher looking at me.',
+];
 
-function transition(
-  prevState: State, prevVariables: Variables, input: Input
-): Machine {
-  const states = transitionTable[prevState];
-  if (!states) {
-    throw new Error(`Invalid prevState="${prevState}"`);
-  }
-
-  let state = states[input.type];
-  if (!state) {
-    console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
-      + `set state to prevState`);
-    state = prevState;
-  }
-
-  console.log(prevState, input.type, state);
-
-  if ((prevState === State.START || prevState === State.WAIT) && state === State.ASK) {
-    const storyIdx = prevVariables.storyIdx + 1;
-    return {
-      state,
-      variables: {
-        storyIdx,
-      },
-      outputs: {
-        say: {
-          args: story[storyIdx],
+function createTransition() {
+  const transitionTable = {
+    [State.PEND]: {
+      [InputType.GOAL]: (variables) => ({
+        state: State.TELL,
+        variables,
+        outputs: {
+          SpeechSynthesisAction: {
+            goal: story[variables.index],
+          },
         },
-        listen: null,
-      },
-    };
-  } else if (prevState === State.ASK && state === State.WAIT) {
-    return {
-      state,
-      variables: prevVariables,
-      outputs: {
-        say: null,
-        listen: {
-          args: {},
+      }),
+    },
+    [State.TELL]: {
+      [InputType.TELL_DONE]: (variables) => {
+        const storyIndex = variables.index + 1;
+        if (storyIndex < story.length) {
+          return {
+            state: State.TELL,
+            variables: {index: storyIndex},
+            outputs: {
+              SpeechSynthesisAction: {
+                goal: story[storyIndex],
+              },
+            },
+          };
+        } else {  // done
+          return {
+            state: State.PEND,
+            variables: {index: storyIndex},
+            outputs: {
+              done: true,
+            },
+          };
         }
-      },
-    };
-  }
-
-  return {
-    state: State.START,
-    variables: prevVariables,
-    outputs: null,
+      }
+    }
   };
+
+  return function(state, variables, input) {
+    return !transitionTable[state]
+      ? state
+      : !transitionTable[state][input.type]
+        ? state
+        : transitionTable[state][input.type](variables);
+  }
 }
 
 function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   const initReducer$: Stream<Reducer> = xs.of(
-    function initReducer(prev: Machine): Machine {
-      return {
-        state: State.START,
+    function initReducer(machine: Machine): Machine {
+      return {  // initial machine state
+        state: State.PEND,
         variables: {
-          storyIdx: -1,
+          index: 0,
         },
         outputs: null,
       }
     }
   );
 
+  const transition = createTransition();
   const inputReducer$: Stream<Reducer> = input$
-    .map(input => function inputReducer(prev: Machine): Machine {
-      return transition(prev.state, prev.variables, input);
+    .map(input => function inputReducer(machine: Machine): Machine {
+      console.log(machine);
+      return transition(machine.state, machine.variables, input);
     });
 
   return xs.merge(initReducer$, inputReducer$);
@@ -134,8 +135,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 function main(sources) {
   const input$ = input(
     xs.fromObservable(sources.TabletFace.load),
-    xs.fromObservable(sources.SpeechSynthesisAction.result),
-    xs.fromObservable(sources.SpeechRecognitionAction.result),
+    sources.SpeechSynthesisAction,
   );
 
   const state$ = transitionReducer(input$)
@@ -145,8 +145,9 @@ function main(sources) {
     .filter(outputs => !!outputs);
   
   return {
-    SpeechSynthesisAction: outputs$.filter(outputs => !!outputs.say).map(outputs => outputs.say.args),
-    SpeechRecognitionAction: outputs$.filter(outputs => !!outputs.listen).map(outputs => outputs.listen.args).debug(),
+    SpeechSynthesisAction: outputs$
+      .filter(outputs => !!outputs.SpeechSynthesisAction)
+      .map(outputs => outputs.SpeechSynthesisAction.goal),
   };
 }
 
