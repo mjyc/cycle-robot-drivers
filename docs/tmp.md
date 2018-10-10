@@ -1,0 +1,146 @@
+<!-- From my experience, it was not trivial.
+For example, if we were to implement the behavior 1. on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js), we need to  -->
+
+
+<!-- But checking whether the speech recognition is running or not requires us to monitor the goals sent to and the results the action and  -->
+
+<!-- and "knowing" whether the robot is waiting requires remembering last value sent to or emitted from the SpeechRecognitionAction driver.
+
+To figure out whether 
+
+But there is no direct way to "know" the state other than 
+
+SpeechRecognitionAction
+
+it requires remembering last 
+
+From my experience, working with a "state" in reactive programming in general was not trivial.
+For example, to implement the first additional behavior, we need to know whether the robot is currently waiting for a human response.
+However, -->
+
+
+<!-- which we will have to somehow make the program to "remember" from 
+
+However, extracting and remembering such information 
+
+From my experience, it was easy to represent a desired complex human-robot interaction as a finite state machine but implementing the desired behavior without an abstraction quickly resulted in spaghetti code. -->
+
+
+<!-- From my experience of programming social robots using the reactive programming approach, it became increasingly difficult to maintain readable code when the complexity of supported interactions grew.
+
+However, I noticed UX designers expressed complex user interaction flow as a user flowchart, which looked very similar to finite state machine. -->
+
+
+
+
+<!-- The desired complex user interactions were easy to represent as a flowchart however implementing 
+The desired complex user interaction flow was easy to represent as a state machine 
+In general, it especially was difficult to convert a user interaction flowchart into a reactive program.
+Especially difficult when I was trying to convert.
+To address the problem,  -->
+
+<!-- the difficulty of manging as user flow became more complex.
+In my experience, using the reactive programming approach,  -->
+
+<!-- In my experience, it was very difficult to implement a complex program as I mentioned here because "state". -->
+
+<!-- For example, in the previous example, we use a proxy to which made the code little bit difficult to read. -->
+<!-- Another pattern we could use is using `reduce` , which I won't go into details at this point. -->
+<!-- Another pattern we could use is using `reduce` , -->
+<!-- Since FSM is natural for expressing state dependent programs, we'll use it. -->
+
+
+<!-- Now, imagine extending this program to add more features, such as
+
+1. follow face only when it is waiting for a person
+2. stop asking questions if a person is not visibile on screen and resume
+3. multiple inputs
+
+Do you think you can implement them easily? why or why not? -->
+
+<!-- In my experience, it was difficult to build complex programs because 
+In my experience, it was very difficult to build complex because are stateless and need to use proxy pattern, higher-order streams, etc., to ... reduce or scan, which were all difficult to understand. -->
+
+
+
+
+
+
+<!-- ## Why use FSM?
+
+Imagine you want to  -->
+
+<!-- Mathmatically, it is a tuple: -->
+
+<!-- A Mealy machine is a 6-tuple {\displaystyle (S,S_{0},\Sigma ,\Lambda ,T,G)} (S, S_0, \Sigma, \Lambda, T, G) consisting of the following:
+
+a finite set of states {\displaystyle S} S
+a start state (also called initial state) {\displaystyle S_{0}} S_{0} which is an element of {\displaystyle S} S
+a finite set called the input alphabet {\displaystyle \Sigma } \Sigma 
+a finite set called the output alphabet {\displaystyle \Lambda } \Lambda 
+a transition function {\displaystyle T:S\times \Sigma \rightarrow S} T : S \times \Sigma \rightarrow S mapping pairs of a state and an input symbol to the corresponding next state.
+an output function {\displaystyle G:S\times \Sigma \rightarrow \Lambda } G:S\times \Sigma \rightarrow \Lambda  mapping pairs of a state and an input symbol to the corresponding output symbol.  
+In some formulations, the transition and output functions are coalesced into a single function {\displaystyle T:S\times \Sigma \rightarrow S\times \Lambda } T:S\times \Sigma \rightarrow S\times \Lambda . -->
+
+<!-- Why do we care about this? What is wrong with using?
+
+Imagine
+
+1. follow face only when it is waiting for a person
+2. stop asking questions if a person is not visibile on screen
+3. resume by 
+
+For 1. you have to know whether the robot is waiting for a person or not
+For 2. you have to know whether the last asked question 
+
+Also in general
+
+* multiple clicks; whatever
+* loading action while waiting--which is what I'm doing
+* disable something else while waiting
+* unexpected / multiple inputs (voice & touch) -->
+
+<!-- ## Implementing traffic light FSM and Cycle.js
+
+TODO: Copy the example from there
+
+```
+``` -->
+
+
+
+
+
+
+
+
+<!-- I'll continue from where we left off  -->
+
+<!-- I assume you have read the previous post, [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md),  -->
+
+<!-- I'll program a tablet face robot, a  -->
+<!-- For the  introduction of social robot -->
+<!-- What is a social robot? -->
+
+<!-- In the previous post, [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md), I demonstrated how to program a social robot using reactive programming approach.
+Now imagine extending ... -->
+
+<!-- [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md) -->
+
+
+<!-- Specifically, we'll update and extend the [the travel personality quiz program](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) from the previous post . -->
+
+<!-- # Programming a social robot with a finite state machine
+In this post, I'll show you how to program a social robot with 
+
+
+In this post, I'll show you how to program a social robot using finite state machine (FSM).
+
+We'll continue from [the travel personality quiz program]() we built in the previous post, [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md).
+
+We'll build on top of using reactive programming and Cycle.js framework which I demonstrated in the previous post, [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md).
+So check it out, if you haven't read it already. -->
+
+<!-- If you are eager to get your hands dirty, jump to the [Implementing "travel personality test"](#implementing-travel-personality-test) section. -->
+
+<!-- TODO: give a link to see the final result -->

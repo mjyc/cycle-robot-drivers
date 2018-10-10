@@ -1,66 +1,77 @@
-# Programming a social robot using finite state machine
+# Programming a social robot using a finite state machine
+<!-- Programming a reactive social robot program as finite state machine -->
 
-In this post, I'll show you how to program a social robot using finite state machine (FSM).
-We'll build on top of the previous examplde code
-So if you haven't read it, I go check it out.
-<!-- I assume you have read the previous post, [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md).
-If you haven't, check it out since we are building examples on top of the example code used in the previous post. -->
+In this post, I'll show you how to program a social robot using a [finite state machine](https://en.wikipedia.org/wiki/Finite-state_machine).
+We'll continue from where we left off in the previous post [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)--so check it out if you haven't already!
+
+## Making "travel personality quiz" program more complex
+
+In the previous post, we programmed the [tablet-face robot](https://github.com/mjyc/tablet-robot-face) to test your travel personality.
+Concretely, we implemented a tablet-face robot program that
+
+1. looks at a person when it sees one and
+2. asks travel personality quiz questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/).
+
+[The complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) is available via Stackblitz.
+
+**IMPORTANT!!** The main pacakge we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers for now.
+
+Now, what if we want the robot to
+
+1. only look at a person when it is waiting for a person's response,
+2. stop asking a question if the robot cannot see a person and resume asking the question if it sees a person again
+3. stop asking questions completely if it does not see a person for more than 10 seconds.
+
+How difficult would it be to update the existing program to have these additional behaviors?
+Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js), what kind of challenges do you face?
+
+From my experience, there were two major challenges; first, clearly expressing the desired robot behavior without any implementation and second, implementing the desired behavior in a reactive programming framework.
+In this post, I'll show how to address the first challenge using a finite state machine, a representation frequently used by roboticists and UX deisngers.
+I'll also demonstrate a pattern for implementing finite state machine in a reactive programming framework.
+
+<!-- From my experience, there were two major challenges; first, clearly expressing the desired robot behavior without any implementation and second, implementing the stated behavior in a reactive programming framework.
+
+To address the first challenge, I adopted a finite state machine, , which is widely used by roboticists as well as UX designers .
+For the second challenge, I updated -->
+
+<!-- From my experience, expressing the desired, complex human-robot interaction as a finite state machine  -->
+<!-- From my experience, working with a "state" in a reactive programming framework was not trivial.
+For example, to implement the first additional behavior, we need to know whether the robot is currently waiting for a human response, i.e., speech recognition action is running, or not.
+However, there is no direct way to access the state of speech recognition so we need to write additional code.
+In addition to the problem of representing a state, writing logic for transitioning between states can be error-prone if it is not done properly. -->
 
 
-## What is finite state machine (FSM)?
+## What is finite state machine?
 
+Finite state machine (FSM) is a computational model that can be used for making sequential decisions. <!-- to represent and control execution flow -->
+A FSM we are using in this post is comprised of five parts:
+
+0. A set of states, e.g., `'ASK_QUESTION'`, `'WAIT_FOR_RESPONSE'`, etc.
+0. A set of variables, e.g., `currentQuestion`
+0. A set of inputs: e.g., `VALID_RESPONSE`, `INVALID_RESPONSE`, etc.
+0. A set of outputs: e.g., `SpeechSynthesisAction`, `SpeechSynthesisAction`
+0. A transition function that takes a state, variable, and input and returns a state, variable, and output.
+
+<!-- If you are familiar with FSMs, the above FSM is a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine) with  -->
+
+The FSM we use has the following restrictions
+
+* there are finite set of states
+* the FSM can only be in one state
+* the transition function is deterministic: changes its state and emits an output in response to an input
+
+<!-- A FSM can only be in one state 
 Finite state machine is a computational model for making sequential decision.
 A FSM can only be in one state of the finite states, and changes its state and emits an output in response to an input.
-It is composed of five parts
+It is composed of five parts -->
 
-## Why use FSM?
 
-Imagine you want to 
-
-<!-- Mathmatically, it is a tuple: -->
-
-<!-- A Mealy machine is a 6-tuple {\displaystyle (S,S_{0},\Sigma ,\Lambda ,T,G)} (S, S_0, \Sigma, \Lambda, T, G) consisting of the following:
-
-a finite set of states {\displaystyle S} S
-a start state (also called initial state) {\displaystyle S_{0}} S_{0} which is an element of {\displaystyle S} S
-a finite set called the input alphabet {\displaystyle \Sigma } \Sigma 
-a finite set called the output alphabet {\displaystyle \Lambda } \Lambda 
-a transition function {\displaystyle T:S\times \Sigma \rightarrow S} T : S \times \Sigma \rightarrow S mapping pairs of a state and an input symbol to the corresponding next state.
-an output function {\displaystyle G:S\times \Sigma \rightarrow \Lambda } G:S\times \Sigma \rightarrow \Lambda  mapping pairs of a state and an input symbol to the corresponding output symbol.  
-In some formulations, the transition and output functions are coalesced into a single function {\displaystyle T:S\times \Sigma \rightarrow S\times \Lambda } T:S\times \Sigma \rightarrow S\times \Lambda . -->
-
-Why do we care about this? What is wrong with using?
-
-Imagine
-
-1. follow face only when it is waiting for a person
-2. stop asking questions if a person is not visibile on screen
-3. resume by 
-
-For 1. you have to know whether the robot is waiting for a person or not
-For 2. you have to know whether the last asked question 
-
-Also in general
-
-* multiple clicks; whatever
-* loading action while waiting--which is what I'm doing
-* disable something else while waiting
-* unexpected / multiple inputs (voice & touch)
-
-<!-- ## Implementing traffic light FSM and Cycle.js
-
-TODO: Copy the example from there
-
-```
-``` -->
-
-## Updating "travel personality test" to use FSM
-
-<!-- ### Defining states and variables (and udpate the relevant code) -->
+## Updating the "travel personality test" program as a FSM
 
 We'll start by identifying states and variables
 
-Define Stae
+Define State
+
 ```js
 const State = {
   PEND: 'PEND',
