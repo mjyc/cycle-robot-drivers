@@ -3,7 +3,7 @@
 In this post, I'll show you how to program a social robot using [Cycle.js](https://cycle.js.org/).
 I assume you are familiar reactive programming.
 If you are not, check out [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
-If you are eager to get your hands dirty, jump to the [Implementing "travel personality test"](#implementing-travel-personality-test) section
+If you are eager to get your hands dirty, jump to the [Implementing "travel personality test"](#implementing-travel-personality-test) section.
 
 
 ## What is a social robot?
@@ -55,10 +55,12 @@ Specifically, we'll make the robot to
 
 If you are curious, check out [the complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) at Stackblitz.
 
+**IMPORTANT!!** For now, the [cycle-robot-drivers/run](../run) package we use in this post only work on Chrome browsers (>= 65.0.3325.181).
+
 
 The code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2).
 To build code, I use [browserify](http://browserify.org/) and [Babel](https://babeljs.io/) here, but feel free to use a build tool and a transpiler you prefer.
- <!-- , e.g., [webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/). -->
+<!-- , e.g., [webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/). -->
 
 Let's set up a Cycle.js application.
 Create a folder:
@@ -223,8 +225,9 @@ function main(sources) {
 
 // ...
 ```
-Here we are sending commands to the `TabletDriver` by using the stream created from the output stream of the `PoseDetection` driver (`sources.PoseDetection.poses`). <!-- instead of creating one from scratch as we did above when we made the robot to look left and right. -->
+Here we are sending commands to the `TabletDriver` by using the stream created from the output stream of the `PoseDetection` driver (`sources.PoseDetection.poses`).
 To convert pose data into control commands, we use the [`filter`](https://github.com/staltz/xstream#filter) xstream operator to filter pose data to the ones containing only one person whose nose is visible. Then we use the [`map`](https://github.com/staltz/xstream#map) xstream operator twice to convert the detected nose positions into eye positions and turn the eye positions into control commands.
+<!-- ... driver (`sources.PoseDetection.poses`) instead of creating one from scratch as we did above when we made the robot to look left and right. -->
 
 We have made the robot to look at a face!
 
@@ -243,6 +246,7 @@ The `runRobotProgram` function is [a wrapper function for Cycle.js' `run`](../ru
 1. creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection`
 2. creates and sets up five action components `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction` to allow programmers to use them as drivers, and
 3. calls  Cycle.js' run with the created drivers and actions.
+
 <!-- TODO: Add an example of manually defining a driver here -->
 
 In fact, if you are comfortable with Cycle.js, you could use Cycle.js' `run` instead of `runRobotProgram` to have more control over drivers and actions.
