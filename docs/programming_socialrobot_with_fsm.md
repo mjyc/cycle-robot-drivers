@@ -27,10 +27,10 @@ How difficult would it be to update the existing program to have these additiona
 Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js)--what kind of challenges do you face?
 
 From my experience, there were two major challenges; clearly expressing the desired robot behavior and implementing the desired behavior in a reactive programming framework.
-To address the first challenge, we'll use a finite state machine for its simplicity.
-For the second challenge, I'll present a pattern for implementing a finite state machine in a reactive programming framework [Cycle.js](https://cycle.js.org/) without scarifying maintainability.
-<!-- In the rest of this post, I'll first demonstrate using a finite state machine to express a complex desired behavior.
-Then I'll present a pattern for implementing a finite state machine in a reactive programming framework Cycle.js without scarifying maintainability. -->
+<!-- To address the first challenge, we'll use a finite state machine for its simplicity.
+For the second challenge, I'll present a pattern for implementing a finite state machine in a reactive programming framework [Cycle.js](https://cycle.js.org/) without scarifying maintainability. -->
+In the rest of this post, I'll first demonstrate using a finite state machine to express a complex desired behavior.
+Then I'll present a pattern for implementing a finite state machine in a reactive programming framework Cycle.js without scarifying maintainability.
 
 
 ## What is a finite state machine?
@@ -51,17 +51,10 @@ Like a mealy machine, it has the following constraints:
 * the FSM can only be in one state in the state set
 * the transition function is deterministic; given a state, variable, and input the function always returns the same new state, variable, and output.
 
-<!-- Notice that we made state names verbs as the popular robotics library [SMACH](http://wiki.ros.org/smach) does.
-This is because we define state based on distinct actions each state is performing, which are triggered by outputs emitted from transitions. -->
 
+## Representing the "travel personality quiz" program as an FSM
 
-## Implementing the "travel personality test" FSM using Cycle.js
-
-Let's now implement the "travel personality test" program as an FSM.
-
-<!-- We'll start from representing the ["travel personality test" program](../examples/tutorials/01_personality_quiz/index.js) we implemented in the previous post extended with the first additional behavior mentioned above: looking at a person only when the robot is waiting for a person's response.
-Such a program can be expressed as an FSM like this: -->
-We'll start from representing the ["travel personality test" program](../examples/tutorials/01_personality_quiz/index.js) we implemented in the previous post as follows:
+We'll start from representing the ["travel personality test" program](../examples/tutorials/01_personality_quiz/index.js) we implemented in the previous post as an FSM:
 
 ![travel_personality_quiz_fsm](./travel_personality_quiz_fsm.svg)
 
@@ -81,8 +74,15 @@ Now, let's update the FSM to express the first additional behavior mentioned abo
 
 All we did here is removing the two self-loop transitions from the `PEND` and `SAY` states to stop the robot from looking at a person while the FSM is in those states.
 
-Here we have three states and four input types and omitted something. 
-First, we'll start from defining an FSM as follows:
+I'll leave updating this FSM to support the other two additional behaviors as an exercise.
+Try it!
+
+
+## Implementing the "travel personality test" FSM using Cycle.js
+
+Let's now implement the "travel personality test" FSM we defined above using Cycle.js.
+
+First, we'll try to define the FMS in javascript as follows:
 
 ```js
 const State = {
@@ -99,15 +99,21 @@ const InputType = {
   DETECTED_FACE: `DETECTED_FACE`,
 };
 
-function transition(state, variables, input) {
-  const outputs = null;
-  return {state, variables, outputs};
+function transition(state, variables, input) {  // a dummy transition function
+  const newState = state;
+  const newVariables = variables;
+  const newOutputs = null;
+  return {
+    state: newState,
+    variables: newVariables,
+    outputs: newOutputs,
+  };
 }
 
 /**
  * // Example state, variables, input, and outputs
  * const state = State.PEND;
- * const variables = {
+ * const variables = {  
  *   sentence: 'You are a vacationer!',
  * };
  * const input = {
@@ -134,7 +140,22 @@ function transition(state, variables, input) {
  */
 ```
 
-Let's now build a Cycle.js application as follows:
+Here we define the set of states `State`, the set of input types `InputType`, and the transition function `transition`
+The sets for the variables and outputs of the FSM are not explicitly defined, but I provided example values that the variables and outputs can take in the comment.
+
+We'll now setup the FSM as a Cycle.js application.
+Like before, create a folder:
+
+```
+mkdir my-second-robot-program
+cd my-second-robot-program
+```
+
+Then download [`package.json`](../examples/tutorials/02_fsm/package.json), [`.babelrc`](../examples/tutorials/02_fsm/.babelrc), [`index.html`](../examples/tutorials/02_fsm/index.html) and create an empty `index.js` file in the folder.
+Run `npm install` to install the required npm packages.
+After installing, you can run `npm start` to build and start the web application that does nothing.
+
+Now add the following code in index.js:
 
 ```js
 import xs from 'xstream';
@@ -144,109 +165,50 @@ const State = {
 // ...
 const InputType = {
 // ...
-const transition(state, variables, input) {
+function transition(state, variables, input) {  // a dummy transition function
 // ...
+
+function input() {  // a dummy input function
+  return xs.never();
+}
+
+function output(machine$) {
+  return {
+    SpeechSynthesisAction: xs.never(),
+    SpeechRecognitionAction: xs.never(),
+    TabletFace: xs.never(),
+  };
+}
 
 function main(sources) { 
   const input$ = xs.never();
 
-  defaultMachine = {
+  const defaultMachine = {
     state: State.PEND,
     variables: {
       sentence: null,
     },
     outputs: null,
   };
-
   const machine$ = input$.fold((machine, input) => transition(
     machine.state, machine.variables, input
   ), defaultMachine);
 
-  const outputs$ = machine$
-    .filter(machine => !!machine.outputs)
-    .map(machine => machine.outputs);
-
-  return {
-    SpeechSynthesisAction: outputs$
-      .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(output => output.SpeechSynthesisAction.goal),
-    SpeechRecognitionAction: outputs$
-      .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal),
-    TabletFace: outputs$
-      .filter(outputs => !!outputs.TabletFace)
-      .map(output => output.TabletFace.goal),
-  };
+  const sinks = output(machine$);
+  return sinks;
 }
 
 runRobotProgram(main);
 ```
 
-Here we setup a Cycle.js app by ...
+The most important thing to notice compare to the  did here is diving the `main` function into three functions; `input`, `transition`, and `output`.
 
-<!-- kept the variables as they were there before. rename transition => flowchart -->
+The input function generate the `input$` stream that emits input values 
+The transition function updates the FSM using the `reduce` xstream operator, which is `Array.prototype.reduce` but start with `defaultState` and applying the accumulator function (i.e., the first argument) that takes emitted input value and the latest state machine.
+Finally, the output function takes 
 
-update the main as follows
+Let's implement the three function one by one.
 
-```js
-function main(sources) {
-
-  const defaultMachine = {
-    state: State.PEND,
-    variables: {
-      question: null,
-    },
-    outputs: null,
-  };
-
-  const input$ = sources.Tablet.load;
-
-  const machine$ = input$.fold((machine, input) => update(
-    machine.state, machine.variables, input
-  ), defaultMachine);
-
-  const outputs$ = machine$
-    .filter(machine => !!machine.outputs)
-    .map(machine => machine.outputs);
-
-  return {
-    SpeechSynthesisAction: outputs$
-      .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(output => output.SpeechSynthesisAction.goal),
-    SpeechRecognitionAction: outputs$
-      .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal),
-    TabletFace: outputs$
-      .filter(outputs => !!outputs.TabletFace)
-      .map(output => output.TabletFace.goal),
-  };
-}
 ```
 
-First, we define state machine as a object with the three fields.
-
-We then define the `input$` stream, which is simply the load stream that emits an event once when DOM is loaded for now,
-
-Now we use fold operator in input to update the state machine over time.
-
-Finally we create a outputs stream and create new streams as commands to action drivers.
-
-We now have a simple state machine! Try running it! You should 
-
-<!-- Then we define the `machine$` stream using `fold` on input. This is where the `transition` is happening.
-
-We now have a simplest state machine! -->
-
-
-## Making it more complex
-
-
-<!-- ### Defining inputs and outputs (and udpate the relevant code)
-
-we'll include variable field in input
-
-### Defining transition (and emission)
-
-the big function
-
-### That's it! -->
+```
