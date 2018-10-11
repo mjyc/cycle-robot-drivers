@@ -20,7 +20,6 @@ const InputType = {
 };
 
 const Question = {
-  EMPTY: '',
   CAREER: 'Is it important that you reach your full career potential?',
   ONLINE: 'Can you see yourself working online?',
   FAMILY: 'Do you have to be near my family/friends/pets?',

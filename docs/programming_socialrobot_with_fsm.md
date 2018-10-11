@@ -6,7 +6,7 @@ We'll continue from where we left off in the previous post [Programming a social
 
 ## Making "travel personality quiz" program more complex
 
-In the previous post, we programed a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) to test your travel personality.
+In the previous post, we programmed a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) to test your travel personality.
 Concretely, we implemented a tablet-face robot program that
 
 1. looks at a person when it sees one and
@@ -15,7 +15,7 @@ Concretely, we implemented a tablet-face robot program that
 as a [Cycle.js](https://cycle.js.org/) application.
 [The complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) is available at Stackblitz.
 
-**IMPORTANT!!** The main pacakge we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers  (>= 65.0.3325.181) for now.
+**IMPORTANT!!** The main package we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers  (>= 65.0.3325.181) for now.
 
 Now, what if we want the robot
 
@@ -26,74 +26,161 @@ Now, what if we want the robot
 How difficult would it be to update the existing program to have these additional behaviors?
 Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js)--what kind of challenges do you face?
 
-From my experience, there were two major challengzes; clearly expressing the desired robot behavior and implementing the desired behavior in a reactive programming framework.
-In the rest of this post, I'll first demonstrate using a finite state machine to express a complex desired behavior.
-Then I'll present a pattern for implementing a finite state machine in a reactive programming framework without scarifying maintainability.
+From my experience, there were two major challenges; clearly expressing the desired robot behavior and implementing the desired behavior in a reactive programming framework.
+To address the first challenge, we'll use a finite state machine for its simplicity.
+For the second challenge, I'll present a pattern for implementing a finite state machine in a reactive programming framework [Cycle.js](https://cycle.js.org/) without scarifying maintainability.
+<!-- In the rest of this post, I'll first demonstrate using a finite state machine to express a complex desired behavior.
+Then I'll present a pattern for implementing a finite state machine in a reactive programming framework Cycle.js without scarifying maintainability. -->
 
 
-## What is finite state machine?
+## What is a finite state machine?
 
-[Finite state machine (FSM)](https://en.wikipedia.org/wiki/Finite-state_machine) is a computational model that can be used to represent and control execution flow.
-Due to their simplicity, FSMs have been frequently used by [roboticists](http://wiki.ros.org/smach), [UI developers](https://sketch.systems/) and many others for a [long](https://www.mtholyoke.edu/courses/pdobosh/cs100/handouts/genghis.pdf) [time](http://www.inf.ed.ac.uk/teaching/courses/seoc/2005_2006/resources/statecharts.pdf). A FSM we are using in this post is comprised of five parts:
+A [finite state machine (FSM)](https://en.wikipedia.org/wiki/Finite-state_machine) is a computational model that can be used to represent and control execution flow.
+Due to their simplicity, FSMs have been frequently used by [roboticists](http://wiki.ros.org/smach), [UI developers](https://sketch.systems/) and many others for a [long](https://www.mtholyoke.edu/courses/pdobosh/cs100/handouts/genghis.pdf) [time](http://www.inf.ed.ac.uk/teaching/courses/seoc/2005_2006/resources/statecharts.pdf). An FSM we are using in this post is comprised of five parts:
 
-1. A set of states, e.g., `'ASK_QUESTION'`, `'WAIT_FOR_RESPONSE'`, etc.
-1. A set of variables, e.g., `currentQuestion = 'Can you see yourself working online?'`
+1. A set of states, e.g., `'SAY_SENTENCE'`, `'WAIT_FOR_RESPONSE'`, etc.
+1. A set of variables, e.g., `currentSentence = 'Can you see yourself working online?'`
 1. A set of inputs: e.g., `VALID_RESPONSE`, `INVALID_RESPONSE`, etc.
 1. A set of outputs: e.g., `speechSynthesisAction = 'Can you see yourself working online?'`
 1. A transition function that takes a state, variable, and input and returns a state, variable, and output.
 
-We make state names verbs since the FSM emits outputs that trigger actions on entering a state.
-If you are familiar with FSMs, the FSM we are using is a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine) extended with the variables.
+<!-- Notice that we made state names verbs.
+This is because state represent an action the robot is running at the moment. -->
+<!-- We make state names verbs since the FSM emits outputs that trigger actions on entering a state. -->
+If you are familiar with FSMs, the FSM we are using is a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine) extended with variables.
 Like a mealy machine, it has the following constraints:
 
 * the state set is a [finite set](https://en.wikipedia.org/wiki/Finite_set)
 * the FSM can only be in one state in the state set
 * the transition function is deterministic; given a state, variable, and input the function always returns the same new state, variable, and output.
 
-
-## Expressing the "travel personality test" program as a FSM
-
-Let's now express ...
-
-![Drag Racing](./travel_personality_quiz_fsm.svg)
+Notice that we made state names verbs as the popular robotics library [SMACH](http://wiki.ros.org/smach) does.
+This is because we define state based on distinct actions each state is performing, which are triggered by outputs emitted from transitions.
 
 
 ## Implementing the "travel personality test" FSM using Cycle.js
 
-We'll start by identifying states and variables
+Let's now represent and implement the desired "travel personality test" program as a FSM.
 
-Define State
+First, we'll start from defining an FSM as follows:
 
 ```js
 const State = {
   PEND: 'PEND',
-  ASK: 'ASK',
-  WAIT: 'WAIT',
+  SAY: 'SAY',  //_SENTENCE
+  LISTEN: 'LISTEN',  //_FOR_RESPONSE
+  // WAIT: 'WAIT',  //_FOR_PERSON
 };
 
 const InputType = {
-  GOAL: 'GOAL',
-  ASK_SUCCESS: 'ASK_SUCCESS',
-  VALID_RESPONSE: 'VALID_RESPONSE',
-  INVALID_RESPONSE: 'INVALID_RESPONSE',
-  DETECTED_FACE: 'DETECTED_FACE',
+  GOAL: `GOAL`,
+  SAY_DONE: `SAY_DONE`,
+  VALID_RESPONSE: `VALID_RESPONSE`,
+  INVALID_RESPONSE: `INVALID_RESPONSE`,
+  DETECTED_FACE: `DETECTED_FACE`,
+  // FOUND_PERSON: `FOUND_PERSON`,
+  // LOST_PERSON: `LOST_PERSON`,
+  // TIMED_OUT: `TIMED_OUT`,
 };
 
-const Question = {
-  // ...
-};
+function transition(state, variables, input) {
+  const outputs = null;
+  return {state, variables, outputs};
+}
 
-const Response = {
-  // ...
-};
+/**
+ * // Example state, variables, input, and outputs
+ * const state = State.PEND;
+ * const variables = {
+ *   sentence: 'You are a vacationer!',
+ * };
+ * const input = {
+ *   type: InputType.GOAL,
+ *   value: null,
+ * };
+ * const outputs = {
+ *   SpeechSynthesisAction: {
+ *     goal: 'You are a vacationer!'
+ *   },
+ *   SpeechRecognitionAction: {
+ *     goal: {}
+ *   },
+ *   TabletFace: {
+ *     goal: {
+ *       type: 'SET_STATE',
+ *       value: {
+ *         leftEye: {x: 0.5, y: 0.5},
+ *         rightEye: {x: 0.5, y: 0.5},
+ *       },
+ *     }},
+ *   },
+ * }
+ */
 
-const flowchart = {
-  // ...
+const defaultMachine = {
+  state: State.PEND,
+  variables: {
+    sentence: null,
+  },
+  outputs: null,
 };
-
 ```
 
-kept the variables as they were there before. rename transition => flowchart
+Here we define the set of states as `State`, the input type as `InputType`, a dummy transition function as `transition`.
+An example value that each part in the FSM can take is shown in the comment.
+For the variables, input, and outputs, we use javascript objects to leave a room for extension.
+
+Let's now build a Cycle.js application as follows:
+
+```js
+import xs from 'xstream';
+import {runRobotProgram} from '@cycle-robot-drivers/run';
+
+const State = {
+// ...
+const InputType = {
+// ...
+const transition(state, variables, input) {
+// ...
+
+function main(sources) { 
+  const input$ = xs.never();
+
+  defaultMachine = {
+    state: State.PEND,
+    variables: {
+      sentence: null,
+    },
+    outputs: null,
+  };
+
+  const machine$ = input$.fold((machine, input) => transition(
+    machine.state, machine.variables, input
+  ), defaultMachine);
+
+  const outputs$ = machine$
+    .filter(machine => !!machine.outputs)
+    .map(machine => machine.outputs);
+
+  return {
+    SpeechSynthesisAction: outputs$
+      .filter(outputs => !!outputs.SpeechSynthesisAction)
+      .map(output => output.SpeechSynthesisAction.goal),
+    SpeechRecognitionAction: outputs$
+      .filter(outputs => !!outputs.SpeechRecognitionAction)
+      .map(output => output.SpeechRecognitionAction.goal),
+    TabletFace: outputs$
+      .filter(outputs => !!outputs.TabletFace)
+      .map(output => output.TabletFace.goal),
+  };
+}
+
+runRobotProgram(main);
+```
+
+Here we setup a Cycle.js app by ...
+
+<!-- kept the variables as they were there before. rename transition => flowchart -->
 
 update the main as follows
 

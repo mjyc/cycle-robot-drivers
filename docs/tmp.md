@@ -1,3 +1,87 @@
+Here we define the set of states as `State`, the variable as a set of strings `sentence`, the input as a type-value pair using a javascript object with `type` and `value` fields, and the outputs as
+The `State` variable defines the set of states and variables
+We represent input as a type-value pair which is implemented as an javascript object with type and value fields.
+Outputs 
+
+
+
+
+
+
+## Expressing the "travel personality test" program as a FSM
+
+Let's now represent the desired "travel personality test" program as a FSM.
+
+We'll start from defining a set of states:
+
+* `PEND`
+* `SAY`(_SENTENCE)
+* `LISTEN`(_FOR_RESPONSE)
+* `WAIT`(_FOR_PERSON)
+
+a variable
+
+* `sentence`: a set of strings that has elements like `'Is it important that you reach your full career potential?'`, `'You are a vacationer!'`, etc.
+
+and input types:
+
+* `GOAL`
+* `SAY_DONE`
+* `VALID_RESPONSE`
+* `INVALID_RESPONSE`
+* `DETECTED_FACE`
+* `FOUND_PERSON`
+* `LOST_PERSON`
+* `TIMED_OUT`
+
+and outputs:
+
+* speechSynthesisActionGoal
+* speechRecognitionActionGoal
+* tabletFaceStateCommand
+
+We then visualize the transition function as follows:
+
+![travel_personality_quiz_fsm](./travel_personality_quiz_fsm.svg)
+
+Here each color means something
+
+
+
+
+
+
+<!-- and define a variable `sentence` as a set of strings for storing sentences like `'Is it important that you reach your full career potential?'`, `'You are a vacationer!'`, etc.
+
+We then define input as a tuple ()
+
+a set of input types:
+
+* `GOAL`
+* `SAY_DONE`
+* `VALID_RESPONSE`
+* `INVALID_RESPONSE`
+* `DETECTED_FACE`
+* `FOUND_PERSON`
+* `LOST_PERSON`
+* `TIMED_OUT`
+
+
+Notice that instead of making each sentence 
+
+outputs are 
+
+Then transitions could be visualized as
+
+![travel_personality_quiz_fsm](./travel_personality_quiz_fsm.svg)
+
+Note that self-transitions  -->
+
+
+
+
+
+
 margin=10, minlen=1, 
 margin=10, minlen=1, 
 margin=10, minlen=1, 
@@ -6,6 +90,9 @@ margin=10, minlen=1,
 margin=10, minlen=1, 
 margin=10, minlen=1, 
 margin=10, minlen=1, 
+
+
+
 
 
 
