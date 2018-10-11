@@ -1,3 +1,12 @@
+<!-- Notice that we made state names verbs.
+This is because state represent an action the robot is running at the moment. -->
+<!-- We make state names verbs since the FSM emits outputs that trigger actions on entering a state. -->
+
+
+
+
+
+
 Here we define the set of states as `State`, the variable as a set of strings `sentence`, the input as a type-value pair using a javascript object with `type` and `value` fields, and the outputs as
 The `State` variable defines the set of states and variables
 We represent input as a type-value pair which is implemented as an javascript object with type and value fields.

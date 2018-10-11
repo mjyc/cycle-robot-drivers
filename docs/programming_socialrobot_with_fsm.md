@@ -10,7 +10,7 @@ In the previous post, we programmed a [tablet-face robot](https://github.com/mjy
 Concretely, we implemented a tablet-face robot program that
 
 1. looks at a person when it sees one and
-2. asks travel personality quiz questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/)
+1. asks travel personality quiz questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/)
 
 as a [Cycle.js](https://cycle.js.org/) application.
 [The complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) is available at Stackblitz.
@@ -20,8 +20,8 @@ as a [Cycle.js](https://cycle.js.org/) application.
 Now, what if we want the robot
 
 1. look at a person only when the robot is waiting for a person's response,
-2. stop asking a question if the robot cannot see a person and resume asking the question if it sees a person again, and
-3. stop asking questions completely if a person abandons the robot, i.e., the robot does not see a person for more than 10 seconds.
+1. stop asking a question if the robot cannot see a person and resume asking the question if it sees a person again, and
+1. stop asking questions completely if a person abandons the robot, i.e., the robot does not see a person for more than 10 seconds.
 
 How difficult would it be to update the existing program to have these additional behaviors?
 Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js)--what kind of challenges do you face?
@@ -44,9 +44,6 @@ Due to their simplicity, FSMs have been frequently used by [roboticists](http://
 1. A set of outputs: e.g., `speechSynthesisAction = 'Can you see yourself working online?'`
 1. A transition function that takes a state, variable, and input and returns a state, variable, and output.
 
-<!-- Notice that we made state names verbs.
-This is because state represent an action the robot is running at the moment. -->
-<!-- We make state names verbs since the FSM emits outputs that trigger actions on entering a state. -->
 If you are familiar with FSMs, the FSM we are using is a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine) extended with variables.
 Like a mealy machine, it has the following constraints:
 
@@ -54,14 +51,37 @@ Like a mealy machine, it has the following constraints:
 * the FSM can only be in one state in the state set
 * the transition function is deterministic; given a state, variable, and input the function always returns the same new state, variable, and output.
 
-Notice that we made state names verbs as the popular robotics library [SMACH](http://wiki.ros.org/smach) does.
-This is because we define state based on distinct actions each state is performing, which are triggered by outputs emitted from transitions.
+<!-- Notice that we made state names verbs as the popular robotics library [SMACH](http://wiki.ros.org/smach) does.
+This is because we define state based on distinct actions each state is performing, which are triggered by outputs emitted from transitions. -->
 
 
 ## Implementing the "travel personality test" FSM using Cycle.js
 
-Let's now represent and implement the desired "travel personality test" program as a FSM.
+Let's now implement the "travel personality test" program as an FSM.
 
+<!-- We'll start from representing the ["travel personality test" program](../examples/tutorials/01_personality_quiz/index.js) we implemented in the previous post extended with the first additional behavior mentioned above: looking at a person only when the robot is waiting for a person's response.
+Such a program can be expressed as an FSM like this: -->
+We'll start from representing the ["travel personality test" program](../examples/tutorials/01_personality_quiz/index.js) we implemented in the previous post as follows:
+
+![travel_personality_quiz_fsm](./travel_personality_quiz_fsm.svg)
+
+Here we have three states, `PEND`, `SAY`, `LISTEN`, and five input types, `START`, `SAY_DONE`, `VALID_RESPONSE`, `INVALID_RESPONSE`, and `DETECTED_FACE`.
+We omitted variables associated with each state and outputs associated with each transition for visual clarity.
+
+Notice that we use verbs as state names (as a popular robotics FSM library [SMACH](http://wiki.ros.org/smach) does).
+This is because we define the states based on distinct actions each state is performing, which are triggered by outputs emitted from transitions.
+We did not make each state in the [travel quiz flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/) as an individual state.
+This is because we represent all states that behave the same except the sentence the robot says at a state, which we factor out as the variable `currentSentence` (not shown in the diagram), with the single `SAY` state to make the FSM compact.
+We represent the input in similar manner by representing it as a type-value pair.
+For example, the `LISTEN` to `SAY` transition will update the `currentSentence` variable appropriately based on the value of the `VALID_RESPONSE` type input which can be "yes" or "no" (input values are not shown in the graph).
+
+Now, let's update the FSM to express the first additional behavior mentioned above: looking at a person only when the robot is waiting for a person's response.
+
+![travel_personality_quiz_fsm_updated](./travel_personality_quiz_fsm_updated.svg)
+
+All we did here is removing the two self-loop transitions from the `PEND` and `SAY` states to stop the robot from looking at a person while the FSM is in those states.
+
+Here we have three states and four input types and omitted something. 
 First, we'll start from defining an FSM as follows:
 
 ```js
@@ -69,7 +89,6 @@ const State = {
   PEND: 'PEND',
   SAY: 'SAY',  //_SENTENCE
   LISTEN: 'LISTEN',  //_FOR_RESPONSE
-  // WAIT: 'WAIT',  //_FOR_PERSON
 };
 
 const InputType = {
@@ -78,9 +97,6 @@ const InputType = {
   VALID_RESPONSE: `VALID_RESPONSE`,
   INVALID_RESPONSE: `INVALID_RESPONSE`,
   DETECTED_FACE: `DETECTED_FACE`,
-  // FOUND_PERSON: `FOUND_PERSON`,
-  // LOST_PERSON: `LOST_PERSON`,
-  // TIMED_OUT: `TIMED_OUT`,
 };
 
 function transition(state, variables, input) {
@@ -117,13 +133,6 @@ function transition(state, variables, input) {
  * }
  */
 ```
-
-Here we define the set of states as `State`, the input type as `InputType`, a dummy transition function as `transition`.
-An example value that each part in the FSM can take is shown in the comment.
-For the variables, input, and outputs, we use javascript objects to leave a room for extension.
-
-<!-- 1. mention using verbs -->
-<!-- 2. use of variables -->
 
 Let's now build a Cycle.js application as follows:
 
