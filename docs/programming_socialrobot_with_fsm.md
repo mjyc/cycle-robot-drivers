@@ -116,19 +116,14 @@ function transition(state, variables, input) {
  *   },
  * }
  */
-
-const defaultMachine = {
-  state: State.PEND,
-  variables: {
-    sentence: null,
-  },
-  outputs: null,
-};
 ```
 
 Here we define the set of states as `State`, the input type as `InputType`, a dummy transition function as `transition`.
 An example value that each part in the FSM can take is shown in the comment.
 For the variables, input, and outputs, we use javascript objects to leave a room for extension.
+
+<!-- 1. mention using verbs -->
+<!-- 2. use of variables -->
 
 Let's now build a Cycle.js application as follows:
 
