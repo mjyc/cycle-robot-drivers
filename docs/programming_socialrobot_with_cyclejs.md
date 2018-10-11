@@ -51,7 +51,7 @@ Enough backgrounds, we'll now create a robot program that tests your travel pers
 Specifically, we'll make the robot
 
 1. look at you while you are interacting with the robot and
-2. ask questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/).
+1. ask questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/).
 
 If you are curious, check out [the complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) at Stackblitz.
 
@@ -236,7 +236,7 @@ We have made the robot look at a face!
 While following code examples above, you may have wondered:
 
 1. when and where is the `TabletFace` driver created
-2. how and when a driver produces side effects
+1. how and when a driver produces side effects
 
 Here is the answer to the first question: the two drivers we used in the example code, `TabletFace` and `PoseDetection`, are created in `runRobotProgram`.
 Normally when you program a Cycle.js app, you need to [create drivers explicitly](https://cycle.js.org/getting-started.html#getting-started-coding-create-main-and-drivers) and pass them to the [Cycle.js' `run`](https://cycle.js.org/api/run.html) function.
@@ -244,8 +244,8 @@ We skipped this step because we used `runRobotProgram` that creates the required
 The `runRobotProgram` function is [a wrapper function for Cycle.js' `run`](../run/src/index.tsx) that
 
 1. creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection`
-2. creates and sets up five action components `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction` to allow programmers to use them as drivers, and
-3. calls  Cycle.js' run with the created drivers and actions.
+1. creates and sets up five action components `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction` to allow programmers to use them as drivers, and
+1. calls  Cycle.js' run with the created drivers and actions.
 
 <!-- TODO: Add an example of manually defining a driver here -->
 
