@@ -8,15 +8,15 @@ function main(sources) {
     }),
     xs.periodic(2000).map(i => {
       if (i === 0) {
-        return {type: 'EXPRESS', value: 'happy'};
+        return {type: 'EXPRESS', value: {type: 'happy'}};
       } else if (i === 1) {
-        return {type: 'EXPRESS', value: 'sad'};
+        return {type: 'EXPRESS', value: {type: 'sad'}};
       } else if (i === 2) {
-        return {type: 'EXPRESS', value: 'angry'};
+        return {type: 'EXPRESS', value: {type: 'angry'}};
       } else if (i === 3) {
-        return {type: 'EXPRESS', value: 'focused'};
+        return {type: 'EXPRESS', value: {type: 'focused'}};
       } else if (i === 4) {
-        return {type: 'EXPRESS', value: 'confused'};
+        return {type: 'EXPRESS', value: {type: 'confused'}};
       }
     }).filter(expression => !!expression),
   );
