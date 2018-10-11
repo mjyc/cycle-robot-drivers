@@ -4,7 +4,7 @@ import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 const Question = {
   CAREER: 'Is it important that you reach your full career potential?',
-  ONLINE: 'Can you see yourself working online.',
+  ONLINE: 'Can you see yourself working online?',
   FAMILY: 'Do you have to be near my family/friends/pets?',
   TRIPS: 'Do you think short trips are awesome?',
   HOME: 'Do you want to have a home and nice things?',
