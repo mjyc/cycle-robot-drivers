@@ -16,25 +16,9 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 <!-- Start src/pose_detection.tsx -->
 
-### setupGui()
-
-Sets up dat.gui controller on the top-right of the window
-
 <!-- End src/pose_detection.tsx -->
 
 <!-- Start src/utils.ts -->
-
-### drawSegment()
-
-Draws a line on a canvas, i.e. a joint
-
-### drawSkeleton()
-
-Draws a pose skeleton by looking up all adjacent keypoints/joints
-
-### drawKeypoints()
-
-Draw pose keypoints onto a canvas
 
 <!-- End src/utils.ts -->
 

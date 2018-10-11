@@ -16,9 +16,7 @@ export function drawPoint(ctx, y, x, r, color) {
   ctx.fill();
 }
 
-/**
- * Draws a line on a canvas, i.e. a joint
- */
+// Draws a line on a canvas, i.e. a joint
 export function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
   ctx.beginPath();
   ctx.moveTo(ax * scale, ay * scale);
@@ -28,9 +26,7 @@ export function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
   ctx.stroke();
 }
 
-/**
- * Draws a pose skeleton by looking up all adjacent keypoints/joints
- */
+// Draws a pose skeleton by looking up all adjacent keypoints/joints
 export function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
   const adjacentKeyPoints = posenet.getAdjacentKeyPoints(
     keypoints, minConfidence);
@@ -41,9 +37,7 @@ export function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
   });
 }
 
-/**
- * Draw pose keypoints onto a canvas
- */
+// Draw pose keypoints onto a canvas
 export function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
   for (let i = 0; i < keypoints.length; i++) {
     const keypoint = keypoints[i];

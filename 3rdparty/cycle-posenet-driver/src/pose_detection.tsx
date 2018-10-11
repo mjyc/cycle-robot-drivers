@@ -10,9 +10,7 @@ import {drawSkeleton, drawKeypoints, isMobile, setupCamera} from './utils';
 
 // adapted from
 //   https://github.com/tensorflow/tfjs-models/blob/fc0a80d8ddbd2845fca4a61355dc5c54d1b43e0d/posenet/demos/camera.js#L102-L182
-/**
- * Sets up dat.gui controller on the top-right of the window
- */
+// Sets up dat.gui controller on the top-right of the window
 function setupGui(cameras, net, guiState) {
   guiState.net = net;
 
