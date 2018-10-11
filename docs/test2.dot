@@ -1,0 +1,17 @@
+digraph G {
+  PEND -> ASK [ margin=10, minlen=1, label="GOAL" ]
+  ASK -> WAIT [ margin=10, minlen=1, label=" ASK_DONE\n&&isQuestion(question)" ]
+  ASK -> FIND [ margin=10, minlen=1, label=" LOST_PERSON" ]
+  FIND -> ASK [ margin=10, minlen=1, label=" FOUND_PERSON" ]
+  ASK -> PEND [ margin=10, minlen=1, label=" ASK_DONE\n&&!isQuestion(question)" ]
+  WAIT -> ASK [ margin=10, minlen=1, label=" VALID_RESPONSE" ]
+  WAIT -> WAIT [ margin=10, minlen=1, label=" INVALID_RESPONSE" ]
+  WAIT -> WAIT [ margin=10, minlen=1, label=" DETECTED_FACE" ]
+}
+
+/* digraph G { */
+/*   PEND -> ASK_QUESTION [ label="GOAL" ] */
+/*   ASK_QUESTION -> WAIT_FOR_RESPONSE [ label="ASK_QUESTION_DONE\n&& isQuestion(currentQuestion)" ] */
+/*   ASK_QUESTION -> PEND [ label="ASK_QUESTION_DONE\n&& !isQuestion(currentQuestion)" ] */
+/*   WAIT_FOR_RESPONSE -> ASK_QUESTION [ label="ASK_QUESTION_DONE" ] */
+/* } */

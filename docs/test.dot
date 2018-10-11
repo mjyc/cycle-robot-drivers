@@ -1,0 +1,8 @@
+digraph G {
+  PEND -> ASK [ margin=10, minlen=1, label="GOAL" ]
+  ASK -> WAIT [ margin=10, minlen=1, label=" ASK_DONE\n&&isQuestion(question)" ]
+  ASK -> PEND [ margin=10, minlen=1, label=" ASK_DONE\n&&!isQuestion(question)" ]
+  WAIT -> ASK [ margin=10, minlen=1, label=" VALID_RESPONSE" ]
+  WAIT -> WAIT [ margin=10, minlen=1, label=" INVALID_RESPONSE" ]
+  WAIT -> WAIT [ margin=10, minlen=1, label=" DETECTED_FACE" ]
+}
