@@ -15,20 +15,20 @@ Concretely, we implemented a tablet-face robot program that
 as a [Cycle.js](https://cycle.js.org/) application.
 [The complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) is available at Stackblitz.
 
-**IMPORTANT!!** The main pacakge we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers for now.
+**IMPORTANT!!** The main pacakge we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers  (>= 65.0.3325.181) for now.
 
 Now, what if we want the robot
 
-1. only look at a person when the robot is waiting for a person's response,
+1. look at a person only when the robot is waiting for a person's response,
 2. stop asking a question if the robot cannot see a person and resume asking the question if it sees a person again, and
 3. stop asking questions completely if a person abandons the robot, i.e., the robot does not see a person for more than 10 seconds.
 
 How difficult would it be to update the existing program to have these additional behaviors?
 Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js)--what kind of challenges do you face?
 
-From my experience, there were two major challenges; first, clearly expressing the desired robot behavior without any implementation, and second, implementing the desired behavior in a reactive programming framework.
-In the rest of this post, I'll show how to address the first challenge by using a finite state machine, a representation frequently used by [roboticists](http://wiki.ros.org/smach) and [UI developers](https://sketch.systems/) for a [long](https://www.mtholyoke.edu/courses/pdobosh/cs100/handouts/genghis.pdf) [time](http://www.inf.ed.ac.uk/teaching/courses/seoc/2005_2006/resources/statecharts.pdf).
-I'll also present a pattern for implementing finite state machine in a reactive programming framework as a solution to the second challenge.
+From my experience, there were two major challengzes; clearly expressing the desired robot behavior and implementing the desired behavior in a reactive programming framework.
+In the rest of this post, I'll first demonstrate using a finite state machine, a representation frequently used by [roboticists](http://wiki.ros.org/smach) and [UI developers](https://sketch.systems/) for a [long](https://www.mtholyoke.edu/courses/pdobosh/cs100/handouts/genghis.pdf) [time](http://www.inf.ed.ac.uk/teaching/courses/seoc/2005_2006/resources/statecharts.pdf), to express a complex desired behavior.
+Then I'll present a pattern for implementing a finite state machine in a reactive programming framework without scarifying maintainability.
 
 
 ## What is finite state machine?
