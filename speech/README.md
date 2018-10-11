@@ -6,6 +6,8 @@
 
 Try [the demo](https://stackblitz.com/edit/cycle-robot-drivers-demos-speech) at StackBlitz!
 
+Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
+
 ## API
 
 <!-- Start src/SpeechRecognitionAction.ts -->
