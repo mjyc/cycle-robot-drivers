@@ -1,3 +1,18 @@
+
+<!-- From my experience, there were two major challenges; first, clearly expressing the desired robot behavior without any implementation and second, implementing the stated behavior in a reactive programming framework.
+
+To address the first challenge, I adopted a finite state machine, , which is widely used by roboticists as well as UX designers .
+For the second challenge, I updated -->
+
+<!-- From my experience, expressing the desired, complex human-robot interaction as a finite state machine  -->
+<!-- From my experience, working with a "state" in a reactive programming framework was not trivial.
+For example, to implement the first additional behavior, we need to know whether the robot is currently waiting for a human response, i.e., speech recognition action is running, or not.
+However, there is no direct way to access the state of speech recognition so we need to write additional code.
+In addition to the problem of representing a state, writing logic for transitioning between states can be error-prone if it is not done properly. -->
+
+
+
+
 <!-- From my experience, it was not trivial.
 For example, if we were to implement the behavior 1. on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js), we need to  -->
 

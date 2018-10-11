@@ -1,7 +1,7 @@
 # Programming a social robot using Cycle.js
 
 In this post, I'll show you how to program a social robot using [Cycle.js](https://cycle.js.org/).
-I assume you are familiar reactive programming.
+I assume you are familiar with reactive programming.
 If you are not, check out [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
 If you are eager to get your hands dirty, jump to the [Implementing "travel personality test"](#implementing-travel-personality-test) section.
 
@@ -22,7 +22,7 @@ So, interactive robots for [education](http://robotic.media.mit.edu/portfolio/st
 
 Programming social robots is similar to programming web applications.
 In both cases, programmers write code for handling inputs, e.g., a button click or sensor reading, and outputting data accordingly, e.g., displaying information on screen or sending control signals to motors.
-The major difference is programming social robots involve working with multi-modal inputs and outputs, e.g., speech and motion, to interact with humans instead of solely using a screen interface.
+The major difference is programming social robots involves working with multi-modal inputs and outputs, e.g., speech and motion, to interact with humans instead of solely using a screen interface.
 
 In this post, I'll use a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) for demonstration purposes.
 The tablet-face robot is just a web application running on a tablet, but we'll make it speak, listen, and see you to make it more like a "social robot".
@@ -48,7 +48,7 @@ For example, you could use [Yampa with reactimate](https://wiki.haskell.org/Yamp
 ## Implementing "travel personality test"
 
 Enough backgrounds, we'll now create a robot program that tests your travel personality.
-Specifically, we'll make the robot to
+Specifically, we'll make the robot
 
 1. look at you while you are interacting with the robot and
 2. ask questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/).
@@ -58,7 +58,7 @@ If you are curious, check out [the complete code and the demo](https://stackblit
 **IMPORTANT!!** For now, the [cycle-robot-drivers/run](../run) package we use in this post only work on Chrome browsers (>= 65.0.3325.181).
 
 
-The code examples in this post assume your familiarity with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2).
+The code examples in this post assume you are familiar with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2).
 To build code, I use [browserify](http://browserify.org/) and [Babel](https://babeljs.io/) here, but feel free to use a build tool and a transpiler you prefer.
 <!-- , e.g., [webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/). -->
 
@@ -88,13 +88,13 @@ runRobotProgram(main);
 Then run this application, e.g., by running `npm start`.
 It should load a robot face on your browser.
 
-We just successfully set up and run a Cycle.js application!
+We just successfully set up and ran a Cycle.js application!
 
 ### Robot, look at a face
 
 We'll now focus on implementing the first feature--looking at a face.
 
-Let's make the robot to just move its eyes by adding the following code in `main`:
+Let's make the robot just move its eyes by adding the following code in `main`:
 
 ```js
 // ...
@@ -141,7 +141,7 @@ function main(sources) {
 Here we use the [addListener](https://github.com/staltz/xstream#addListener) xstream operator to add a callback function that prints the detected pose data to the `poses` stream, the stream returned from the `PoseDetection` driver.
 
 When you run the application you should see arrays of objects printed to your browser's console.
-Each array represent detected poses at moment, which has the following format:
+Each array represents detected poses at current moment, which has the following format:
 
 ```js
 const poses = [
@@ -192,7 +192,7 @@ Also try hiding one of your ears by turning your head left or right.
 You should not see an object that has a string `nose` for its `part` field in the `keypoints` array.
 
 Now that we know how to move the robot's eyes and retrieve detected face data, let's put them together to make the robot look at a face.
-Concretely, we'll make the robot's eyes to follow a detected person's nose.
+Concretely, we'll make the robot's eyes follow a detected person's nose.
 Update `main` as follows:
 
 ```js
@@ -227,9 +227,9 @@ function main(sources) {
 ```
 Here we are sending commands to the `TabletDriver` by using the stream created from the output stream of the `PoseDetection` driver (`sources.PoseDetection.poses`).
 To convert pose data into control commands, we use the [`filter`](https://github.com/staltz/xstream#filter) xstream operator to filter pose data to the ones containing only one person whose nose is visible. Then we use the [`map`](https://github.com/staltz/xstream#map) xstream operator twice to convert the detected nose positions into eye positions and turn the eye positions into control commands.
-<!-- ... driver (`sources.PoseDetection.poses`) instead of creating one from scratch as we did above when we made the robot to look left and right. -->
+<!-- ... driver (`sources.PoseDetection.poses`) instead of creating one from scratch as we did above when we made the robot look left and right. -->
 
-We have made the robot to look at a face!
+We have made the robot look at a face!
 
 #### Taking a closer look at `runRobotProgram`
 
@@ -267,7 +267,7 @@ import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 const Question = {
   CAREER: 'Is reaching your full career potential important to you?',
-  ONLINE: 'Can you see yourself working online.',
+  ONLINE: 'Can you see yourself working online?',
   FAMILY: 'Do you have to be near my family/friends/pets?',
   TRIPS: 'Do you think short trips are awesome?',
   HOME: 'Do you want to have a home and nice things?',
@@ -319,7 +319,7 @@ function main(sources) {
 ```
 Notice that I modified the quiz questions to change all response choices to "yes" and "no".
 
-Let's now make the robot to ask questions and take your verbal responses.
+Let's now make the robot ask questions and take your verbal responses.
 First, we'll make the robot to just say the first question on start, i.e., on loading the robot's face, and start listening after saying something:
 
 ```js
@@ -342,8 +342,8 @@ function main(sources) {
 ```
 
 Here we are sending commands to the `SpeechSynthesisAction` driver and the `SpeechRecognitionAction` driver by returning the created streams via `sink.SpeechSynthesisAction` and `sink.SpeechRecognitionAction` from `main`.
-The input stream for the `SpeechSynthesisAction` driver emits `Question.Career` on tablet-face-loaded event emitted in the `sources.TabletFace.load` stream.
-The input stream for the `SpeechRecognitionAction` driver emits an empty object (`{}`) on finishing speech synthesis action event emitted in the `sources.SpeechSynthesisAction.result` stream.
+The input stream for the `SpeechSynthesisAction` driver emits `Question.Career` on the tablet-face-loaded event emitted in the `sources.TabletFace.load` stream.
+The input stream for the `SpeechRecognitionAction` driver emits an empty object (`{}`) on finishing the speech synthesis action event emitted in the `sources.SpeechSynthesisAction.result` stream.
 Both streams are created using the [`mapTo`](https://github.com/staltz/xstream#mapTo) xstream operator.
 We also print out events emitted in the `sources.SpeechRecognitionAction.result` stream using the [addListener](https://github.com/staltz/xstream#addListener) xstream operator.
 
@@ -365,7 +365,7 @@ const result = {
 
 Try saying something and see how well it hears you.
 
-Now we want to improve the program to make the robot to ask more than one question.
+Now we want to improve the program to make the robot ask more than one question.
 For example, we can try to send questions as commands to the `SpeechSynthesisAction` driver whenever the robot hears an appropriate answer, i.e., "yes" or "no".
 Let's try to express this by updating the code above as follows:
 
@@ -437,7 +437,7 @@ Here we have moved creating the code for a stream for `sink.SpeechSynthesisActio
 We create an empty proxy stream `lastQuestion$` using the [`create`](https://github.com/staltz/xstream#create) xstream factory and use it when creating the `question$` stream.
 Then use the [`imitate`](https://github.com/staltz/xstream#imitate) xstream operator to connect the proxy stream, `lastQuestion$`, to its source stream, `question$`.
 We also use the [`compose`](https://github.com/staltz/xstream#compose) and [`sampleCombine`](https://github.com/staltz/xstream/blob/master/EXTRA_DOCS.md#sampleCombine) xstream operators to combine events from the stream originated from `sources.SpeechRecognitionAction.result` and the `lastQuestion$` stream.
-Note that I add `$` at the end of stream variable names to distinguish them from others as Cycle.js authors do.
+Note that I add `$` at the end of stream variable names to distinguish them from other variables as Cycle.js authors do.
 Try the updated application and see if the robot asks more than one question if you respond to it with "yes" or "no".
 
 You may have wondered when did we update the code to send the "start listening" command ({}) after _all_ questions.

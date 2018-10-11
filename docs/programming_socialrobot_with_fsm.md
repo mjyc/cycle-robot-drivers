@@ -1,64 +1,53 @@
-# Programming a social robot using a finite state machine
-<!-- Programming a reactive social robot program as finite state machine -->
+# Programming a reactive social robot program as a finite state machine
 
-In this post, I'll show you how to program a social robot using a [finite state machine](https://en.wikipedia.org/wiki/Finite-state_machine).
+In this post, I'll show you how to implement a reactive social robot program as a [finite state machine](https://en.wikipedia.org/wiki/Finite-state_machine).
 We'll continue from where we left off in the previous post [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)--so check it out if you haven't already!
+
 
 ## Making "travel personality quiz" program more complex
 
-In the previous post, we programmed the [tablet-face robot](https://github.com/mjyc/tablet-robot-face) to test your travel personality.
+In the previous post, we programed a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) to test your travel personality.
 Concretely, we implemented a tablet-face robot program that
 
 1. looks at a person when it sees one and
-2. asks travel personality quiz questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/).
+2. asks travel personality quiz questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/)
 
-[The complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) is available via Stackblitz.
+as a [Cycle.js](https://cycle.js.org/) application.
+[The complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) is available at Stackblitz.
 
 **IMPORTANT!!** The main pacakge we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers for now.
 
-Now, what if we want the robot to
+Now, what if we want the robot
 
-1. only look at a person when it is waiting for a person's response,
-2. stop asking a question if the robot cannot see a person and resume asking the question if it sees a person again
-3. stop asking questions completely if it does not see a person for more than 10 seconds.
+1. only look at a person when the robot is waiting for a person's response,
+2. stop asking a question if the robot cannot see a person and resume asking the question if it sees a person again, and
+3. stop asking questions completely if a person abandons the robot, i.e., the robot does not see a person for more than 10 seconds.
 
 How difficult would it be to update the existing program to have these additional behaviors?
-Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js), what kind of challenges do you face?
+Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js)--what kind of challenges do you face?
 
-From my experience, there were two major challenges; first, clearly expressing the desired robot behavior without any implementation and second, implementing the desired behavior in a reactive programming framework.
-In this post, I'll show how to address the first challenge using a finite state machine, a representation frequently used by roboticists and UX deisngers.
-I'll also demonstrate a pattern for implementing finite state machine in a reactive programming framework.
-
-<!-- From my experience, there were two major challenges; first, clearly expressing the desired robot behavior without any implementation and second, implementing the stated behavior in a reactive programming framework.
-
-To address the first challenge, I adopted a finite state machine, , which is widely used by roboticists as well as UX designers .
-For the second challenge, I updated -->
-
-<!-- From my experience, expressing the desired, complex human-robot interaction as a finite state machine  -->
-<!-- From my experience, working with a "state" in a reactive programming framework was not trivial.
-For example, to implement the first additional behavior, we need to know whether the robot is currently waiting for a human response, i.e., speech recognition action is running, or not.
-However, there is no direct way to access the state of speech recognition so we need to write additional code.
-In addition to the problem of representing a state, writing logic for transitioning between states can be error-prone if it is not done properly. -->
+From my experience, there were two major challenges; first, clearly expressing the desired robot behavior without any implementation, and second, implementing the desired behavior in a reactive programming framework.
+In the rest of this post, I'll show how to address the first challenge by using a finite state machine, a representation frequently used by [roboticists](http://wiki.ros.org/smach) and [UI developers](https://sketch.systems/) for a [long](https://www.mtholyoke.edu/courses/pdobosh/cs100/handouts/genghis.pdf) [time](http://www.inf.ed.ac.uk/teaching/courses/seoc/2005_2006/resources/statecharts.pdf).
+I'll also present a pattern for implementing finite state machine in a reactive programming framework as a solution to the second challenge.
 
 
 ## What is finite state machine?
 
-Finite state machine (FSM) is a computational model that can be used for making sequential decisions. <!-- to represent and control execution flow -->
+[Finite state machine (FSM)](https://en.wikipedia.org/wiki/Finite-state_machine) is a computational model that can be used to represent and control execution flow.
 A FSM we are using in this post is comprised of five parts:
 
-0. A set of states, e.g., `'ASK_QUESTION'`, `'WAIT_FOR_RESPONSE'`, etc.
-0. A set of variables, e.g., `currentQuestion`
-0. A set of inputs: e.g., `VALID_RESPONSE`, `INVALID_RESPONSE`, etc.
-0. A set of outputs: e.g., `SpeechSynthesisAction`, `SpeechSynthesisAction`
-0. A transition function that takes a state, variable, and input and returns a state, variable, and output.
+1. A set of states, e.g., `'ASK_QUESTION'`, `'WAIT_FOR_RESPONSE'`, etc.
+1. A set of variables, e.g., `currentQuestion = 'Can you see yourself working online?'`
+1. A set of inputs: e.g., `VALID_RESPONSE`, `INVALID_RESPONSE`, etc.
+1. A set of outputs: e.g., `speechSynthesisAction = 'Can you see yourself working online?'`
+1. A transition function that takes a state, variable, and input and returns a state, variable, and output.
 
-<!-- If you are familiar with FSMs, the above FSM is a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine) with  -->
+If you are familiar with FSMs, the FSM we are using is a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine) extended with the variables.
+Like a mealy machine, it has the following constraints:
 
-The FSM we use has the following restrictions
-
-* there are finite set of states
-* the FSM can only be in one state
-* the transition function is deterministic: changes its state and emits an output in response to an input
+* the state set is a [finite set](https://en.wikipedia.org/wiki/Finite_set)
+* the FSM can only be in one state in the state set
+* the transition function is deterministic; given a state, variable, and input the function always returns the same new state, variable, and output.
 
 <!-- A FSM can only be in one state 
 Finite state machine is a computational model for making sequential decision.
@@ -66,7 +55,7 @@ A FSM can only be in one state of the finite states, and changes its state and e
 It is composed of five parts -->
 
 
-## Updating the "travel personality test" program as a FSM
+## Implementing the "travel personality test" program as a FSM
 
 We'll start by identifying states and variables
 
