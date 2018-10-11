@@ -47,10 +47,10 @@ class EyeController {
   }
 
   _createKeyframes({
-    tgtTranYVal,
-    tgtRotVal,
-    enteredOffset,
-    exitingOffset,
+    tgtTranYVal = '0px',
+    tgtRotVal = '0deg',
+    enteredOffset = 0,
+    exitingOffset = 0,
   }: any) {
     return [
       {transform: `translateY(0px) rotate(0deg)`, offset: 0.0},
