@@ -27,14 +27,14 @@ How difficult would it be to update the existing program to have these additiona
 Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js)--what kind of challenges do you face?
 
 From my experience, there were two major challengzes; clearly expressing the desired robot behavior and implementing the desired behavior in a reactive programming framework.
-In the rest of this post, I'll first demonstrate using a finite state machine, a representation frequently used by [roboticists](http://wiki.ros.org/smach) and [UI developers](https://sketch.systems/) for a [long](https://www.mtholyoke.edu/courses/pdobosh/cs100/handouts/genghis.pdf) [time](http://www.inf.ed.ac.uk/teaching/courses/seoc/2005_2006/resources/statecharts.pdf), to express a complex desired behavior.
+In the rest of this post, I'll first demonstrate using a finite state machine to express a complex desired behavior.
 Then I'll present a pattern for implementing a finite state machine in a reactive programming framework without scarifying maintainability.
 
 
 ## What is finite state machine?
 
 [Finite state machine (FSM)](https://en.wikipedia.org/wiki/Finite-state_machine) is a computational model that can be used to represent and control execution flow.
-A FSM we are using in this post is comprised of five parts:
+Due to their simplicity, FSMs have been frequently used by [roboticists](http://wiki.ros.org/smach), [UI developers](https://sketch.systems/) and many others for a [long](https://www.mtholyoke.edu/courses/pdobosh/cs100/handouts/genghis.pdf) [time](http://www.inf.ed.ac.uk/teaching/courses/seoc/2005_2006/resources/statecharts.pdf). A FSM we are using in this post is comprised of five parts:
 
 1. A set of states, e.g., `'ASK_QUESTION'`, `'WAIT_FOR_RESPONSE'`, etc.
 1. A set of variables, e.g., `currentQuestion = 'Can you see yourself working online?'`
@@ -42,6 +42,7 @@ A FSM we are using in this post is comprised of five parts:
 1. A set of outputs: e.g., `speechSynthesisAction = 'Can you see yourself working online?'`
 1. A transition function that takes a state, variable, and input and returns a state, variable, and output.
 
+We make state names verbs since the FSM emits outputs that trigger actions on entering a state.
 If you are familiar with FSMs, the FSM we are using is a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine) extended with the variables.
 Like a mealy machine, it has the following constraints:
 
@@ -49,13 +50,15 @@ Like a mealy machine, it has the following constraints:
 * the FSM can only be in one state in the state set
 * the transition function is deterministic; given a state, variable, and input the function always returns the same new state, variable, and output.
 
-<!-- A FSM can only be in one state 
-Finite state machine is a computational model for making sequential decision.
-A FSM can only be in one state of the finite states, and changes its state and emits an output in response to an input.
-It is composed of five parts -->
+
+## Expressing the "travel personality test" program as a FSM
+
+Let's now express ...
+
+![Drag Racing](./travel_personality_quiz_fsm.svg)
 
 
-## Implementing the "travel personality test" program as a FSM
+## Implementing the "travel personality test" FSM using Cycle.js
 
 We'll start by identifying states and variables
 

@@ -1,8 +1,0 @@
-digraph {
-forcelabels=true;
-
-    0:sw -> 1:nw [ dir=forward, xlabel="  (1, 0)  "];
-    0 -> 1 [dir=none];
-    1:ne -> 0:se [ dir=backward, xlabel= "  (0, -1)  "];
-
-}

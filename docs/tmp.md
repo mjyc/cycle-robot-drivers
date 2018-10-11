@@ -1,3 +1,20 @@
+margin=10, minlen=1, 
+margin=10, minlen=1, 
+margin=10, minlen=1, 
+margin=10, minlen=1, 
+margin=10, minlen=1, 
+margin=10, minlen=1, 
+margin=10, minlen=1, 
+margin=10, minlen=1, 
+
+
+
+<!-- A FSM can only be in one state 
+Finite state machine is a computational model for making sequential decision.
+A FSM can only be in one state of the finite states, and changes its state and emits an output in response to an input.
+It is composed of five parts -->
+
+
 
 <!-- From my experience, there were two major challenges; first, clearly expressing the desired robot behavior without any implementation and second, implementing the stated behavior in a reactive programming framework.
 
