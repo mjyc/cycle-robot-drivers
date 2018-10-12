@@ -1,0 +1,13 @@
+digraph {
+forcelabels=true
+  PEND -> SAY [ label="  GOAL  " ]
+  SAY -> LISTEN [ label="  SAY_DONE  " ]
+  SAY -> PEND [ label="  QUIZ_DONE  " ]
+  SAY -> WAIT [ label="  LOST_PERSON  " ]
+  LISTEN:nw -> SAY [ label="  VALID_RESPONSE  " ]
+  LISTEN -> PEND [ label="  TIMED_OUT  " ]
+  LISTEN:s -> LISTEN:s [ label="  INVALID_RESPONSE  " ]
+  LISTEN -> LISTEN [ label="  DETECTED_FACE  " ]
+  WAIT -> SAY [ label="  FOUND_PERSON  " ]
+  WAIT -> PEND [ label="  TIMED_OUT  " ]
+}
