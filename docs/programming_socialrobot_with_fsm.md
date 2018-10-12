@@ -2,7 +2,10 @@
 
 In this post, I'll show you how to implement a reactive social robot program as a [finite state machine](https://en.wikipedia.org/wiki/Finite-state_machine).
 We'll continue from where we left off in the previous post [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)--so check it out if you haven't already!
+In case you are in a hurry, here is the [demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) and [complete code](../examples/tutorials/02_fsm) of what we are building in this post.
 
+<!-- If you want to take a peek at the complete code or demo
+If you just want to check out the complete code or demo, [both are available](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) at Stackblitz -->
 
 ## Making "travel personality quiz" program more complex
 
@@ -13,7 +16,7 @@ Concretely, we implemented a tablet-face robot program that
 1. asks travel personality quiz questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/)
 
 as a [Cycle.js](https://cycle.js.org/) application.
-[The complete code and the demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) is available at Stackblitz.
+Here are the [demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) and [complete code](../examples/tutorials/01_personality_quiz) from the previous post.
 
 **IMPORTANT!!** The main package we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers  (>= 65.0.3325.181) for now.
 
@@ -27,10 +30,10 @@ How difficult would it be to update the existing program to have these additiona
 Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js)--what kind of challenges do you face?
 
 From my experience, there were two major challenges; clearly expressing the desired robot behavior and implementing the desired behavior in a reactive programming framework.
-<!-- To address the first challenge, we'll use a finite state machine for its simplicity.
-For the second challenge, I'll present a pattern for implementing a finite state machine in a reactive programming framework [Cycle.js](https://cycle.js.org/) without scarifying maintainability. -->
 In the rest of this post, I'll first demonstrate using a finite state machine to express a complex desired behavior.
 Then I'll present a pattern for implementing a finite state machine in a reactive programming framework Cycle.js without scarifying maintainability.
+<!-- To address the first challenge, we'll use a finite state machine for its simplicity.
+For the second challenge, I'll present a pattern for implementing a finite state machine in a reactive programming framework [Cycle.js](https://cycle.js.org/) without scarifying maintainability. -->
 
 
 ## What is a finite state machine?
@@ -49,7 +52,7 @@ Like a mealy machine, it has the following constraints:
 
 * the state set is a [finite set](https://en.wikipedia.org/wiki/Finite_set)
 * the FSM can only be in one state in the state set
-* the transition function is deterministic; given a state, variable, and input the function always returns the same new state, variable, and output.
+* the transition function is deterministic; given a state, variable, and input the function always returns the same new state, new variable, and new output.
 
 
 ## Representing the "travel personality quiz" program as an FSM
@@ -74,15 +77,15 @@ Now, let's update the FSM to express the first additional behavior mentioned abo
 
 All we did here is removing the two self-loop transitions from the `PEND` and `SAY` states to stop the robot from looking at a person while the FSM is in those states.
 
-I'll leave updating this FSM to support the other two additional behaviors as an exercise.
-Try it!
+<!-- I'll leave updating this FSM to support the other two additional behaviors as an exercise.
+Try it! -->
 
 
 ## Implementing the "travel personality test" FSM using Cycle.js
 
 Let's now implement the "travel personality test" FSM we defined above using Cycle.js.
 
-First, we'll try to define the FMS in javascript as follows:
+First, we'll try to define the FSM in javascript as follows:
 
 ```js
 const State = {
@@ -94,6 +97,7 @@ const State = {
 const InputType = {
   GOAL: `GOAL`,
   SAY_DONE: `SAY_DONE`,
+  // QUIZ_DONE: is not an input type but a transition
   VALID_RESPONSE: `VALID_RESPONSE`,
   INVALID_RESPONSE: `INVALID_RESPONSE`,
   DETECTED_FACE: `DETECTED_FACE`,
@@ -155,7 +159,7 @@ Then download [`package.json`](../examples/tutorials/02_fsm/package.json), [`.ba
 Run `npm install` to install the required npm packages.
 After installing, you can run `npm start` to build and start the web application that does nothing.
 
-Now add the following code in index.js:
+Now add the following code in `index.js`:
 
 ```js
 import xs from 'xstream';
@@ -168,7 +172,7 @@ const InputType = {
 function transition(state, variables, input) {  // a dummy transition function
 // ...
 
-function input(
+function input(  // a dummy input function
   start$,
   speechRecognitionActionResult$,
   speechSynthesisActionResult$,
@@ -177,7 +181,7 @@ function input(
   return xs.never();
 }
 
-function output(machine$) {
+function output(machine$) {  // a dummy input function
   return {
     SpeechSynthesisAction: xs.never(),
     SpeechRecognitionAction: xs.never(),
@@ -211,6 +215,8 @@ function main(sources) {
 runRobotProgram(main);
 ```
 
+If you run the application, it should load a robot face that does nothing on your browser. Yay~
+
 The most important thing to notice here is that we divide the `main` function into three functions; `input`, `transition`, and `output`.
 The `input` function takes incoming streams in `sources` and returns a stream that emits the FSM's input values.
 We then use the [`fold`](https://github.com/staltz/xstream#fold) xstream operator on the returned stream (`$input`) to trigger the FSM's `transition` function.
@@ -219,12 +225,19 @@ Note that the `fold` operator is like `Array.prototype.reduce` for streams; it t
 1. an accumulator function that takes an emitted value (e.g., a FSM input value, `input`) and a previous output of the accumulator function (e.g., the latest FSM, `machine`) or a seed value and
 2. an initial output of the accumulator function (e.g., the initial FSM, `defaultMachine`).
 
-Finally the `output` function takes the stream that emits FSMs ($machine) and returns outgoing streams.
+Finally the `output` function takes the stream that emits FSMs (`$machine`) and returns outgoing streams.
 
-Let's implement the three function starting from `input`:
+<!-- If you are familiar with [Cycle.js' Model-View-Intent pattern](https://cycle.js.org/model-view-intent.html), we have  -->
+
+Let's implement the three function.
+First, update the dummy `input` function to:
 
 ```js
-//...
+// ...
+const Response = {
+  YES: 'yes',
+  NO: 'no',
+}
 
 function input(
   start$,
@@ -266,14 +279,15 @@ function input(
       }),
   );
 }
-
 // ...
 ```
 
-Try testing whether the `input` function is behaving properly by attaching the [`addListener`](https://github.com/staltz/xstream#addListener) xstream operator to the returned `$input` stream and returning outgoing streams from the `output` function, for example:
+Try testing whether the `input` function is behaving properly.
+For example, you can attach the [`addListener`](https://github.com/staltz/xstream#addListener) xstream operator to the returned `$input` stream and return some outgoing streams from the `output` function.
+Like this:
 
 ```js
-//...
+// ...
 import delay from 'xstream/extra/delay'
 function output(machine$) {
   return {
@@ -291,67 +305,102 @@ function main(sources) {
     sources.PoseDetection.poses,
   );
   input$.addListener({next: value => console.log('input', value)})
-//...
+// ...
 ```
 
 Do you see expected outputs on your browser console?
 
-Let's implement the `transition` function:
+Let's now remove the dummy `transition` function and create a new one:
 
 ```js
+// ...
+const State = {
+// ...
+const InputType = {
+// ...
+// // Remove the dummy transition function
+// function transition(state, variables, input) {  // a dummy transition function
+// ...
+const Response = {
+// ...
+function input(
+// ...
+
 function createTransition() {
-  const transitionTable = {
-    [State.PEND]: {
-      [InputType.GOAL]: (variables) => State.ASK,
+  const Sentence = {
+    CAREER: 'Is it important that you reach your full career potential?',
+    ONLINE: 'Can you see yourself working online?',
+    FAMILY: 'Do you have to be near my family/friends/pets?',
+    TRIPS: 'Do you think short trips are awesome?',
+    HOME: 'Do you want to have a home and nice things?',
+    ROUTINE: 'Do you think a routine gives your life structure?',
+    JOB: 'Do you need a secure job and a stable income?',
+    VACATIONER: 'You are a vacationer!',
+    EXPAT: 'You are an expat!',
+    NOMAD: 'You are a nomad!',
+  };
+
+  const flowchart = {
+    [Sentence.CAREER]: {
+      [Response.YES]: Sentence.ONLINE,
+      [Response.NO]: Sentence.FAMILY,
     },
-    [State.ASK]: {
-      [InputType.ASK_SUCCESS]: (variables) => isQuestion(variables.question)
-        ? State.WAIT_FOR_RESPONSE : State.PEND,
-      [InputType.LOST_PERSON]: (variables) => State.WAIT_FOR_PERSON,
+    [Sentence.ONLINE]: {
+      [Response.YES]: Sentence.NOMAD,
+      [Response.NO]: Sentence.VACATIONER,
     },
-    [State.WAIT_FOR_RESPONSE]: {
-      [InputType.VALID_RESPONSE]: (variables) => State.ASK,
-      [InputType.INVALID_RESPONSE]: (variables) => State.WAIT_FOR_RESPONSE,
+    [Sentence.FAMILY]: {
+      [Response.YES]: Sentence.VACATIONER,
+      [Response.NO]: Sentence.TRIPS,
     },
-    [State.WAIT_FOR_PERSON]: {
-      [InputType.FOUND_PERSON]: (variables) => State.ASK,
+    [Sentence.TRIPS]: {
+      [Response.YES]: Sentence.VACATIONER,
+      [Response.NO]: Sentence.HOME,
+    },
+    [Sentence.HOME]: {
+      [Response.YES]: Sentence.EXPAT,
+      [Response.NO]: Sentence.ROUTINE,
+    },
+    [Sentence.ROUTINE]: {
+      [Response.YES]: Sentence.EXPAT,
+      [Response.NO]: Sentence.JOB,
+    },
+    [Sentence.JOB]: {
+      [Response.YES]: Sentence.ONLINE,
+      [Response.NO]: Sentence.NOMAD,
     },
   };
 
-  return function(state, variables, input) {
-    return !transitionTable[state]
-      ? state
-      : !transitionTable[state][input.type]
-        ? state
-        : transitionTable[state][input.type](variables);
-  }
-}
-
-function createEmission() {
-  const emissionTable = {
+  const transitionTable = {
     [State.PEND]: {
-      [InputType.GOAL]: (variables, input) => ({
-        variables: {question: Question.CAREER},
-        outputs: {SpeechSynthesisAction: {goal: Question.CAREER}},
+      [InputType.START]: (variables, inputValue) => ({
+        state: State.SAY,
+        variables: {sentence: Sentence.CAREER},
+        outputs: {SpeechSynthesisAction: {goal: Sentence.CAREER}},
       }),
     },
-    [State.ASK]: {
-      [InputType.ASK_SUCCESS]: (variables, input) => isQuestion(variables.question)
-        ? {
+    [State.SAY]: {
+      [InputType.SAY_DONE]: (variables, inputValue) => (
+          variables.sentence !== Sentence.VACATIONER
+          && variables.sentence !== Sentence.EXPAT
+          && variables.sentence !== Sentence.NOMAD
+        ) ? {  // SAY_DONE
+          state: State.LISTEN,
           variables,
           outputs: {SpeechRecognitionAction: {goal: {}}},
-        } : {variables, outputs: {done: true}},
-      [InputType.LOST_PERSON]: (variables, input) => ({
-        variables,
-        outputs: {SpeechSynthesisAction: {goal: null}},
-      }),
+        } : {  // QUIZ_DONE
+          state: State.PEND,
+          variables,
+          outputs: {done: true},
+        },
     },
-    [State.WAIT_FOR_RESPONSE]: {
-      [InputType.VALID_RESPONSE]: (variables, input) => ({
-        variables: {question: flowchart[variables.question][input.value]},
+    [State.LISTEN]: {
+      [InputType.VALID_RESPONSE]: (variables, inputValue) => ({
+        state: State.SAY,
+        variables: {sentence: flowchart[variables.sentence][inputValue]},
         outputs: {
           SpeechSynthesisAction: {
-            goal: flowchart[variables.question][input.value],
+            goal: flowchart[variables.sentence][inputValue],
           },
           TabletFace: {goal: {
             type: 'SET_STATE',
@@ -362,39 +411,73 @@ function createEmission() {
           }},
         },
       }),
-      [InputType.INVALID_RESPONSE]: (variables, input) => ({
+      [InputType.INVALID_RESPONSE]: (variables, inputValue) => ({
+        state: State.LISTEN,
         variables,
         outputs: {SpeechRecognitionAction: {goal: {}}},
       }),
-      [InputType.DETECTED_FACE]: (variables, input) => ({
+      [InputType.DETECTED_FACE]: (variables, inputValue) => ({
+        state: State.LISTEN,
         variables,
         outputs: {
           TabletFace: {goal: {
             type: 'SET_STATE',
             value: {
-              leftEye: input.value,
-              rightEye: input.value,
+              leftEye: inputValue,
+              rightEye: inputValue,
             },
           }},
         }
       }),
     },
-    [State.WAIT_FOR_PERSON]: {
-      [InputType.FOUND_PERSON]: (variables, input) => ({
-        variables,
-        outputs: {SpeechSynthesisAction: {goal: variables.question}},
-      }),
-    },
   };
 
   return function(state, variables, input) {
-    return !emissionTable[state]
-      ? {variables, outputs: null}
-      : !emissionTable[state][input.type]
-        ? {variables, outputs: null}
-        : emissionTable[state][input.type](variables, input);
+    return !transitionTable[state]
+      ? {state, variables, outputs: null}
+      : !transitionTable[state][input.type]
+        ? {state, variables, outputs: null}
+        : transitionTable[state][input.type](variables, input.value);
   }
 }
+
+const transition = createTransition();
+
+function output(machine$) {  // a dummy input function
+// ...
 ```
 
-and `output`:
+Here we define and return the FSM's transition function inside the `createTransition` function.
+Can you see the FSM we defined above in this function?
+
+Finally update the dummy `output` function to:
+
+```js
+// ...
+const transition = createTransition();
+
+function output(machine$) {
+  const outputs$ = machine$
+    .filter(machine => !!machine.outputs)
+    .map(machine => machine.outputs);
+
+  return {
+    SpeechSynthesisAction: outputs$
+      .filter(outputs => !!outputs.SpeechSynthesisAction)
+      .map(output => output.SpeechSynthesisAction.goal),
+    SpeechRecognitionAction: outputs$
+      .filter(outputs => !!outputs.SpeechRecognitionAction)
+      .map(output => output.SpeechRecognitionAction.goal),
+    TabletFace: outputs$
+      .filter(outputs => !!outputs.TabletFace)
+      .map(output => output.TabletFace.goal),
+  };
+}
+
+function main(sources) {
+// ...
+```
+
+Try running the application and test whether it behave as we defined in the FSM.
+
+You just implemented a social robot program as an FSM!

@@ -74,7 +74,7 @@ Then download [`package.json`](../examples/tutorials/01_personality_quiz/package
 Run `npm install` to install the required npm packages.
 After installing, you can run `npm start` to build and start the web application that does nothing.
 
-Now add the following code in index.js:
+Now add the following code in `index.js`:
 
 ```js
 import xs from 'xstream';
