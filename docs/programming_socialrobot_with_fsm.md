@@ -168,7 +168,12 @@ const InputType = {
 function transition(state, variables, input) {  // a dummy transition function
 // ...
 
-function input() {  // a dummy input function
+function input(
+  start$,
+  speechRecognitionActionResult$,
+  speechSynthesisActionResult$,
+  poses$,
+) {  // a dummy input function
   return xs.never();
 }
 
@@ -181,7 +186,12 @@ function output(machine$) {
 }
 
 function main(sources) { 
-  const input$ = xs.never();
+  const input$ = input(
+    sources.TabletFace.load,
+    sources.SpeechSynthesisAction.result,
+    sources.SpeechRecognitionAction.result,
+    sources.PoseDetection.poses,
+  );
 
   const defaultMachine = {
     state: State.PEND,
@@ -201,14 +211,162 @@ function main(sources) {
 runRobotProgram(main);
 ```
 
-The most important thing to notice compare to the  did here is diving the `main` function into three functions; `input`, `transition`, and `output`.
+The most important thing to notice here is that we divide the `main` function into three functions; `input`, `transition`, and `output`.
+The `input` function takes incoming streams in `sources` and returns a stream that emits the FSM's input values.
+We then use the [`fold`](https://github.com/staltz/xstream#fold) xstream operator on the returned stream (`$input`) to trigger the FSM's `transition` function.
+Note that the `fold` operator is like `Array.prototype.reduce` for streams; it takes 
 
-The input function generate the `input$` stream that emits input values 
-The transition function updates the FSM using the `reduce` xstream operator, which is `Array.prototype.reduce` but start with `defaultState` and applying the accumulator function (i.e., the first argument) that takes emitted input value and the latest state machine.
-Finally, the output function takes 
+1. an accumulator function that takes an emitted value (e.g., a FSM input value, `input`) and a previous output of the accumulator function (e.g., the latest FSM, `machine`) or a seed value and
+2. an initial output of the accumulator function (e.g., the initial FSM, `defaultMachine`).
 
-Let's implement the three function one by one.
+Finally the `output` function takes the stream that emits FSMs ($machine) and returns outgoing streams.
 
+Let's implement the three function starting from `input`:
+
+```js
+function input(
+  start$,
+  speechRecognitionActionResult$,
+  speechSynthesisActionResult$,
+  poses$,
+) {
+  return xs.merge(
+    start$.mapTo({type: InputType.START}),
+    speechRecognitionActionResult$
+      .filter(result =>
+        result.status.status === 'SUCCEEDED'
+        && (result.result === Response.YES || result.result === Response.NO)
+      ).map(result => ({
+        type: InputType.VALID_RESPONSE,
+        value: result.result,
+      })),
+    speechSynthesisActionResult$
+      .filter(result => result.status.status === 'SUCCEEDED')
+      .mapTo({type: InputType.SAY_DONE}),
+    speechRecognitionActionResult$
+      .filter(result =>
+        result.status.status !== 'SUCCEEDED'
+        || (result.result !== Response.YES && result.result !== Response.NO)
+      ).mapTo({type: InputType.INVALID_RESPONSE}),
+    poses$
+      .filter(poses =>
+        poses.length === 1
+        && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
+      ).map(poses => {
+        const nose = poses[0].keypoints.filter(kpt => kpt.part === 'nose')[0];
+        return {
+          type: InputType.DETECTED_FACE,
+          value: {
+            x: nose.position.x / 640,  // max value of position.x is 640
+            y: nose.position.y / 480,  // max value of position.y is 480
+          },
+        };
+      }),
+  );
+}
 ```
 
+Here we .
+
+then `transition`:
+
+```js
+function createTransition() {
+  const transitionTable = {
+    [State.PEND]: {
+      [InputType.GOAL]: (variables) => State.ASK,
+    },
+    [State.ASK]: {
+      [InputType.ASK_SUCCESS]: (variables) => isQuestion(variables.question)
+        ? State.WAIT_FOR_RESPONSE : State.PEND,
+      [InputType.LOST_PERSON]: (variables) => State.WAIT_FOR_PERSON,
+    },
+    [State.WAIT_FOR_RESPONSE]: {
+      [InputType.VALID_RESPONSE]: (variables) => State.ASK,
+      [InputType.INVALID_RESPONSE]: (variables) => State.WAIT_FOR_RESPONSE,
+    },
+    [State.WAIT_FOR_PERSON]: {
+      [InputType.FOUND_PERSON]: (variables) => State.ASK,
+    },
+  };
+
+  return function(state, variables, input) {
+    return !transitionTable[state]
+      ? state
+      : !transitionTable[state][input.type]
+        ? state
+        : transitionTable[state][input.type](variables);
+  }
+}
+
+function createEmission() {
+  const emissionTable = {
+    [State.PEND]: {
+      [InputType.GOAL]: (variables, input) => ({
+        variables: {question: Question.CAREER},
+        outputs: {SpeechSynthesisAction: {goal: Question.CAREER}},
+      }),
+    },
+    [State.ASK]: {
+      [InputType.ASK_SUCCESS]: (variables, input) => isQuestion(variables.question)
+        ? {
+          variables,
+          outputs: {SpeechRecognitionAction: {goal: {}}},
+        } : {variables, outputs: {done: true}},
+      [InputType.LOST_PERSON]: (variables, input) => ({
+        variables,
+        outputs: {SpeechSynthesisAction: {goal: null}},
+      }),
+    },
+    [State.WAIT_FOR_RESPONSE]: {
+      [InputType.VALID_RESPONSE]: (variables, input) => ({
+        variables: {question: flowchart[variables.question][input.value]},
+        outputs: {
+          SpeechSynthesisAction: {
+            goal: flowchart[variables.question][input.value],
+          },
+          TabletFace: {goal: {
+            type: 'SET_STATE',
+            value: {
+              leftEye: {x: 0.5, y: 0.5},
+              rightEye: {x: 0.5, y: 0.5},
+            },
+          }},
+        },
+      }),
+      [InputType.INVALID_RESPONSE]: (variables, input) => ({
+        variables,
+        outputs: {SpeechRecognitionAction: {goal: {}}},
+      }),
+      [InputType.DETECTED_FACE]: (variables, input) => ({
+        variables,
+        outputs: {
+          TabletFace: {goal: {
+            type: 'SET_STATE',
+            value: {
+              leftEye: input.value,
+              rightEye: input.value,
+            },
+          }},
+        }
+      }),
+    },
+    [State.WAIT_FOR_PERSON]: {
+      [InputType.FOUND_PERSON]: (variables, input) => ({
+        variables,
+        outputs: {SpeechSynthesisAction: {goal: variables.question}},
+      }),
+    },
+  };
+
+  return function(state, variables, input) {
+    return !emissionTable[state]
+      ? {variables, outputs: null}
+      : !emissionTable[state][input.type]
+        ? {variables, outputs: null}
+        : emissionTable[state][input.type](variables, input);
+  }
+}
 ```
+
+and `output`:

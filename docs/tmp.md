@@ -1,3 +1,13 @@
+<!-- The `input` function takes `sources` and uses 
+The most important thing to notice here is that did here is diving the `main` function into three functions; `input`, `transition`, and `output`. -->
+
+<!-- The input function generate the `input$` stream that emits input values 
+The transition function updates the FSM using the `reduce` xstream operator, which is `Array.prototype.reduce` but start with `defaultState` and applying the accumulator function (i.e., the first argument) that takes emitted input value and the latest state machine.
+Finally, the output function takes  -->
+
+
+
+
 
 
 <!-- kept the variables as they were there before. rename transition => flowchart -->
