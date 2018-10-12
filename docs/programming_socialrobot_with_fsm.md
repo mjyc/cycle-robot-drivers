@@ -224,6 +224,8 @@ Finally the `output` function takes the stream that emits FSMs ($machine) and re
 Let's implement the three function starting from `input`:
 
 ```js
+//...
+
 function input(
   start$,
   speechRecognitionActionResult$,
@@ -264,11 +266,37 @@ function input(
       }),
   );
 }
+
+// ...
 ```
 
-Here we .
+Try testing whether the `input` function is behaving properly by attaching the [`addListener`](https://github.com/staltz/xstream#addListener) xstream operator to the returned `$input` stream and returning outgoing streams from the `output` function, for example:
 
-then `transition`:
+```js
+//...
+import delay from 'xstream/extra/delay'
+function output(machine$) {
+  return {
+    SpeechSynthesisAction: xs.of('Hello world!').compose(delay(1000)),
+    SpeechRecognitionAction: xs.of({}).compose(delay(1000)),
+    TabletFace: xs.never(),
+  };
+}
+
+function main(sources) { 
+  const input$ = input(
+    sources.TabletFace.load,
+    sources.SpeechSynthesisAction.result,
+    sources.SpeechRecognitionAction.result,
+    sources.PoseDetection.poses,
+  );
+  input$.addListener({next: value => console.log('input', value)})
+//...
+```
+
+Do you see expected outputs on your browser console?
+
+Let's implement the `transition` function:
 
 ```js
 function createTransition() {
