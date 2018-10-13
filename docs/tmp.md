@@ -1,3 +1,103 @@
+<!-- The `input` function takes `sources` and uses 
+The most important thing to notice here is that did here is diving the `main` function into three functions; `input`, `transition`, and `output`. -->
+
+<!-- The input function generate the `input$` stream that emits input values 
+The transition function updates the FSM using the `reduce` xstream operator, which is `Array.prototype.reduce` but start with `defaultState` and applying the accumulator function (i.e., the first argument) that takes emitted input value and the latest state machine.
+Finally, the output function takes  -->
+
+
+
+
+
+
+<!-- kept the variables as they were there before. rename transition => flowchart -->
+
+update the main as follows
+
+```js
+function main(sources) {
+
+  const defaultMachine = {
+    state: State.PEND,
+    variables: {
+      question: null,
+    },
+    outputs: null,
+  };
+
+  const input$ = sources.Tablet.load;
+
+  const machine$ = input$.fold((machine, input) => update(
+    machine.state, machine.variables, input
+  ), defaultMachine);
+
+  const outputs$ = machine$
+    .filter(machine => !!machine.outputs)
+    .map(machine => machine.outputs);
+
+  return {
+    SpeechSynthesisAction: outputs$
+      .filter(outputs => !!outputs.SpeechSynthesisAction)
+      .map(output => output.SpeechSynthesisAction.goal),
+    SpeechRecognitionAction: outputs$
+      .filter(outputs => !!outputs.SpeechRecognitionAction)
+      .map(output => output.SpeechRecognitionAction.goal),
+    TabletFace: outputs$
+      .filter(outputs => !!outputs.TabletFace)
+      .map(output => output.TabletFace.goal),
+  };
+}
+```
+
+First, we define state machine as a object with the three fields.
+
+We then define the `input$` stream, which is simply the load stream that emits an event once when DOM is loaded for now,
+
+Now we use fold operator in input to update the state machine over time.
+
+Finally we create a outputs stream and create new streams as commands to action drivers.
+
+We now have a simple state machine! Try running it! You should 
+
+<!-- Then we define the `machine$` stream using `fold` on input. This is where the `transition` is happening.
+
+We now have a simplest state machine! -->
+
+
+## Making it more complex
+
+
+<!-- ### Defining inputs and outputs (and udpate the relevant code)
+
+we'll include variable field in input
+
+### Defining transition (and emission)
+
+the big function
+
+### That's it! -->
+
+
+
+
+
+
+Let's now implement the "travel personality test" program as an FSM.
+
+<!-- We'll start from representing the ["travel personality test" program](../examples/tutorials/01_personality_quiz/index.js) we implemented in the previous post extended with the first additional behavior mentioned above: looking at a person only when the robot is waiting for a person's response.
+Such a program can be expressed as an FSM like this: -->
+
+
+
+<!-- Notice that we made state names verbs.
+This is because state represent an action the robot is running at the moment. -->
+<!-- We make state names verbs since the FSM emits outputs that trigger actions on entering a state. -->
+
+
+
+
+
+
 Here we define the set of states as `State`, the variable as a set of strings `sentence`, the input as a type-value pair using a javascript object with `type` and `value` fields, and the outputs as
 The `State` variable defines the set of states and variables
 We represent input as a type-value pair which is implemented as an javascript object with type and value fields.

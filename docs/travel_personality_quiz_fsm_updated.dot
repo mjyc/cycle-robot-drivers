@@ -1,10 +1,8 @@
 digraph {
 forcelabels=true
   PEND -> SAY [ label="  GOAL  " ]
-  PEND -> PEND [ label="  DETECTED_FACE  " ]
   SAY -> LISTEN [ label="  SAY_DONE  " ]
   SAY -> PEND [ label="  QUIZ_DONE  " ]
-  SAY -> SAY [ label="  DETECTED_FACE  " ]
   LISTEN -> SAY [ label="  VALID_RESPONSE  " ]
   LISTEN:s -> LISTEN:s [ label="  INVALID_RESPONSE  " ]
   LISTEN -> LISTEN [ label="  DETECTED_FACE  " ]

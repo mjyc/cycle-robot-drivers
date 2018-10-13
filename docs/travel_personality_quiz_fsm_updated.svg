@@ -14,12 +14,6 @@
 <ellipse fill="none" stroke="black" cx="73" cy="-228" rx="33.5952" ry="18"/>
 <text text-anchor="middle" x="73" y="-224.3" font-family="Times,serif" font-size="14.00">PEND</text>
 </g>
-<!-- PEND&#45;&gt;PEND -->
-<g id="edge2" class="edge"><title>PEND&#45;&gt;PEND</title>
-<path fill="none" stroke="black" d="M103.584,-235.851C115.194,-236.154 124.797,-233.537 124.797,-228 124.797,-224.193 120.258,-221.767 113.649,-220.72"/>
-<polygon fill="black" stroke="black" points="113.767,-217.221 103.584,-220.149 113.37,-224.21 113.767,-217.221"/>
-<text text-anchor="middle" x="188.297" y="-224.3" font-family="Times,serif" font-size="14.00"> &#160;DETECTED_FACE &#160;</text>
-</g>
 <!-- SAY -->
 <g id="node2" class="node"><title>SAY</title>
 <ellipse fill="none" stroke="black" cx="73" cy="-141" rx="28.6953" ry="18"/>
@@ -32,16 +26,10 @@
 <text text-anchor="middle" x="62.5" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;GOAL &#160;</text>
 </g>
 <!-- SAY&#45;&gt;PEND -->
-<g id="edge4" class="edge"><title>SAY&#45;&gt;PEND</title>
+<g id="edge3" class="edge"><title>SAY&#45;&gt;PEND</title>
 <path fill="none" stroke="black" d="M82.6445,-158C87.3554,-167.71 91.5208,-180.423 89,-192 88.339,-195.036 87.3903,-198.123 86.2801,-201.144"/>
 <polygon fill="black" stroke="black" points="83.0287,-199.846 82.3384,-210.419 89.471,-202.584 83.0287,-199.846"/>
 <text text-anchor="middle" x="135" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;QUIZ_DONE &#160;</text>
-</g>
-<!-- SAY&#45;&gt;SAY -->
-<g id="edge5" class="edge"><title>SAY&#45;&gt;SAY</title>
-<path fill="none" stroke="black" d="M98.876,-148.781C110.039,-149.418 119.597,-146.824 119.597,-141 119.597,-137.087 115.283,-134.632 109.066,-133.636"/>
-<polygon fill="black" stroke="black" points="109.011,-130.131 98.876,-133.219 108.725,-137.125 109.011,-130.131"/>
-<text text-anchor="middle" x="183.097" y="-137.3" font-family="Times,serif" font-size="14.00"> &#160;DETECTED_FACE &#160;</text>
 </g>
 <!-- LISTEN -->
 <g id="node3" class="node"><title>LISTEN</title>
@@ -49,25 +37,25 @@
 <text text-anchor="middle" x="73" y="-50.3" font-family="Times,serif" font-size="14.00">LISTEN</text>
 </g>
 <!-- SAY&#45;&gt;LISTEN -->
-<g id="edge3" class="edge"><title>SAY&#45;&gt;LISTEN</title>
+<g id="edge2" class="edge"><title>SAY&#45;&gt;LISTEN</title>
 <path fill="none" stroke="black" d="M49.1731,-130.975C37.8724,-125.346 25.4555,-116.877 19,-105 12.0429,-92.2001 21.996,-80.8833 35.1758,-72.2676"/>
 <polygon fill="black" stroke="black" points="37.2971,-75.0814 44.1574,-67.0075 33.7595,-69.041 37.2971,-75.0814"/>
 <text text-anchor="middle" x="62.5" y="-93.8" font-family="Times,serif" font-size="14.00"> &#160;SAY_DONE &#160;</text>
 </g>
 <!-- LISTEN&#45;&gt;SAY -->
-<g id="edge6" class="edge"><title>LISTEN&#45;&gt;SAY</title>
+<g id="edge4" class="edge"><title>LISTEN&#45;&gt;SAY</title>
 <path fill="none" stroke="black" d="M92.7398,-70.2815C102.402,-79.7362 110.99,-92.4335 106,-105 104.009,-110.014 100.922,-114.726 97.4185,-118.969"/>
 <polygon fill="black" stroke="black" points="94.6361,-116.819 90.347,-126.507 99.7414,-121.608 94.6361,-116.819"/>
 <text text-anchor="middle" x="173" y="-93.8" font-family="Times,serif" font-size="14.00"> &#160;VALID_RESPONSE &#160;</text>
 </g>
 <!-- LISTEN&#45;&gt;LISTEN -->
-<g id="edge7" class="edge"><title>LISTEN:s&#45;&gt;LISTEN:s</title>
+<g id="edge5" class="edge"><title>LISTEN:s&#45;&gt;LISTEN:s</title>
 <path fill="none" stroke="black" d="M73,-36C82,-29 82,-15 73,-15 66.9531,-15 64.969,-21.3198 67.0476,-27.5903"/>
 <polygon fill="black" stroke="black" points="64.3659,-29.8597 73,-36 70.0795,-25.8156 64.3659,-29.8597"/>
 <text text-anchor="middle" x="73" y="-3.8" font-family="Times,serif" font-size="14.00"> &#160;INVALID_RESPONSE &#160;</text>
 </g>
 <!-- LISTEN&#45;&gt;LISTEN -->
-<g id="edge8" class="edge"><title>LISTEN&#45;&gt;LISTEN</title>
+<g id="edge6" class="edge"><title>LISTEN&#45;&gt;LISTEN</title>
 <path fill="none" stroke="black" d="M109.841,-61.875C122.122,-61.875 131.946,-59.25 131.946,-54 131.946,-50.3086 127.089,-47.9149 119.937,-46.8191"/>
 <polygon fill="black" stroke="black" points="120.058,-43.3192 109.841,-46.125 119.578,-50.3028 120.058,-43.3192"/>
 <text text-anchor="middle" x="195.446" y="-50.3" font-family="Times,serif" font-size="14.00"> &#160;DETECTED_FACE &#160;</text>
