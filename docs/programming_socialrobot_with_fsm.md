@@ -7,6 +7,7 @@ In case you are in a hurry, here is the [demo](https://stackblitz.com/edit/cycle
 <!-- If you want to take a peek at the complete code or demo
 If you just want to check out the complete code or demo, [both are available](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) at Stackblitz -->
 
+
 ## Making "travel personality quiz" program more complex
 
 In the previous post, we programmed a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) to test your travel personality.
@@ -226,8 +227,6 @@ Note that the `fold` operator is like `Array.prototype.reduce` for streams; it t
 2. an initial output of the accumulator function (e.g., the initial FSM, `defaultMachine`).
 
 Finally the `output` function takes the stream that emits FSMs (`$machine`) and returns outgoing streams.
-
-<!-- If you are familiar with [Cycle.js' Model-View-Intent pattern](https://cycle.js.org/model-view-intent.html), we have  -->
 
 Let's implement the three function.
 First, update the dummy `input` function to:
@@ -481,3 +480,26 @@ function main(sources) {
 Try running the application and test whether it behave as we defined in the FSM.
 
 You just implemented a social robot program as an FSM!
+
+
+## Epilogue: updating the "travel personality quiz" FSM
+
+The true power of the FSM pattern is its maintainability.
+The crux of the FSM pattern is diving the `main` function into the two functions that have separate concerns:
+
+* the `input` function that focuses on turning incoming streams into "input" that the FSM can work with and
+* the `transition` function implements the FSM's transition function.
+
+This separation allows programmers to only update the portion of code in the two functions when they need to make the program more complex.
+
+For example, if we were to implement the rest of additional behaviors mentioned in the [Making "travel personality quiz" program more complex](making-travel-personality-quiz-program-more-complex) section, we'll need to first update the FSM to reflect the new desired behavior, e.g.:
+
+![travel_personality_quiz_fsm_final](./travel_personality_quiz_fsm_final.svg)
+
+and update the `input` and `transition` functions.
+See the final code available [here](../examples/apps/personality_quiz/index.js) or check out the [demo]().
+
+Side notes:
+
+* The `output` function simply maps the outputs returned from `transition` into the outgoing streams (`sinks` in Cycle.js) to make side effects, e.g., trigger actions.
+* If you are familiar with [Cycle.js' Model-View-Intent pattern](https://cycle.js.org/model-view-intent.html), the FSM pattern is basically the same except it requires a specific structure for "model" and doesn't really make use of "view", which is corresponding to "output".
