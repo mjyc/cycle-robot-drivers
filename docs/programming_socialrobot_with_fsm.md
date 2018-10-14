@@ -296,7 +296,7 @@ function output(machine$) {
   };
 }
 
-function main(sources) { 
+function main(sources) {
   const input$ = input(
     sources.TabletFace.load,
     sources.SpeechSynthesisAction.result,
