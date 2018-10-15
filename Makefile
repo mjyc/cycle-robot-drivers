@@ -61,7 +61,7 @@ test:
 
 postbump:
 	cd $(ARG) && rm -rf node_modules package-lock.json && npm install && \
-	cd $(ROOTDIR) && make lib $(ARG) && \
+	cd $(ROOTDIR) && make lib $(ARG) && make doc $(ARG) && \
 	git add -A && git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)" && \
 	cd $(ROOTDIR) && cd $(ARG) && npm publish --access public;
 
