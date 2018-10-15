@@ -1,10 +1,13 @@
 import Snabbdom from 'snabbdom-pragma';
+import {VNode} from 'snabbdom/vnode';
 import xs from 'xstream';
+import {Stream} from 'xstream';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import dat from 'dat.gui';
 import Stats from 'stats.js';
 import * as posenet from '@tensorflow-models/posenet';
+import {Pose} from '@tensorflow-models/posenet';
 import {drawSkeleton, drawKeypoints, isMobile, setupCamera} from './utils';
 
 
@@ -92,7 +95,7 @@ function setupGui(cameras, net, guiState) {
   return gui;
 }
 
-type Parameters = {
+export type PoseNetParameters = {
   algorithm: string,
   input: {
     mobileNetArchitecture: string,
@@ -116,8 +119,22 @@ type Parameters = {
   },
   net: any,
   changeToArchitecture: string,
+  stopRequested: boolean,
 };
 
+/**
+ * [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet) 
+ * driver factory. Returns a Cycle.js driver that takes a `PoseNetParameters`
+ * stream and returns a stream that emits array of `Pose`s.
+ * 
+ * @param options possible key includes
+ * 
+ *   * videoWidth {number} An optional video height.
+ *   * videoWidth {number} An optional video width.
+ *   * flipHorizontal {boolean} An optional flag for horizontally flipping the video.
+ * 
+ * @return {Driver}
+ */
 export function makePoseDetectionDriver({
   videoWidth = 640,
   videoHeight = 480,
@@ -126,15 +143,18 @@ export function makePoseDetectionDriver({
   videoWidth?: number,
   videoHeight?: number,
   flipHorizontal?: boolean,
-} = {}): Driver<any, any> {
+} = {}): Driver<
+  Stream<PoseNetParameters>,
+  {DOM: Stream<VNode>, poses: Stream<[Pose]>}
+> {
   const stats = new Stats();
   const id = String(Math.random()).substr(2);
   const divID = `posenet-${id}`;
   const videoID = `pose-video-${id}`;
   const canvasID = `pose-canvas-${id}`;
 
-  return function(params$) {
-    let params: Parameters = null;
+  return function(params$: Stream<PoseNetParameters>): any {
+    let params: PoseNetParameters = null;
     const initialParams = {
       algorithm: 'single-pose',
       input: {
@@ -159,8 +179,9 @@ export function makePoseDetectionDriver({
       },
       net: null,
       changeToArchitecture: null,
+      stopRequested: false,
     };
-    params$.fold((prev: Parameters, params: Parameters) => {
+    params$.fold((prev: PoseNetParameters, params: PoseNetParameters) => {
       Object.keys(params).map(key => {
         if (typeof params[key] === 'object') {
           Object.assign(prev[key], params[key]);
@@ -171,7 +192,7 @@ export function makePoseDetectionDriver({
       });
       return prev;
     }, initialParams).addListener({
-      next: (newParams: Parameters) => {
+      next: (newParams: PoseNetParameters) => {
         params = newParams;
       }
     });
@@ -259,9 +280,13 @@ export function makePoseDetectionDriver({
       // End monitoring code for frames per second
       stats.end();
 
-      requestAnimationFrame(
-        poseDetectionFrame.bind(null, params, video, context, stats, callback)
-      );
+      if (!params.stopRequested) {
+        requestAnimationFrame(
+          poseDetectionFrame.bind(null, params, video, context, stats, callback)
+        );
+      } else {
+        params.stopRequested = false;
+      }
     }
 
     const poses$ = xs.create({
@@ -306,7 +331,9 @@ export function makePoseDetectionDriver({
           }
         }, 1000);
       },
-      stop: () => {},  // TODO: stop the detector
+      stop: () => {
+        params.stopRequested = true;
+      },
     });
 
     const vnode$ = xs.of((

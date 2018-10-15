@@ -1,1 +1,1 @@
-export {makePoseDetectionDriver} from './pose_detection'
+export {makePoseDetectionDriver, PoseNetParameters} from './pose_detection'
