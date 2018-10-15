@@ -145,7 +145,7 @@ export function makePoseDetectionDriver({
   flipHorizontal?: boolean,
 } = {}): Driver<
   Stream<PoseNetParameters>,
-  {DOM: Stream<VNode>, poses: Stream<[Pose]>}
+  {DOM: Stream<VNode>, poses: Stream<any>}
 > {
   const stats = new Stats();
   const id = String(Math.random()).substr(2);
@@ -313,7 +313,10 @@ export function makePoseDetectionDriver({
             canvas.height = videoHeight;
     
             params.net = await posenet.load(0.75);
-            poseDetectionFrame(params, video, context, stats, listener.next);
+            // const posesListener = (poses) => {
+            //   listener.next(poses);
+            // };
+            poseDetectionFrame(params, video, context, stats, listener.next.bind(listener));
     
             stats.showPanel(0);
             stats.dom.style.setProperty('position', 'absolute');
