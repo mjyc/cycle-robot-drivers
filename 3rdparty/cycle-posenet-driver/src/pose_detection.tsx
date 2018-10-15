@@ -134,23 +134,49 @@ export function makePoseDetectionDriver({
   const canvasID = `pose-canvas-${id}`;
 
   return function(params$) {
-    let params = null;
-    let video = null;
-    let context = null;
-
-    let posesListener = null;
-    const poses$ = xs.create({
-      start: listener => {
-        posesListener = (result) => {
-          listener.next(result);
-        };
+    let params: Parameters = null;
+    const initialParams = {
+      algorithm: 'single-pose',
+      input: {
+        mobileNetArchitecture: isMobile() ? '0.50' : '0.75',
+        outputStride: 16,
+        imageScaleFactor: 0.5,
       },
-      stop: () => {
-        posesListener = null;
+      singlePoseDetection: {
+        minPoseConfidence: 0.2,
+        minPartConfidence: 0.5,
       },
+      multiPoseDetection: {
+        maxPoseDetections: 5,
+        minPoseConfidence: 0.15,
+        minPartConfidence: 0.1,
+        nmsRadius: 30.0,
+      },
+      output: {
+        showVideo: true,
+        showSkeleton: true,
+        showPoints: true,
+      },
+      net: null,
+      changeToArchitecture: null,
+    };
+    params$.fold((prev: Parameters, params: Parameters) => {
+      Object.keys(params).map(key => {
+        if (typeof params[key] === 'object') {
+          Object.assign(prev[key], params[key]);
+        } else {
+          prev[key] = params[key];
+        }
+        return prev;
+      });
+      return prev;
+    }, initialParams).addListener({
+      next: (newParams: Parameters) => {
+        params = newParams;
+      }
     });
 
-    async function poseDetectionFrame() {
+    async function poseDetectionFrame(params, video, context, stats, callback) {
       if (params.changeToArchitecture) {
         // Important to purge variables and free up GPU memory
         params.net.dispose();
@@ -221,102 +247,69 @@ export function makePoseDetectionDriver({
         .filter(pose => pose.score >= minPoseConfidence)
         .map(pose => ({
           ...pose,
-          keypoints: pose.keypoints.filter(keypoint => keypoint.score >= minPartConfidence)
+          keypoints: pose.keypoints.filter(
+            keypoint => keypoint.score >= minPartConfidence
+          ),
         }));
 
-      if (posesListener) {
-        posesListener(outPoses);
-
-        // End monitoring code for frames per second
-        stats.end();
-
-        requestAnimationFrame(poseDetectionFrame);
+      if (callback) {
+        callback(outPoses);
       }
+
+      // End monitoring code for frames per second
+      stats.end();
+
+      requestAnimationFrame(
+        poseDetectionFrame.bind(null, params, video, context, stats, callback)
+      );
     }
 
-    // Poll for the element with id=`#${canvasID}`
-    const intervalID = setInterval(async () => {
-      if (!document.querySelector(`#${canvasID}`)) {
-        console.debug(`Waiting for #${canvasID} to appear...`);
-        return;
-      }
-      clearInterval(intervalID);
-
-      if (!video) {
-        video = await setupCamera(
-          document.querySelector(`#${videoID}`),
-          videoWidth,
-          videoHeight
-        );
-        video.play();
-
-        const canvas: any = document.querySelector(`#${canvasID}`);
-        context = canvas.getContext('2d');
-        canvas.width = videoWidth;
-        canvas.height = videoHeight;
-
-        params.net = await posenet.load(0.75);
-        poseDetectionFrame();
-
-        stats.showPanel(0);
-        stats.dom.style.setProperty('position', 'absolute');
-        document.querySelector(`#${divID}`).appendChild(stats.dom);
-
-        const gui = setupGui(video, params.net, params);
-        gui.domElement.style.setProperty('position', 'absolute');
-        gui.domElement.style.setProperty('top', '0px');
-        gui.domElement.style.setProperty('right', '0px');
-        document.querySelector(`#${divID}`)
-          .appendChild(gui.domElement);
-        gui.closed = true;
-      } else {
-        console.warn('video is already set');
-      }
-    }, 1000);
-
-    const initialParams = {
-      algorithm: 'single-pose',
-      input: {
-        mobileNetArchitecture: isMobile() ? '0.50' : '0.75',
-        outputStride: 16,
-        imageScaleFactor: 0.5,
+    const poses$ = xs.create({
+      start: listener => {
+        let video = null;
+        const intervalID = setInterval(async () => {
+          if (!document.querySelector(`#${canvasID}`)) {
+            console.debug(`Waiting for #${canvasID} to appear...`);
+            return;
+          }
+          clearInterval(intervalID);
+    
+          if (!video) {
+            video = await setupCamera(
+              document.querySelector(`#${videoID}`),
+              videoWidth,
+              videoHeight
+            );
+            video.play();
+    
+            const canvas: any = document.querySelector(`#${canvasID}`);
+            const context = canvas.getContext('2d');
+            canvas.width = videoWidth;
+            canvas.height = videoHeight;
+    
+            params.net = await posenet.load(0.75);
+            poseDetectionFrame(params, video, context, stats, listener.next);
+    
+            stats.showPanel(0);
+            stats.dom.style.setProperty('position', 'absolute');
+            document.querySelector(`#${divID}`).appendChild(stats.dom);
+    
+            const gui = setupGui(video, params.net, params);
+            gui.domElement.style.setProperty('position', 'absolute');
+            gui.domElement.style.setProperty('top', '0px');
+            gui.domElement.style.setProperty('right', '0px');
+            document.querySelector(`#${divID}`)
+              .appendChild(gui.domElement);
+            gui.closed = true;
+          } else {
+            console.warn('video is already set');
+          }
+        }, 1000);
       },
-      singlePoseDetection: {
-        minPoseConfidence: 0.2,
-        minPartConfidence: 0.5,
-      },
-      multiPoseDetection: {
-        maxPoseDetections: 5,
-        minPoseConfidence: 0.15,
-        minPartConfidence: 0.1,
-        nmsRadius: 30.0,
-      },
-      output: {
-        showVideo: true,
-        showSkeleton: true,
-        showPoints: true,
-      },
-      net: null,
-      changeToArchitecture: null,
-    };
-
-    params$.fold((prev: Parameters, params: Parameters) => {
-      Object.keys(params).map(key => {
-        if (typeof params[key] === 'object') {
-          Object.assign(prev[key], params[key]);
-        } else {
-          prev[key] = params[key];
-        }
-        return prev;
-      });
-      return prev;
-    }, initialParams).addListener({
-      next: (newParams: Parameters) => {
-        params = newParams;
-      }
+      stop: () => {},  // TODO: stop the detector
     });
 
-    const vdom$ = xs.of((
+    const vnode$ = xs.of((
       <div id={divID} style={{position: "relative"}}>
         <video
           id={videoID}
@@ -326,8 +319,9 @@ export function makePoseDetectionDriver({
         <canvas id={canvasID} />
       </div>
     ));
+
     return {
-      DOM: adapt(vdom$),
+      DOM: adapt(vnode$),
       poses: adapt(poses$),
     };
   }
