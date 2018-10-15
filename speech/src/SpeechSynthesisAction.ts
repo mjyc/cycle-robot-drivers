@@ -155,6 +155,16 @@ function transition(
         result: null,
       }
     }
+    if (input.type === InputType.START) {
+      return {
+        state: state,
+        variables: prevVariables,
+        outputs: {
+          args: null,
+        },
+        result: null,
+      };
+    }
   }
 
   return {
