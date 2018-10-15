@@ -52,6 +52,7 @@ function setupGui(cameras, net, guiState) {
   let single = gui.addFolder('Single Pose Detection');
   single.add(guiState.singlePoseDetection, 'minPoseConfidence', 0.0, 1.0);
   single.add(guiState.singlePoseDetection, 'minPartConfidence', 0.0, 1.0);
+  single.open();
 
   let multi = gui.addFolder('Multi Pose Detection');
   multi.add(guiState.multiPoseDetection, 'maxPoseDetections')
@@ -63,7 +64,6 @@ function setupGui(cameras, net, guiState) {
   // nms Radius: controls the minimum distance between poses that are returned
   // defaults to 20, which is probably fine for most use cases
   multi.add(guiState.multiPoseDetection, 'nmsRadius').min(0.0).max(40.0);
-  multi.open();
 
   let output = gui.addFolder('Output');
   output.add(guiState.output, 'showVideo');
@@ -275,14 +275,14 @@ export function makePoseDetectionDriver({
     }, 1000);
 
     const initialParams = {
-      algorithm: 'multi-pose',
+      algorithm: 'single-pose',
       input: {
         mobileNetArchitecture: isMobile() ? '0.50' : '0.75',
         outputStride: 16,
         imageScaleFactor: 0.5,
       },
       singlePoseDetection: {
-        minPoseConfidence: 0.1,
+        minPoseConfidence: 0.2,
         minPartConfidence: 0.5,
       },
       multiPoseDetection: {
