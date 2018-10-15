@@ -19,19 +19,20 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 ### makePoseDetectionDriver(options)
 
 [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet) 
-driver factory. Returns a Cycle.js driver that takes a `PoseNetParameters`
-stream and returns a stream that emits array of `Pose`s.
+driver factory.
 
 #### Params:
 
 * *options* possible key includes 
-  * videoWidth {number} An optional video height.
-  * videoWidth {number} An optional video width.
-  * flipHorizontal {boolean} An optional flag for horizontally flipping the video.
+  * videoWidth {number} An optional video height (default: 640).
+  * videoWidth {number} An optional video width (default: 480).
+  * flipHorizontal {boolean} An optional flag for horizontally flipping the
+    video (default: true).
 
 #### Return:
 
-* **Driver** 
+* **Driver** the PoseNet Cycle.js driver function. It takes a stream   that emits `PoseNetParameters` and returns a stream that emits arrays of
+  `Pose`s.
 
 <!-- End src/pose_detection.tsx -->
 

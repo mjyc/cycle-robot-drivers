@@ -124,16 +124,18 @@ export type PoseNetParameters = {
 
 /**
  * [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet) 
- * driver factory. Returns a Cycle.js driver that takes a `PoseNetParameters`
- * stream and returns a stream that emits array of `Pose`s.
+ * driver factory.
  * 
  * @param options possible key includes
  * 
- *   * videoWidth {number} An optional video height.
- *   * videoWidth {number} An optional video width.
- *   * flipHorizontal {boolean} An optional flag for horizontally flipping the video.
+ *   * videoWidth {number} An optional video height (default: 640).
+ *   * videoWidth {number} An optional video width (default: 480).
+ *   * flipHorizontal {boolean} An optional flag for horizontally flipping the
+ *     video (default: true).
  * 
- * @return {Driver}
+ * @return {Driver} the PoseNet Cycle.js driver function. It takes a stream
+ *   that emits `PoseNetParameters` and returns a stream that emits arrays of
+ *   `Pose`s.
  */
 export function makePoseDetectionDriver({
   videoWidth = 640,
