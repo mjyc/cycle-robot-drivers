@@ -4,15 +4,6 @@ import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import {EventSource} from '@cycle-robot-drivers/action';
 
-export type SpeechSynthesisUtteranceProperties = {
-  lang?: string,
-  pitch?: number,
-  rate?: number,
-  text: string,
-  voice?: string,
-  volume?: number,
-}
-
 class UtteranceSource implements EventSource {
   constructor(
     private _utterance: SpeechSynthesisUtterance,
@@ -35,7 +26,7 @@ class UtteranceSource implements EventSource {
  *     events from [`SpeechSynthesisUtterance`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance#Event_handlers).
  */
 export function makeSpeechSynthesisDriver(): Driver<
-  Stream<SpeechSynthesisUtteranceProperties>,
+  any,
   EventSource
 > {
   const synthesis: SpeechSynthesis = window.speechSynthesis;
