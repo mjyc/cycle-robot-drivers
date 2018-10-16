@@ -1,5 +1,4 @@
 import Snabbdom from 'snabbdom-pragma';
-import {VNode} from 'snabbdom/vnode';
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import {Driver} from '@cycle/run';
@@ -7,7 +6,6 @@ import {adapt} from '@cycle/run/lib/adapt';
 import dat from 'dat.gui';
 import Stats from 'stats.js';
 import * as posenet from '@tensorflow-models/posenet';
-import {Pose} from '@tensorflow-models/posenet';
 import {drawSkeleton, drawKeypoints, isMobile, setupCamera} from './utils';
 
 
@@ -119,6 +117,7 @@ export type PoseNetParameters = {
   },
   net: any,
   changeToArchitecture: string,
+  fps: number,
   stopRequested: boolean,
 };
 
@@ -149,7 +148,6 @@ export function makePoseDetectionDriver({
   any,
   {DOM: any, poses: any}
 > {
-  const stats = new Stats();
   const id = String(Math.random()).substr(2);
   const divID = `posenet-${id}`;
   const videoID = `pose-video-${id}`;
@@ -181,6 +179,7 @@ export function makePoseDetectionDriver({
       },
       net: null,
       changeToArchitecture: null,
+      fps: isMobile() ? 5 : 10,
       stopRequested: false,
     };
     params$.fold((prev: PoseNetParameters, params: PoseNetParameters) => {
@@ -199,7 +198,7 @@ export function makePoseDetectionDriver({
       }
     });
 
-    async function poseDetectionFrame(params, video, context, stats, callback) {
+    async function poseDetectionFrame(params, video, context, callback) {
       if (params.changeToArchitecture) {
         // Important to purge variables and free up GPU memory
         params.net.dispose();
@@ -210,9 +209,6 @@ export function makePoseDetectionDriver({
 
         params.changeToArchitecture = null;
       }
-
-      // Begin monitoring code for frames per second
-      stats.begin();
 
       // Scale an image down to a certain factor. Too large of an image will
       // slow down the GPU
@@ -278,22 +274,12 @@ export function makePoseDetectionDriver({
       if (callback) {
         callback(outPoses);
       }
-
-      // End monitoring code for frames per second
-      stats.end();
-
-      if (!params.stopRequested) {
-        requestAnimationFrame(
-          poseDetectionFrame.bind(null, params, video, context, stats, callback)
-        );
-      } else {
-        params.stopRequested = false;
-      }
     }
 
+    let timeoutId = {};
     const poses$ = xs.create({
       start: listener => {
-        let video = null;
+        // Poll the canvas element
         const intervalID = setInterval(async () => {
           if (!document.querySelector(`#${canvasID}`)) {
             console.debug(`Waiting for #${canvasID} to appear...`);
@@ -301,43 +287,58 @@ export function makePoseDetectionDriver({
           }
           clearInterval(intervalID);
     
-          if (!video) {
-            video = await setupCamera(
-              document.querySelector(`#${videoID}`),
-              videoWidth,
-              videoHeight
-            );
-            video.play();
-    
-            const canvas: any = document.querySelector(`#${canvasID}`);
-            const context = canvas.getContext('2d');
-            canvas.width = videoWidth;
-            canvas.height = videoHeight;
-    
-            params.net = await posenet.load(0.75);
-            // const posesListener = (poses) => {
-            //   listener.next(poses);
-            // };
-            poseDetectionFrame(params, video, context, stats, listener.next.bind(listener));
-    
-            stats.showPanel(0);
-            stats.dom.style.setProperty('position', 'absolute');
-            document.querySelector(`#${divID}`).appendChild(stats.dom);
-    
-            const gui = setupGui(video, params.net, params);
-            gui.domElement.style.setProperty('position', 'absolute');
-            gui.domElement.style.setProperty('top', '0px');
-            gui.domElement.style.setProperty('right', '0px');
-            document.querySelector(`#${divID}`)
-              .appendChild(gui.domElement);
-            gui.closed = true;
-          } else {
-            console.warn('video is already set');
+          // Setup a camera
+          const video: any = await setupCamera(
+            document.querySelector(`#${videoID}`),
+            videoWidth,
+            videoHeight
+          );
+          video.play();
+  
+          const canvas: any = document.querySelector(`#${canvasID}`);
+          const context = canvas.getContext('2d');
+          canvas.width = videoWidth;
+          canvas.height = videoHeight;
+  
+          // Setup the posenet
+          params.net = await posenet.load(0.75);
+
+          // Setup the main loop
+          const stats = new Stats();
+          const interval = 1000 / params.fps;
+          let start = Date.now();
+          const execute = async () => {
+            const elapsed = Date.now() - start;
+            if (elapsed > interval) {
+              stats.begin();
+              start = Date.now();
+              await poseDetectionFrame(params, video, context, listener.next.bind(listener));
+              stats.end();
+              if (!timeoutId) return;
+              timeoutId = setTimeout(execute, 0);
+            } else {
+              if (!timeoutId) return;
+              this._timeoutId = setTimeout(execute, interval - elapsed);
+            }
           }
+          execute();
+  
+          // Setup UIs
+          stats.showPanel(0);
+          stats.dom.style.setProperty('position', 'absolute');
+          document.querySelector(`#${divID}`).appendChild(stats.dom);
+  
+          const gui = setupGui(video, params.net, params);
+          gui.domElement.style.setProperty('position', 'absolute');
+          gui.domElement.style.setProperty('top', '0px');
+          gui.domElement.style.setProperty('right', '0px');
+          document.querySelector(`#${divID}`)
+            .appendChild(gui.domElement);
+          gui.closed = true;
         }, 1000);
       },
       stop: () => {
-        params.stopRequested = true;
+        timeoutId = null;
       },
     });
 
