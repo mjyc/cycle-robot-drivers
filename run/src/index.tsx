@@ -20,8 +20,38 @@ import {
 } from '@cycle-robot-drivers/speech';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
+/**
+ * A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers)
+ *   function.
+ * 
+ * @param main A function that takes incoming streams as `sources` and returns
+ *   outgoing streams as sinks. By default, the following action components
+ * 
+ *     * [FacialExpressionAction](../screen/README.md)
+ *     * [AudioPlayerAction](../sound/README.md)
+ *     * [TwoSpeechbubblesAction](../screen/README.md)
+ *     * [SpeechSynthesisAction](../speech/README.md)
+ *     * [SpeechRecognitionAction](../speech/README.md)
+ * 
+ *   are can used used like drivers, i.e., catch incoming message via 
+ *   `sources.FacialExpressionAction` and send outgoing message via 
+ *   `return { FacialExpressionAction: xs.of(null) };`, as well as six drivers
+ *   listed below.
+ * 
+ * @param drivers A collection of [Cycle.js drivers](). By default, `drivers` is
+ *   set to an object containing:
+ * 
+ *     * [`DOM`](https://cycle.js.org/api/dom.html)
+ *     * [`TabletFace`](../screen/README.md)
+ *     * [`AudioPlayer`](../sound/README.md)
+ *     * [`SpeechSynthesis`](../speech/README.md)
+ *     * [`SpeechRecognition`](../speech/README.md)
+ *     * [`PoseDetection`](../3rdparty/cycle-posenet-driver/README.md)
+ * 
+ *   drivers.
+ */
 export function runRobotProgram(
-  main: any,
+  main: (sources: any) => any,
   drivers?: {
     DOM?: Driver<any, any>,
     TabletFace: Driver<any, any>,
@@ -30,7 +60,6 @@ export function runRobotProgram(
     SpeechRecognition?: Driver<any, any>,
     PoseDetection?: Driver<any, any>,
   },
-  runCycleProgram?,
 ) {
   if (!main) {
     throw new Error('Must pass the argument main');
@@ -55,9 +84,6 @@ export function runRobotProgram(
   }
   if (!drivers.PoseDetection) {
     drivers.PoseDetection = makePoseDetectionDriver();
-  }
-  if (!runCycleProgram) {
-    runCycleProgram = run;
   }
 
   function wrappedMain(sources) {
@@ -142,7 +168,7 @@ export function runRobotProgram(
     })();
   }
 
-  return runCycleProgram(
+  return run(
     powerup(wrappedMain, (proxy, target) => !!target && proxy.imitate(target)),
     drivers,
   );
