@@ -4,7 +4,7 @@ import {makeROSDriver} from './makeROSDriver';
 
 function main(sources) {
   // adapted from from
-  //   https://github.com/RobotWebTools/roslibjs/blob/develop/examples/simple.html
+  //   https://github.com/RobotWebTools/roslibjs/blob/master/examples/simple.html
 
   // Publishing a Topic
   // ------------------
@@ -59,10 +59,42 @@ function main(sources) {
     .map(value => value.value.response$).flatten().addListener({
       next: result => {
         console.log('Result for service call: ' + result.sum);
+      },
+      error: err => console.error(err),
+    });
+
+  // adapted from from
+  //   https://github.com/RobotWebTools/roslibjs/blob/master/examples/fibonacci.html
+
+  // The ActionClient
+  // ----------------
+
+  const action$ = xs.periodic(3000).mapTo({
+    type: 'action',
+    value: {
+      name: '/fibonacci',
+      goalMessage: {
+        order: 1
+      },
+    }
+  });
+
+  const fibonacciClient = sources.ROS
+    .filter(value => value.type === 'action' && value.value.name === '/fibonacci');
+  fibonacciClient
+    .map(value => value.value.feedback$).flatten().addListener({
+      next: feedback => {
+        console.log('Feedback: ' + feedback.sequence);
+      }
+    });
+    fibonacciClient
+    .map(value => value.value.result$).flatten().addListener({
+      next: result => {
+        console.log('Final Result: ' + result.sequence);
       }
     });
 
-  const ros$ = xs.merge(topic$, service$);
+  const ros$ = xs.merge(topic$, service$, action$);
   return {
     ROS: ros$,
   };
@@ -81,6 +113,10 @@ run(main, {
     services: [{
       name : '/add_two_ints',
       serviceType : 'rospy_tutorials/AddTwoInts',
+    }],
+    actions: [{
+      serverName : '/fibonacci',
+      actionName : 'actionlib_tutorials/FibonacciAction',
     }]
   }),
 });

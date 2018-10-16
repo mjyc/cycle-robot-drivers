@@ -1,6 +1,5 @@
 import {Goal, GoalID} from './types'
 
-
 export function generateGoalID(): GoalID {
   const now = new Date();
   return {
