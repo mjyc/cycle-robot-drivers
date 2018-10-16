@@ -459,7 +459,6 @@ function output(machine$) {
   const outputs$ = machine$
     .filter(machine => !!machine.outputs)
     .map(machine => machine.outputs);
-
   return {
     SpeechSynthesisAction: outputs$
       .filter(outputs => !!outputs.SpeechSynthesisAction)
@@ -497,7 +496,7 @@ For example, if we were to implement the rest of additional behaviors mentioned 
 ![travel_personality_quiz_fsm_final](./travel_personality_quiz_fsm_final.svg)
 
 and update the `input` and `transition` functions.
-See the final code available [here](../examples/apps/personality_quiz/index.js) or check out the [demo]().
+The code and demo will be available soon!
 
 Side notes:
 
