@@ -22,7 +22,8 @@ action component.
 * *sources* 
   * goal: a stream of `null` (as "cancel") or `SpeechRecognition`
     properties (as "goal").
-  * SpeechSynthesis: `RecognitionSource`.
+  * SpeechSynthesis: `EventSource` for `start`, `end`, `error`, `result`
+    events.
 
 #### Return:
 
@@ -44,7 +45,7 @@ action component.
 * *sources* 
   * goal: a stream of `null` (as "cancel") or `SpeechSynthesisUtterance`
     properties (as "goal").
-  * SpeechSynthesis: `UtteranceSource`.
+  * SpeechSynthesis: `EventSource` for `start` and `end` events.
 
 #### Return:
 
@@ -68,9 +69,9 @@ driver factory.
 #### Return:
 
 * **Driver** the SpeechRecognition Cycle.js driver function. It takes a   stream of objects containing [`SpeechRecognition` properties](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Properties)
-  and returns a `RecognitionSource`:
+  and returns a `EventSource`:
 
-  * `RecognitionSource.events(eventName)` returns a stream of `eventName`
+  * `EventSource.events(eventName)` returns a stream of `eventName`
     events from [`SpeechRecognition`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Event_handlers).
 
 <!-- End src/speech_recognition.ts -->
@@ -85,9 +86,9 @@ driver factory.
 #### Return:
 
 * **Driver** the SpeechSynthesis Cycle.js driver function. It takes a   stream of objects containing [`SpeechSynthesisUtterance` properties](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance#Properties)
-  and returns a `UtteranceSource`:
+  and returns a `EventSource`:
 
-  * `UtteranceSource.events(eventName)` returns a stream of  `eventName`
+  * `EventSource.events(eventName)` returns a stream of  `eventName`
     events from [`SpeechSynthesisUtterance`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance#Event_handlers).
 
 <!-- End src/speech_synthesis.ts -->

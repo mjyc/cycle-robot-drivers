@@ -2,7 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, Status, Result, initGoal,
+  GoalID, Goal, Status, Result, EventSource, initGoal,
 } from '@cycle-robot-drivers/action';
 
 
@@ -238,7 +238,8 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
  * 
  *   * goal: a stream of `null` (as "cancel") or `SpeechRecognition`
  *     properties (as "goal").
- *   * SpeechSynthesis: `RecognitionSource`.
+ *   * SpeechSynthesis: `EventSource` for `start`, `end`, `error`, `result`
+ *     events.
  * 
  * @return sinks
  * 
@@ -246,7 +247,13 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
  *   * result: a stream of action results.
  * 
  */
-export function SpeechRecognitionAction(sources) {
+export function SpeechRecognitionAction(sources: {
+  goal: any,
+  SpeechRecognition: EventSource,
+}): {
+  output: any,
+  result: any,
+} {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(sources.SpeechRecognition.events('start')),
