@@ -8,7 +8,7 @@
   "dependencies": {
     "@cycle/dom": "20.4.0",
     "@cycle/run": "4.4.0",
-    "cycle-posenet-driver": "0.0.7",
+    "cycle-posenet-driver": "0.0.13",
     "xstream": "11.7.0"
   },
   "devDependencies": {
