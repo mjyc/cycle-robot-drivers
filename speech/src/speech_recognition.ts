@@ -4,6 +4,13 @@ import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import {EventSource} from '@cycle-robot-drivers/action';
 
+export type SpeechRecognitionProperties = {
+  lang?: string,
+  continuous?: boolean,
+  interimResults?: boolean,
+  maxAlternatives?: number,
+  serviceURI?: string,
+}
 
 class RecognitionSource implements EventSource {
   constructor(
@@ -26,7 +33,10 @@ class RecognitionSource implements EventSource {
  *   * `RecognitionSource.events(eventName)` returns a stream of `eventName`
  *     events from [`SpeechRecognition`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Event_handlers).
  */
-export function makeSpeechRecognitionDriver(): Driver<any, any> {
+export function makeSpeechRecognitionDriver(): Driver<
+  Stream<SpeechRecognitionProperties>,
+  EventSource
+> {
   const recognition: SpeechRecognition = new webkitSpeechRecognition();
 
   return function(sink$) {
