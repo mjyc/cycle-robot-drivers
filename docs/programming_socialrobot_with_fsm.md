@@ -501,4 +501,4 @@ The code and demo will be available soon!
 Side notes:
 
 * The `output` function simply maps the outputs returned from `transition` into the outgoing streams (`sinks` in Cycle.js) to make side effects, e.g., trigger actions.
-* If you are familiar with [Cycle.js' Model-View-Intent pattern](https://cycle.js.org/model-view-intent.html), the FSM pattern is basically the same except it requires a specific structure for "model" and doesn't really make use of "view", which is corresponding to "output".
+* If you are familiar with [Model-View-Intent pattern](https://cycle.js.org/model-view-intent.html), the FSM pattern is basically the same except it requires a specific structure for "model" and doesn't really make use of "view", which is corresponding to "output".

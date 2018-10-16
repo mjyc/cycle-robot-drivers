@@ -239,20 +239,20 @@ While following code examples above, you may have wondered:
 1. how and when a driver produces side effects
 
 Here is the answer to the first question: the two drivers we used in the example code, `TabletFace` and `PoseDetection`, are created in `runRobotProgram`.
-Normally when you program a Cycle.js app, you need to [create drivers explicitly](https://cycle.js.org/getting-started.html#getting-started-coding-create-main-and-drivers) and pass them to the [Cycle.js' `run`](https://cycle.js.org/api/run.html) function.
-We skipped this step because we used `runRobotProgram` that creates the required drivers for programming a tablet-face robot and calls Cycle.js' `run` for us.
-The `runRobotProgram` function is [a wrapper function for Cycle.js' `run`](../run/src/index.tsx) that
+Normally when you program a Cycle.js app, you need to [create drivers explicitly](https://cycle.js.org/getting-started.html#getting-started-coding-create-main-and-drivers) and pass them to the [Cycle.js `run`](https://cycle.js.org/api/run.html) function.
+We skipped this step because we used `runRobotProgram` that creates the required drivers for programming a tablet-face robot and calls Cycle.js `run` for us.
+The `runRobotProgram` function is [a wrapper function for Cycle.js `run`](../run/src/index.tsx) that
 
 1. creates five drivers, `AudioPlayer`, `SpeechSynthesis`, `SpeechRecognition`, `TabletFace`, `PoseDetection`
 1. creates and sets up five action components `FacialExpressionAction`, `AudioPlayerAction`, `TwoSpeechbubblesAction`, `SpeechSynthesisAction`, `SpeechRecognitionAction` to allow programmers to use them as drivers, and
-1. calls  Cycle.js' run with the created drivers and actions.
+1. calls Cycle.js run with the created drivers and actions.
 
 <!-- TODO: Add an example of manually defining a driver here -->
 
-In fact, if you are comfortable with Cycle.js, you could use Cycle.js' `run` instead of `runRobotProgram` to have more control over drivers and actions.
+In fact, if you are comfortable with Cycle.js, you could use Cycle.js `run` instead of `runRobotProgram` to have more control over drivers and actions.
 You could also create a new `runRobotProgram` function that provides drivers for your own robot that is not a tablet-face robot!
 
-Regarding the second question, check out [this page](https://cycle.js.org/drivers.html) from the Cycle.js' website.
+Regarding the second question, check out [this page](https://cycle.js.org/drivers.html) from the Cycle.js website.
 
 
 ### Robot, ask questions
