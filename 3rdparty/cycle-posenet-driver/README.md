@@ -31,7 +31,7 @@ driver factory.
 
 #### Return:
 
-* **Driver** the PoseNet Cycle.js driver function. It takes a stream   of [`PoseNetParameters`](./src/pose_detection.tsx) and returns a stream of [`Pose`](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm) arrays.
+* **Driver** the PoseNet Cycle.js driver function. It takes a stream   of [`PoseNetParameters`](./src/pose_detection.tsx) and returns a stream of [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm).
 
 <!-- End src/pose_detection.tsx -->
 

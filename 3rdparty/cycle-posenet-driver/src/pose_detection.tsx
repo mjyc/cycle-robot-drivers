@@ -134,7 +134,7 @@ export type PoseNetParameters = {
  *     video (default: true).
  * 
  * @return {Driver} the PoseNet Cycle.js driver function. It takes a stream
- *   of [`PoseNetParameters`](./src/pose_detection.tsx) and returns a stream of [`Pose`](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm) arrays.
+ *   of [`PoseNetParameters`](./src/pose_detection.tsx) and returns a stream of [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm).
  * 
  */
 export function makePoseDetectionDriver({
@@ -146,8 +146,8 @@ export function makePoseDetectionDriver({
   videoHeight?: number,
   flipHorizontal?: boolean,
 } = {}): Driver<
-  Stream<PoseNetParameters>,
-  {DOM: Stream<VNode>, poses: Stream<any>}
+  any,
+  {DOM: any, poses: any}
 > {
   const stats = new Stats();
   const id = String(Math.random()).substr(2);
