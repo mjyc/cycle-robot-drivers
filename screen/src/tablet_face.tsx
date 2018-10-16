@@ -2,9 +2,6 @@ import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
-import {
-  Goal, GoalStatus, Status, initGoal,
-} from '@cycle-robot-drivers/action';
 
 
 // adapted from

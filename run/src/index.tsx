@@ -27,11 +27,11 @@ import {makePoseDetectionDriver} from 'cycle-posenet-driver';
  * @param main A function that takes incoming streams as `sources` and returns
  *   outgoing streams as sinks. By default, the following action components
  * 
- *     * [FacialExpressionAction](../screen/README.md)
- *     * [AudioPlayerAction](../sound/README.md)
- *     * [TwoSpeechbubblesAction](../screen/README.md)
- *     * [SpeechSynthesisAction](../speech/README.md)
- *     * [SpeechRecognitionAction](../speech/README.md)
+ *     * [FacialExpressionAction](../screen)
+ *     * [AudioPlayerAction](../sound)
+ *     * [TwoSpeechbubblesAction](../screen)
+ *     * [SpeechSynthesisAction](../speech)
+ *     * [SpeechRecognitionAction](../speech)
  * 
  *   are can used used like drivers, i.e., catch incoming message via 
  *   `sources.FacialExpressionAction` and send outgoing message via 
@@ -41,12 +41,12 @@ import {makePoseDetectionDriver} from 'cycle-posenet-driver';
  * @param drivers A collection of [Cycle.js drivers](). By default, `drivers` is
  *   set to an object containing:
  * 
- *     * [`DOM`](https://cycle.js.org/api/dom.html)
- *     * [`TabletFace`](../screen/README.md)
- *     * [`AudioPlayer`](../sound/README.md)
- *     * [`SpeechSynthesis`](../speech/README.md)
- *     * [`SpeechRecognition`](../speech/README.md)
- *     * [`PoseDetection`](../3rdparty/cycle-posenet-driver/README.md)
+ *     * [DOM](https://cycle.js.org/api/dom.html)
+ *     * [TabletFace](../screen)
+ *     * [AudioPlayer](../sound)
+ *     * [SpeechSynthesis](../speech#)
+ *     * [SpeechRecognition](../speech)
+ *     * [PoseDetection](../3rdparty/cycle-posenet-driver)
  * 
  *   drivers.
  */
