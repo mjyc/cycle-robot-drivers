@@ -16,7 +16,15 @@ class RecognitionSource implements EventSource {
 }
 
 /**
- * A factory for the speech recognition driver.
+ * Web Speech API's [SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
+ * driver factory.
+ * 
+ * @return {Driver} the SpeechRecognition Cycle.js driver function. It takes a
+ *   stream of objects containing [`SpeechRecognition` properties](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Properties)
+ *   and returns a `RecognitionSource`:
+ * 
+ *   * `RecognitionSource.events(eventName)` returns a stream of `eventName`
+ *     events from [`SpeechRecognition`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Event_handlers).
  */
 export function makeSpeechRecognitionDriver(): Driver<any, any> {
   const recognition: SpeechRecognition = new webkitSpeechRecognition();

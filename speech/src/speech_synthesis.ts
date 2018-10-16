@@ -16,7 +16,15 @@ class UtteranceSource implements EventSource {
 }
 
 /**
- * A factory for the speech synthesis driver.
+ * Web Speech API's [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
+ * driver factory.
+ * 
+ * @return {Driver} the SpeechSynthesis Cycle.js driver function. It takes a
+ *   stream of objects containing [`SpeechSynthesisUtterance` properties](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance#Properties)
+ *   and returns a `UtteranceSource`:
+ * 
+ *   * `UtteranceSource.events(eventName)` returns a stream of  `eventName`
+ *     events from [`SpeechSynthesisUtterance`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance#Event_handlers).
  */
 export function makeSpeechSynthesisDriver(): Driver<any, any> {
   const synthesis: SpeechSynthesis = window.speechSynthesis;

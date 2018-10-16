@@ -134,8 +134,8 @@ export type PoseNetParameters = {
  *     video (default: true).
  * 
  * @return {Driver} the PoseNet Cycle.js driver function. It takes a stream
- *   that emits `PoseNetParameters` and returns a stream that emits arrays of
- *   `Pose`s.
+ *   of `PoseNetParameters` and returns a stream of `Pose` arrays.
+ * 
  */
 export function makePoseDetectionDriver({
   videoWidth = 640,

@@ -12,9 +12,45 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 <!-- Start src/SpeechRecognitionAction.ts -->
 
+### SpeechRecognitionAction(sources)
+
+Web Speech API's [SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
+action component.
+
+#### Params:
+
+* *sources* 
+  * goal: a stream of `null` (as "cancel") or `SpeechRecognition`
+    properties (as "goal").
+  * SpeechSynthesis: `RecognitionSource`.
+
+#### Return:
+
+* sinks 
+  * output: a stream of action outputs.
+  * result: a stream of action results.
+
 <!-- End src/SpeechRecognitionAction.ts -->
 
 <!-- Start src/SpeechSynthesisAction.ts -->
+
+### SpeechSynthesisAction(sources)
+
+Web Speech API's [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
+action component.
+
+#### Params:
+
+* *sources* 
+  * goal: a stream of `null` (as "cancel") or `SpeechSynthesisUtterance`
+    properties (as "goal").
+  * SpeechSynthesis: `UtteranceSource`.
+
+#### Return:
+
+* sinks 
+  * output: a stream of action outputs.
+  * result: a stream of action results.
 
 <!-- End src/SpeechSynthesisAction.ts -->
 
@@ -26,7 +62,16 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 ### makeSpeechRecognitionDriver()
 
-A factory for the speech recognition driver.
+Web Speech API's [SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
+driver factory.
+
+#### Return:
+
+* **Driver** the SpeechRecognition Cycle.js driver function. It takes a   stream of objects containing [`SpeechRecognition` properties](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Properties)
+  and returns a `RecognitionSource`:
+
+  * `RecognitionSource.events(eventName)` returns a stream of `eventName`
+    events from [`SpeechRecognition`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Event_handlers).
 
 <!-- End src/speech_recognition.ts -->
 
@@ -34,7 +79,16 @@ A factory for the speech recognition driver.
 
 ### makeSpeechSynthesisDriver()
 
-A factory for the speech synthesis driver.
+Web Speech API's [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
+driver factory.
+
+#### Return:
+
+* **Driver** the SpeechSynthesis Cycle.js driver function. It takes a   stream of objects containing [`SpeechSynthesisUtterance` properties](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance#Properties)
+  and returns a `UtteranceSource`:
+
+  * `UtteranceSource.events(eventName)` returns a stream of  `eventName`
+    events from [`SpeechSynthesisUtterance`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance#Event_handlers).
 
 <!-- End src/speech_synthesis.ts -->
 

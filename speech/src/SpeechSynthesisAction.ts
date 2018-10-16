@@ -198,6 +198,22 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   return xs.merge(initReducer$, inputReducer$);
 }
 
+/**
+ * Web Speech API's [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
+ * action component.
+ * 
+ * @param sources
+ * 
+ *   * goal: a stream of `null` (as "cancel") or `SpeechSynthesisUtterance`
+ *     properties (as "goal").
+ *   * SpeechSynthesis: `UtteranceSource`.
+ * 
+ * @return sinks
+ * 
+ *   * output: a stream of action outputs.
+ *   * result: a stream of action results.
+ * 
+ */
 export function SpeechSynthesisAction(sources) {
   const input$ = input(
     xs.fromObservable(sources.goal),

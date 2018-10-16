@@ -230,6 +230,22 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   return xs.merge(initReducer$, inputReducer$);
 }
 
+/**
+ * Web Speech API's [SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
+ * action component.
+ * 
+ * @param sources
+ * 
+ *   * goal: a stream of `null` (as "cancel") or `SpeechRecognition`
+ *     properties (as "goal").
+ *   * SpeechSynthesis: `RecognitionSource`.
+ * 
+ * @return sinks
+ * 
+ *   * output: a stream of action outputs.
+ *   * result: a stream of action results.
+ * 
+ */
 export function SpeechRecognitionAction(sources) {
   const input$ = input(
     xs.fromObservable(sources.goal),
