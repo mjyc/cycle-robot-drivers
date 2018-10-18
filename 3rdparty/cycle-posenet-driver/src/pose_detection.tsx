@@ -43,7 +43,7 @@ function setupGui(cameras, net, guiState) {
   input.add(guiState.input, 'outputStride', [8, 16, 32]);
   // Image scale factor: What to scale the image by before feeding it through
   // the network.
-  input.add(guiState.input, 'imageScaleFactor').min(0.2).max(1.0);
+  input.add(guiState.input, 'imageScaleFactor').min(0.1).max(1.0);
   input.open();
 
   // Pose confidence: the overall confidence in the estimation of a person's
