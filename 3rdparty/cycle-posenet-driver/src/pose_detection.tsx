@@ -160,7 +160,7 @@ export function makePoseDetectionDriver({
       input: {
         mobileNetArchitecture: isMobile() ? '0.50' : '0.75',
         outputStride: 16,
-        imageScaleFactor: 0.5,
+        imageScaleFactor: isMobile() ? 0.1 : 0.5,
       },
       singlePoseDetection: {
         minPoseConfidence: 0.2,
