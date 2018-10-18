@@ -6,18 +6,24 @@ import {powerup} from '@cycle-robot-drivers/action';
 import {
   makeTabletFaceDriver,
   FacialExpressionAction,
-  IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
+  // IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
+  IsolatedSpeechbubbleAction as SpeechbubbleAction,
 } from '@cycle-robot-drivers/screen';
 
 
 function main(sources) {
   sources.proxies = {  // will be connected to "targets"
     FacialExpressionAction: xs.create(),
-    TwoSpeechbubblesAction: xs.create(),
+    SpeechbubbleAction: xs.create(),
   };
+  // // create action components
+  // sources.TwoSpeechbubblesAction = TwoSpeechbubblesAction({
+  //   goal: sources.proxies.TwoSpeechbubblesAction,
+  //   DOM: sources.DOM,
+  // });
   // create action components
-  sources.TwoSpeechbubblesAction = TwoSpeechbubblesAction({
-    goal: sources.proxies.TwoSpeechbubblesAction,
+  sources.SpeechbubbleAction = SpeechbubbleAction({
+    goal: sources.proxies.SpeechbubbleAction,
     DOM: sources.DOM,
   });
   sources.FacialExpressionAction = FacialExpressionAction({
@@ -29,11 +35,13 @@ function main(sources) {
   // main logic
   const speechbubbles$ = xs.merge(
     xs.of('Hello there!').compose(delay(1000)),
-    xs.of({
-      message: 'How are you?',
-      choices: ['Good', 'Bad']
-    }).compose(delay(2000)),
-    sources.TwoSpeechbubblesAction.result
+    // xs.of({
+    //   message: 'How are you?',
+    //   choices: ['Good', 'Bad']
+    // }).compose(delay(2000)),
+    xs.of(['Good', 'Bad']).compose(delay(2000)),
+    // sources.TwoSpeechbubblesAction.result
+    sources.SpeechbubbleAction.result
       .filter(result => !!result.result)
       .map(result => {
         if (result.result === 'Good') {
@@ -44,16 +52,18 @@ function main(sources) {
       })
   );
   
-  const expression$ = sources.TwoSpeechbubblesAction.result.map((result) => {
-    if (result.result === 'Good') {
-      return 'happy';
-    } else if (result.result === 'Bad') {
-      return 'sad';
-    }
-  });
+  // const expression$ = sources.TwoSpeechbubblesAction.result.map((result) => {
+  //   if (result.result === 'Good') {
+  //     return 'happy';
+  //   } else if (result.result === 'Bad') {
+  //     return 'sad';
+  //   }
+  // });
+  const expression$ = xs.never();
 
   const vdom$ = xs.combine(
-    sources.TwoSpeechbubblesAction.DOM,
+    // sources.TwoSpeechbubblesAction.DOM,
+    sources.SpeechbubbleAction.DOM,
     sources.TabletFace.DOM,
   ).map(([speechbubbles, face]) => div([speechbubbles, face]));
   
@@ -62,7 +72,8 @@ function main(sources) {
     DOM: vdom$,
     TabletFace: sources.FacialExpressionAction.output,
     targets: {  // will be imitating "proxies"
-      TwoSpeechbubblesAction: speechbubbles$,
+      // TwoSpeechbubblesAction: speechbubbles$,
+      SpeechbubbleAction: speechbubbles$,
       FacialExpressionAction: expression$,
     },
   }
