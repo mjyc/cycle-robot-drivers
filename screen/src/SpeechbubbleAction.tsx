@@ -83,7 +83,7 @@ function input(goal$: Stream<any>, clickEvent$: Stream<any>): Stream<Input> {
   );
 }
 
-function createTraxnsition() {
+function createTransition() {
   const transitionTable = {
     [State.DONE]: {
       [InputType.GOAL]: (variables, inputValue) => ({
@@ -200,7 +200,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
     }
   );
 
-  const transition = createTraxnsition();
+  const transition = createTransition();
   const inputReducer$: Stream<Reducer> = input$
     .map(input => function inputReducer(machine: Machine): Machine {
       return transition(machine.state, machine.variables, input);
