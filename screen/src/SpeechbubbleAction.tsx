@@ -5,7 +5,7 @@ import isolate from '@cycle/isolate';
 import {span, button} from '@cycle/dom';
 import {DOMSource} from '@cycle/dom';
 import {
-  GoalID, Goal, Status, Result, EventSource, initGoal, generateGoalID,
+  GoalID, Goal, Status, Result, initGoal,
 } from '@cycle-robot-drivers/action';
 
 
