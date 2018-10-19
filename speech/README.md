@@ -28,7 +28,7 @@ action component.
 #### Return:
 
 * sinks 
-  * output: a stream of action outputs.
+  * output: a stream for the SpeechRecognition driver input.
   * result: a stream of action results.
 
 <!-- End src/SpeechRecognitionAction.ts -->
@@ -50,7 +50,7 @@ action component.
 #### Return:
 
 * sinks 
-  * output: a stream of action outputs.
+  * output: a stream for the SpeechSynthesis driver input.
   * result: a stream of action results.
 
 <!-- End src/SpeechSynthesisAction.ts -->

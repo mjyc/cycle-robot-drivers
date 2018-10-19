@@ -16,6 +16,22 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 <!-- Start src/SpeechbubbleAction.tsx -->
 
+### SpeechbubbleAction(sources)
+
+Speechbubble action component.
+
+#### Params:
+
+* *sources* 
+  * goal: a stream of `null` (as "cancel"), `{type: 'MESSAGE', value: 'Hello world'}` for displaying message or `{type: 'MESSAGE', value: ['Hello', 'World']}` for displaying choices.
+  * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
+
+#### Return:
+
+* sinks 
+  * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
+  * result: a stream of action results.
+
 <!-- End src/SpeechbubbleAction.tsx -->
 
 <!-- Start src/TwoSpeechbubblesAction.tsx -->

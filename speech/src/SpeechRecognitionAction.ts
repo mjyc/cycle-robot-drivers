@@ -243,7 +243,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
  * 
  * @return sinks
  * 
- *   * output: a stream of action outputs.
+ *   * output: a stream for the SpeechRecognition driver input.
  *   * result: a stream of action results.
  * 
  */
