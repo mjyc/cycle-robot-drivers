@@ -24,7 +24,7 @@ type Outputs = {
   DOM: {
     goal: any,
   },
-  result: any,
+  result: Result,
 };
 
 type Machine = {
