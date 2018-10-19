@@ -332,7 +332,7 @@ export function makeTabletFaceDriver({
     const load$ = xs.create();
     const intervalID = setInterval(() => {
       if (!document.querySelector(`#${id}`)) {
-        console.debug('Waiting for `#${id}` to appear...');
+        console.debug(`Waiting for #${id} to appear...`);
         return;
       }
       clearInterval(intervalID);
