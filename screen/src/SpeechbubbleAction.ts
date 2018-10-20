@@ -177,11 +177,13 @@ function createTransition() {
   };
 
   return function(state, variables, input) {
+    const prev = {state, variables, outputs: null};
+    console.log(state, variables, input);
     return !transitionTable[state]
-      ? state
+      ? prev
       : !transitionTable[state][input.type]
-        ? state
-        : transitionTable[state][input.type](variables, input.value);
+        ? prev
+        : (transitionTable[state][input.type](variables, input.value) || prev);
   }
 }
 
