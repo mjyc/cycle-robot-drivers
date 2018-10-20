@@ -18,7 +18,7 @@ enum State {
 type Variables = {
   goal_id: GoalID,
   numActions: number,
-  result: any,
+  result: Result,
   newGoal: Goal,
 };
 
@@ -40,8 +40,7 @@ type Reducer = (machine?: Machine) => Machine | undefined;
 enum InputType {
   GOAL = 'GOAL',
   CANCEL = 'CANCEL',
-  ROBOTSB_RESULT = 'ROBOTSB_RESULT',
-  HUMANSB_RESULT = 'HUMANSB_RESULT',  // TODO: merge the two
+  SB_RESULT = 'SB_RESULT',
 }
 
 type Input = {
@@ -84,11 +83,11 @@ function input(
       }
     }),
     robotSpeechbubbleResult.map(result => ({
-      type: InputType.ROBOTSB_RESULT,
+      type: InputType.SB_RESULT,
       value: result,
     })),
     humanSpeechbubbleResult.map(result => ({
-      type: InputType.HUMANSB_RESULT,
+      type: InputType.SB_RESULT,
       value: result,
     })),
   )
@@ -105,7 +104,7 @@ function createTransition() {
           state: State.RUNNING,
           variables: {
             goal_id: inputValue.goal_id,
-            numActions: inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE
+            numActions:inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE
               ? 1 : 2,  // TwoSpeechbubblesType.ASK_QUESTION
             result: null,
             newGoal: null,
@@ -131,84 +130,41 @@ function createTransition() {
     },
     [State.RUNNING]: {
       [InputType.CANCEL]: (variables, inputValue) => ({
-        state: State.PREEMPTING,
+        state: State.RUNNING,
         variables,
         outputs: {
           RobotSpeechbubble: null,
           HumanSpeechbubble: null,
         }
       }),
-      [InputType.ROBOTSB_RESULT]: (variables, inputValue) => 
+      [InputType.SB_RESULT]: (variables, inputValue) => 
         isEqual(inputValue.status.goal_id, variables.goal_id)
-        ? {
-          state: State.DONE,
-          variables: {
-            goal_id: null,
-            numActions: variables.numActions - 1,
-            result: null,
-            newGoal: null,
-          },
-          outputs: {
-            result: {
-              status: {
-                goal_id: variables.goal_id,
-                status: Status.SUCCEEDED,
-              },
+        ? (variables.numActions === 1)
+          ? {
+            state: State.DONE,
+            variables: {
+              goal_id: null,
+              numActions: 0,
+              result: null,
+              newGoal: null,
+            },
+            outputs: {
               result: variables.result,
             },
-
-          },
-        } : null,
-      [InputType.HUMANSB_RESULT]: (variables, inputValue) =>
-        isEqual(inputValue.status.goal_id, variables.goal_id)
-          ? {
+          } : {
             state: State.RUNNING,
             variables: {
               goal_id: variables.goal_id,
               numActions: variables.numActions - 1,
-              result: inputValue.result,
+              result: inputValue,
               newGoal: variables.newGoal,
             },
             outputs: {
               RobotSpeechbubble: null,
             },
-          } : null,
+          }
+        : null,
     },
-    [State.PREEMPTING]: {
-      [InputType.ROBOTSB_RESULT]: (variables, inputValue) =>
-        isEqual(inputValue.status.goal_id, variables.goal_id)
-        // TODO: split to two
-        ? {
-          state: variables.numActions > 1 ? State.PREEMPTING : State.DONE,
-          variables: {
-            goal_id: variables.numActions > 1 ? variables.goal_id : null,
-            numActions: variables.numActions - 1,
-          },
-          outputs: variables.numActions > 1 ? null : {result: {
-            status: {
-              goal_id: variables.goal_id,
-              status: Status.PREEMPTED,
-            },
-            result: null,
-          }},
-        } : null,
-      [InputType.HUMANSB_RESULT]: (variables, inputValue) =>  // combine with robot
-        isEqual(inputValue.status.goal_id, variables.goal_id)
-        ? {
-          state: variables.numActions > 1 ? State.PREEMPTING : State.DONE,
-          variables: {
-            goal_id: variables.numActions > 1 ? variables.goal_id : null,
-            numActions: variables.numActions - 1,
-          },
-          outputs: variables.numActions > 1 ? null : {result: {
-            status: {
-              goal_id: variables.goal_id,
-              status: Status.PREEMPTED,
-            },
-            result: null,
-          }},
-        } : null,
-    }
   };
 
   return function(state, variables, input) {
