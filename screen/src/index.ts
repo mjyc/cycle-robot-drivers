@@ -1,7 +1,7 @@
 export {
   ExpressCommandType,
   makeTabletFaceDriver,
-} from './tablet_face';
+} from './makeTabletFaceDriver';
 export {
   FacialExpressionAction,
 } from './FacialExpressionAction';

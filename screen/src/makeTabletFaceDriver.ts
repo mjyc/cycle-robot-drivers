@@ -394,7 +394,7 @@ export function makeTabletFaceDriver({
       }
     });
 
-    const vnode$ = xs.of(
+    const vdom$ = xs.of(
       div(`#${id}.face`, {style: styles.face}, [
         div('.eye.left', {
           style: (Object as any).assign({}, styles.eye, styles.left),
@@ -420,7 +420,7 @@ export function makeTabletFaceDriver({
     );
 
     return {
-      DOM: adapt(vnode$),
+      DOM: adapt(vdom$),
       animationFinish: adapt(animationFinish$$.flatten()),
       load: adapt(load$),
     }
