@@ -1,6 +1,6 @@
-import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import {Stream} from 'xstream';
+import {div} from '@cycle/dom';
 import {adapt} from '@cycle/run/lib/adapt';
 
 
@@ -395,33 +395,28 @@ export function makeTabletFaceDriver({
     });
 
     const vnode$ = xs.of(
-      <div className="face" style={styles.face} id={id}>
-        <div className="eye left" style={
-          (Object as any).assign({}, styles.eye, styles.left)
-        }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
-        </div>
-
-        <div className="eye right" style={
-          (Object as any).assign({}, styles.eye, styles.right)
-        }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
-        </div>
-      </div>
+      div(`#${id}.face`, {style: styles.face}, [
+        div('.eye.left', {
+          style: (Object as any).assign({}, styles.eye, styles.left),
+        }, [
+          div('.eyelid.upper', {
+            style: (Object as any).assign({}, styles.eyelid, styles.upper),
+          }),
+          div('.eyelid.lower', {
+            style: (Object as any).assign({}, styles.eyelid, styles.lower),
+          }),
+        ]),
+        div('.eye.right', {
+          style: (Object as any).assign({}, styles.eye, styles.right),
+        }, [
+          div('.eyelid.upper', {
+            style: (Object as any).assign({}, styles.eyelid, styles.upper),
+          }),
+          div('.eyelid.lower', {
+            style: (Object as any).assign({}, styles.eyelid, styles.lower),
+          }),
+        ]),
+      ])
     );
 
     return {

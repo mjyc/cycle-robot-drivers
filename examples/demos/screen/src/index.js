@@ -33,7 +33,7 @@ function main(sources) {
       message: 'How are you?',
       choices: ['Good', 'Bad']
     }).compose(delay(200)),
-    xs.of(null).compose(delay(1000)),
+    // xs.of(null).compose(delay(1000)),
     // sources.TwoSpeechbubblesAction.result
     //   .filter(result => !!result.result)
     //   .map(result => {
@@ -45,18 +45,18 @@ function main(sources) {
     //   }),
   );
 
-  sources.TwoSpeechbubblesAction.result.addListener({
-    next: value => console.log('result', value),
-  })
+  // sources.TwoSpeechbubblesAction.result.addListener({
+  //   next: value => console.log('result', value),
+  // })
   
-  // const expression$ = sources.TwoSpeechbubblesAction.result.map((result) => {
-  //   if (result.result === 'Good') {
-  //     return 'happy';
-  //   } else if (result.result === 'Bad') {
-  //     return 'sad';
-  //   }
-  // });
-  const expression$ = xs.never();
+  const expression$ = sources.TwoSpeechbubblesAction.result.map((result) => {
+    if (result.result === 'Good') {
+      return 'happy';
+    } else if (result.result === 'Bad') {
+      return 'sad';
+    }
+  });
+  // const expression$ = xs.never();
 
   const vdom$ = xs.combine(
     sources.TwoSpeechbubblesAction.DOM,
@@ -69,7 +69,7 @@ function main(sources) {
     TabletFace: sources.FacialExpressionAction.output,
     targets: {  // will be imitating "proxies"
       TwoSpeechbubblesAction: speechbubbles$,
-      FacialExpressionAction: expression$,
+      FacialExpressionAction: expression$.debug(),
     },
   }
 }
