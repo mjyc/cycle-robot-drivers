@@ -28,20 +28,26 @@ function main(sources) {
 
   // main logic
   const speechbubbles$ = xs.merge(
+    // xs.of('Hello there!').compose(delay(1000)),
     xs.of({
       message: 'How are you?',
       choices: ['Good', 'Bad']
-    }).compose(delay(2000)),
-    sources.TwoSpeechbubblesAction.result
-      .filter(result => !!result.result)
-      .map(result => {
-        if (result.result === 'Good') {
-          return 'Great!';
-        } else if (result.result === 'Bad') {
-          return 'Sorry to hear that...';
-        }
-      })
+    }).compose(delay(200)),
+    xs.of(null).compose(delay(1000)),
+    // sources.TwoSpeechbubblesAction.result
+    //   .filter(result => !!result.result)
+    //   .map(result => {
+    //     if (result.result === 'Good') {
+    //       return 'Great!';
+    //     } else if (result.result === 'Bad') {
+    //       return 'Sorry to hear that...';
+    //     }
+    //   })
   );
+
+  sources.TwoSpeechbubblesAction.result.addListener({
+    next: value => console.log('result', value),
+  })
   
   // const expression$ = sources.TwoSpeechbubblesAction.result.map((result) => {
   //   if (result.result === 'Good') {

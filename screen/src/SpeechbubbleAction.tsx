@@ -100,7 +100,7 @@ function createTransition() {
               : inputValue.goal.type === SpeechbubbleType.CHOICE
                 ? span(
                   inputValue.goal.value.map(text => button('.choice', text))
-                ) : null
+                ) : ''
           },
         },
       }),
@@ -120,7 +120,7 @@ function createTransition() {
               : inputValue.goal.type === SpeechbubbleType.CHOICE
                 ? span(
                   inputValue.goal.value.map(text => button('.choice', text))
-                ) : null
+                ) : ''
           },
           result: {
             status: {
@@ -140,7 +140,7 @@ function createTransition() {
         },
         outputs: {
           DOM: {
-            goal: null,
+            goal: '',
           },
           result: {
             status: {
@@ -162,7 +162,7 @@ function createTransition() {
           },
           outputs: {
             DOM: {
-              goal: null,
+              goal: '',
             },
             result: {
               status: {
@@ -217,7 +217,7 @@ function output(machine$) {
   return {
     DOM: adapt(outputs$
       .filter(outputs => !!outputs.DOM)
-      .map(outputs => outputs.DOM.goal).startWith(null)
+      .map(outputs => outputs.DOM.goal).startWith('')
     ),
     result: adapt(outputs$
       .filter(outputs => !!outputs.result)
