@@ -1,2 +1,2 @@
-export {makeAudioPlayerDriver} from './audio_player';
+export {makeAudioPlayerDriver} from './makeAudioPlayerDriver';
 export {AudioPlayerAction} from './AudioPlayerAction';
