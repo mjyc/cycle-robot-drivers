@@ -18,6 +18,7 @@ enum State {
 type Variables = {
   goal_id: GoalID,
   numActions: number,
+  result: any,
   newGoal: Goal,
 };
 
@@ -96,23 +97,26 @@ function input(
 function createTransition() {
   const transitionTable = {
     [State.DONE]: {
-      [InputType.GOAL]: (variables, inputValue) => ({
-        state: State.RUNNING,  // TODO: condition this
-        variables: {
-          goal_id: inputValue.goal_id,  // TODO: condition this
-          numActions: inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE
-            ? 1 : inputValue.goal.type === TwoSpeechbubblesType.ASK_QUESTION
-              ? 2 : 0,  // 0 for unknown type
-          newGoal: null,
-        },
-        outputs: inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE
-        ? {
-          RobotSpeechbubble: {  // TODO: use goals
+      [InputType.GOAL]: (variables, inputValue) => {
+        return (
+          inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE 
+          || inputValue.goal.type === TwoSpeechbubblesType.ASK_QUESTION
+        ) ? {
+          state: State.RUNNING,
+          variables: {
             goal_id: inputValue.goal_id,
-            goal: inputValue.goal.value
+            numActions: inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE
+              ? 1 : 2,  // TwoSpeechbubblesType.ASK_QUESTION
+            result: null,
+            newGoal: null,
           },
-        } : inputValue.goal.type === TwoSpeechbubblesType.ASK_QUESTION
+          outputs: inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE
           ? {
+            RobotSpeechbubble: {  // TODO: use goals
+              goal_id: inputValue.goal_id,
+              goal: inputValue.goal.value
+            },
+          } : {
             RobotSpeechbubble: {
               goal_id: inputValue.goal_id,
               goal: inputValue.goal.value.message
@@ -121,8 +125,9 @@ function createTransition() {
               goal_id: inputValue.goal_id,
               goal: inputValue.goal.value.choices
             },
-          } : null,  // null for unknown type
-      }),
+          },  // TwoSpeechbubblesType.ASK_QUESTION
+        } : null;
+      },
     },
     [State.RUNNING]: {
       [InputType.CANCEL]: (variables, inputValue) => ({
@@ -133,10 +138,46 @@ function createTransition() {
           HumanSpeechbubble: null,
         }
       }),
+      [InputType.ROBOTSB_RESULT]: (variables, inputValue) => 
+        isEqual(inputValue.status.goal_id, variables.goal_id)
+        ? {
+          state: State.DONE,
+          variables: {
+            goal_id: null,
+            numActions: variables.numActions - 1,
+            result: null,
+            newGoal: null,
+          },
+          outputs: {
+            result: {
+              status: {
+                goal_id: variables.goal_id,
+                status: Status.SUCCEEDED,
+              },
+              result: variables.result,
+            },
+
+          },
+        } : null,
+      [InputType.HUMANSB_RESULT]: (variables, inputValue) =>
+        isEqual(inputValue.status.goal_id, variables.goal_id)
+          ? {
+            state: State.RUNNING,
+            variables: {
+              goal_id: variables.goal_id,
+              numActions: variables.numActions - 1,
+              result: inputValue.result,
+              newGoal: variables.newGoal,
+            },
+            outputs: {
+              RobotSpeechbubble: null,
+            },
+          } : null,
     },
     [State.PREEMPTING]: {
       [InputType.ROBOTSB_RESULT]: (variables, inputValue) =>
         isEqual(inputValue.status.goal_id, variables.goal_id)
+        // TODO: split to two
         ? {
           state: variables.numActions > 1 ? State.PREEMPTING : State.DONE,
           variables: {
@@ -168,25 +209,15 @@ function createTransition() {
           }},
         } : null,
     }
-    // [State.RUNNING]: {
-    //   [InputType.ROBOTSB_RESULT]: (variables, inputValue) => {
-    //     console.log('ROBOTSB_RESULT inputValue.status', inputValue.status, variables.goal_id)
-    //     return null;
-    //   },
-    //   [InputType.HUMANSB_RESULT]: (variables, inputValue) => {
-    //     console.log('HUMANSB_RESULT inputValue.status', inputValue.status)
-    //     return null;
-    //   }
-    // }
   };
 
   return function(state, variables, input) {
-    console.log(state, variables, input);
+    const prev = {state, variables, outputs: null};
     return !transitionTable[state]
-      ? state
+      ? prev
       : !transitionTable[state][input.type]
-        ? state
-        : transitionTable[state][input.type](variables, input.value) || state;
+        ? prev
+        : (transitionTable[state][input.type](variables, input.value) || prev);
   }
 }
 
@@ -197,7 +228,8 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
         state: State.DONE,
         variables: {
           goal_id: null,
-          numActions: null,  // start from 0
+          numActions: 0,
+          result: null,
           newGoal: null,
         },
         outputs: null,
@@ -254,7 +286,7 @@ export function TwoSpeechbubblesAction(sources: {
 
   const machine$ = transitionReducer(input$)
     .fold((state: Machine, reducer: Reducer) => reducer(state), null)
-    .drop(1);  // drop "null";
+    .drop(1).debug();  // drop "null";
 
   const {
     result,
