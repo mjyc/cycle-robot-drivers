@@ -342,7 +342,7 @@ export function makePoseDetectionDriver({
       },
     });
 
-    const vnode$ = xs.of((
+    const vdom$ = xs.of((
       <div id={divID} style={{position: "relative"}}>
         <video
           id={videoID}
@@ -354,7 +354,7 @@ export function makePoseDetectionDriver({
     ));
 
     return {
-      DOM: adapt(vnode$),
+      DOM: adapt(vdom$),
       poses: adapt(poses$),
     };
   }
