@@ -1,4 +1,3 @@
-import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {adapt} from '@cycle/run/lib/adapt';

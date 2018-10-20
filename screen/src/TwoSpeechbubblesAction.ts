@@ -6,7 +6,7 @@ import {div, span} from '@cycle/dom';
 import {
   GoalID, Goal, Status, Result, initGoal, isEqual,
 } from '@cycle-robot-drivers/action';
-import { IsolatedSpeechbubbleAction } from './SpeechbubbleAction';
+import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction';
 
 
 enum State {
