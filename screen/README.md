@@ -10,11 +10,30 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 ## API
 
-<!-- Start src/FacialExpressionAction.tsx -->
+<!-- Start src/FacialExpressionAction.ts -->
 
-<!-- End src/FacialExpressionAction.tsx -->
+### FacialExpressionAction(sources)
 
-<!-- Start src/SpeechbubbleAction.tsx -->
+FacialExpression action component.
+
+#### Params:
+
+* *sources* 
+  * goal: a stream of `null` (as "cancel") or a string `happy`, `sad`,
+    `angry`, `focused`, or `confused`` (as the TabletFace driver's
+    `'EXPRESS'` command value).
+  * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
+
+#### Return:
+
+* sinks 
+  * output: a stream for the TabletFace driver.
+  * status: depreciated
+  * result: a stream of action results. `result.result` is always `null`.
+
+<!-- End src/FacialExpressionAction.ts -->
+
+<!-- Start src/SpeechbubbleAction.ts -->
 
 ### SpeechbubbleAction(sources)
 
@@ -23,7 +42,10 @@ Speechbubble action component.
 #### Params:
 
 * *sources* 
-  * goal: a stream of `null` (as "cancel"), `{type: 'MESSAGE', value: 'Hello world'}` for displaying message or `{type: 'MESSAGE', value: ['Hello', 'World']}` for displaying choices.
+  * goal: a stream of `null` (as "cancel"),
+    `{type: 'MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
+    "message"), or `{type: 'CHOICE', value: ['Hello', 'World']}`
+    or `['Hello', 'World']` (as "multiple choice").
   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
 
 #### Return:
@@ -32,17 +54,44 @@ Speechbubble action component.
   * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
   * result: a stream of action results.
 
-<!-- End src/SpeechbubbleAction.tsx -->
+<!-- End src/SpeechbubbleAction.ts -->
 
-<!-- Start src/TwoSpeechbubblesAction.tsx -->
+<!-- Start src/TwoSpeechbubblesAction.ts -->
 
-<!-- End src/TwoSpeechbubblesAction.tsx -->
+### TwoSpeechbubblesAction(sources)
+
+TwoSpeechbubbles, Robot and Human, action component.
+
+#### Params:
+
+* *sources* 
+  * goal: a stream of `null` (as "cancel"),
+    `{type: 'SET_MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
+    "set message"), or `{type: 'ASK_QUESTION', message: 'Blue pill or
+    red pill?', choices: ['Blue', 'Red']}` (as "ask multiple choice").
+  * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
+
+#### Return:
+
+* sinks 
+  * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
+  * result: a stream of action results.
+
+<!-- End src/TwoSpeechbubblesAction.ts -->
 
 <!-- Start src/index.ts -->
 
 <!-- End src/index.ts -->
 
-<!-- Start src/tablet_face.tsx -->
+<!-- Start src/makeTabletFaceDriver.ts -->
 
-<!-- End src/tablet_face.tsx -->
+### makeTabletFaceDriver()
+
+[TabletFace](https://github.com/mjyc/tablet-robot-face) driver factory.
+
+#### Return:
+
+* **Driver** the TabletFace Cycle.js driver function. It takes a stream   of `Command` and returns `DOM`, `animationFinish`, and `load` streams.
+
+<!-- End src/makeTabletFaceDriver.ts -->
 

@@ -211,7 +211,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
  * @return sinks
  * 
  *   * output: a stream for the SpeechSynthesis driver input.
- *   * result: a stream of action results.
+ *   * result: a stream of action results. `result.result` is always `null`.
  * 
  */
 export function SpeechSynthesisAction(sources: {

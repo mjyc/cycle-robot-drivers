@@ -227,12 +227,16 @@ function output(machine$) {
   };
 }
 
+
 /**
  * Speechbubble action component.
  * 
  * @param sources
  * 
- *   * goal: a stream of `null` (as "cancel"), `{type: 'MESSAGE', value: 'Hello world'}` for displaying message or `{type: 'MESSAGE', value: ['Hello', 'World']}` for displaying choices.
+ *   * goal: a stream of `null` (as "cancel"),
+ *     `{type: 'MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
+ *     "message"), or `{type: 'CHOICE', value: ['Hello', 'World']}`
+ *     or `['Hello', 'World']` (as "multiple choice").
  *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
  * 
  * @return sinks

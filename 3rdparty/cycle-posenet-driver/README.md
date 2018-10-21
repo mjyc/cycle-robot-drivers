@@ -14,7 +14,7 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 <!-- End src/index.ts -->
 
-<!-- Start src/pose_detection.tsx -->
+<!-- Start src/makePoseDetectionDriver.tsx -->
 
 ### makePoseDetectionDriver(options)
 
@@ -31,9 +31,10 @@ driver factory.
 
 #### Return:
 
-* **Driver** the PoseNet Cycle.js driver function. It takes a stream   of [`PoseNetParameters`](./src/pose_detection.tsx) and returns a stream of [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm).
+* **Driver** the PoseNet Cycle.js driver function. It takes a stream   of [`PoseNetParameters`](./src/pose_detection.tsx) and returns a stream of
+  [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm).
 
-<!-- End src/pose_detection.tsx -->
+<!-- End src/makePoseDetectionDriver.tsx -->
 
 <!-- Start src/utils.ts -->
 

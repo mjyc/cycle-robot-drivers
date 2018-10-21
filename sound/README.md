@@ -14,11 +14,11 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 <!-- End src/AudioPlayerAction.ts -->
 
-<!-- Start src/audio_player.ts -->
-
-<!-- End src/audio_player.ts -->
-
 <!-- Start src/index.ts -->
 
 <!-- End src/index.ts -->
+
+<!-- Start src/makeAudioPlayerDriver.ts -->
+
+<!-- End src/makeAudioPlayerDriver.ts -->
 

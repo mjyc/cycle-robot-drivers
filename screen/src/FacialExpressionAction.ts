@@ -6,6 +6,23 @@ import {
   generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action';
 
+/**
+ * FacialExpression action component.
+ * 
+ * @param sources
+ * 
+ *   * goal: a stream of `null` (as "cancel") or a string `happy`, `sad`,
+ *     `angry`, `focused`, or `confused`` (as the TabletFace driver's
+ *     `'EXPRESS'` command value).
+ *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
+ * 
+ * @return sinks
+ * 
+ *   * output: a stream for the TabletFace driver.
+ *   * status: depreciated
+ *   * result: a stream of action results. `result.result` is always `null`.
+ * 
+ */
 export function FacialExpressionAction(sources) {
   // Create action stream
   type Action = {

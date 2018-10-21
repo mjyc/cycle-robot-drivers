@@ -29,7 +29,8 @@ action component.
 
 * sinks 
   * output: a stream for the SpeechRecognition driver input.
-  * result: a stream of action results.
+  * result: a stream of action results. `result.result` is a transcript from
+    the recognition; it will be `''` for non-speech inputs.
 
 <!-- End src/SpeechRecognitionAction.ts -->
 
@@ -51,7 +52,7 @@ action component.
 
 * sinks 
   * output: a stream for the SpeechSynthesis driver input.
-  * result: a stream of action results.
+  * result: a stream of action results. `result.result` is always `null`.
 
 <!-- End src/SpeechSynthesisAction.ts -->
 
@@ -59,7 +60,7 @@ action component.
 
 <!-- End src/index.ts -->
 
-<!-- Start src/speech_recognition.ts -->
+<!-- Start src/makeSpeechRecognitionDriver.ts -->
 
 ### makeSpeechRecognitionDriver()
 
@@ -74,9 +75,9 @@ driver factory.
   * `EventSource.events(eventName)` returns a stream of `eventName`
     events from [`SpeechRecognition`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Event_handlers).
 
-<!-- End src/speech_recognition.ts -->
+<!-- End src/makeSpeechRecognitionDriver.ts -->
 
-<!-- Start src/speech_synthesis.ts -->
+<!-- Start src/makeSpeechSynthesisDriver.ts -->
 
 ### makeSpeechSynthesisDriver()
 
@@ -91,5 +92,5 @@ driver factory.
   * `EventSource.events(eventName)` returns a stream of  `eventName`
     events from [`SpeechSynthesisUtterance`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance#Event_handlers).
 
-<!-- End src/speech_synthesis.ts -->
+<!-- End src/makeSpeechSynthesisDriver.ts -->
 

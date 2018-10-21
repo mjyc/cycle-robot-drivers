@@ -266,6 +266,12 @@ type Command = {
   value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
 
+/**
+ * [TabletFace](https://github.com/mjyc/tablet-robot-face) driver factory.
+ * 
+ * @return {Driver} the TabletFace Cycle.js driver function. It takes a stream
+ *   of `Command` and returns `DOM`, `animationFinish`, and `load` streams.
+ */
 export function makeTabletFaceDriver({
   styles: {
     faceColor = 'whitesmoke',
