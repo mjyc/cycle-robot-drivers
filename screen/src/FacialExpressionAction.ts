@@ -11,9 +11,9 @@ import {
  * 
  * @param sources
  * 
- *   * goal: a stream of `null` (as "cancel") or a string `happy`, `sad`,
- *     `angry`, `focused`, or `confused`` (as the TabletFace driver's
- *     `'EXPRESS'` command value).
+ *   * goal: a stream of `null` (as "cancel") or a string '`happy'`, '`sad'`,
+ *     '`angry'`, '`focused'`, or '`confused'` (as the TabletFace driver's
+ *     `EXPRESS` type command value).
  *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
  * 
  * @return sinks
