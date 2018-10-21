@@ -17,8 +17,6 @@ enum State {
 
 type Variables = {
   goal_id: GoalID,
-  numActions: number,
-  result: Result,
   newGoal: Goal,
 };
 
@@ -40,7 +38,7 @@ type Reducer = (machine?: Machine) => Machine | undefined;
 enum InputType {
   GOAL = 'GOAL',
   CANCEL = 'CANCEL',
-  SB_RESULT = 'SB_RESULT',
+  RESULT = 'RESULT',
 }
 
 type Input = {
@@ -56,7 +54,6 @@ export enum TwoSpeechbubblesType {
 
 function input(
   goal$: Stream<any>,
-  robotSpeechbubbleResult: Stream<any>,
   humanSpeechbubbleResult: Stream<any>,
 ): Stream<Input> {
   return xs.merge(
@@ -82,109 +79,111 @@ function input(
         };
       }
     }),
-    robotSpeechbubbleResult.map(result => ({
-      type: InputType.SB_RESULT,
-      value: result,
-    })),
     humanSpeechbubbleResult.map(result => ({
-      type: InputType.SB_RESULT,
+      type: InputType.RESULT,
       value: result,
     })),
   )
 }
 
 function createTransition() {
-  const generateGoalMachine = (goal: Goal) => {
-    return (
-      goal.goal.type === TwoSpeechbubblesType.SET_MESSAGE 
-      || goal.goal.type === TwoSpeechbubblesType.ASK_QUESTION
-    ) ? {
-      state: State.RUNNING,
-      variables: {
-        goal_id: goal.goal_id,
-        numActions:goal.goal.type === TwoSpeechbubblesType.SET_MESSAGE
-          ? 1 : 2,  // TwoSpeechbubblesType.ASK_QUESTION
-        result: null,
-        newGoal: null,
-      },
-      outputs: goal.goal.type === TwoSpeechbubblesType.SET_MESSAGE
-      ? {
-        RobotSpeechbubble: {  // TODO: use goals
-          goal_id: goal.goal_id,
-          goal: goal.goal.value
-        },
-        // HumanSpeechbubble: null,
-      } : {
-        RobotSpeechbubble: {
-          goal_id: goal.goal_id,
-          goal: goal.goal.value.message
-        },
-        HumanSpeechbubble: {
-          goal_id: goal.goal_id,
-          goal: goal.goal.value.choices
-        },
-      },  // TwoSpeechbubblesType.ASK_QUESTION
-    } : null;
-  } 
   const transitionTable = {
     [State.DONE]: {
-      [InputType.GOAL]: (variables, inputValue) => generateGoalMachine(inputValue),
-    },
-    [State.RUNNING]: {
       [InputType.GOAL]: (variables, inputValue) => ({
         state: State.RUNNING,
         variables: {
-          goal_id: variables.goal_id,
-          numActions: variables.numActions,
-          result: variables.result,
-          newGoal: inputValue,
+          goal_id: inputValue.goal_id,
+          newGoal: null,
         },
         outputs: {
-          RobotSpeechbubble: null,
-          // HumanSpeechbubble: null,
+          RobotSpeechbubble: {
+            goal: inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE ? {
+              goal_id: inputValue.goal_id,
+              goal: inputValue.goal.value,
+            } : {  // TwoSpeechbubblesType.ASK_QUESTION
+              goal_id: inputValue.goal_id,
+              goal: inputValue.goal.value.message
+            },
+          },
+          HumanSpeechbubble: {
+            goal: inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE
+              ? null
+              : {  // TwoSpeechbubblesType.ASK_QUESTION
+                goal_id: inputValue.goal_id,
+                goal: inputValue.goal.value.choices
+              },
+          },
+        },
+      })
+    },
+    [State.RUNNING]: {
+      [InputType.GOAL]: (variables, inputValue) => {
+        return {
+          state: State.RUNNING,
+          variables: {
+            goal_id: inputValue.goal_id,
+            newGoal: null,
+          },
+          outputs: {
+            RobotSpeechbubble: {
+              goal: inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE ?{
+                goal_id: inputValue.goal_id,
+                goal: inputValue.goal.value,
+              } : {  // TwoSpeechbubblesType.ASK_QUESTION
+                goal_id: inputValue.goal_id,
+                goal: inputValue.goal.value.message
+              },
+            },
+            HumanSpeechbubble: {
+              goal: inputValue.goal.type === TwoSpeechbubblesType.SET_MESSAGE
+              ? null
+              : {  // TwoSpeechbubblesType.ASK_QUESTION
+                goal_id: inputValue.goal_id,
+                goal: inputValue.goal.value.choices
+              },
+            },
+            result: {
+              status: {
+                goal_id: variables.goal_id,
+                status: Status.PREEMPTED,
+              },
+              result: null,
+            },
+          },
         }
-      }),
+      },
       [InputType.CANCEL]: (variables, inputValue) => ({
         state: State.RUNNING,
         variables,
         outputs: {
-          RobotSpeechbubble: null,
-          HumanSpeechbubble: null,
+          RobotSpeechbubble: {goal: null},
+          HumanSpeechbubble: {goal: null},
         }
       }),
-      [InputType.SB_RESULT]: (variables, inputValue) => 
-        isEqual(inputValue.status.goal_id, variables.goal_id)
-        ? (variables.numActions === 1)
-          ? {
-            state: State.DONE,
-            variables: {
-              goal_id: null,
-              numActions: 0,
-              result: null,
-              newGoal: null,
+      [InputType.RESULT]: (variables, inputValue) => 
+        isEqual(inputValue.status.goal_id, variables.goal_id) 
+        && typeof inputValue.result === 'string' ? {  // CHOICES SUCCEEDED
+          state: State.DONE,
+          variables: {
+            goal_id: null,
+            result: null,
+            newGoal: null,
+          },
+          outputs: {
+            result: {
+              status: {
+                goal_id: variables.goal_id,
+                status: Status.SUCCEEDED,
+              },
+              result: inputValue.result,
             },
-            outputs: {
-              result: variables.result,
-            },
-          } : {
-            state: State.RUNNING,
-            variables: {
-              goal_id: variables.goal_id,
-              numActions: variables.numActions - 1,
-              result: inputValue,
-              newGoal: variables.newGoal,
-            },
-            outputs: {
-              // RobotSpeechbubble: null,  // TODO: only if the result is string
-            },
-          }
-        : null,
+          },
+        } : null,
     },
   };
 
   return function(state, variables, input) {
     const prev = {state, variables, outputs: null};
-    // console.log(state, variables, input);
     return !transitionTable[state]
       ? prev
       : !transitionTable[state][input.type]
@@ -200,8 +199,6 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
         state: State.DONE,
         variables: {
           goal_id: null,
-          numActions: 0,
-          result: null,
           newGoal: null,
         },
         outputs: null,
@@ -224,17 +221,17 @@ function output(machine$) {
     .map(machine => machine.outputs);
 
   return {
+    RobotSpeechbubble: adapt(outputs$
+      .filter(outputs => !!outputs.RobotSpeechbubble)
+      .map(outputs => outputs.RobotSpeechbubble.goal)
+    ),
+    HumanSpeechbubble: adapt(outputs$
+      .filter(outputs => !!outputs.HumanSpeechbubble)
+      .map(outputs => outputs.HumanSpeechbubble.goal)
+    ),
     result: adapt(outputs$
       .filter(outputs => !!outputs.result)
       .map(outputs => outputs.result)
-    ),
-    RobotSpeechbubble: adapt(outputs$
-      .filter(outputs => typeof(outputs.RobotSpeechbubble) !== 'undefined')
-      .map(outputs => outputs.RobotSpeechbubble)
-    ),
-    HumanSpeechbubble: adapt(outputs$
-      .filter(outputs => typeof(outputs.HumanSpeechbubble) !== 'undefined')
-      .map(outputs => outputs.HumanSpeechbubble)
     ),
   };
 }
@@ -247,12 +244,10 @@ export function TwoSpeechbubblesAction(sources: {
   result: any,
 } {
   // create proxies
-  const robotSpeechbubbleResult = xs.create();
   const humanSpeechbubbleResult = xs.create();
 
   const input$ = input(
     xs.fromObservable(sources.goal),
-    robotSpeechbubbleResult,
     humanSpeechbubbleResult,
   );
 
@@ -261,9 +256,9 @@ export function TwoSpeechbubblesAction(sources: {
     .drop(1);  // drop "null";
 
   const {
-    result,
     RobotSpeechbubble,
     HumanSpeechbubble,
+    result,
   } = output(machine$);
 
   // create sub-components
@@ -276,12 +271,10 @@ export function TwoSpeechbubblesAction(sources: {
     DOM: sources.DOM,
   });
   // connect proxies
-  robotSpeechbubbleResult.imitate(robotSpeechbubble.result);
   humanSpeechbubbleResult.imitate(humanSpeechbubble.result);
 
   const vdom$ = xs.combine(robotSpeechbubble.DOM, humanSpeechbubble.DOM)
     .map(([robotVTree, humanVTree]) => {
-      console.log('robotVTree', robotVTree, 'humanVTree', humanVTree);
       return div([
         div([span('Robot:'), span(robotVTree)]),
         div([span('Human:'), span(humanVTree)]),

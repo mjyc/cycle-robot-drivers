@@ -178,7 +178,6 @@ function createTransition() {
 
   return function(state, variables, input) {
     const prev = {state, variables, outputs: null};
-    console.log(state, variables, input);
     return !transitionTable[state]
       ? prev
       : !transitionTable[state][input.type]
