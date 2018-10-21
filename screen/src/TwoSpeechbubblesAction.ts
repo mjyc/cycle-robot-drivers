@@ -170,6 +170,8 @@ function createTransition() {
             newGoal: null,
           },
           outputs: {
+            RobotSpeechbubble: {goal: null},
+            HumanSpeechbubble: {goal: null},
             result: {
               status: {
                 goal_id: variables.goal_id,
@@ -270,6 +272,10 @@ export function TwoSpeechbubblesAction(sources: {
     goal: HumanSpeechbubble,
     DOM: sources.DOM,
   });
+  // IMPORTANT!! Attach listeners to the DOM streams BEFORE connecting the
+  //   proxies to have NO QUEUE in the DOM streams.
+  robotSpeechbubble.DOM.addListener({next: value => {}});
+  humanSpeechbubble.DOM.addListener({next: value => {}});
   // connect proxies
   humanSpeechbubbleResult.imitate(humanSpeechbubble.result);
 
@@ -280,6 +286,7 @@ export function TwoSpeechbubblesAction(sources: {
         div([span('Human:'), span(humanVTree)]),
       ])
     });
+
 
   return {
     DOM: vdom$,

@@ -251,12 +251,13 @@ export function SpeechbubbleAction(sources: {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(
+      // IMPORTANT!! This makes the click stream always exist.
       sources.DOM.select('.choice').elements()
         .map(b => sources.DOM.select('.choice').events('click', {
           preventDefault: true
         }))
         .flatten()
-    )
+    ),
   );
 
   const machine$ = transitionReducer(input$)
