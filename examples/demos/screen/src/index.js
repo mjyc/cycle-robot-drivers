@@ -41,16 +41,18 @@ function main(sources) {
         } else if (result.result === 'Bad') {
           return 'Sorry to hear that...';
         }
-      })
+      }),
   );
-  
-  const expression$ = sources.TwoSpeechbubblesAction.result.map((result) => {
-    if (result.result === 'Good') {
-      return 'happy';
-    } else if (result.result === 'Bad') {
-      return 'sad';
-    }
-  });
+
+  const expression$ = sources.TwoSpeechbubblesAction.result
+    .filter(result => !!result.result)
+    .map((result) => {
+      if (result.result === 'Good') {
+        return 'happy';
+      } else if (result.result === 'Bad') {
+        return 'sad';
+      }
+    });
 
   const vdom$ = xs.combine(
     sources.TwoSpeechbubblesAction.DOM,
@@ -62,7 +64,7 @@ function main(sources) {
     DOM: vdom$,
     TabletFace: sources.FacialExpressionAction.output,
     targets: {  // will be imitating "proxies"
-      TwoSpeechbubblesAction: speechbubbles$,
+      TwoSpeechbubblesAction: speechbubbles$.debug(),
       FacialExpressionAction: expression$,
     },
   }

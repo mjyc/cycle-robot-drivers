@@ -1,24 +1,33 @@
-import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import {MemoryStream} from 'xstream';  // to return MemoryType in SpeechbubbleAction; for typescript 2.8.x
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {adapt} from '@cycle/run/lib/adapt';
-import isolate from '@cycle/isolate';
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action';
 
-export enum SpeechbubbleType {
-  MESSAGE = 'MESSAGE',
-  CHOICE = 'CHOICE',
-}
-
-export function SpeechbubbleAction(sources) {
+/**
+ * FacialExpression action component.
+ * 
+ * @param sources
+ * 
+ *   * goal: a stream of `null` (as "cancel") or a string '`happy'`, '`sad'`,
+ *     '`angry'`, '`focused'`, or '`confused'` (as the TabletFace driver's
+ *     `EXPRESS` type command value).
+ *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
+ * 
+ * @return sinks
+ * 
+ *   * output: a stream for the TabletFace driver.
+ *   * status: depreciated
+ *   * result: a stream of action results. `result.result` is always `null`.
+ * 
+ */
+export function FacialExpressionAction(sources) {
   // Create action stream
   type Action = {
     type: string,
-    value: Goal | string | boolean,
+    value: Goal,
   };
 
   const goal$ = xs.fromObservable(
@@ -30,33 +39,26 @@ export function SpeechbubbleAction(sources) {
         value: null,
       };
     } else {
-      const value = !!(goal as any).goal_id ? goal as any: initGoal(goal);
+      const value = !!(goal as any).goal_id ? goal as any : initGoal(goal);
       return {
         type: 'GOAL',
-        value: !value.goal.type ? {
+        value: typeof value.goal === 'string' ? {
           goal_id: value.goal_id,
           goal: {
-            type: typeof value.goal === 'string'
-              ? SpeechbubbleType.MESSAGE
-              : SpeechbubbleType.CHOICE,
-            value: value.goal,
-          },
+            type: value.goal,
+          }
         } : value,
       };
     }
   });
-  // IMPORTANT!! force creating the click stream
-  let click$ = sources.DOM.select('.choice').elements()
-    .map(b => sources.DOM.select('.choice').events('click', {
-      preventDefault: true
-    })).flatten();
-  click$ = xs.fromObservable(click$).map((event: Event) => {
-    return {
-      type: 'CLICK',
-      value: (event.target as HTMLButtonElement).textContent,
-    };
-  });
-  const action$ = xs.merge(goal$, click$);
+
+  const action$ = xs.merge(
+    goal$,
+    sources.TabletFace.animationFinish.mapTo({
+      type: 'END',
+      value: null,
+    }),
+  );
 
   // Create state stream
   type State = {
@@ -104,11 +106,11 @@ export function SpeechbubbleAction(sources) {
           status: Status.ACTIVE,
           result: null,
         };
-      } else if (action.type === 'CLICK') {
+      } else if (action.type === 'END') {
         return {
           ...state,
           status: Status.SUCCEEDED,
-          result: (action.value as string),
+          result: action.value,
         };
       } else if (action.type === 'CANCEL') {
         return {
@@ -124,38 +126,28 @@ export function SpeechbubbleAction(sources) {
     return state;
   }, initialState);
 
-  // Prepare outgoing streams
-  const vdom$ = state$.map((state: State) => {
-    const innerDOM = (() => {
-      if (state.status === Status.ACTIVE) {
-        switch (state.goal.type) {
-          case SpeechbubbleType.MESSAGE:
-            return (<span>{state.goal.value}</span>);
-          case SpeechbubbleType.CHOICE:
-            return (
-              <span>{state.goal.value.map((text) => (
-                <button className="choice">{text}</button>
-              ))}</span>
-            );
-        }
-      } else {
-        return null;
-      }
-    })();
-    return innerDOM;
-  });
-  // IMPORTANT!! manually empty vdom$ stream to prevent the unexpected behavior
-  vdom$.addListener({next: vdom => {}});
-
   const stateStatusChanged$ = state$
     .compose(dropRepeats(
       (x, y) => (x.status === y.status && isEqual(x.goal_id, y.goal_id))));
 
+  const value$ = stateStatusChanged$
+    .filter(state =>
+      state.status === Status.ACTIVE || state.status === Status.PREEMPTED)
+    .map(state => {
+      if (state.status === Status.ACTIVE) {
+        return {
+          type: 'EXPRESS',
+          value: state.goal,
+        };
+      } else {  // state.status === Status.PREEMPTED
+        return null;
+      }
+    });
   const status$ = stateStatusChanged$
     .map(state => ({
       goal_id: state.goal_id,
       status: state.status,
-    } as GoalStatus))
+    } as GoalStatus));
 
   const result$ = stateStatusChanged$
     .filter(state => (state.status === Status.SUCCEEDED
@@ -169,13 +161,13 @@ export function SpeechbubbleAction(sources) {
       result: state.result,
     } as Result));
 
+  // IMPORTANT!! empty the streams manually; otherwise it emits the first
+  //   "SUCCEEDED" result
+  value$.addListener({next: () => {}});
+
   return {
-    DOM: vdom$,
+    output: adapt(value$),
     status: adapt(status$),
     result: adapt(result$),
   };
-}
-
-export function IsolatedSpeechbubbleAction(sources) {
-  return isolate(SpeechbubbleAction)(sources);
 }

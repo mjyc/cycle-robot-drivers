@@ -133,7 +133,8 @@ export type PoseNetParameters = {
  *     video (default: true).
  * 
  * @return {Driver} the PoseNet Cycle.js driver function. It takes a stream
- *   of [`PoseNetParameters`](./src/pose_detection.tsx) and returns a stream of [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm).
+ *   of [`PoseNetParameters`](./src/pose_detection.tsx) and returns a stream of
+ *   [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm).
  * 
  */
 export function makePoseDetectionDriver({
@@ -342,7 +343,7 @@ export function makePoseDetectionDriver({
       },
     });
 
-    const vnode$ = xs.of((
+    const vdom$ = xs.of((
       <div id={divID} style={{position: "relative"}}>
         <video
           id={videoID}
@@ -354,7 +355,7 @@ export function makePoseDetectionDriver({
     ));
 
     return {
-      DOM: adapt(vnode$),
+      DOM: adapt(vdom$),
       poses: adapt(poses$),
     };
   }

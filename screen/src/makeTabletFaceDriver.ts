@@ -1,6 +1,6 @@
-import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
 import {Stream} from 'xstream';
+import {div} from '@cycle/dom';
 import {adapt} from '@cycle/run/lib/adapt';
 
 
@@ -266,6 +266,12 @@ type Command = {
   value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
 
+/**
+ * [TabletFace](https://github.com/mjyc/tablet-robot-face) driver factory.
+ * 
+ * @return {Driver} the TabletFace Cycle.js driver function. It takes a stream
+ *   of `Command` and returns `DOM`, `animationFinish`, and `load` streams.
+ */
 export function makeTabletFaceDriver({
   styles: {
     faceColor = 'whitesmoke',
@@ -332,7 +338,7 @@ export function makeTabletFaceDriver({
     const load$ = xs.create();
     const intervalID = setInterval(() => {
       if (!document.querySelector(`#${id}`)) {
-        console.debug('Waiting for `#${id}` to appear...');
+        console.debug(`Waiting for #${id} to appear...`);
         return;
       }
       clearInterval(intervalID);
@@ -394,38 +400,33 @@ export function makeTabletFaceDriver({
       }
     });
 
-    const vnode$ = xs.of(
-      <div className="face" style={styles.face} id={id}>
-        <div className="eye left" style={
-          (Object as any).assign({}, styles.eye, styles.left)
-        }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
-        </div>
-
-        <div className="eye right" style={
-          (Object as any).assign({}, styles.eye, styles.right)
-        }>
-          <div className="eyelid upper" style={
-            (Object as any).assign({}, styles.eyelid, styles.upper)
-          }>
-          </div>
-          <div className="eyelid lower" style={
-            (Object as any).assign({}, styles.eyelid, styles.lower)
-          }>
-          </div>
-        </div>
-      </div>
+    const vdom$ = xs.of(
+      div(`#${id}.face`, {style: styles.face}, [
+        div('.eye.left', {
+          style: (Object as any).assign({}, styles.eye, styles.left),
+        }, [
+          div('.eyelid.upper', {
+            style: (Object as any).assign({}, styles.eyelid, styles.upper),
+          }),
+          div('.eyelid.lower', {
+            style: (Object as any).assign({}, styles.eyelid, styles.lower),
+          }),
+        ]),
+        div('.eye.right', {
+          style: (Object as any).assign({}, styles.eye, styles.right),
+        }, [
+          div('.eyelid.upper', {
+            style: (Object as any).assign({}, styles.eyelid, styles.upper),
+          }),
+          div('.eyelid.lower', {
+            style: (Object as any).assign({}, styles.eyelid, styles.lower),
+          }),
+        ]),
+      ])
     );
 
     return {
-      DOM: adapt(vnode$),
+      DOM: adapt(vdom$),
       animationFinish: adapt(animationFinish$$.flatten()),
       load: adapt(load$),
     }
