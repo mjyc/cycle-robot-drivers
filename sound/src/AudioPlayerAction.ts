@@ -8,6 +8,23 @@ import {
 } from '@cycle-robot-drivers/action'
 
 
+/**
+ * AudioPlayerAction action component.
+ * 
+ * @param sources
+ * 
+ *   * goal: a stream of `null` (as "cancel") or `{src: string}` (as HTML audio
+ *     [src](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#attr-src))
+ *     or a string (as a value of `src`).
+ *   * AudioPlayer: `EventSource` for `ended` and `pause` events.
+ * 
+ * @return sinks
+ * 
+ *   * output: a stream for the AudioPlayer driver.
+ *   * status: depreciated.
+ *   * result: a stream of action results. `result.result` is always `null`.
+ * 
+ */
 export function AudioPlayerAction(sources) {
   // Create action stream
   type Action = {

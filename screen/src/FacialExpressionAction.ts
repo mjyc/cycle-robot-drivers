@@ -19,7 +19,7 @@ import {
  * @return sinks
  * 
  *   * output: a stream for the TabletFace driver.
- *   * status: depreciated
+ *   * status: depreciated.
  *   * result: a stream of action results. `result.result` is always `null`.
  * 
  */
