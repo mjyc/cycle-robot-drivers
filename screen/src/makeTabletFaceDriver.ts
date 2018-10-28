@@ -298,6 +298,7 @@ export function makeTabletFaceDriver({
       width: faceWidth,
       position: 'relative',
       overflow: 'hidden',
+      zIndex: 0,  // speechbubbles and eyes have zIndex === 1
     },
     eye: {
       backgroundColor: eyeColor,

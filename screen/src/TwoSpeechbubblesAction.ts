@@ -297,11 +297,34 @@ export function TwoSpeechbubblesAction(sources: {
   // connect proxies
   humanSpeechbubbleResult.imitate(humanSpeechbubble.result);
 
+  const styles = {
+    outer: {
+      position: 'absolute',
+      width: '100%',
+      zIndex: 1,
+    },
+    bubble: {
+      backgroundColor: '#fff',
+      maxWidth: '90%',
+    },
+  }
+
+  const style = {
+    'background-color': '#fff',
+    'margin': '1em',
+    'padding': '1em',
+    'max-width': '90%',
+  };
+  const bubbles = {
+    position: 'absolute',
+    zIndex: 1,
+    width: '100%',
+  };
   const vdom$ = xs.combine(robotSpeechbubble.DOM, humanSpeechbubble.DOM)
     .map(([robotVTree, humanVTree]) => {
-      return div([
-        div([span('Robot:'), span(robotVTree)]),
-        div([span('Human:'), span(humanVTree)]),
+      return div({style: styles.outer}, [
+        div({style}, [span(robotVTree)]),
+        div({style}, [span(humanVTree)]),
       ])
     });
 
