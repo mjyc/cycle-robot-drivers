@@ -59,6 +59,9 @@ export function runRobotProgram(
     SpeechRecognition?: Driver<any, any>,
     PoseDetection?: Driver<any, any>,
   },
+  options?: {
+    hidePoseViz?: boolean
+  },
 ) {
   if (!main) {
     throw new Error('Must pass the argument main');
@@ -83,6 +86,9 @@ export function runRobotProgram(
   }
   if (!drivers.PoseDetection) {
     drivers.PoseDetection = makePoseDetectionDriver();
+  }
+  if (!options) {
+    options = {};
   }
 
   function wrappedMain(sources) {
@@ -142,9 +148,13 @@ export function runRobotProgram(
           sources.TwoSpeechbubblesAction.DOM,
           sources.TabletFace.DOM,
           sources.PoseDetection.DOM
-        ).map(([speechbubbles, face, poseDetectionViz]) => div({
-          style: {position: 'relative'}
-        }, [speechbubbles, face, poseDetectionViz]));
+        ).map(([speechbubbles, face, poseDetectionViz]) => {
+          (poseDetectionViz as any).data.style.display = options.hidePoseViz
+            ? 'none' : 'block';
+          return div({
+            style: {position: 'relative'}
+          }, [speechbubbles, face, poseDetectionViz]);
+        });
       }
       if (!sinks.TabletFace) {
         sinks.TabletFace = sources.FacialExpressionAction.output;

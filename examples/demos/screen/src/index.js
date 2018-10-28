@@ -66,7 +66,7 @@ function main(sources) {
     DOM: vdom$,
     TabletFace: sources.FacialExpressionAction.output,
     targets: {  // will be imitating "proxies"
-      TwoSpeechbubblesAction: speechbubbles$.debug(),
+      TwoSpeechbubblesAction: speechbubbles$,
       FacialExpressionAction: expression$,
     },
   }
