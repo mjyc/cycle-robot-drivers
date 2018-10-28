@@ -1,6 +1,5 @@
-import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import {makeDOMDriver} from '@cycle/dom';
+import {div, makeDOMDriver} from '@cycle/dom';
 import {run, Driver} from '@cycle/run';
 import {powerup} from '@cycle-robot-drivers/action';
 import {
@@ -140,16 +139,12 @@ export function runRobotProgram(
 
       if (!sinks.DOM) {
         sinks.DOM = xs.combine(
-          sources.TabletFace.DOM,
           sources.TwoSpeechbubblesAction.DOM,
+          sources.TabletFace.DOM,
           sources.PoseDetection.DOM
-        ).map(([face, speechbubbles, poseDetectionViz]) => (
-          <div>
-            {speechbubbles}
-            {face}
-            {poseDetectionViz}
-          </div>
-        ));
+        ).map(([speechbubbles, face, poseDetectionViz]) => div({
+          style: {position: 'relative'}
+        }, [speechbubbles, face, poseDetectionViz]));
       }
       if (!sinks.TabletFace) {
         sinks.TabletFace = sources.FacialExpressionAction.output;
