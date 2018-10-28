@@ -10,7 +10,7 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 ## API
 
-<!-- Start src/index.tsx -->
+<!-- Start src/index.ts -->
 
 ### runRobotProgram(main, drivers)
 
@@ -42,5 +42,5 @@ A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runma
 
   drivers.
 
-<!-- End src/index.tsx -->
+<!-- End src/index.ts -->
 
