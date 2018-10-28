@@ -2,7 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-import {span, button} from '@cycle/dom';
+import {span, button, style} from '@cycle/dom';
 import {DOMSource} from '@cycle/dom';
 import {
   GoalID, Goal, Status, Result, initGoal,
@@ -84,6 +84,21 @@ function input(goal$: Stream<any>, clickEvent$: Stream<any>): Stream<Input> {
 }
 
 function createTransition() {
+  const styles = {
+    message: {
+      fontFamily: 'helvetica',
+      fontSize: '3em',
+      fontWeight: 'lighter',
+    },
+    button: {
+      margin: '0 0.25em 0 0.25em',
+      backgroundColor: 'transparent',
+      border: '0.05em solid black',
+      fontFamily: 'helvetica',
+      fontSize: '2.5em',
+      fontWeight: 'lighter',
+    },
+  }
   const transitionTable = {
     [State.DONE]: {
       [InputType.GOAL]: (variables, inputValue) => ({
@@ -96,10 +111,12 @@ function createTransition() {
         outputs: {
           DOM: {
             goal: inputValue.goal.type === SpeechbubbleType.MESSAGE
-              ? span(inputValue.goal.value)
+              ? span({style: styles.message}, inputValue.goal.value)
               : inputValue.goal.type === SpeechbubbleType.CHOICE
                 ? span(
-                  inputValue.goal.value.map(text => button('.choice', text))
+                  inputValue.goal.value.map(text => button(
+                    '.choice', {style: styles.button}, text,
+                  ))
                 ) : ''
           },
         },
@@ -116,7 +133,7 @@ function createTransition() {
         outputs: {
           DOM: {
             goal: inputValue.goal.type === SpeechbubbleType.MESSAGE
-              ? span(inputValue.goal.value)
+              ? span({style: styles.message}, inputValue.goal.value)
               : inputValue.goal.type === SpeechbubbleType.CHOICE
                 ? span(
                   inputValue.goal.value.map(text => button('.choice', text))

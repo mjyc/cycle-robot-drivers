@@ -57,7 +57,9 @@ function main(sources) {
   const vdom$ = xs.combine(
     sources.TwoSpeechbubblesAction.DOM,
     sources.TabletFace.DOM,
-  ).map(([speechbubbles, face]) => div([speechbubbles, face]));
+  ).map(([speechbubbles, face]) => div({
+    style: {position: 'relative'}
+  }, [speechbubbles, face]));
   
 
   return {

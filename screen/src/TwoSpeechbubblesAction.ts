@@ -300,31 +300,21 @@ export function TwoSpeechbubblesAction(sources: {
   const styles = {
     outer: {
       position: 'absolute',
-      width: '100%',
-      zIndex: 1,
+      width: '100vw',
+      zIndex: 1,  // face has zIndex === 0, eyes has zIndex === 1
+      margin: '1em',
     },
     bubble: {
-      backgroundColor: '#fff',
+      margin: 0,
+      padding: '1em',
       maxWidth: '90%',
     },
-  }
-
-  const style = {
-    'background-color': '#fff',
-    'margin': '1em',
-    'padding': '1em',
-    'max-width': '90%',
-  };
-  const bubbles = {
-    position: 'absolute',
-    zIndex: 1,
-    width: '100%',
   };
   const vdom$ = xs.combine(robotSpeechbubble.DOM, humanSpeechbubble.DOM)
     .map(([robotVTree, humanVTree]) => {
       return div({style: styles.outer}, [
-        div({style}, [span(robotVTree)]),
-        div({style}, [span(humanVTree)]),
+        div({style: styles.bubble}, [span(robotVTree)]),
+        div({style: {...styles.bubble, textAlign: 'right'}}, [span(humanVTree)]),
       ])
     });
 
