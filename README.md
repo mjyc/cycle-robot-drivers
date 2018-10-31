@@ -15,3 +15,7 @@ All packages were tested with Chrome browser (>= 65.0.3325.181) only.
 To build all packages, simply run `make` from the root directory of this repository.
 
 To get your hands dirty, check out our [examples](./examples).
+
+## Tutorials
+
+1. [Programming social robot with Cycle.js](./docs/programming_socialrobot_with_cyclejs.md)
