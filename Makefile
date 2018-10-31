@@ -1,11 +1,13 @@
-.PHONY: lib action screen speech sound 3rdparty/cycle-posenet-drivers
+.PHONY: lib action screen speech sound run 3rdparty/cycle-posenet-driver
 
+ROOTDIR=$(shell pwd)
 BINDIR=node_modules/.bin
-TSC=$(BINDIR)/tsc
+BUMP=.scripts/bump.js
+JASE=$(BINDIR)/jase
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action screen speech sound 3rdparty/cycle-posenet-drivers
+PACKAGES := action screen speech sound run 3rdparty/cycle-posenet-driver
 
 all:
 	@echo "npm install"
@@ -13,7 +15,7 @@ all:
 	@echo ""
 	@for d in $(PACKAGES); do \
 		echo "$$d: npm install"; \
-		cd $$d; npm install; cd ..; \
+		cd $$d && npm install && cd .. && \
 		echo ""; \
 	done
 	@make lib
@@ -25,21 +27,51 @@ lib:
 			make lib $$d; \
 		done; \
 	else \
-		rm -rf $(ARG)/lib; \
-		mkdir -p $(ARG)/lib; \
-		$(TSC) --project $(ARG) --module commonjs --outDir $(ARG)/lib/cjs ;\
-		$(TSC) --project $(ARG) --module es6 --outDir $(ARG)/lib/es6 ;\
+		rm -rf $(ARG)/lib && \
+		mkdir -p $(ARG)/lib && \
+		cd $(ARG) && \
+		npm run build:cjs && \
+		npm run build:es6 && \
 		echo "✓ Compiled TypeScript to lib\n"; \
+	fi
+
+doc:
+	@if [ "$(ARG)" = "" ]; then \
+		exitcode=0; \
+		for d in $(PACKAGES); do \
+			make doc $$d || exitcode=$$?; \
+		done; \
+		exit $$exitcode; \
+	else \
+		cd $(ARG) && npm run build:doc && \
+		echo "✓ Docs for $(ARG)"; \
 	fi
 
 test:
 	@if [ "$(ARG)" = "" ]; then \
+		exitcode=0; \
 		for d in $(PACKAGES); do \
-			make test $$d; \
+			make test $$d || exitcode=$$?; \
 		done; \
+		exit $$exitcode; \
 	else \
-		cd $(ARG) && npm run test && cd .. &&\
-		echo "✓ Tested $(ARG)" ;\
+		cd $(ARG) && npm run test && \
+		echo "✓ Tested $(ARG)"; \
+	fi
+
+postbump:
+	cd $(ARG) && rm -rf node_modules package-lock.json && npm install && \
+	cd $(ROOTDIR) && make lib $(ARG) && make doc $(ARG) && \
+	git add -A && git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)" && \
+	cd $(ROOTDIR) && cd $(ARG) && npm publish --access public;
+
+release-patch:
+	@if [ "$(ARG)" = "" ]; then \
+		echo "Error: please call 'make release-patch' with an argument, like 'make release-patch action'"; \
+	else \
+		$(BUMP) $(ARG)/package.json --patch && \
+		make postbump $(ARG) && \
+		echo "✓ Released new patch for $(ARG)"; \
 	fi
 
 # catch and do nothing
@@ -55,5 +87,8 @@ sound:
 speech:
 	@:
 
-3rdparty/cycle-posenet-drivers:
+run:
+	@:
+
+3rdparty/cycle-posenet-driver:
 	@:

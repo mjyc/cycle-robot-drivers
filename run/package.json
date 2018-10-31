@@ -1,0 +1,27 @@
+{
+  "name": "@cycle-robot-drivers/run",
+  "version": "0.0.20",
+  "description": "",
+  "repository": "",
+  "author": "Michael Jae-Yoon Chung",
+  "license": "MIT",
+  "main": "lib/cjs/index.js",
+  "module": "lib/es6/index.js",
+  "types": "lib/cjs/index.d.ts",
+  "dependencies": {
+    "@cycle-robot-drivers/action": "~0.0.0",
+    "@cycle-robot-drivers/screen": "~0.0.0",
+    "@cycle-robot-drivers/sound": "~0.0.0",
+    "@cycle-robot-drivers/speech": "~0.0.0",
+    "@cycle/dom": "20.4.0",
+    "@cycle/run": "4.4.0",
+    "cycle-posenet-driver": "~0.0.0",
+    "xstream": "11.7.0"
+  },
+  "scripts": {
+    "build:cjs": "../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
+    "build:es6": "../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",
+    "build:doc": "../node_modules/.bin/markdox ./src/* -o api.md && sed -i '1s/^.*$/\\n# API/' api.md && sed -i 's/^#.*/#&/' api.md && cat ../docs/readmes/${PWD##*/}.md api.md > README.md && rm api.md",
+    "test": "../node_modules/.bin/jest --config ../jest.config.common.js --rootDir ./"
+  }
+}

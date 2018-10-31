@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/sound",
-  "version": "0.0.0",
+  "version": "0.0.5",
   "description": "",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -10,7 +10,7 @@
   "dependencies": {
     "@cycle/isolate": "3.4.0",
     "@cycle/run": "4.4.0",
-    "@cycle-robot-drivers/action": "file:../action",
+    "@cycle-robot-drivers/action": "~0.0.0",
     "xstream": "11.7.0"
   },
   "devDependencies": {
@@ -18,6 +18,9 @@
     "@types/node": "^10.5.7"
   },
   "scripts": {
+    "build:cjs": "../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
+    "build:es6": "../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",
+    "build:doc": "../node_modules/.bin/markdox ./src/* -o api.md && sed -i '1s/^.*$/\\n# API/' api.md && sed -i 's/^#.*/#&/' api.md && cat ../docs/readmes/${PWD##*/}.md api.md > README.md && rm api.md",
     "test": "../node_modules/.bin/jest --config ../jest.config.common.js --rootDir ./"
   }
 }

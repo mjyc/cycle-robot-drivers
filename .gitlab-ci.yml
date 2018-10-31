@@ -1,0 +1,8 @@
+test:
+  tags:
+    - cycle-robot-drivers
+  script:
+  - export NVM_DIR="/home/mjyc/.nvm"
+  - source "$NVM_DIR/nvm.sh"
+  - make all
+  - make test

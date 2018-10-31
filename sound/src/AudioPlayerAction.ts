@@ -1,14 +1,30 @@
-import xs from 'xstream'
-import dropRepeats from 'xstream/extra/dropRepeats'
-import {adapt} from '@cycle/run/lib/adapt'
+import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
+import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   initGoal, generateGoalID, isEqual,
 } from '@cycle-robot-drivers/action'
 
 
+/**
+ * AudioPlayerAction action component.
+ * 
+ * @param sources
+ * 
+ *   * goal: a stream of `null` (as "cancel") or `{src: string}` (as HTML audio
+ *     [src](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#attr-src))
+ *     or a string (as a value of `src`).
+ *   * AudioPlayer: `EventSource` for `ended` and `pause` events.
+ * 
+ * @return sinks
+ * 
+ *   * output: a stream for the AudioPlayer driver.
+ *   * status: depreciated.
+ *   * result: a stream of action results. `result.result` is always `null`.
+ * 
+ */
 export function AudioPlayerAction(sources) {
   // Create action stream
   type Action = {
@@ -16,17 +32,24 @@ export function AudioPlayerAction(sources) {
     value: Goal | string,
   };
 
-  const goal$ = xs.fromObservable(sources.goal).map(goal => {
+  const goal$ = xs.fromObservable(
+    sources.goal
+  ).filter(goal => typeof goal !== 'undefined').map(goal => {
     if (goal === null) {
       return {
         type: 'CANCEL',
         value: null,  // goal MUST BE null on CANCEL
       };
     } else {
+      const value = !!(goal as any).goal_id ? goal as any : initGoal(goal);
       return {
         type: 'GOAL',
-        value: (goal as any).goal_id ? goal : initGoal(goal),
-      }
+        value: typeof value.goal === 'string'
+          ? {
+            goal_id: value.goal_id,
+            goal: {src: value.goal},
+          } : value,
+      };
     }
   });
   const events$ = xs.merge(
@@ -90,7 +113,7 @@ export function AudioPlayerAction(sources) {
         return {
           ...state,
           status: Status.SUCCEEDED,
-          result: action.value,
+          result: null,
         }
       } else if (action.type === 'CANCEL') {
         return {
@@ -157,9 +180,13 @@ export function AudioPlayerAction(sources) {
       result: state.result,
     } as Result));
 
+  // IMPORTANT!! empty the streams manually; otherwise it emits the first
+  //   "SUCCEEDED" result
+  value$.addListener({next: () => {}});
+
 
   return {
-    value: adapt(value$),
+    output: adapt(value$),
     status: adapt(status$),
     result: adapt(result$),
   };

@@ -14,11 +14,11 @@ module.exports = {
   moduleNameMapper: {
     '^@cycle-robot-drivers\\/([^/]+)': '<rootDir>/../$1/src'
   },
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
   globals: {
     "ts-jest": {
-      tsConfigFile: "<rootDir>/tsconfig.json",
-      enableTsDiagnostics: true,
+      tsConfig: "<rootDir>/tsconfig.json",
+      diagnostics: true,
     },
   },
 };

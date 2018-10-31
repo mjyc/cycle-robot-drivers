@@ -1,22 +1,21 @@
 # cycle-robot-drivers Examples
 
-A collection of small Cycle.js apps demonstrating cycle-robot-drivers usage.
+A collection of small Cycle.js apps using [cycle-robot-drivers packages](../).
 
-The three folders contains apps with different purposes:
+* [apps/](./apps) _work in progress_
+* [demo/](./demo) has apps demonstrating usage of each cycle-robot-drivers package.
+* [simple/](./intermediate) has apps demonstrating lightweight interactions.
+* [tutorials/](./tutorials) has the apps mentioned in [the tutorial document](../programming_socialrobot_with_cyclejs.md).
 
-1. [basic/](./basic) contains apps demonstrating a single action usage
-2. [intermediate/](./intermediate) contains simple interactive apps based on our action packages
-3. [advanced/](./advanced) WIP
+All apps were tested with Chrome browser (>= 65.0.3325.181) only.
+
+## Getting started
 
 To run an example app, do
 
 ```
-# build all packages by running `make` at root repo directory
-cd basic/speech_synthesis_action/
+# First, build all packages by running `make` at the root dir
+cd examples/demos/speech/
 npm install
-npm run start:demo
+npm start
 ```
-
-and visit `localhost:9000`.
-
-All packages were tested with Chrome browser (>= 65.0.3325.181) only.

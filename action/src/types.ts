@@ -25,3 +25,8 @@ export type Result = {
   status: GoalStatus,
   result: any,
 };
+
+
+export interface EventSource {
+  events(eventType: string): any;
+}

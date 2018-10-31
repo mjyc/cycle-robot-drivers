@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "alwaysStrict": true,
+    "allowSyntheticDefaultImports": true,
+    "module": "commonjs",
+    "target": "es5"
+  }
+}

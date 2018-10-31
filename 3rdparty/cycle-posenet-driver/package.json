@@ -1,0 +1,29 @@
+{
+  "name": "cycle-posenet-driver",
+  "version": "0.0.17",
+  "description": "",
+  "author": "Michael Jae-Yoon Chung",
+  "license": "MIT",
+  "main": "lib/cjs/index.js",
+  "module": "lib/es6/index.js",
+  "types": "lib/cjs/index.d.ts",
+  "dependencies": {
+    "@cycle-robot-drivers/action": "~0.0.0",
+    "@cycle/isolate": "3.4.0",
+    "@cycle/run": "4.4.0",
+    "@tensorflow-models/posenet": "0.2.2",
+    "@tensorflow/tfjs": "0.10.3",
+    "dat.gui": "0.7.2",
+    "snabbdom": "0.7.1",
+    "snabbdom-pragma": "2.7.0",
+    "stats.js": "0.17.0",
+    "xstream": "11.7.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build:cjs": "../../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
+    "build:es6": "../../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",
+    "build:doc": "../../node_modules/.bin/markdox ./src/* -o api.md && sed -i '1s/^.*$/\\n# API/' api.md && sed -i 's/^#.*/#&/' api.md && cat ../../docs/readmes/${PWD##*/}.md api.md > README.md && rm api.md",
+    "test": "echo 'test not implemented yet'"
+  }
+}

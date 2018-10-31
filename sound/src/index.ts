@@ -1,5 +1,2 @@
-export {makeAudioPlayerDriver} from './audio_player'
-export {
-  AudioPlayerAction,
-  IsolatedAudioPlayerAction,
-} from './AudioPlayerAction'
+export {makeAudioPlayerDriver} from './makeAudioPlayerDriver';
+export {AudioPlayerAction} from './AudioPlayerAction';

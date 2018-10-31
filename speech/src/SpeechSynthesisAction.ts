@@ -2,9 +2,8 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, Status, Result, initGoal,
+  GoalID, Goal, Status, Result, EventSource, initGoal,
 } from '@cycle-robot-drivers/action';
-import {makeSpeechSynthesisDriver} from './speech_synthesis';
 
 
 enum State {
@@ -48,16 +47,21 @@ function input(
   goal$: Stream<any>, startEvent$: Stream<any>, endEvent$: Stream<any>
 ) {
   return xs.merge(
-    goal$.map(goal => {
+    goal$.filter(goal => typeof goal !== 'undefined').map(goal => {
       if (goal === null) {
         return {
           type: InputType.CANCEL,
           value: null,  // means "cancel"
         };
       } else {
+        const value = !!(goal as any).goal_id ? goal : initGoal(goal);
         return {
           type: InputType.GOAL,
-          value: !!(goal as any).goal_id ? goal : initGoal(goal),
+          value: typeof value.goal === 'string'
+            ? {
+              goal_id: value.goal_id,
+              goal: {text: value.goal},
+            } : value,
         };
       }
     }),
@@ -86,7 +90,7 @@ function transition(
 ): ReducerState {
   const states = transitionTable[prevState];
   if (!states) {
-    throw new Error(`Invalid prevState: "${prevState}"`);
+    throw new Error(`Invalid prevState="${prevState}"`);
   }
 
   let state = states[input.type];
@@ -151,6 +155,16 @@ function transition(
         result: null,
       }
     }
+    if (input.type === InputType.START) {
+      return {
+        state: state,
+        variables: prevVariables,
+        outputs: {
+          args: null,
+        },
+        result: null,
+      };
+    }
   }
 
   return {
@@ -184,7 +198,29 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   return xs.merge(initReducer$, inputReducer$);
 }
 
-export function SpeechSynthesisAction(sources) {
+/**
+ * Web Speech API's [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
+ * action component.
+ * 
+ * @param sources
+ * 
+ *   * goal: a stream of `null` (as "cancel") or `SpeechSynthesisUtterance`
+ *     properties (as "goal").
+ *   * SpeechSynthesis: `EventSource` for `start` and `end` events.
+ * 
+ * @return sinks
+ * 
+ *   * output: a stream for the SpeechSynthesis driver input.
+ *   * result: a stream of action results. `result.result` is always `null`.
+ * 
+ */
+export function SpeechSynthesisAction(sources: {
+  goal: any,
+  SpeechSynthesis: EventSource,
+}): {
+  output: any,
+  result: any,
+} {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(sources.SpeechSynthesis.events('start')),
@@ -202,18 +238,4 @@ export function SpeechSynthesisAction(sources) {
     output: adapt(outputs$.map(outputs => outputs.args)),
     result: adapt(result$),
   };
-}
-
-export function makeSpeechSynthesisActionDriver() {
-  const speechSynthesisDriver = makeSpeechSynthesisDriver();
-
-  return function speechSynthesisActionDriver(sink$) {
-    const proxy$ = xs.create();
-    const speechSynthesisAction = SpeechSynthesisAction({
-      goal: sink$,
-      SpeechSynthesis: speechSynthesisDriver(proxy$)
-    });
-    proxy$.imitate(speechSynthesisAction.output);
-    return speechSynthesisAction;
-  }
 }
