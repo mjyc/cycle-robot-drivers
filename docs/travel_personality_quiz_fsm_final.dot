@@ -1,6 +1,6 @@
 digraph {
 forcelabels=true
-  PEND -> SAY [ label="  GOAL  " ]
+  PEND -> SAY [ label="  START  " ]
   SAY -> LISTEN [ label="  SAY_DONE  " ]
   SAY -> PEND [ label="  QUIZ_DONE  " ]
   SAY -> WAIT [ label="  LOST_PERSON  " ]

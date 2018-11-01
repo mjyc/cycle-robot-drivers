@@ -21,7 +21,7 @@ Here are the [demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01
 
 **IMPORTANT!!** The main package we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers  (>= 65.0.3325.181) for now.
 
-Now, what if we want the robot
+Now, what if we want the robot to
 
 1. look at a person only when the robot is waiting for a person's response,
 1. stop asking a question if the robot cannot see a person and resume asking the question if it sees a person again, and
@@ -76,7 +76,7 @@ Now, let's update the FSM to express the first additional behavior mentioned abo
 
 ![travel_personality_quiz_fsm_updated](./travel_personality_quiz_fsm_updated.svg)
 
-All we did here is removing the two self-loop transitions from the `PEND` and `SAY` states to stop the robot from looking at a person while the FSM is in those states.
+All we did here is remove the two self-loop transitions from the `PEND` and `SAY` states to stop the robot from looking at a person while the FSM is in those states.
 
 <!-- I'll leave updating this FSM to support the other two additional behaviors as an exercise.
 Try it! -->
@@ -96,7 +96,7 @@ const State = {
 };
 
 const InputType = {
-  GOAL: `GOAL`,
+  START: `START`,
   SAY_DONE: `SAY_DONE`,
   // QUIZ_DONE: is not an input type but a transition
   VALID_RESPONSE: `VALID_RESPONSE`,
@@ -122,7 +122,7 @@ function transition(state, variables, input) {  // a dummy transition function
  *   sentence: 'You are a vacationer!',
  * };
  * const input = {
- *   type: InputType.GOAL,
+ *   type: InputType.START,
  *   value: null,
  * };
  * const outputs = {
@@ -145,7 +145,7 @@ function transition(state, variables, input) {  // a dummy transition function
  */
 ```
 
-Here we define the set of states `State`, the set of input types `InputType`, and the transition function `transition`
+Here we define the set of states `State`, the set of input types `InputType`, and the transition function `transition`.
 The sets for the variables and outputs of the FSM are not explicitly defined, but I provided example values that the variables and outputs can take in the comment.
 
 We'll now setup the FSM as a Cycle.js application.
@@ -178,11 +178,11 @@ function input(  // a dummy input function
   speechRecognitionActionResult$,
   speechSynthesisActionResult$,
   poses$,
-) {  // a dummy input function
+) {
   return xs.never();
 }
 
-function output(machine$) {  // a dummy input function
+function output(machine$) {  // a dummy output function
   return {
     SpeechSynthesisAction: xs.never(),
     SpeechRecognitionAction: xs.never(),
@@ -228,7 +228,7 @@ Note that the `fold` operator is like `Array.prototype.reduce` for streams; it t
 
 Finally the `output` function takes the stream that emits FSMs (`$machine`) and returns outgoing streams.
 
-Let's implement the three function.
+Let's implement the three functions.
 First, update the dummy `input` function to:
 
 ```js
@@ -307,7 +307,7 @@ function main(sources) {
 // ...
 ```
 
-Do you see expected outputs on your browser console?
+Do you see the expected outputs on your browser console?
 
 Let's now remove the dummy `transition` function and create a new one:
 
@@ -442,7 +442,7 @@ function createTransition() {
 
 const transition = createTransition();
 
-function output(machine$) {  // a dummy input function
+function output(machine$) {  // a dummy output function
 // ...
 ```
 
@@ -476,7 +476,7 @@ function main(sources) {
 // ...
 ```
 
-Try running the application and test whether it behave as we defined in the FSM.
+Try running the application and test whether it behaves as we defined in the FSM.
 
 You just implemented a social robot program as an FSM!
 
@@ -484,7 +484,7 @@ You just implemented a social robot program as an FSM!
 ## Epilogue: updating the "travel personality quiz" FSM
 
 The true power of the FSM pattern is its maintainability.
-The crux of the FSM pattern is diving the `main` function into the two functions that have separate concerns:
+The crux of the FSM pattern is dividing the `main` function into the two functions that have separate concerns:
 
 * the `input` function that focuses on turning incoming streams into "input" that the FSM can work with and
 * the `transition` function implements the FSM's transition function.
