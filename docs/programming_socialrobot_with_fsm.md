@@ -1,14 +1,14 @@
-# Programming a reactive social robot program as a finite state machine
+# Implementing a finite state machine in Cycle.js
 
 In this post, I'll show you how to implement a reactive social robot program as a [finite state machine](https://en.wikipedia.org/wiki/Finite-state_machine).
 We'll continue from where we left off in the previous post [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)--so check it out if you haven't already!
-In case you are in a hurry, here is the [demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) and [complete code](../examples/tutorials/02_fsm) of what we are building in this post.
+If you are in a hurry, here is the [demo and complete code](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) of what we are building in this post.
 
 <!-- If you want to take a peek at the complete code or demo
 If you just want to check out the complete code or demo, [both are available](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) at Stackblitz -->
 
 
-## Making "travel personality quiz" program more complex
+## Making existing "travel personality quiz" program more complex
 
 In the previous post, we programmed a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) to test your travel personality.
 Concretely, we implemented a tablet-face robot program that
@@ -17,7 +17,7 @@ Concretely, we implemented a tablet-face robot program that
 1. asks travel personality quiz questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/)
 
 as a [Cycle.js](https://cycle.js.org/) application.
-Here are the [demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) and [complete code](../examples/tutorials/01_personality_quiz) from the previous post.
+Here are the [demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) at Stackbliz and [complete code](../examples/tutorials/01_personality_quiz) in github from the previous post.
 
 **IMPORTANT!!** The main package we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers  (>= 65.0.3325.181) for now.
 
@@ -31,6 +31,9 @@ How difficult would it be to update the existing program to have these additiona
 Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js)--what kind of challenges do you face?
 
 From my experience, there were two major challenges; clearly expressing the desired robot behavior and implementing the desired behavior in a reactive programming framework.
+
+A finite state machine can model stateful robot behavior
+
 In the rest of this post, I'll first demonstrate using a finite state machine to express a complex desired behavior.
 Then I'll present a pattern for implementing a finite state machine in a reactive programming framework Cycle.js without scarifying maintainability.
 <!-- To address the first challenge, we'll use a finite state machine for its simplicity.
