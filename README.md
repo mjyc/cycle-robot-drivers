@@ -18,10 +18,10 @@ To get your hands dirty, check out our [examples](./examples).
 
 ## Tutorials
 
-1. [Programming social robot with Cycle.js](./docs/programming_socialrobot_with_cyclejs.md)
+1. [Programming a social robot with Cycle.js](./docs/programming_socialrobot_with_cyclejs.md)
 
 ## Thank you
 
 * [Maya Cakmak](https://github.com/mayacakmak) for her support
 * [Human-Centred Lab](https://github.com/hcrlab) and [Personal Robotics Lab](https://github.com/personalrobotics) for feedback
-* [André Staltz](https://github.com/staltz) for providing ample Cycle.js documentation
+* [André Staltz](https://github.com/staltz) and the [Cycle.js team](https://github.com/cyclejs/cyclejs/blob/master/CORE_TEAM.md) for providing ample Cycle.js documentation
