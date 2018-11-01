@@ -59,7 +59,7 @@ If you are curious, check out [the complete code and the demo](https://stackblit
 
 The code examples in this post assume you are familiar with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2).
 To build code, I use [browserify](http://browserify.org/) and [Babel](https://babeljs.io/) here, but feel free to use a build tool and a transpiler you prefer.
-If you are not familiar with them, feel free to just start hacking [the Stackblitz demo code](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz).
+If you are not familiar with them, just try hacking [the Stackblitz demo code](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) while following this post!
 <!-- , e.g., [webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/). -->
 
 Let's set up a Cycle.js application.
@@ -90,7 +90,7 @@ It should load a robot face on your browser.
 
 We just successfully set up and ran a Cycle.js application!
 
-### Robot, look at a face
+### Robot, look at a face!
 
 We'll now focus on implementing the first feature--looking at a face.
 
@@ -99,7 +99,9 @@ Let's make the robot just move its eyes by adding the following code in `main`:
 ```js
 // ...
 
+// "sources" is a Cycle.js term for the input of "main" / the output of "drivers"
 function main(sources) {
+  // "const" (and "let") is a javascript ES6 feature
   const sinks = {
     TabletFace: xs.periodic(1000).map(i => ({
         x: i % 2 === 0 ? 0 : 1,  // horizontal left or right
@@ -112,6 +114,7 @@ function main(sources) {
         }
       }))
   };
+  // "sinks" is a Cycle.js term for the output of "main" / the input of "drivers"
   return sinks;
 }
 
@@ -141,6 +144,7 @@ function main(sources) {
 Here we use the [addListener](https://github.com/staltz/xstream#addListener) xstream operator to add a callback function that prints the detected pose data to the `poses` stream, the stream returned from the `PoseDetection` driver.
 
 When you run the application you should see arrays of objects printed to your browser's console.
+If you don't see them, make sure you are visible to the camera and being detected via the pose visualizer located below the robot face (try scroll down).
 Each array represents detected poses at current moment, which has the following format:
 
 ```js
@@ -229,7 +233,9 @@ Here we are sending commands to the `TabletDriver` by using the stream created f
 To convert pose data into control commands, we use the [`filter`](https://github.com/staltz/xstream#filter) xstream operator to filter pose data to the ones containing only one person whose nose is visible. Then we use the [`map`](https://github.com/staltz/xstream#map) xstream operator twice to convert the detected nose positions into eye positions and turn the eye positions into control commands.
 <!-- ... driver (`sources.PoseDetection.poses`) instead of creating one from scratch as we did above when we made the robot look left and right. -->
 
-We have made the robot look at a face!
+We have made the robot look at a face! 
+
+_Exercise idea:_ Can you make the robot to look at your right hand instead if the hand is visible?
 
 #### Taking a closer look at `runRobotProgram`
 
@@ -255,7 +261,7 @@ You could also create a new `runRobotProgram` function that provides drivers for
 Regarding the second question, check out [this page](https://cycle.js.org/drivers.html) from the Cycle.js website.
 
 
-### Robot, ask questions
+### Robot, ask questions!
 
 We'll now focus on implementing the second feature--asking the travel personality quiz questions.
 
@@ -421,14 +427,14 @@ function main(sources) {
   );
   lastQuestion$.imitate(question$);
 
-  const sink = {
+  const sinks = {
     TabletFace: sources.PoseDetection.poses
       .filter(poses =>
       // ...
     SpeechSynthesisAction: question$,
     SpeechRecognitionAction: sources.SpeechSynthesisAction.result.mapTo({})
   };
-  return sink;
+  return sinks;
 }
 // ...
 ```
@@ -469,8 +475,10 @@ You should see that the robot will continue to listen and print whatever it hear
 We are done at this point.
 Try taking the travel personality quiz to find out your travel personality and enjoy!
 
+_Exercise idea:_ Can you implement one of ["The 24 Most Important Flowcharts Of All Time"](https://www.buzzfeed.com/lukelewis/the-most-important-flowcharts-of-all-time) to make the robot answer one of the biggest questions in life?
 
-## Side notes
+
+## Miscellaneous
 
 * Fun fact: [many social robots today use a screen as a face](https://spectrum.ieee.org/automaton/robotics/humanoids/what-people-see-in-157-robot-faces).
 * Check out [RxJS Marbles](http://rxmarbles.com/#mergeMap) for visualizing stream operators with marble diagrams, e.g., [interval](http://rxmarbles.com/#interval) (periodic in xstream), [map](http://rxmarbles.com/#map), [filter](http://rxmarbles.com/#filter), [mapTo](http://rxmarbles.com/#mapTo), and [merge](http://rxmarbles.com/#merge) .
