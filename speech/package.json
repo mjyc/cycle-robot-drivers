@@ -5,6 +5,8 @@
   "repository": "",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
+  "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",
+  "repository": "https://github.com/mjyc/cycle-robot-drivers/tree/master/speech",
   "main": "lib/cjs/index.js",
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
