@@ -17,7 +17,7 @@ Concretely, we implemented a tablet-face robot program that
 1. asks travel personality quiz questions as shown in [this flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/)
 
 as a [Cycle.js](https://cycle.js.org/) application.
-Here are the [demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) at Stackbliz and [complete code](../examples/tutorials/01_personality_quiz) in github from the previous post.
+Here are the [demo](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) at Stackbliz and [complete code](../examples/tutorials/01_personality_quiz) in GitHub from the previous post.
 
 **IMPORTANT!!** The main package we use in the demo and in this post, [cycle-robot-drivers/run](../run), only works on Chrome browsers  (>= 65.0.3325.181) for now.
 
@@ -31,14 +31,12 @@ How difficult would it be to update the existing program to have these additiona
 Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js).
 What kind of challenges do you face?
 
-From my experience, it was difficult to implement or even just express the _stateful_ behaviors in reactive programming.
+From my experience, it was difficult to implement, or even just express the "stateful" behaviors in reactive programming.
 For example, to implement 1., I needed to know whether the robot is in the "waiting for a person's response" state but it wasn't clear how to represent such state in a scalable manner; I tried keeping all states in drivers (e.g., `SpeechRecognitionAction` emitting `status` events), as proxies (e.g., `$lastQuestion` in [the previous code](../examples/tutorials/01_personality_quiz/index.js#L58)), or in higher-order streams, but none of them felt simple nor scalable.
 This was very concerning since [many](http://wiki.ros.org/smach/Tutorials/Getting%20Started#Why_learn_Smach.3F) [robot](https://www.researchgate.net/figure/A-behavioral-state-machine-for-robot-soccer_fig10_238086654) [behaviors](https://www.youtube.com/watch?v=4XEK7OU2gIw) are expressed and implemented as stateful behaviors.
 
 To address this problem, I propose using finite state machines to clearly express the desired robot behaviors.
-In the following, I present a pattern for implementing a finite state machine in a reactive programming framework (Cycle.js) without scarifying maintainability and demonstrate a use case.
-<!-- TODO: mention that I only implement the first! -->
-<!-- TODO: take a pass! -->
+In the following, I first present a pattern for implementing a finite state machine in a reactive programming framework (Cycle.js) without scarifying maintainability. Then I demonstrate a use case of the presented pattern via implementing the first additional behavior.
 
 
 ## What is a finite state machine?
@@ -52,11 +50,11 @@ Due to their simplicity, FSMs have been frequently used by [roboticists](http://
 1. A set of outputs: e.g., `speechSynthesisAction = 'Can you see yourself working online?'`
 1. A transition function that takes a state, variable, and input and returns a state, variable, and output.
 
-If you are familiar with FSMs, the FSM we are using is a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine) extended with variables.
+If you are familiar with FSMs, the FSM we are using is a [mealy machine](https://en.wikipedia.org/wiki/Mealy_machine) extended with "variables".
 Like a mealy machine, it has the following constraints:
 
 * the state set is a [finite set](https://en.wikipedia.org/wiki/Finite_set)
-* the FSM can only be in one state in the state set
+* the FSM can only be in one state at a time in the state set
 * the transition function is deterministic; given a state, variable, and input the function always returns the same new state, new variable, and new output.
 
 
@@ -70,11 +68,14 @@ Here we have three states, `PEND`, `SAY`, `LISTEN`, and five input types, `START
 We omitted variables associated with each state and outputs associated with each transition for visual clarity.
 
 Notice that we use verbs as state names (as a popular robotics FSM library [SMACH](http://wiki.ros.org/smach) does).
-This is because we define the states based on distinct actions each state is performing, which are triggered by outputs emitted from transitions.
-We did not make each state in the [travel quiz flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/) as an individual state.
-This is because we represent all states that behave the same except the sentence the robot says at a state, which we factor out as the variable `currentSentence` (not shown in the diagram), with the single `SAY` state to make the FSM compact.
-We represent the input in similar manner by representing it as a type-value pair.
-For example, the `LISTEN` to `SAY` transition will update the `currentSentence` variable appropriately based on the value of the `VALID_RESPONSE` type input which can be "yes" or "no" (input values are not shown in the graph).
+This is because we define the states based on distinct actions each state is performing, where the distinct actions are triggered by outputs emitted from transitions.
+You may have wondered why we did not create each state in the [travel quiz flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/) as an individual state, e.g., `ASK_CAREER_QUESTION`, `ASK_WORKING_ABROAD_QUESTION`, `ASK_FAMILY_QUESTION`, etc.
+This is because representing the states that behave the same except the sentence the robot says with a single `SAY` state with a variable `currentSentence` (not shown in the diagram) yields the simpler, more maintainable FSM.
+
+The inputs can be considered as the events that could occur in each state and 
+are originated from actions, e.g., `SAY_DONE`, sensors, e.g., `DETECTED_FACE`, or external systems, e.g. `START`.
+We represent an input as a type-value pair.
+For example, the `VALID_RESPONSE` type input is paired with a value "yes" or "no", which is used to determine the transition between `LISTEN` to `SAY` (input values are not shown in the graph).
 
 Now, let's update the FSM to express the first additional behavior mentioned above: looking at a person only when the robot is waiting for a person's response.
 
@@ -153,16 +154,16 @@ Here we define the set of states `State`, the set of input types `InputType`, an
 The sets for the variables and outputs of the FSM are not explicitly defined, but I provided example values that the variables and outputs can take in the comment.
 
 We'll now setup the FSM as a Cycle.js application.
-Like before, create a folder:
+You can fork [the Stackblitz demo code](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) and start hacking or set up a Cycle.js application.
+For the latter, create a folder:
 
 ```
 mkdir my-second-robot-program
 cd my-second-robot-program
 ```
 
-Then download [`package.json`](../examples/tutorials/02_fsm/package.json), [`.babelrc`](../examples/tutorials/02_fsm/.babelrc), [`index.html`](../examples/tutorials/02_fsm/index.html) and create an empty `index.js` file in the folder.
-Run `npm install` to install the required npm packages.
-After installing, you can run `npm start` to build and start the web application that does nothing.
+Download [`package.json`](../examples/tutorials/02_fsm/package.json), [`.babelrc`](../examples/tutorials/02_fsm/.babelrc), [`index.html`](../examples/tutorials/02_fsm/index.html), create an empty `index.js` file in the folder, and run `npm install` to install the required npm packages.
+After installing, you can run `npm start` to build and start the web application--that does nothing at this point.
 
 Now add the following code in `index.js`:
 
@@ -220,7 +221,7 @@ function main(sources) {
 runRobotProgram(main);
 ```
 
-If you run the application, it should load a robot face that does nothing on your browser. Yay~
+If you run the application, it should load a robot face that still does nothing on your browser.
 
 The most important thing to notice here is that we divide the `main` function into three functions; `input`, `transition`, and `output`.
 The `input` function takes incoming streams in `sources` and returns a stream that emits the FSM's input values.
