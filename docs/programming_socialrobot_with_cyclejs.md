@@ -59,7 +59,7 @@ If you are curious, check out [the complete code and the demo](https://stackblit
 
 The code examples in this post assume you are familiar with [JavaScript ES6](https://medium.freecodecamp.org/write-less-do-more-with-javascript-es6-5fd4a8e50ee2).
 To build code, I use [browserify](http://browserify.org/) and [Babel](https://babeljs.io/) here, but feel free to use a build tool and a transpiler you prefer.
-If you are not familiar with them, just try hacking [the Stackblitz demo code](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) while following this post!
+If you are not familiar with them, just fork [the Stackblitz demo code](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-01-personality-quiz) and start coding!
 <!-- , e.g., [webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/). -->
 
 Let's set up a Cycle.js application.

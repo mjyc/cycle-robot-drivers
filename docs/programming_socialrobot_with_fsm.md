@@ -36,7 +36,7 @@ For example, to implement 1., I needed to know whether the robot is in the "wait
 This was very concerning since [many](http://wiki.ros.org/smach/Tutorials/Getting%20Started#Why_learn_Smach.3F) [robot](https://www.researchgate.net/figure/A-behavioral-state-machine-for-robot-soccer_fig10_238086654) [behaviors](https://www.youtube.com/watch?v=4XEK7OU2gIw) are expressed and implemented as stateful behaviors.
 
 To address this problem, I propose using finite state machines to clearly express the desired robot behaviors.
-In the following, I first present a pattern for implementing a finite state machine in a reactive programming framework (Cycle.js) without scarifying maintainability. Then I demonstrate a use case of the presented pattern via implementing the first additional behavior.
+In the following, I first present a pattern for implementing a finite state machine in a reactive programming framework (Cycle.js) without scarifying maintainability. Then I demonstrate a use case of the FSM pattern via implementing the first additional behavior.
 
 
 ## What is a finite state machine?
@@ -153,8 +153,10 @@ function transition(state, variables, input) {  // a dummy transition function
 Here we define the set of states `State`, the set of input types `InputType`, and the transition function `transition`.
 The sets for the variables and outputs of the FSM are not explicitly defined, but I provided example values that the variables and outputs can take in the comment.
 
+### Setting up FSM in Cycle.js
+
 We'll now setup the FSM as a Cycle.js application.
-You can fork [the Stackblitz demo code](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) and start hacking or set up a Cycle.js application.
+You can fork [the Stackblitz demo code](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) and start coding or set up a Cycle.js application.
 For the latter, create a folder:
 
 ```
@@ -228,10 +230,12 @@ The `input` function takes incoming streams in `sources` and returns a stream th
 We then use the [`fold`](https://github.com/staltz/xstream#fold) xstream operator on the returned stream (`$input`) to trigger the FSM's `transition` function.
 Note that the `fold` operator is like `Array.prototype.reduce` for streams; it takes 
 
-1. an accumulator function that takes an emitted value (e.g., a FSM input value, `input`) and a previous output of the accumulator function (e.g., the latest FSM, `machine`) or a seed value and
-2. an initial output of the accumulator function (e.g., the initial FSM, `defaultMachine`).
+1. an accumulator function that takes an emitted value (e.g., a FSM input value, `input`) and a previous output of the accumulator function (e.g., the latest FSM status, `machine`) or a seed value and
+2. an initial output of the accumulator function (e.g., the initial FSM status, `defaultMachine`).
 
-Finally the `output` function takes the stream that emits FSMs (`$machine`) and returns outgoing streams.
+Finally the `output` function takes the stream that emits FSM status (`$machine`) and returns outgoing streams.
+
+### Input, transition, and output
 
 Let's implement the three functions.
 First, update the dummy `input` function to:
@@ -313,6 +317,7 @@ function main(sources) {
 ```
 
 Do you see the expected outputs on your browser console?
+You should see many inputs with the `DETECTED_FACE` type if the robot is detecting a person.
 
 Let's now remove the dummy `transition` function and create a new one:
 
@@ -375,36 +380,42 @@ function createTransition() {
     },
   };
 
+  // this transitionTable is a dictionary of dictionaries and returns a function
+  //   that takes previous "variables" and "inputValue" and returns a current
+  //   FSM status; {state, variable, outputs}
+  // this transitionTable is a dictionary of dictionaries and returns a function
+  //   that takes previous "variables" and "inputValue" and returns a current
+  //   FSM status; {state, variable, outputs}
   const transitionTable = {
     [State.PEND]: {
-      [InputType.START]: (variables, inputValue) => ({
+      [InputType.START]: (prevVariables, prevInputValue) => ({
         state: State.SAY,
         variables: {sentence: Sentence.CAREER},
         outputs: {SpeechSynthesisAction: {goal: Sentence.CAREER}},
       }),
     },
     [State.SAY]: {
-      [InputType.SAY_DONE]: (variables, inputValue) => (
-          variables.sentence !== Sentence.VACATIONER
-          && variables.sentence !== Sentence.EXPAT
-          && variables.sentence !== Sentence.NOMAD
+      [InputType.SAY_DONE]: (prevVariables, prevInputValue) => (
+          prevVariables.sentence !== Sentence.VACATIONER
+          && prevVariables.sentence !== Sentence.EXPAT
+          && prevVariables.sentence !== Sentence.NOMAD
         ) ? {  // SAY_DONE
           state: State.LISTEN,
-          variables,
+          variables: prevVariables,
           outputs: {SpeechRecognitionAction: {goal: {}}},
         } : {  // QUIZ_DONE
           state: State.PEND,
-          variables,
+          variables: prevVariables,
           outputs: {done: true},
         },
     },
     [State.LISTEN]: {
-      [InputType.VALID_RESPONSE]: (variables, inputValue) => ({
+      [InputType.VALID_RESPONSE]: (prevVariables, prevInputValue) => ({
         state: State.SAY,
-        variables: {sentence: flowchart[variables.sentence][inputValue]},
+        variables: {sentence: flowchart[prevVariables.sentence][prevInputValue]},
         outputs: {
           SpeechSynthesisAction: {
-            goal: flowchart[variables.sentence][inputValue],
+            goal: flowchart[prevVariables.sentence][prevInputValue],
           },
           TabletFace: {goal: {
             type: 'SET_STATE',
@@ -415,20 +426,20 @@ function createTransition() {
           }},
         },
       }),
-      [InputType.INVALID_RESPONSE]: (variables, inputValue) => ({
+      [InputType.INVALID_RESPONSE]: (prevVariables, prevInputValue) => ({
         state: State.LISTEN,
-        variables,
+        variables: prevVariables,
         outputs: {SpeechRecognitionAction: {goal: {}}},
       }),
-      [InputType.DETECTED_FACE]: (variables, inputValue) => ({
+      [InputType.DETECTED_FACE]: (prevVariables, prevInputValue) => ({
         state: State.LISTEN,
-        variables,
+        variables: prevVariables,
         outputs: {
           TabletFace: {goal: {
             type: 'SET_STATE',
             value: {
-              leftEye: inputValue,
-              rightEye: inputValue,
+              leftEye: prevInputValue,
+              rightEye: prevInputValue,
             },
           }},
         }
@@ -436,12 +447,14 @@ function createTransition() {
     },
   };
 
-  return function(state, variables, input) {
-    return !transitionTable[state]
-      ? {state, variables, outputs: null}
-      : !transitionTable[state][input.type]
-        ? {state, variables, outputs: null}
-        : transitionTable[state][input.type](variables, input.value);
+  return function(prevState, prevVariables, prevInput) {
+    console.log(prevState, prevVariables, prevInput);
+    // excuse me for abusing ternary
+    return !transitionTable[prevState]
+      ? {state: prevState, variables: prevVariables, outputs: null}
+      : !transitionTable[prevState][prevInput.type]
+        ? {state: prevState, variables: prevVariables, outputs: null}
+        : transitionTable[prevState][prevInput.type](prevVariables, prevInput.value);
   }
 }
 
@@ -452,7 +465,6 @@ function output(machine$) {  // a dummy output function
 ```
 
 Here we define and return the FSM's transition function inside the `createTransition` function.
-Can you see the FSM we defined above in this function?
 
 Finally update the dummy `output` function to:
 
@@ -486,13 +498,14 @@ Try running the application and test whether it behaves as we defined in the FSM
 You just implemented a social robot program as an FSM!
 
 
-## Epilogue: updating the "travel personality quiz" FSM
+## (thinking about) Updating the "travel personality quiz" FSM
 
 The true power of the FSM pattern is its maintainability.
-The crux of the FSM pattern is dividing the `main` function into the two functions that have separate concerns:
+The crux of the FSM pattern is dividing the `main` function into the three functions that have separate concerns:
 
 * the `input` function that focuses on turning incoming streams into "input" that the FSM can work with and
 * the `transition` function implements the FSM's transition function.
+* the `output` function that maps the outputs returned from `transition` into the outgoing streams (`sinks` in Cycle.js) to make side effects, e.g., trigger actions.
 
 This separation allows programmers to only update the portion of code in the two functions when they need to make the program more complex.
 
@@ -500,10 +513,13 @@ For example, if we were to implement the rest of additional behaviors mentioned 
 
 ![travel_personality_quiz_fsm_final](./travel_personality_quiz_fsm_final.svg)
 
-and update the `input` and `transition` functions.
-The code and demo will be available soon!
+and update the `input` and `transition` functions accordingly.
 
-Side notes:
+## Beyond FSM
 
-* The `output` function simply maps the outputs returned from `transition` into the outgoing streams (`sinks` in Cycle.js) to make side effects, e.g., trigger actions.
-* If you are familiar with [Model-View-Intent pattern](https://cycle.js.org/model-view-intent.html), the FSM pattern is basically the same except it requires a specific structure for "model" and doesn't really make use of "view", which is corresponding to "output".
+If you are familiar with UI programming, the FSM pattern I presented in this post could be viewed as a application of [Model-View-Intent (MVI) pattern](https://cycle.js.org/model-view-intent.html) (an [adaptation of Model-View-Controller in reactive programming](https://cycle.js.org/model-view-intent.html#model-view-intent-what-mvc-is-really-about)) where "intent" is `input`, "model" is `FSM status`, and "view" is `output`.
+In addition to the MVI pattern, the FSM pattern additionally requires specific structure for the "model"/`FSM status` and the "update"/`transition`.
+
+I choose to represent the desired robot behavior as a finite state machine for its simplicity and ubiquity.
+
+If you are familiar with robotics, you might want to use different representations such as [behavior tree](https://en.wikipedia.org/wiki/Behavior_tree_(artificial_intelligence,_robotics_and_control)), [Markov decision process](https://en.wikipedia.org/wiki/Markov_decision_process), [petri nets](https://en.wikipedia.org/wiki/Petri_net), etc.
