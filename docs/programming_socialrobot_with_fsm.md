@@ -230,10 +230,10 @@ The `input` function takes incoming streams in `sources` and returns a stream th
 We then use the [`fold`](https://github.com/staltz/xstream#fold) xstream operator on the returned stream (`$input`) to trigger the FSM's `transition` function.
 Note that the `fold` operator is like `Array.prototype.reduce` for streams; it takes 
 
-1. an accumulator function that takes an emitted value (e.g., a FSM input value, `input`) and a previous output of the accumulator function (e.g., the latest FSM status, `machine`) or a seed value and
+1. an accumulator function that takes an emitted value (e.g., an FSM input value, `input`) and a previous output of the accumulator function (e.g., the latest FSM status, `machine`) or a seed value and
 2. an initial output of the accumulator function (e.g., the initial FSM status, `defaultMachine`).
 
-Finally the `output` function takes the stream that emits FSM status (`$machine`) and returns outgoing streams.
+Finally, the `output` function takes the stream that emits FSM status (`$machine`) and returns outgoing streams.
 
 ### Input, transition, and output
 
@@ -497,8 +497,13 @@ Try running the application and test whether it behaves as we defined in the FSM
 
 You just implemented a social robot program as an FSM!
 
+#### Relation to the Model-View-Intent pattern
 
-## (thinking about) Updating the "travel personality quiz" FSM
+The FSM pattern is an application of the [Model-View-Intent (MVI) pattern](https://cycle.js.org/model-view-intent.html), an [adaptation of Model-View-Controller in reactive programming](https://cycle.js.org/model-view-intent.html#model-view-intent-what-mvc-is-really-about), where "intent" is `input`, "model" is `FSM status`, and "view" is `output`.
+In addition to the MVI pattern, the FSM pattern additionally requires a specific structure for the "model"/`FSM status` and the "update"/`transition`.
+
+
+## Updating the "travel personality quiz" FSM
 
 The true power of the FSM pattern is its maintainability.
 The crux of the FSM pattern is dividing the `main` function into the three functions that have separate concerns:
@@ -515,11 +520,8 @@ For example, if we were to implement the rest of additional behaviors mentioned 
 
 and update the `input` and `transition` functions accordingly.
 
-## Beyond FSM
-
-If you are familiar with UI programming, the FSM pattern I presented in this post could be viewed as a application of [Model-View-Intent (MVI) pattern](https://cycle.js.org/model-view-intent.html) (an [adaptation of Model-View-Controller in reactive programming](https://cycle.js.org/model-view-intent.html#model-view-intent-what-mvc-is-really-about)) where "intent" is `input`, "model" is `FSM status`, and "view" is `output`.
-In addition to the MVI pattern, the FSM pattern additionally requires specific structure for the "model"/`FSM status` and the "update"/`transition`.
-
-I choose to represent the desired robot behavior as a finite state machine for its simplicity and ubiquity.
-
-If you are familiar with robotics, you might want to use different representations such as [behavior tree](https://en.wikipedia.org/wiki/Behavior_tree_(artificial_intelligence,_robotics_and_control)), [Markov decision process](https://en.wikipedia.org/wiki/Markov_decision_process), [petri nets](https://en.wikipedia.org/wiki/Petri_net), etc.
+The biggest challenge for using FSM is defining FSM.
+If you are using the FSM pattern and having problems with it, double check the current definition of your state machine.
+For example, look for the redundant states or input types that make updating the transition function cumbersome (merge them into one state with variables), or look for state or input type that is not being used as intended for (add new necessary states or input types).
+Another point to check is, making sure your FSM is taking reactive programming approach, e.g., make sure the three functions (`input`, `transition`, `output`) are as pure as possible.
+Defining effective FSM is art, but I believe using FSMs in reactive programming greatly helps the programmers to better organize their programs.
