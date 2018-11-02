@@ -27,15 +27,15 @@
 </g>
 <!-- PEND&#45;&gt;SAY -->
 <g id="edge1" class="edge"><title>PEND&#45;&gt;SAY</title>
-<path fill="none" stroke="black" d="M52.8131,-213.234C46.1652,-207.523 39.5668,-200.284 36,-192 31.2622,-180.997 37.579,-170.14 46.259,-161.37"/>
-<polygon fill="black" stroke="black" points="48.7856,-163.806 53.9153,-154.536 44.1243,-158.584 48.7856,-163.806"/>
-<text text-anchor="middle" x="62.5" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;GOAL &#160;</text>
+<path fill="none" stroke="black" d="M52.1575,-213.774C45.0149,-208.037 37.8554,-200.64 34,-192 28.9382,-180.656 35.9152,-169.598 45.3019,-160.779"/>
+<polygon fill="black" stroke="black" points="47.7248,-163.315 53.1624,-154.222 43.2411,-157.94 47.7248,-163.315"/>
+<text text-anchor="middle" x="63" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;START &#160;</text>
 </g>
 <!-- SAY&#45;&gt;PEND -->
 <g id="edge4" class="edge"><title>SAY&#45;&gt;PEND</title>
-<path fill="none" stroke="black" d="M82.6445,-158C87.3554,-167.71 91.5208,-180.423 89,-192 88.339,-195.036 87.3903,-198.123 86.2801,-201.144"/>
-<polygon fill="black" stroke="black" points="83.0287,-199.846 82.3384,-210.419 89.471,-202.584 83.0287,-199.846"/>
-<text text-anchor="middle" x="135" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;QUIZ_DONE &#160;</text>
+<path fill="none" stroke="black" d="M83.873,-158.035C87.1572,-163.764 90.3324,-170.433 92,-177 94.0569,-185.1 92.3193,-193.685 89.2008,-201.412"/>
+<polygon fill="black" stroke="black" points="85.9374,-200.119 84.6941,-210.641 92.2274,-203.191 85.9374,-200.119"/>
+<text text-anchor="middle" x="138" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;QUIZ_DONE &#160;</text>
 </g>
 <!-- SAY&#45;&gt;SAY -->
 <g id="edge5" class="edge"><title>SAY&#45;&gt;SAY</title>

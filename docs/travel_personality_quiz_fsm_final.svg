@@ -11,8 +11,8 @@
 <polygon fill="white" stroke="none" points="-4,4 -4,-250 654.393,-250 654.393,4 -4,4"/>
 <!-- PEND -->
 <g id="node1" class="node"><title>PEND</title>
-<ellipse fill="none" stroke="black" cx="243.447" cy="-228" rx="33.5952" ry="18"/>
-<text text-anchor="middle" x="243.447" y="-224.3" font-family="Times,serif" font-size="14.00">PEND</text>
+<ellipse fill="none" stroke="black" cx="242.447" cy="-228" rx="33.5952" ry="18"/>
+<text text-anchor="middle" x="242.447" y="-224.3" font-family="Times,serif" font-size="14.00">PEND</text>
 </g>
 <!-- SAY -->
 <g id="node2" class="node"><title>SAY</title>
@@ -21,15 +21,15 @@
 </g>
 <!-- PEND&#45;&gt;SAY -->
 <g id="edge1" class="edge"><title>PEND&#45;&gt;SAY</title>
-<path fill="none" stroke="black" d="M223.102,-213.441C211.604,-203.953 200.596,-190.588 206.447,-177 208.866,-171.381 212.681,-166.243 216.959,-161.736"/>
-<polygon fill="black" stroke="black" points="219.502,-164.151 224.433,-154.774 214.73,-159.029 219.502,-164.151"/>
-<text text-anchor="middle" x="232.947" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;GOAL &#160;</text>
+<path fill="none" stroke="black" d="M221.226,-213.742C208.993,-204.283 197.169,-190.835 203.447,-177 206.199,-170.934 210.58,-165.506 215.452,-160.839"/>
+<polygon fill="black" stroke="black" points="217.982,-163.283 223.349,-154.148 213.457,-157.942 217.982,-163.283"/>
+<text text-anchor="middle" x="232.447" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;START &#160;</text>
 </g>
 <!-- SAY&#45;&gt;PEND -->
 <g id="edge3" class="edge"><title>SAY&#45;&gt;PEND</title>
-<path fill="none" stroke="black" d="M253.091,-158C257.802,-167.71 261.968,-180.423 259.447,-192 258.786,-195.036 257.837,-198.123 256.727,-201.144"/>
-<polygon fill="black" stroke="black" points="253.476,-199.846 252.785,-210.419 259.918,-202.584 253.476,-199.846"/>
-<text text-anchor="middle" x="306.447" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;QUIZ_DONE &#160;</text>
+<path fill="none" stroke="black" d="M254.381,-157.966C259.711,-167.663 264.399,-180.375 261.447,-192 260.63,-195.217 259.452,-198.458 258.076,-201.6"/>
+<polygon fill="black" stroke="black" points="254.908,-200.11 253.521,-210.613 261.155,-203.267 254.908,-200.11"/>
+<text text-anchor="middle" x="308.447" y="-180.8" font-family="Times,serif" font-size="14.00"> &#160;QUIZ_DONE &#160;</text>
 </g>
 <!-- LISTEN -->
 <g id="node3" class="node"><title>LISTEN</title>
@@ -55,8 +55,8 @@
 </g>
 <!-- LISTEN&#45;&gt;PEND -->
 <g id="edge6" class="edge"><title>LISTEN&#45;&gt;PEND</title>
-<path fill="none" stroke="black" d="M500.503,-62.8172C527.539,-70.5098 557.766,-84.1611 544.447,-105 488.27,-192.898 356.091,-217.468 287.096,-224.336"/>
-<polygon fill="black" stroke="black" points="286.629,-220.864 276.989,-225.26 287.266,-227.835 286.629,-220.864"/>
+<path fill="none" stroke="black" d="M500.482,-62.8034C527.504,-70.4875 557.723,-84.1339 544.447,-105 488.218,-193.377 355.238,-217.734 286.022,-224.446"/>
+<polygon fill="black" stroke="black" points="285.537,-220.975 275.886,-225.347 286.156,-227.948 285.537,-220.975"/>
 <text text-anchor="middle" x="576.447" y="-137.3" font-family="Times,serif" font-size="14.00"> &#160;TIMED_OUT &#160;</text>
 </g>
 <!-- LISTEN&#45;&gt;SAY -->
@@ -79,9 +79,9 @@
 </g>
 <!-- WAIT&#45;&gt;PEND -->
 <g id="edge10" class="edge"><title>WAIT&#45;&gt;PEND</title>
-<path fill="none" stroke="black" d="M24.6595,-71.6009C20.0375,-81.7589 16.6665,-94.7315 22.4469,-105 60.1145,-171.913 149.741,-204.381 202.561,-218.21"/>
-<polygon fill="black" stroke="black" points="201.739,-221.612 212.291,-220.656 203.446,-214.823 201.739,-221.612"/>
-<text text-anchor="middle" x="117.447" y="-137.3" font-family="Times,serif" font-size="14.00"> &#160;TIMED_OUT &#160;</text>
+<path fill="none" stroke="black" d="M24.6595,-71.6009C20.0375,-81.7589 16.6665,-94.7315 22.4469,-105 59.9059,-171.543 148.82,-204.099 201.429,-218.054"/>
+<polygon fill="black" stroke="black" points="200.887,-221.527 211.441,-220.601 202.613,-214.743 200.887,-221.527"/>
+<text text-anchor="middle" x="116.447" y="-137.3" font-family="Times,serif" font-size="14.00"> &#160;TIMED_OUT &#160;</text>
 </g>
 <!-- WAIT&#45;&gt;SAY -->
 <g id="edge9" class="edge"><title>WAIT&#45;&gt;SAY</title>

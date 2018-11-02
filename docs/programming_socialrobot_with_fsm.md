@@ -10,7 +10,7 @@ If you just want to check out the complete code or demo, [both are available](ht
 
 ## Making existing "travel personality quiz" program more complex
 
-In the previous post, we programmed a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) to test your travel personality.
+[Previously](./programming_socialrobot_with_cyclejs.md), we programmed a [tablet-face robot](https://github.com/mjyc/tablet-robot-face) to test your travel personality.
 Concretely, we implemented a tablet-face robot program that
 
 1. looks at a person when it sees one and
@@ -28,16 +28,17 @@ Now, what if we want the robot to
 1. stop asking questions completely if a person abandons the robot, i.e., the robot does not see a person for more than 10 seconds.
 
 How difficult would it be to update the existing program to have these additional behaviors?
-Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js)--what kind of challenges do you face?
+Try implementing the new behaviors on top of the [travel personality quiz program](../examples/tutorials/01_personality_quiz/index.js).
+What kind of challenges do you face?
 
-From my experience, there were two major challenges; clearly expressing the desired robot behavior and implementing the desired behavior in a reactive programming framework.
+From my experience, it was difficult to implement or even just express the _stateful_ behaviors in reactive programming.
+For example, to implement 1., I needed to know whether the robot is in the "waiting for a person's response" state but it wasn't clear how to represent such state in a scalable manner; I tried keeping all states in drivers (e.g., `SpeechRecognitionAction` emitting `status` events), as proxies (e.g., `$lastQuestion` in [the previous code](../examples/tutorials/01_personality_quiz/index.js#L58)), or in higher-order streams, but none of them felt simple nor scalable.
+This was very concerning since [many](http://wiki.ros.org/smach/Tutorials/Getting%20Started#Why_learn_Smach.3F) [robot](https://www.researchgate.net/figure/A-behavioral-state-machine-for-robot-soccer_fig10_238086654) [behaviors](https://www.youtube.com/watch?v=4XEK7OU2gIw) are expressed and implemented as stateful behaviors.
 
-A finite state machine can model stateful robot behavior
-
-In the rest of this post, I'll first demonstrate using a finite state machine to express a complex desired behavior.
-Then I'll present a pattern for implementing a finite state machine in a reactive programming framework Cycle.js without scarifying maintainability.
-<!-- To address the first challenge, we'll use a finite state machine for its simplicity.
-For the second challenge, I'll present a pattern for implementing a finite state machine in a reactive programming framework [Cycle.js](https://cycle.js.org/) without scarifying maintainability. -->
+To address this problem, I propose using finite state machines to clearly express the desired robot behaviors.
+In the following, I present a pattern for implementing a finite state machine in a reactive programming framework (Cycle.js) without scarifying maintainability and demonstrate a use case.
+<!-- TODO: mention that I only implement the first! -->
+<!-- TODO: take a pass! -->
 
 
 ## What is a finite state machine?
