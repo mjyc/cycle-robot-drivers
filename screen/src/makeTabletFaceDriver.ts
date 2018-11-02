@@ -16,7 +16,7 @@ class EyeController {
   private _lowerLeftEyelid;
   private _lowerRightEyelid;
 
-  constructor(elements = {}, eyeSize = '33.33vh') {
+  constructor(elements = {}, eyeSize = '33.33vmin') {
     this._eyeSize = eyeSize;
     this._blinkTimeoutID = null;
 
@@ -278,7 +278,7 @@ export function makeTabletFaceDriver({
     faceHeight = '100vh',
     faceWidth = '100vw',
     eyeColor = 'black',
-    eyeSize = '33.33vh',
+    eyeSize = '33.33vmin',
     eyelidColor = 'whitesmoke',
   }
 }: {
