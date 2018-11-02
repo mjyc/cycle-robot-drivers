@@ -135,36 +135,39 @@ function createTransition() {
     },
   };
 
+  // this transitionTable is a dictionary of dictionaries and returns a function
+  //   that takes previous "variables" and "inputValue" and returns a current
+  //   FSM status; {state, variable, outputs}
   const transitionTable = {
     [State.PEND]: {
-      [InputType.START]: (variables, inputValue) => ({
+      [InputType.START]: (prevVariables, prevInputValue) => ({
         state: State.SAY,
         variables: {sentence: Sentence.CAREER},
         outputs: {SpeechSynthesisAction: {goal: Sentence.CAREER}},
       }),
     },
     [State.SAY]: {
-      [InputType.SAY_DONE]: (variables, inputValue) => (
-          variables.sentence !== Sentence.VACATIONER
-          && variables.sentence !== Sentence.EXPAT
-          && variables.sentence !== Sentence.NOMAD
+      [InputType.SAY_DONE]: (prevVariables, prevInputValue) => (
+          prevVariables.sentence !== Sentence.VACATIONER
+          && prevVariables.sentence !== Sentence.EXPAT
+          && prevVariables.sentence !== Sentence.NOMAD
         ) ? {  // SAY_DONE
           state: State.LISTEN,
-          variables,
+          variables: prevVariables,
           outputs: {SpeechRecognitionAction: {goal: {}}},
         } : {  // QUIZ_DONE
           state: State.PEND,
-          variables,
+          variables: prevVariables,
           outputs: {done: true},
         },
     },
     [State.LISTEN]: {
-      [InputType.VALID_RESPONSE]: (variables, inputValue) => ({
+      [InputType.VALID_RESPONSE]: (prevVariables, prevInputValue) => ({
         state: State.SAY,
-        variables: {sentence: flowchart[variables.sentence][inputValue]},
+        variables: {sentence: flowchart[prevVariables.sentence][prevInputValue]},
         outputs: {
           SpeechSynthesisAction: {
-            goal: flowchart[variables.sentence][inputValue],
+            goal: flowchart[prevVariables.sentence][prevInputValue],
           },
           TabletFace: {goal: {
             type: 'SET_STATE',
@@ -175,20 +178,20 @@ function createTransition() {
           }},
         },
       }),
-      [InputType.INVALID_RESPONSE]: (variables, inputValue) => ({
+      [InputType.INVALID_RESPONSE]: (prevVariables, prevInputValue) => ({
         state: State.LISTEN,
-        variables,
+        variables: prevVariables,
         outputs: {SpeechRecognitionAction: {goal: {}}},
       }),
-      [InputType.DETECTED_FACE]: (variables, inputValue) => ({
+      [InputType.DETECTED_FACE]: (prevVariables, prevInputValue) => ({
         state: State.LISTEN,
-        variables,
+        variables: prevVariables,
         outputs: {
           TabletFace: {goal: {
             type: 'SET_STATE',
             value: {
-              leftEye: inputValue,
-              rightEye: inputValue,
+              leftEye: prevInputValue,
+              rightEye: prevInputValue,
             },
           }},
         }
@@ -196,13 +199,14 @@ function createTransition() {
     },
   };
 
-  return function(state, variables, input) {
-    input.type !== InputType.DETECTED_FACE && console.log(state, variables, input);
-    return !transitionTable[state]
-      ? {state, variables, outputs: null}
-      : !transitionTable[state][input.type]
-        ? {state, variables, outputs: null}
-        : transitionTable[state][input.type](variables, input.value);
+  return function(prevState, prevVariables, prevInput) {
+    console.log(prevState, prevVariables, prevInput);
+    // excuse me for abusing ternary
+    return !transitionTable[prevState]
+      ? {state: prevState, variables: prevVariables, outputs: null}
+      : !transitionTable[prevState][prevInput.type]
+        ? {state: prevState, variables: prevVariables, outputs: null}
+        : transitionTable[prevState][prevInput.type](prevVariables, prevInput.value);
   }
 }
 
