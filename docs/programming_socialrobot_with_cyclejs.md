@@ -235,7 +235,10 @@ To convert pose data into control commands, we use the [`filter`](https://github
 
 We have made the robot look at a face! 
 
-_Exercise idea:_ Can you make the robot to look at your right hand instead if the hand is visible?
+_Exercise ideas:_
+
+* Make the robot look at one of [your hands](https://vignette.wikia.nocookie.net/juveniles-roleplay/images/e/e9/Louis4.gif/revision/latest?cb=20130825225246) instead of your nose?
+* Make the robot smile ([`happy` expression](../screen)) when you are looking away from the camera?
 
 #### Taking a closer look at `runRobotProgram`
 
@@ -475,7 +478,11 @@ You should see that the robot will continue to listen and print whatever it hear
 We are done at this point.
 Try taking the travel personality quiz to find out your travel personality and enjoy!
 
-_Exercise idea:_ Can you implement one of ["The 24 Most Important Flowcharts Of All Time"](https://www.buzzfeed.com/lukelewis/the-most-important-flowcharts-of-all-time) to make the robot answer one of the biggest questions in life?
+_Exercise ideas:_
+
+* Implement one of ["The 24 Most Important Flowcharts Of All Time"](https://www.buzzfeed.com/lukelewis/the-most-important-flowcharts-of-all-time) to make the robot answer one of the biggest questions in life?
+* Make your robot to read Tweets from a certain Twitter user whenever that user post a tweet, e.g., using [a Twitter API](https://developer.twitter.com/en/docs/tweets/filter-realtime/overview)?
+* Make your robot alert you whenever a [stock's price goes below or above a certain threshold](https://www.youtube.com/watch?v=uS1KcjkWdoU)?
 
 
 ## Miscellaneous
