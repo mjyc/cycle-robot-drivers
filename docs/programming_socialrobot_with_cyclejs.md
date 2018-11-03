@@ -488,4 +488,5 @@ _Exercise ideas:_
 ## Miscellaneous
 
 * Fun fact: [many social robots today use a screen as a face](https://spectrum.ieee.org/automaton/robotics/humanoids/what-people-see-in-157-robot-faces).
-* Check out [RxJS Marbles](http://rxmarbles.com/#mergeMap) for visualizing stream operators with marble diagrams, e.g., [interval](http://rxmarbles.com/#interval) (periodic in xstream), [map](http://rxmarbles.com/#map), [filter](http://rxmarbles.com/#filter), [mapTo](http://rxmarbles.com/#mapTo), and [merge](http://rxmarbles.com/#merge) .
+* Check out [RxJS Marbles](http://rxmarbles.com/#mergeMap) for visualizing stream operators with marble diagrams, e.g., [interval](http://rxmarbles.com/#interval) (periodic in xstream), [map](http://rxmarbles.com/#map), [filter](http://rxmarbles.com/#filter), [mapTo](http://rxmarbles.com/#mapTo), and [merge](http://rxmarbles.com/#merge).
+* Help me improve [cycle-robot-drivers](./) library by participating in [this brief survey](https://goo.gl/forms/rdnvgk8rWrUmbtrt1)!
