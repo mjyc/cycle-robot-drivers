@@ -19,6 +19,7 @@ To get your hands dirty, check out our [examples](./examples).
 ## Tutorials
 
 1. [Programming a social robot with Cycle.js](./docs/programming_socialrobot_with_cyclejs.md)
+2. [Implementing a finite state machine in Cycle.js](./docs/programming_socialrobot_with_fsm.md)
 
 ## Thank you
 
