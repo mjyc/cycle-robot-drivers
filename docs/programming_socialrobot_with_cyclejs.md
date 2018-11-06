@@ -205,7 +205,7 @@ Update `main` as follows:
 function main(sources) {
   const sinks = {
     TabletFace: sources.PoseDetection.poses
-      .filter(poses => 
+      .filter(poses =>
         // must see one person
         poses.length === 1
         // must see the nose
@@ -233,7 +233,7 @@ Here we are sending commands to the `TabletDriver` by using the stream created f
 To convert pose data into control commands, we use the [`filter`](https://github.com/staltz/xstream#filter) xstream operator to filter pose data to the ones containing only one person whose nose is visible. Then we use the [`map`](https://github.com/staltz/xstream#map) xstream operator twice to convert the detected nose positions into eye positions and turn the eye positions into control commands.
 <!-- ... driver (`sources.PoseDetection.poses`) instead of creating one from scratch as we did above when we made the robot look left and right. -->
 
-We have made the robot look at a face! 
+We have made the robot look at a face!
 
 _Exercise ideas:_
 
@@ -484,9 +484,14 @@ _Exercise ideas:_
 * Make your robot to read Tweets from a certain Twitter user whenever that user post a tweet, e.g., using [a Twitter API](https://developer.twitter.com/en/docs/tweets/filter-realtime/overview)?
 * Make your robot alert you whenever a [stock's price goes below or above a certain threshold](https://www.youtube.com/watch?v=uS1KcjkWdoU)?
 
+Please let me know if something isn’t clear, and I’d be happy to chat about your concerns. Thank you for reading!
+
 
 ## Miscellaneous
 
 * Fun fact: [many social robots today use a screen as a face](https://spectrum.ieee.org/automaton/robotics/humanoids/what-people-see-in-157-robot-faces).
 * Check out [RxJS Marbles](http://rxmarbles.com/#mergeMap) for visualizing stream operators with marble diagrams, e.g., [interval](http://rxmarbles.com/#interval) (periodic in xstream), [map](http://rxmarbles.com/#map), [filter](http://rxmarbles.com/#filter), [mapTo](http://rxmarbles.com/#mapTo), and [merge](http://rxmarbles.com/#merge).
+* If you are a [ROS](http://www.ros.org/) user, check out my [experimental Cycle.js driver](https://github.com/mjyc/cycle-ros-example) for communicating with ROS using [roslibjs](https://github.com/RobotWebTools/roslibjs).
 * Help me improve [cycle-robot-drivers](./) library by participating in [this brief survey](https://goo.gl/forms/rdnvgk8rWrUmbtrt1)!
+
+_My name is Mike Chung. I'm a [graduate student](https://homes.cs.washington.edu/~mjyc/) interested in the field of human-robot interaction and machine learning. You can reach me on [Twitter](https://twitter.com/mjyc_) and on [GitHub](https://github.com/mjyc)._
