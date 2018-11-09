@@ -525,3 +525,11 @@ If you are using the FSM pattern and having problems with it, double check the c
 For example, look for the redundant states or input types that make updating the transition function cumbersome (merge them into one state with variables), or look for state or input type that is not being used as intended for (add new necessary states or input types).
 Another point to check is, making sure your FSM is taking reactive programming approach, e.g., make sure the three functions (`input`, `transition`, `output`) are as pure as possible.
 Defining effective FSM is art, but I believe using FSMs in reactive programming greatly helps the programmers to better organize their programs.
+
+Thank you for reading!
+I hope I got you interested in using FSMs in Cycle.js.
+Let me know if something isn’t clear, and I’d be happy to chat.
+
+_My name is Mike Chung.
+I'm a [graduate student](https://homes.cs.washington.edu/~mjyc/) interested in the field of human-robot interaction and machine learning.
+You can reach me on [Twitter](https://twitter.com/mjyc_) and on [GitHub](https://github.com/mjyc)._
