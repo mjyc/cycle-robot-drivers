@@ -8,3 +8,7 @@ fi
 dot -Tsvg ./travel_personality_quiz_fsm.dot -o ./travel_personality_quiz_fsm.svg
 dot -Tsvg ./travel_personality_quiz_fsm_updated.dot -o ./travel_personality_quiz_fsm_updated.svg
 dot -Tsvg ./travel_personality_quiz_fsm_final.dot -o ./travel_personality_quiz_fsm_final.svg
+
+dot -Tpng ./travel_personality_quiz_fsm.dot -o ./travel_personality_quiz_fsm.png
+dot -Tpng ./travel_personality_quiz_fsm_updated.dot -o ./travel_personality_quiz_fsm_updated.png
+dot -Tpng ./travel_personality_quiz_fsm_final.dot -o ./travel_personality_quiz_fsm_final.png
