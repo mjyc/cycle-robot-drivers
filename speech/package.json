@@ -11,8 +11,7 @@
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
     "@cycle-robot-drivers/action": "~0.0.0",
-    "@cycle/isolate": "3.4.0",
-    "@cycle/run": "4.4.0",
+    "@cycle/run": "5.1.0",
     "xstream": "11.7.0"
   },
   "devDependencies": {
