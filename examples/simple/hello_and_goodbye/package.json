@@ -6,8 +6,8 @@
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "dependencies": {
-    "@cycle-robot-drivers/run": "0.0.21",
-    "cycle-posenet-driver": "0.0.7",
+    "@cycle-robot-drivers/run": "0.0.22",
+    "cycle-posenet-driver": "0.0.19",
     "xstream": "11.7.0"
   },
   "devDependencies": {
