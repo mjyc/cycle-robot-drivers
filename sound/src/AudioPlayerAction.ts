@@ -1,7 +1,6 @@
 import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {adapt} from '@cycle/run/lib/adapt';
-import isolate from '@cycle/isolate';
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   initGoal, generateGoalID, isEqual,
@@ -191,7 +190,3 @@ export function AudioPlayerAction(sources) {
     result: adapt(result$),
   };
 }
-
-export function IsolatedAudioPlayerAction(sources) {
-  return isolate(AudioPlayerAction)(sources);
-};
