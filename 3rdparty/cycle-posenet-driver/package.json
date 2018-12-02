@@ -11,8 +11,8 @@
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
     "@cycle-robot-drivers/action": "~0.0.0",
-    "@cycle/isolate": "3.4.0",
-    "@cycle/run": "4.4.0",
+    "@cycle/isolate": "4.1.0",
+    "@cycle/run": "5.1.0",
     "@tensorflow-models/posenet": "0.2.2",
     "@tensorflow/tfjs": "0.10.3",
     "dat.gui": "0.7.2",
