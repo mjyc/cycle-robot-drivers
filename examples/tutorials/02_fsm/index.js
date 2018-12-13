@@ -1,10 +1,12 @@
 import xs from 'xstream';
+import pairwise from 'xstream/extra/pairwise';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 const State = {
   PEND: 'PEND',
   SAY: 'SAY',  //_SENTENCE
   LISTEN: 'LISTEN',  //_FOR_RESPONSE
+  WAIT: 'WAIT',  //_FOR_PERSON
 };
 
 const InputType = {
@@ -13,6 +15,8 @@ const InputType = {
   VALID_RESPONSE: `VALID_RESPONSE`,
   INVALID_RESPONSE: `INVALID_RESPONSE`,
   DETECTED_FACE: `DETECTED_FACE`,
+  FOUND_PERSON: 'FOUND_PERSON',
+  LOST_PERSON: 'LOST_PERSON',
 };
 
 /**
@@ -87,6 +91,17 @@ function input(
           },
         };
       }),
+      poses$
+      .map(poses => poses.length)
+      .compose(pairwise)
+      .filter(([prev, cur]) => prev !== cur)
+      .map(([prev, cur]) => {
+        if (prev < cur) {
+          return {type: InputType.FOUND_PERSON};
+        } else if (prev > cur) {
+          return {type: InputType.LOST_PERSON};
+        }
+      }),
   );
 }
 
@@ -160,6 +175,13 @@ function createTransition() {
           variables: prevVariables,
           outputs: {done: true},
         },
+      [InputType.LOST_PERSON]: (prevVariables, prevInputValue) => ({
+        state: State.WAIT,
+        variables: prevVariables,
+        outputs: {
+          SpeechSynthesisAction: {goal: null}
+        }
+      }),
     },
     [State.LISTEN]: {
       [InputType.VALID_RESPONSE]: (prevVariables, prevInputValue) => ({
@@ -197,10 +219,22 @@ function createTransition() {
         }
       }),
     },
+    [State.WAIT]: {
+      [InputType.FOUND_PERSON]: (prevVariables, prevInputValue) => ({
+        state: State.SAY,
+        variables: prevVariables,
+        outputs: {
+          SpeechSynthesisAction: {
+            goal: prevVariables.sentence,
+          },
+        }
+      }),
+    }
   };
 
   return function(prevState, prevVariables, prevInput) {
-    console.log(prevState, prevVariables, prevInput);
+    (prevInput.type !== "DETECTED_FACE") && 
+      console.log(prevState, prevVariables, prevInput);
     // excuse me for abusing ternary
     return !transitionTable[prevState]
       ? {state: prevState, variables: prevVariables, outputs: null}
@@ -230,7 +264,7 @@ function output(machine$) {
   };
 }
 
-function main(sources) { 
+function main(sources) {
   const input$ = input(
     sources.TabletFace.load,
     sources.SpeechRecognitionAction.result,
