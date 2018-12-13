@@ -1,5 +1,6 @@
 import xs from 'xstream';
 import pairwise from 'xstream/extra/pairwise';
+import delay from 'xstream/extra/delay';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 
 const State = {
@@ -17,6 +18,7 @@ const InputType = {
   DETECTED_FACE: `DETECTED_FACE`,
   FOUND_PERSON: 'FOUND_PERSON',
   LOST_PERSON: 'LOST_PERSON',
+  TIMED_OUT: 'TIMED_OUT',
 };
 
 /**
@@ -59,16 +61,28 @@ function input(
   speechSynthesisActionResult$,
   poses$,
 ) {
+  const validResponse$ = speechRecognitionActionResult$
+    .filter(result =>
+      result.status.status === 'SUCCEEDED'
+      && (result.result === Response.YES || result.result === Response.NO)
+    ).map(result => ({
+      type: InputType.VALID_RESPONSE,
+      value: result.result,
+    }))
+  const lostOrFoundPerson$ = poses$
+    .map(poses => poses.length)
+    .compose(pairwise)
+    .filter(([prev, cur]) => prev !== cur)
+    .map(([prev, cur]) => {
+      if (prev < cur) {
+        return {type: InputType.FOUND_PERSON};
+      } else if (prev > cur) {
+        return {type: InputType.LOST_PERSON};
+      }
+    });
   return xs.merge(
     start$.mapTo({type: InputType.START}),
-    speechRecognitionActionResult$
-      .filter(result =>
-        result.status.status === 'SUCCEEDED'
-        && (result.result === Response.YES || result.result === Response.NO)
-      ).map(result => ({
-        type: InputType.VALID_RESPONSE,
-        value: result.result,
-      })),
+    validResponse$,
     speechSynthesisActionResult$
       .filter(result => result.status.status === 'SUCCEEDED')
       .mapTo({type: InputType.SAY_DONE}),
@@ -91,17 +105,17 @@ function input(
           },
         };
       }),
-      poses$
-      .map(poses => poses.length)
-      .compose(pairwise)
-      .filter(([prev, cur]) => prev !== cur)
-      .map(([prev, cur]) => {
-        if (prev < cur) {
-          return {type: InputType.FOUND_PERSON};
-        } else if (prev > cur) {
-          return {type: InputType.LOST_PERSON};
-        }
-      }),
+    lostOrFoundPerson$,
+    xs.merge(
+      xs.merge(
+        validResponse$,
+        lostOrFoundPerson$.filter(input => input.type == InputType.FOUND_PERSON),
+      ).mapTo(xs.never()),  // clear previous timeout, see https://github.com/staltz/xstream#flatten
+      xs.merge(
+        speechSynthesisActionResult$,
+        lostOrFoundPerson$.filter(input => input.type == InputType.LOST_PERSON),
+      ).mapTo(xs.of({type: InputType.TIMED_OUT}).compose(delay(30000))),  // 30s
+    ).flatten().debug(),
   );
 }
 
@@ -218,6 +232,20 @@ function createTransition() {
           }},
         }
       }),
+      [InputType.TIMED_OUT]: (prevVariables, prevInputValue) => ({
+        state: State.PEND,
+        variables: prevVariables,
+        outputs: {
+          done: true,
+          TabletFace: {goal: {
+            type: 'SET_STATE',
+            value: {
+              leftEye: {x: 0.5, y: 0.5},
+              rightEye: {x: 0.5, y: 0.5},
+            },
+          }},
+        }
+      }),
     },
     [State.WAIT]: {
       [InputType.FOUND_PERSON]: (prevVariables, prevInputValue) => ({
@@ -227,6 +255,20 @@ function createTransition() {
           SpeechSynthesisAction: {
             goal: prevVariables.sentence,
           },
+        }
+      }),
+      [InputType.TIMED_OUT]: (prevVariables, prevInputValue) => ({
+        state: State.PEND,
+        variables: prevVariables,
+        outputs: {
+          done: true,
+          TabletFace: {goal: {
+            type: 'SET_STATE',
+            value: {
+              leftEye: {x: 0.5, y: 0.5},
+              rightEye: {x: 0.5, y: 0.5},
+            },
+          }},
         }
       }),
     }
