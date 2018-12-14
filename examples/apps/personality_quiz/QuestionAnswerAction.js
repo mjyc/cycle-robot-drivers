@@ -130,18 +130,22 @@ export default function QuestionAnswerAction(sources) {
     sources.SpeechSynthesisAction.result,
   );
 
-  const defaultMachine = {
-    state: State.PEND,
-    variables: {
-      question: null,
-      answers: null,
-    },
-    outputs: null,
-  };
-  const machine$ = input$.fold((machine, input) => transition(
-    machine.state, machine.variables, input
-  ), defaultMachine);
+  const initReducer$ = xs.of(function () {
+    return {
+      state: State.PEND,
+      variables: {
+        question: null,
+        answers: null,
+      },
+      outputs: null,
+    };
+  });
 
-  const sinks = output(machine$);
-  return sinks;
+  const transitionReducer$ = input$.map(input => function (prev) {
+    return transition(prev.state, prev.variables, input);
+  });
+
+  return {
+    state: xs.merge(initReducer$, transitionReducer$)
+  }
 }
