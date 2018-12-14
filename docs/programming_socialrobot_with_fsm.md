@@ -87,9 +87,6 @@ Now, let's update the FSM to express the first additional behavior mentioned abo
 
 All we did here is remove the two self-loop transitions from the `PEND` and `SAY` states to stop the robot from looking at a person while the FSM is in those states.
 
-<!-- I'll leave updating this FSM to support the other two additional behaviors as an exercise.
-Try it! -->
-
 
 ## Implementing the "travel personality test" FSM using Cycle.js
 
@@ -523,6 +520,7 @@ For example, if we were to implement the rest of additional behaviors mentioned 
 ![travel_personality_quiz_fsm_final](./travel_personality_quiz_fsm_final.svg)
 
 and update the `input` and `transition` functions accordingly.
+Checkout the [complete code](../examples/tutorials/02_fsm) to see how I updated the `input` and `transition` functions to implement the remaining additional behaviors.
 
 The biggest challenge for using FSM is defining FSM.
 If you are using the FSM pattern and having problems with it, double check the current definition of your state machine.
