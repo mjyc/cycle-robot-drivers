@@ -1,5 +1,6 @@
 import xs from 'xstream';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
+import {Status, initGoal} from '@cycle-robot-drivers/action';
 
 const State = {
   PEND: 'PEND',
@@ -20,7 +21,7 @@ function input(
   speechSynthesisActionResult$,
 ) {
   return xs.merge(
-    start$.map(v => ({type: InputType.GOAL, value: v})),
+    start$.map(v => ({type: InputType.GOAL, value: initGoal(v)})),
     speechRecognitionActionResult$
       .filter(result =>
         result.status.status === 'SUCCEEDED'
@@ -45,8 +46,12 @@ function createTransition() {
     [State.PEND]: {
       [InputType.GOAL]: (prevVariables, inputValue) => ({
         state: State.SAY,
-        variables: inputValue,
-        outputs: {SpeechSynthesisAction: {goal: inputValue.question}},
+        variables: {
+          goal: initGoal(inputValue),
+          question: inputValue.goal.question,
+          answers: inputValue.goal.answers,
+        },
+        outputs: {SpeechSynthesisAction: {goal: inputValue.goal.question}},
       }),
     },
     [State.SAY]: {
@@ -60,12 +65,29 @@ function createTransition() {
       [InputType.VALID_RESPONSE]: (prevVariables, inputValue) => ({
         state: State.PEND,
         variables: prevVariables,
-        outputs: {done: true},  // TODO: update output on "done"
+        outputs: {
+          result: {
+            status: {
+              goal_id: prevVariables.goal.goal_id,
+              status: Status.SUCCEEDED,
+            },
+            result: inputValue,
+          },
+        },
       }),
+      // TODO: update this to ...
       [InputType.INVALID_RESPONSE]: (prevVariables, inputValue) => ({
         state: State.LISTEN,
         variables: prevVariables,
-        outputs: {SpeechRecognitionAction: {goal: {}}},
+        outputs: {
+          result: {
+            status: {
+              goal_id: prevVariables.goal.goal_id,
+              status: Status.ABORTED,
+            },
+            result: inputValue,
+          },
+        },
       }),
     },
   };
