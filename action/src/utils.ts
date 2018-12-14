@@ -8,11 +8,14 @@ export function generateGoalID(): GoalID {
   };
 }
 
-export function initGoal(goal: any): Goal {
-  return {
+export function initGoal(
+  goal: any,
+  isGoal: (g: any) => boolean = g => !!g.goal_id,
+): Goal {
+  return isGoal(goal) ? goal : {
     goal_id: generateGoalID(),
     goal,
-  }
+  };
 }
 
 export function isEqual(first: GoalID, second: GoalID) {
