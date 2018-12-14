@@ -76,7 +76,7 @@ export function FacialExpressionAction(sources) {
   };
 
   const state$ = action$.fold((state: State, action: Action): State => {
-    console.debug('state', state, 'action', action);
+    // console.debug('state', state, 'action', action);
     if (state.status === Status.SUCCEEDED
         || state.status === Status.PREEMPTED
         || state.status === Status.ABORTED) {
@@ -120,7 +120,7 @@ export function FacialExpressionAction(sources) {
         };
       }
     }
-    console.warn(
+    console.debug(
       `Unhandled state.status ${state.status} action.type ${action.type}`
     );
     return state;
