@@ -1,75 +1,50 @@
-// import xs from 'xstream';
-// import {Stream} from 'xstream';
-// import run from '@cycle/run';
-// import isolate from '@cycle/isolate';
-// import {withState} from '@cycle/state'
-// import {Reducer} from '@cycle/state';
-// import {runRobotProgram} from '@cycle-robot-drivers/run';
-// import QuestionAnswerAction from './QuestionAnswerAction';
-// import {ReducerState} from './QuestionAnswerAction';
+import xs, {Stream} from 'xstream';
+import run from '@cycle/run';
+import isolate from '@cycle/isolate';
+import {div, span, ul, input, button, VNode, DOMSource, makeDOMDriver} from '@cycle/dom';
+import {withState, StateSource, Reducer} from '@cycle/state';
+import Counter, {State as CounterState, Sinks as CounterSinks} from './Counter';
 
 
-// function output(machine$) {
-//   const outputs$ = machine$
-//     .filter(machine => !!machine.outputs)
-//     .map(machine => machine.outputs);
-
-//   return {
-//     SpeechSynthesisAction: outputs$
-//       .filter(outputs => !!outputs.SpeechSynthesisAction)
-//       .map(output => output.SpeechSynthesisAction.goal),
-//     SpeechRecognitionAction: outputs$
-//       .filter(outputs => !!outputs.SpeechRecognitionAction)
-//       .map(output => output.SpeechRecognitionAction.goal),
-//     TabletFace: outputs$
-//       .filter(outputs => !!outputs.TabletFace)
-//       .map(output => output.TabletFace.goal),
-//   };
-// }
-
-// // type NewReducerState = {
-// //   ReducerState
-// // };
-
-// export type Sinks = {
-//   state: Stream<Reducer<ReducerState>>
+// export type State = {
+//   counter?: CounterState;
 // };
 
-// function main(sources) {
-//   // const sinks = QuestionAnswerAction({
-//   //   goal: sources.TabletFace.load.mapTo({
-//   //     question: 'How are you?',
-//   //     answers: ['Good', 'Bad'],
-//   //   }),
-//   //   SpeechRecognitionAction: sources.SpeechRecognitionAction,
-//   //   SpeechSynthesisAction: sources.SpeechSynthesisAction,
-//   // });
-//   // const sinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')(sources);
-//   const n = isolate(QuestionAnswerAction, {state: 'child'});
-//   const sinks = n({
-//     goal: sources.TabletFace.load.mapTo({
-//       question: 'How are you?',
-//       answers: ['Good', 'Bad'],
-//     }),
-//     SpeechRecognitionAction: sources.SpeechRecognitionAction,
-//     SpeechSynthesisAction: sources.SpeechSynthesisAction,
-//   })
-//   const state$ = sources.state.stream;
+// export type Sources = {
+//   DOM: DOMSource;
+//   state: StateSource<State>;
+// };
 
-//   const reducer$ = xs.of(function() {
-//     return {
-//       child: null,
-//     }
-//   })
+// export type Sinks = {
+//   DOM: Stream<VNode>;
+//   state: Stream<Reducer<State>>;
+// };
 
-//   const outputs = output(state$);
-//   sources.TabletFace.load.addListener({next: v => console.log('sources.TabletFace.load', v)});
-//   state$.addListener({next: v => console.log('state$', v)});
-//   return {
-//     state: xs.merge(reducer$, sinks.state),
-//     SpeechSynthesisAction: outputs.SpeechSynthesisAction,
-//     SpeechRecognitionAction: outputs.SpeechRecognitionAction,
-//   };
-// }
 
-// runRobotProgram(withState(main));
+export default function main(sources) {
+  sources.state.stream.addListener({next: x => console.log('state', x)});
+
+  const counterSinks: CounterSinks = isolate(Counter, {state: 'counter'})(sources);
+
+  const initReducer$ = xs.of(function () {
+    return {counter: {count: 0}}
+  });
+
+  const counterReducer$ = counterSinks.state;
+  const reducer$ = xs.merge(
+    initReducer$,
+    counterReducer$,
+  ) as Stream<Reducer<any>>;
+  const vdom$ = counterSinks.DOM;
+
+  return {
+    DOM: vdom$,
+    state: reducer$,
+  }
+}
+
+const wrappedMain = withState(main);
+
+run(wrappedMain, {
+  DOM: makeDOMDriver('#app')
+});
