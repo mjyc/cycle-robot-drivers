@@ -1,7 +1,7 @@
 import xs from 'xstream';
 import {withState} from '@cycle/state'
 import {runRobotProgram} from '@cycle-robot-drivers/run';
-import QuestionAnswerAction from './QuestionAnswerAction';
+import FlowchartAction from './FlowchartAction';
 
 function output(machine$) {
   const outputs$ = machine$
@@ -22,24 +22,13 @@ function output(machine$) {
 }
 
 function main(sources) {
-  const qaSinks = QuestionAnswerAction({
-    goal: sources.TabletFace.load.mapTo({
-      question: 'How are you?',
-      answers: ['Good', 'Bad'],
-    }),
-    SpeechRecognitionAction: sources.SpeechRecognitionAction,
-    SpeechSynthesisAction: sources.SpeechSynthesisAction,
-  });
+  const sinks = FlowchartAction(sources);
 
   const state$ = sources.state.stream;
-  // state$.addListener({
-  //   next: v => console.warn(v),
-  //   error: v => console.error(v)
-  // });
 
   const outputs = output(state$);
   return {
-    state: qaSinks.state,
+    state: sinks.state,
     SpeechSynthesisAction: outputs.SpeechSynthesisAction,
     SpeechRecognitionAction: outputs.SpeechRecognitionAction,
   };
