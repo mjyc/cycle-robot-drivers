@@ -1,4 +1,5 @@
 import xs from 'xstream';
+import isolate from '@cycle/isolate';
 import QuestionAnswerAction from './QuestionAnswerAction';
 
 
@@ -19,27 +20,19 @@ export default function FlowchartAction(sources) {
   // state$.map(s => s.outputs.result).filter(r => r.);
   // // succeed, then move to something else otherwise repeat
 
-  const qaSinks = QuestionAnswerAction({
-    goal: sources.TabletFace.load.mapTo({
-      question: 'How are you?',
-      answers: ['Good', 'Bad'],
-    }),
-    SpeechRecognitionAction: sources.SpeechRecognitionAction,
-    SpeechSynthesisAction: sources.SpeechSynthesisAction,
+  const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')(sources);
+
+  const initReducer$ = xs.of(function() {
+    return {
+      state: 'State.PEND',
+      QuestionAnswerAction: null,
+    };
   });
 
-  // const initReducer$ = xs.of(function() {
-  //   return {
-  //     state: State.PEND,
-  //     variables: {
-  //       question: null,
-  //       answers: null,
-  //     },
-  //     outputs: {
-  //       result: null
-  //     },
-  //   }
-  // });
-
-  return qaSinks;
+  return {
+    state: xs.merge(
+      qaSinks.state,
+      initReducer$,
+    )
+  };
 }

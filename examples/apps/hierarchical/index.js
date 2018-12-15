@@ -1,30 +1,15 @@
 import xs from 'xstream';
+import isolate from '@cycle/isolate';
 import {withState} from '@cycle/state'
 import {runRobotProgram} from '@cycle-robot-drivers/run';
+import {output} from './utils';
 import FlowchartAction from './FlowchartAction';
 
-function output(machine$) {
-  const outputs$ = machine$
-    .filter(machine => !!machine.outputs)
-    .map(machine => machine.outputs);
-
-  return {
-    SpeechSynthesisAction: outputs$
-      .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(output => output.SpeechSynthesisAction.goal),
-    SpeechRecognitionAction: outputs$
-      .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal),
-    TabletFace: outputs$
-      .filter(outputs => !!outputs.TabletFace)
-      .map(output => output.TabletFace.goal),
-  };
-}
-
 function main(sources) {
-  const sinks = FlowchartAction(sources);
+  const sinks = isolate(FlowchartAction, 'FlowchartAction')(sources);
 
   const state$ = sources.state.stream;
+  state$.addListener({next: s => console.log('state$', s)});
 
   const outputs = output(state$);
   return {
