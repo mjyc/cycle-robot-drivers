@@ -21,6 +21,9 @@ function input(
 ) {
   return xs.merge(
     start$.map(v => ({type: InputType.GOAL, value: initGoal(v)})),
+    speechSynthesisActionResult$
+      .filter(result => result.status.status === 'SUCCEEDED')
+      .mapTo({type: InputType.SAY_DONE}),
     speechRecognitionActionResult$
       .filter(result =>
         result.status.status === 'SUCCEEDED'
@@ -28,9 +31,6 @@ function input(
         type: InputType.VALID_RESPONSE,
         value: result.result,
       })),
-    speechSynthesisActionResult$
-      .filter(result => result.status.status === 'SUCCEEDED')
-      .mapTo({type: InputType.SAY_DONE}),
     speechRecognitionActionResult$
       .filter(result =>
         result.status.status !== 'SUCCEEDED'
@@ -48,33 +48,39 @@ function createTransition() {
         variables: {
           goal: initGoal(inputValue),
           question: inputValue.goal.question,
-          answers: inputValue.goal.answers,
+          answers: inputValue.goal.answers.map(a => a.toLowerCase()),
         },
         outputs: {SpeechSynthesisAction: {goal: inputValue.goal.question}},
       }),
     },
     [State.SAY]: {
       [InputType.SAY_DONE]: (prevVariables, inputValue) => ({
-          state: State.LISTEN,
-          variables: prevVariables,
-          outputs: {SpeechRecognitionAction: {goal: {}}},  // TODO: use grammar
-        }),
+        state: State.LISTEN,
+        variables: prevVariables,
+        outputs: {SpeechRecognitionAction: {goal: {}}},
+      }),
     },
     [State.LISTEN]: {
-      [InputType.VALID_RESPONSE]: (prevVariables, inputValue) => ({
-        state: State.PEND,
-        variables: prevVariables,
-        outputs: {
-          result: {
-            status: {
-              goal_id: prevVariables.goal.goal_id,
-              status: Status.SUCCEEDED,
-            },
-            result: inputValue,
-          },
-        },
-      }),
-      // TODO: update this to ...
+      [InputType.VALID_RESPONSE]: (prevVariables, inputValue) => {
+        const answer = prevVariables.answers.find(
+          a => a.toLowerCase().includes(inputValue.toLowerCase())
+        );
+        return ({
+              state: State.PEND,
+              variables: null,
+              outputs: {
+                result: {
+                  status: {
+                    goal_id: prevVariables.goal.goal_id,
+                    status: (!!answer)
+                      ? Status.SUCCEEDED
+                      : Status.ABORTED,
+                  },
+                  result: answer,
+                },
+              },
+            })
+      },
       [InputType.INVALID_RESPONSE]: (prevVariables, inputValue) => ({
         state: State.LISTEN,
         variables: prevVariables,
