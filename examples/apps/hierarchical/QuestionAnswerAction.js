@@ -131,8 +131,7 @@ function output(machine$) {
 
 export default function QuestionAnswerAction(sources) {
   const input$ = input(
-    // sources.goal,
-    xs.never(),
+    sources.goal,
     sources.SpeechRecognitionAction.result,
     sources.SpeechSynthesisAction.result,
   );

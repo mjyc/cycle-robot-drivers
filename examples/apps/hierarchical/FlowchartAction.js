@@ -1,4 +1,5 @@
 import xs from 'xstream';
+import delay from 'xstream/extra/delay';
 import isolate from '@cycle/isolate';
 import QuestionAnswerAction from './QuestionAnswerAction';
 
@@ -20,12 +21,16 @@ export default function FlowchartAction(sources) {
   // state$.map(s => s.outputs.result).filter(r => r.);
   // // succeed, then move to something else otherwise repeat
 
-  const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')(sources);
+  const newS = {
+    ...sources,
+    goal: xs.of({question: 'Hello', answers: ['yes', 'no']}).compose(delay(2000)),
+  }
+  const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')(newS);
 
-  const initReducer$ = xs.of(function() {
+  const initReducer$ = xs.of(function(prev) {
     return {
-      state: 'State.PEND',
-      QuestionAnswerAction: null,
+      outputs: {question: 'Hello', answers: ['yes', 'no']},
+      QuestionAnswerAction: prev.QuestionAnswerAction,
     };
   });
 
