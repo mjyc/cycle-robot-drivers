@@ -8,7 +8,8 @@
   "dependencies": {
     "@cycle-robot-drivers/action": "0.0.11",
     "@cycle-robot-drivers/run": "0.0.22",
-    "@cycle/isolate": "4.1.0",
+    "@cycle/isolate": "4.2.0",
+    "@cycle/run": "^5.2.0",
     "@cycle/state": "1.1.0",
     "xstream": "11.7.0"
   },

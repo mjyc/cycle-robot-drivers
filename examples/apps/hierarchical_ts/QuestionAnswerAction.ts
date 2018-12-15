@@ -17,7 +17,7 @@ enum InputType {
   INVALID_RESPONSE = 'INVALID_RESPONSE',
 }
 
-interface ReducerState {
+export type ReducerState = {
   state: FSMState,
   variables: {
     goal: Goal | undefined,
@@ -31,9 +31,12 @@ interface ReducerState {
   },
 }
 
-// type Sources = {
-//   Speech
-// };
+// TODO: import SpeechRecognitionAction SpeechSynthesisAction types from @cycle-robot-drives/run
+export type Sources = {
+  goal: Stream<any>,
+  SpeechRecognitionAction: {result: Stream<any>},
+  SpeechSynthesisAction: {result: Stream<any>},
+};
 
 export type Sinks = {
   state: Stream<Reducer<ReducerState>>
@@ -154,7 +157,7 @@ function output(machine$) {
   };
 }
 
-export default function QuestionAnswerAction(sources): Sinks {
+export default function QuestionAnswerAction(sources: Sources): Sinks {
   const input$ = input(
     sources.goal,
     sources.SpeechRecognitionAction.result,
@@ -178,7 +181,6 @@ export default function QuestionAnswerAction(sources): Sinks {
   });
 
   return {
-    // state: xs.merge(initReducer$, transitionReducer$)
-    state: initReducer$
+    state: xs.merge(initReducer$, transitionReducer$),
   }
 }
