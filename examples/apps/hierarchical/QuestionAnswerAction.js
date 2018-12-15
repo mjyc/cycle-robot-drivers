@@ -4,27 +4,27 @@ import {output} from './utils';
 
 const State = {
   PEND: 'PEND',
-  SAY: 'SAY',
+  ASK: 'ASK',
   LISTEN: 'LISTEN',
 };
 
 const InputType = {
   GOAL: `GOAL`,
-  SAY_DONE: `SAY_DONE`,
+  ASK_DONE: `ASK_DONE`,
   VALID_RESPONSE: `VALID_RESPONSE`,
   INVALID_RESPONSE: `INVALID_RESPONSE`,
 };
 
 function input(
-  start$,
-  speechRecognitionActionResult$,
+  goal$,
   speechSynthesisActionResult$,
+  speechRecognitionActionResult$,
 ) {
   return xs.merge(
-    start$.map(v => ({type: InputType.GOAL, value: initGoal(v)})),
+    goal$.map(v => ({type: InputType.GOAL, value: initGoal(v)})),
     speechSynthesisActionResult$
       .filter(result => result.status.status === 'SUCCEEDED')
-      .mapTo({type: InputType.SAY_DONE}),
+      .mapTo({type: InputType.ASK_DONE}),
     speechRecognitionActionResult$
       .filter(result =>
         result.status.status === 'SUCCEEDED'
@@ -46,7 +46,7 @@ function createTransition() {
   const transitionTable = {
     [State.PEND]: {
       [InputType.GOAL]: (prevVariables, inputValue) => ({
-        state: State.SAY,
+        state: State.ASK,
         variables: {
           goal: initGoal(inputValue),
           question: inputValue.goal.question,
@@ -55,8 +55,8 @@ function createTransition() {
         outputs: {SpeechSynthesisAction: {goal: inputValue.goal.question}},
       }),
     },
-    [State.SAY]: {
-      [InputType.SAY_DONE]: (prevVariables, inputValue) => ({
+    [State.ASK]: {
+      [InputType.ASK_DONE]: (prevVariables, inputValue) => ({
         state: State.LISTEN,
         variables: prevVariables,
         outputs: {SpeechRecognitionAction: {goal: {}}},
@@ -68,20 +68,20 @@ function createTransition() {
           a => a.toLowerCase().includes(inputValue.toLowerCase())
         );
         return ({
-              state: State.PEND,
-              variables: null,
-              outputs: {
-                result: {
-                  status: {
-                    goal_id: prevVariables.goal.goal_id,
-                    status: (!!answer)
-                      ? Status.SUCCEEDED
-                      : Status.ABORTED,
-                  },
-                  result: answer,
-                },
+          state: State.PEND,
+          variables: null,
+          outputs: {
+            result: {
+              status: {
+                goal_id: prevVariables.goal.goal_id,
+                status: (!!answer)
+                  ? Status.SUCCEEDED
+                  : Status.ABORTED,
               },
-            })
+              result: answer,
+            },
+          },
+        });
       },
       [InputType.INVALID_RESPONSE]: (prevVariables, inputValue) => ({
         state: State.LISTEN,
@@ -100,8 +100,6 @@ function createTransition() {
   };
 
   return function(prevState, prevVariables, input) {
-    console.debug(
-      'prevState', prevState, 'prevVariables', prevVariables, 'input', input);
     // excuse me for abusing ternary
     return !transitionTable[prevState]
       ? {state: prevState, variables: prevVariables, outputs: null}
@@ -126,6 +124,7 @@ function machine(inputs) {
   });
 
   const transitionReducer$ = inputs.map(input => function (prev) {
+    console.debug('input', input, 'prev', prev);
     return transition(prev.state, prev.variables, input);
   });
 
@@ -135,8 +134,8 @@ function machine(inputs) {
 export default function QuestionAnswerAction(sources) {
   const input$ = input(
     sources.goal,
-    sources.SpeechRecognitionAction.result,
     sources.SpeechSynthesisAction.result,
+    sources.SpeechRecognitionAction.result,
   );
   const reducer$ = machine(input$);
   const output$ = output(sources.state.stream);
