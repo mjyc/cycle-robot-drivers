@@ -1,37 +1,44 @@
 import xs from 'xstream';
-import {withState} from '@cycle/state'
-import {runRobotProgram} from '@cycle-robot-drivers/run';
-import FlowchartAction from './FlowchartAction';
-
-function output(machine$) {
-  const outputs$ = machine$
-    .filter(machine => !!machine.outputs)
-    .map(machine => machine.outputs);
-
-  return {
-    SpeechSynthesisAction: outputs$
-      .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(output => output.SpeechSynthesisAction.goal),
-    SpeechRecognitionAction: outputs$
-      .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal),
-    TabletFace: outputs$
-      .filter(outputs => !!outputs.TabletFace)
-      .map(output => output.TabletFace.goal),
-  };
-}
+import run from '@cycle/run';
+import isolate from '@cycle/isolate';
+import {div, button, p, makeDOMDriver} from '@cycle/dom';
+import {withState} from '@cycle/state';
 
 function main(sources) {
-  const sinks = FlowchartAction(sources);
+  const action$ = xs.merge(
+    sources.DOM.select('.decrement').events('click').map(ev => -1),
+    sources.DOM.select('.increment').events('click').map(ev => +1)
+  );
 
   const state$ = sources.state.stream;
+  state$.addListener({next: v => console.log('state', v)});
 
-  const outputs = output(state$);
+  const vdom$ = state$.map(state =>
+    div([
+      button('.decrement', 'Decrement'),
+      button('.increment', 'Increment'),
+      p('Counter: ' + state.count)
+    ])
+  );
+
+  const initReducer$ = xs.of(function initReducer() {
+    return {count: 0};
+  });
+
+  const updateReducer$ = action$.map(num => function updateReducer(prevState) {
+    return {count: prevState.count + num};
+  });
+
+  const reducer$ = xs.merge(initReducer$, updateReducer$);
+
   return {
-    state: sinks.state,
-    SpeechSynthesisAction: outputs.SpeechSynthesisAction,
-    SpeechRecognitionAction: outputs.SpeechRecognitionAction,
+    DOM: vdom$,
+    state: reducer$,
   };
 }
 
-runRobotProgram(withState(main));
+const wrappedMain = withState(main);
+
+run(wrappedMain, {
+  DOM: makeDOMDriver('#app')
+});
