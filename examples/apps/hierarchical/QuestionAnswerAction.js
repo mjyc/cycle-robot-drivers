@@ -1,5 +1,6 @@
 import xs from 'xstream';
 import {Status, initGoal} from '@cycle-robot-drivers/action';
+import {output} from './utils';
 
 const State = {
   PEND: 'PEND',
@@ -38,6 +39,7 @@ function input(
   );
 }
 
+// TODO: add all this in "transition" directly
 function createTransition() {
   // usage: transitionTable["state"]["inputType"], then it returns a function
   //   (prevVariables, inputValue) => {state: ..., variables: ..., outputs: ...}
@@ -111,31 +113,7 @@ function createTransition() {
 
 const transition = createTransition();
 
-function output(machine$) {
-  const outputs$ = machine$
-    .filter(machine => !!machine.outputs)
-    .map(machine => machine.outputs);
-
-  return {
-    SpeechSynthesisAction: outputs$
-      .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(output => output.SpeechSynthesisAction.goal),
-    SpeechRecognitionAction: outputs$
-      .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal),
-    TabletFace: outputs$
-      .filter(outputs => !!outputs.TabletFace)
-      .map(output => output.TabletFace.goal),
-  };
-}
-
-export default function QuestionAnswerAction(sources) {
-  const input$ = input(
-    sources.goal,
-    sources.SpeechRecognitionAction.result,
-    sources.SpeechSynthesisAction.result,
-  );
-
+function machine(inputs) {
   const initReducer$ = xs.of(function () {
     return {
       state: State.PEND,
@@ -147,11 +125,24 @@ export default function QuestionAnswerAction(sources) {
     };
   });
 
-  const transitionReducer$ = input$.map(input => function (prev) {
+  const transitionReducer$ = inputs.map(input => function (prev) {
     return transition(prev.state, prev.variables, input);
   });
 
+  return xs.merge(initReducer$, transitionReducer$);
+}
+
+export default function QuestionAnswerAction(sources) {
+  const input$ = input(
+    sources.goal,
+    sources.SpeechRecognitionAction.result,
+    sources.SpeechSynthesisAction.result,
+  );
+  const reducer$ = machine(input$);
+  const output$ = output(sources.state.stream);
+
   return {
-    state: xs.merge(initReducer$, transitionReducer$)
+    state: reducer$,
+    outputs: output$,
   }
 }

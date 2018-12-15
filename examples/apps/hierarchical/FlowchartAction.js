@@ -21,13 +21,15 @@ export default function FlowchartAction(sources) {
   // state$.map(s => s.outputs.result).filter(r => r.);
   // // succeed, then move to something else otherwise repeat
 
-  const newS = {
+  // const newS =
+
+  const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
     ...sources,
     goal: xs.of({question: 'Hello', answers: ['yes', 'no']}).compose(delay(2000)),
-  }
-  const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')(newS);
+  });
 
   const initReducer$ = xs.of(function(prev) {
+    console.log('1');
     return {
       outputs: {question: 'Hello', answers: ['yes', 'no']},
       QuestionAnswerAction: prev.QuestionAnswerAction,
@@ -38,6 +40,7 @@ export default function FlowchartAction(sources) {
     state: xs.merge(
       qaSinks.state,
       initReducer$,
-    )
+    ),
+    outputs: qaSinks.outputs,
   };
 }

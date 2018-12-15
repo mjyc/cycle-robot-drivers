@@ -11,11 +11,10 @@ function main(sources) {
   const state$ = sources.state.stream;
   state$.addListener({next: s => console.log('state$', s)});
 
-  const outputs = output(state$);
   return {
     state: sinks.state,
-    SpeechSynthesisAction: outputs.SpeechSynthesisAction,
-    SpeechRecognitionAction: outputs.SpeechRecognitionAction,
+    SpeechSynthesisAction: sinks.outputs.SpeechSynthesisAction,
+    SpeechRecognitionAction: sinks.outputs.SpeechRecognitionAction,
   };
 }
 
