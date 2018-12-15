@@ -6,13 +6,13 @@ import {Goal, Status, Result} from '@cycle-robot-drivers/action';
 
 enum FSMState {
   PEND = 'PEND',
-  SAY = 'SAY',
+  ASK = 'ASK',
   LISTEN = 'LISTEN',
 }
 
 enum InputType {
   GOAL = 'GOAL',
-  SAY_DONE = 'SAY_DONE',
+  ASK_DONE = 'ASK_DONE',
   VALID_RESPONSE = 'VALID_RESPONSE',
   INVALID_RESPONSE = 'INVALID_RESPONSE',
 }
@@ -35,8 +35,8 @@ interface ReducerState {
 //   Speech
 // };
 
-type Sinks = {
-  state: Reducer<ReducerState>
+export type Sinks = {
+  state: Stream<Reducer<ReducerState>>
 };
 
 function input(
@@ -48,7 +48,7 @@ function input(
     start$.map(v => ({type: InputType.GOAL, value: initGoal(v)})),
     speechSynthesisActionResult$
       .filter(result => result.status.status === 'SUCCEEDED')
-      .mapTo({type: InputType.SAY_DONE}),
+      .mapTo({type: InputType.ASK_DONE}),
     speechRecognitionActionResult$
       .filter(result =>
         result.status.status === 'SUCCEEDED'
@@ -69,7 +69,7 @@ function createTransition() {
   const transitionTable = {
     [FSMState.PEND]: {
       [InputType.GOAL]: (prevVariables, inputValue) => ({
-        state: FSMState.SAY,
+        state: FSMState.ASK,
         variables: {
           goal: initGoal(inputValue),
           question: inputValue.goal.question,
@@ -78,8 +78,8 @@ function createTransition() {
         outputs: {SpeechSynthesisAction: {goal: inputValue.goal.question}},
       }),
     },
-    [FSMState.SAY]: {
-      [InputType.SAY_DONE]: (prevVariables, inputValue) => ({
+    [FSMState.ASK]: {
+      [InputType.ASK_DONE]: (prevVariables, inputValue) => ({
         state: FSMState.LISTEN,
         variables: prevVariables,
         outputs: {SpeechRecognitionAction: {goal: {}}},
@@ -154,7 +154,7 @@ function output(machine$) {
   };
 }
 
-export default function QuestionAnswerAction(sources) {
+export default function QuestionAnswerAction(sources): Sinks {
   const input$ = input(
     sources.goal,
     sources.SpeechRecognitionAction.result,
@@ -178,6 +178,7 @@ export default function QuestionAnswerAction(sources) {
   });
 
   return {
-    state: xs.merge(initReducer$, transitionReducer$)
+    // state: xs.merge(initReducer$, transitionReducer$)
+    state: initReducer$
   }
 }
