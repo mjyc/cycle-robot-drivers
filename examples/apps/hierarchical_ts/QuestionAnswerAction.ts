@@ -1,23 +1,48 @@
 import xs from 'xstream';
-import {Status, initGoal} from '@cycle-robot-drivers/action';
+import {Stream} from 'xstream';
+import {Reducer} from '@cycle/state';
+import {initGoal} from '@cycle-robot-drivers/action';
+import {Goal, Status, Result} from '@cycle-robot-drivers/action';
 
-const State = {
-  PEND: 'PEND',
-  SAY: 'SAY',
-  LISTEN: 'LISTEN',
-};
+enum FSMState {
+  PEND = 'PEND',
+  SAY = 'SAY',
+  LISTEN = 'LISTEN',
+}
 
-const InputType = {
-  GOAL: `GOAL`,
-  SAY_DONE: `SAY_DONE`,
-  VALID_RESPONSE: `VALID_RESPONSE`,
-  INVALID_RESPONSE: `INVALID_RESPONSE`,
+enum InputType {
+  GOAL = 'GOAL',
+  SAY_DONE = 'SAY_DONE',
+  VALID_RESPONSE = 'VALID_RESPONSE',
+  INVALID_RESPONSE = 'INVALID_RESPONSE',
+}
+
+interface ReducerState {
+  state: FSMState,
+  variables: {
+    goal: Goal | undefined,
+    question: string | undefined,
+    answers: string[] | undefined,
+  },
+  outputs: {
+    SpeechSynthesisAction: {goal: Goal},
+    SpeechRecognition: {goal: Goal},
+    result: Result,
+  },
+}
+
+// type Sources = {
+//   Speech
+// };
+
+type Sinks = {
+  state: Reducer<ReducerState>
 };
 
 function input(
-  start$,
-  speechRecognitionActionResult$,
-  speechSynthesisActionResult$,
+  start$: Stream<Goal>,
+  speechRecognitionActionResult$: Stream<Result>,
+  speechSynthesisActionResult$: Stream<Result>,
 ) {
   return xs.merge(
     start$.map(v => ({type: InputType.GOAL, value: initGoal(v)})),
@@ -42,9 +67,9 @@ function createTransition() {
   // usage: transitionTable["state"]["inputType"], then it returns a function
   //   (prevVariables, inputValue) => {state: ..., variables: ..., outputs: ...}
   const transitionTable = {
-    [State.PEND]: {
+    [FSMState.PEND]: {
       [InputType.GOAL]: (prevVariables, inputValue) => ({
-        state: State.SAY,
+        state: FSMState.SAY,
         variables: {
           goal: initGoal(inputValue),
           question: inputValue.goal.question,
@@ -53,20 +78,20 @@ function createTransition() {
         outputs: {SpeechSynthesisAction: {goal: inputValue.goal.question}},
       }),
     },
-    [State.SAY]: {
+    [FSMState.SAY]: {
       [InputType.SAY_DONE]: (prevVariables, inputValue) => ({
-        state: State.LISTEN,
+        state: FSMState.LISTEN,
         variables: prevVariables,
         outputs: {SpeechRecognitionAction: {goal: {}}},
       }),
     },
-    [State.LISTEN]: {
+    [FSMState.LISTEN]: {
       [InputType.VALID_RESPONSE]: (prevVariables, inputValue) => {
         const answer = prevVariables.answers.find(
           a => a.toLowerCase().includes(inputValue.toLowerCase())
         );
         return ({
-              state: State.PEND,
+              state: FSMState.PEND,
               variables: null,
               outputs: {
                 result: {
@@ -82,7 +107,7 @@ function createTransition() {
             })
       },
       [InputType.INVALID_RESPONSE]: (prevVariables, inputValue) => ({
-        state: State.LISTEN,
+        state: FSMState.LISTEN,
         variables: prevVariables,
         outputs: {
           result: {
@@ -136,10 +161,11 @@ export default function QuestionAnswerAction(sources) {
     sources.SpeechSynthesisAction.result,
   );
 
-  const initReducer$ = xs.of(function () {
+  const initReducer$ = xs.of(function (): ReducerState {
     return {
-      state: State.PEND,
+      state: FSMState.PEND,
       variables: {
+        goal: null,
         question: null,
         answers: null,
       },
