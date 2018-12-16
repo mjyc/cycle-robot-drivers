@@ -1,7 +1,8 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
+import dropRepeats from 'xstream/extra/dropRepeats';
 import isolate from '@cycle/isolate';
-import {Status, initGoal} from '@cycle-robot-drivers/action';
+import {Status, initGoal, isEqual} from '@cycle-robot-drivers/action';
 import QuestionAnswerAction from './QuestionAnswerAction';
 
 const State = {
@@ -20,23 +21,24 @@ function input(goal$) {
 
 function machine(inputs) {
   const initReducer$ = xs.of(function(prev) {
-    return {
-      state: State.PEND,
-      outputs: null,
-      QuestionAnswerAction: prev.QuestionAnswerAction,
-    };
+    if (typeof prev === 'undefined') {
+      return {
+        state: State.PEND,
+        outputs: null,
+      };
+    } else {
+      return prev;
+    }
   });
 
   const transitionReducer$ = inputs.map(input => function(prev) {
     if (prev.state === State.PEND && input.type === InputType.GOAL) {
-      console.log(1);
       return {
         state: State.QA,
-        outputs: {question: 'How are you?', answers: ['yes', 'no']},
+        outputs: input.value,
         QuestionAnswerAction: prev.QuestionAnswerAction,
       }
     } else {
-      console.log(2);
       return {
         state: State.QA,
         outputs: null,
@@ -51,12 +53,11 @@ function machine(inputs) {
 export default function FlowchartAction(sources) {
   const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
     ...sources,
-    // goal: xs.of({question: 'How are you?', answers: ['yes', 'no']}).compose(delay(2000)),
-    goal: sources.state.stream.filter(s => !!s.outputs).map(s => s.outputs),
-    // goal: xs.never(),
+    goal: sources.state.stream
+      .filter(s => !!s.outputs)
+      .map(s => s.outputs)
+      .compose(dropRepeats(isEqual)),
   });
-
-  sources.state.stream.addListener({next: x => console.log('FlowchartAction', x)});
 
   const input$ = input(sources.goal);
 
@@ -64,8 +65,8 @@ export default function FlowchartAction(sources) {
 
   return {
     state: xs.merge(
-      qaSinks.state,
       reducer$,
+      qaSinks.state,
     ),
     outputs: qaSinks.outputs,
   };

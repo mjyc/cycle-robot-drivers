@@ -2,18 +2,17 @@ import xs from 'xstream';
 
 export function output(machine$) {
   const outputs$ = machine$
-    .filter(machine => !!machine.outputs)
-    .map(machine => machine.outputs);
-
+    .filter(m => !!m.outputs)
+    .map(m => m.outputs);
   return {
     SpeechSynthesisAction: outputs$
-      .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(output => output.SpeechSynthesisAction.goal),
+      .filter(o => !!o.SpeechSynthesisAction)
+      .map(o => o.SpeechSynthesisAction.goal),
     SpeechRecognitionAction: outputs$
-      .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal),
+      .filter(o => !!o.SpeechRecognitionAction)
+      .map(o => o.SpeechRecognitionAction.goal),
     TabletFace: outputs$
-      .filter(outputs => !!outputs.TabletFace)
-      .map(output => output.TabletFace.goal),
+      .filter(o => !!o.TabletFace)
+      .map(o => o.TabletFace.goal),
   };
 }

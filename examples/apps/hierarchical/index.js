@@ -9,7 +9,7 @@ import FlowchartAction from './FlowchartAction';
 function main(sources) {
   const sinks = isolate(FlowchartAction, 'FlowchartAction')({
     ...sources,
-    goal: xs.of({}).compose(delay(2000)),
+    goal: xs.of({question: 'How are you?', answers: ['yes', 'no']}).compose(delay(2000)),
   });
 
   const state$ = sources.state.stream;

@@ -112,15 +112,19 @@ function createTransition() {
 const transition = createTransition();
 
 function machine(inputs) {
-  const initReducer$ = xs.of(function () {
-    return {
-      state: State.PEND,
-      variables: {
-        question: null,
-        answers: null,
-      },
-      outputs: null,
-    };
+  const initReducer$ = xs.of(function (prev) {
+    if (typeof prev === 'undefined') {
+      return {
+        state: State.PEND,
+        variables: {
+          question: null,
+          answers: null,
+        },
+        outputs: null,
+      };
+    } else {
+      return prev;
+    }
   });
 
   const transitionReducer$ = inputs.map(input => function (prev) {
