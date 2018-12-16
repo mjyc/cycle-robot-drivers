@@ -56,37 +56,36 @@ function reducer(input$) {
       return {
         state: State.QA,
         variables: {
-          flowchart: input.value.goal,
-          goal_id: input.value.goal_id,
-          // cur: 'Is it important that you reach your full career potential?',
-          cur: 'Can you see yourself working online?',
+          flowchart: input.value.goal.flowchart,
+          node: input.value.goal.start,
+          goal_id: input.value.goal.goal_id,
         },
         outputs: {
           QuestionAnswerAction: {
             goal: initGoal({
-              // question: 'Is it important that you reach your full career potential?',
-              question: 'Can you see yourself working online?',
-              answers: ['yes', 'no'],
+              question: input.value.goal.start,
+              answers: Object.keys(
+                input.value.goal.flowchart[input.value.goal.start]),
             }),
           },
         },
         QuestionAnswerAction: prev.QuestionAnswerAction,
       }
     } else if (prev.state === State.QA && input.type === InputType.QA_DONE) {
-      const node = prev.variables.flowchart[prev.variables.cur][input.value];
+      const node = prev.variables.flowchart[prev.variables.node][input.value];
       if (Object.keys(prev.variables.flowchart).includes(node)) {
         return {
           state: State.QA,
           variables: {
             flowchart: prev.variables.flowchart,
             goal_id: prev.variables.goal_id,
-            cur: node
+            node: node
           },
           outputs: {
             QuestionAnswerAction: {
               goal: initGoal({
                 question: node,
-                answers: ['yes', 'no'],
+                answers: Object.keys(prev.variables.flowchart[node]),
               })
             },
           },
@@ -98,7 +97,7 @@ function reducer(input$) {
           variables: {
             flowchart: prev.variables.flowchart,
             goal_id: prev.variables.goal_id,
-            cur: node
+            node: node
           },
           outputs: {
             SpeechSynthesisAction: {
@@ -118,7 +117,7 @@ function reducer(input$) {
               goal_id: prev.variables.goal_id,
               status: Status.SUCCEEDED,
             },
-            result: prev.variables.cur,
+            result: prev.variables.node,
           }
         },
         QuestionAnswerAction: prev.QuestionAnswerAction,

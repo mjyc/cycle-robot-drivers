@@ -5,7 +5,6 @@ import {withState} from '@cycle/state'
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 import FlowchartAction from './FlowchartAction';
 
-// TODO: remove when done
 const Sentence = {
   CAREER: 'Is it important that you reach your full career potential?',
   ONLINE: 'Can you see yourself working online?',
@@ -58,7 +57,10 @@ const flowchart = {
 function main(sources) {
   const sinks = isolate(FlowchartAction, 'FlowchartAction')({
     ...sources,
-    goal: xs.of(flowchart).compose(delay(1000)),
+    goal: xs.of({
+      flowchart,
+      start: Sentence.CAREER
+    }).compose(delay(1000)),
   });
 
   const state$ = sources.state.stream;
