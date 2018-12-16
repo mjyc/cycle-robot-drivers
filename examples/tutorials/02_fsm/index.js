@@ -24,7 +24,7 @@ const InputType = {
 /**
  * // Example state, variables, input, and outputs
  * const state = State.PEND;
- * const variables = {  
+ * const variables = {
  *   sentence: 'You are a vacationer!',
  * };
  * const input = {
@@ -115,7 +115,7 @@ function input(
         speechSynthesisActionResult$,
         lostOrFoundPerson$.filter(input => input.type == InputType.LOST_PERSON),
       ).mapTo(xs.of({type: InputType.TIMED_OUT}).compose(delay(30000))),  // 30s
-    ).flatten().debug(),
+    ).flatten(),
   );
 }
 
@@ -275,7 +275,7 @@ function createTransition() {
   };
 
   return function(prevState, prevVariables, prevInput) {
-    (prevInput.type !== "DETECTED_FACE") && 
+    (prevInput.type !== "DETECTED_FACE") &&
       console.log(prevState, prevVariables, prevInput);
     // excuse me for abusing ternary
     return !transitionTable[prevState]
