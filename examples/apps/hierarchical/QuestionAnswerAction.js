@@ -141,10 +141,10 @@ export default function QuestionAnswerAction(sources) {
     sources.SpeechRecognitionAction,
   );
   const reducer$ = reducer(input$);
-  const output$ = output(reducerState$);
+  const outputs = output(reducerState$);
 
   return {
     state: reducer$,
-    outputs: output$,
+    outputs: outputs,
   }
 }
