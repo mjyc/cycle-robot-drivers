@@ -2,7 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, Status, Result, EventSource, initGoal,
+  GoalID, Goal, Status, Result, ActionSinks, EventSource, initGoal,
 } from '@cycle-robot-drivers/action';
 
 
@@ -44,6 +44,11 @@ enum InputType {
 type Input = {
   type: InputType,
   value: Goal | SpeechRecognitionEvent | SpeechRecognitionError,
+};
+
+export type Sources = {
+  goal: any,
+  SpeechRecognition: EventSource,
 };
 
 
@@ -248,13 +253,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
  *     the recognition; it will be `''` for non-speech inputs.
  * 
  */
-export function SpeechRecognitionAction(sources: {
-  goal: any,
-  SpeechRecognition: EventSource,
-}): {
-  output: any,
-  result: any,
-} {
+export function SpeechRecognition(sources: Sources): ActionSinks {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(sources.SpeechRecognition.events('start')),

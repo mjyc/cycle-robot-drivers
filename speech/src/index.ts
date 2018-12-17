@@ -1,7 +1,10 @@
 export {makeSpeechSynthesisDriver} from './makeSpeechSynthesisDriver';
 export {
-  SpeechSynthesisActionSources,
+  Sources as SpeechSynthesisActionSources,
   SpeechSynthesisAction,
 } from './SpeechSynthesisAction';
 export {makeSpeechRecognitionDriver} from './makeSpeechRecognitionDriver';
-export {SpeechRecognitionAction} from './SpeechRecognitionAction';
+export {
+  Sources as SpeechRecognitionActionSources,
+  SpeechRecognitionAction,
+} from './SpeechRecognitionAction';
