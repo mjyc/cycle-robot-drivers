@@ -253,7 +253,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
  *     the recognition; it will be `''` for non-speech inputs.
  * 
  */
-export function SpeechRecognition(sources: Sources): ActionSinks {
+export function SpeechRecognitionAction(sources: Sources): ActionSinks {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(sources.SpeechRecognition.events('start')),
