@@ -26,13 +26,6 @@ export type Result = {
 };
 
 
-export interface ActionSinks {
-  outputs: any,
-  status?: any,  // TODO: remove after refactoring AudioPlayerAction & FacialExpressionAction
-  result: any,
-};
-
-
 export interface EventSource {
   events(eventType: string): any;
 }
