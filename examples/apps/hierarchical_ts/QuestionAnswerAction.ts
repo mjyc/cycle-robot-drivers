@@ -1,8 +1,7 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {Reducer} from '@cycle/state';
-import {initGoal} from '@cycle-robot-drivers/action';
-import {Goal, Status, Result} from '@cycle-robot-drivers/action';
+import {StateSource, Reducer} from '@cycle/state';
+import {Status, Result} from '@cycle-robot-drivers/action';
 
 enum FSMState {
   PEND = 'PEND',
@@ -17,170 +16,158 @@ enum InputType {
   INVALID_RESPONSE = 'INVALID_RESPONSE',
 }
 
-export type ReducerState = {
-  state: FSMState,
-  variables: {
-    goal: Goal | undefined,
-    question: string | undefined,
-    answers: string[] | undefined,
-  },
-  outputs: {
-    SpeechSynthesisAction: {goal: Goal},
-    SpeechRecognition: {goal: Goal},
-    result: Result,
-  },
-}
-
-// TODO: import SpeechRecognitionAction SpeechSynthesisAction types from @cycle-robot-drives/run
-export type Sources = {
-  goal: Stream<any>,
-  SpeechRecognitionAction: {result: Stream<any>},
-  SpeechSynthesisAction: {result: Stream<any>},
+export type ReducerState = {  // TODO: move it to ... utils or types
+  state: FSMState,  // TODO: make it a variable
+  variables: any,  // TODO: define its own type & make it a variable
+  outputs: any,  // TODO: define its own type & make it a variable
 };
 
-export type Sinks = {
-  state: Stream<Reducer<ReducerState>>
+export type Sources = {  // TODO: define RobotProgramSource in run or keep it in utils
+  goal: Stream<any>,
+  SpeechSynthesisAction: {result: Stream<Result>},
+  SpeechRecognitionAction: {result: Stream<Result>},
+  state: StateSource<ReducerState>,
+};
+
+export type Sinks = {  // TODO: define RobotProgramSink in run or keep it in utils
+  outputs: {
+    SpeechSynthesisAction: Stream<any>,
+    SpeechRecognitionAction: Stream<any>,
+  },
+  state: Stream<Reducer<ReducerState>>,
 };
 
 function input(
-  start$: Stream<Goal>,
-  speechRecognitionActionResult$: Stream<Result>,
-  speechSynthesisActionResult$: Stream<Result>,
+  goal$: Stream<any>,
+  speechSynthesisAction,
+  speechRecognitionAction,
 ) {
   return xs.merge(
-    start$.map(v => ({type: InputType.GOAL, value: initGoal(v)})),
-    speechSynthesisActionResult$
+    goal$.map(g => ({type: InputType.GOAL, value: g})),
+    speechSynthesisAction.result
       .filter(result => result.status.status === 'SUCCEEDED')
       .mapTo({type: InputType.ASK_DONE}),
-    speechRecognitionActionResult$
+    speechRecognitionAction.result
       .filter(result =>
         result.status.status === 'SUCCEEDED'
       ).map(result => ({
         type: InputType.VALID_RESPONSE,
         value: result.result,
       })),
-    speechRecognitionActionResult$
+    speechRecognitionAction.result
       .filter(result =>
         result.status.status !== 'SUCCEEDED'
       ).mapTo({type: InputType.INVALID_RESPONSE}),
   );
 }
 
-function createTransition() {
-  // usage: transitionTable["state"]["inputType"], then it returns a function
-  //   (prevVariables, inputValue) => {state: ..., variables: ..., outputs: ...}
-  const transitionTable = {
-    [FSMState.PEND]: {
-      [InputType.GOAL]: (prevVariables, inputValue) => ({
-        state: FSMState.ASK,
+function reducer(input$) {
+  const initReducer$ = xs.of(function (prev) {
+    if (typeof prev === 'undefined') {
+      return {
+        state: FSMState.PEND,
         variables: {
-          goal: initGoal(inputValue),
-          question: inputValue.goal.question,
-          answers: inputValue.goal.answers.map(a => a.toLowerCase()),
+          question: null,
+          answers: null,
         },
-        outputs: {SpeechSynthesisAction: {goal: inputValue.goal.question}},
-      }),
-    },
-    [FSMState.ASK]: {
-      [InputType.ASK_DONE]: (prevVariables, inputValue) => ({
-        state: FSMState.LISTEN,
-        variables: prevVariables,
-        outputs: {SpeechRecognitionAction: {goal: {}}},
-      }),
-    },
-    [FSMState.LISTEN]: {
-      [InputType.VALID_RESPONSE]: (prevVariables, inputValue) => {
-        const answer = prevVariables.answers.find(
-          a => a.toLowerCase().includes(inputValue.toLowerCase())
-        );
-        return ({
-              state: FSMState.PEND,
-              variables: null,
-              outputs: {
-                result: {
-                  status: {
-                    goal_id: prevVariables.goal.goal_id,
-                    status: (!!answer)
-                      ? Status.SUCCEEDED
-                      : Status.ABORTED,
-                  },
-                  result: answer,
-                },
-              },
-            })
-      },
-      [InputType.INVALID_RESPONSE]: (prevVariables, inputValue) => ({
-        state: FSMState.LISTEN,
-        variables: prevVariables,
-        outputs: {
-          result: {
-            status: {
-              goal_id: prevVariables.goal.goal_id,
-              status: Status.ABORTED,
-            },
-            result: inputValue,
-          },
-        },
-      }),
-    },
-  };
+        outputs: null,
+      };
+    } else {
+      return prev;
+    }
+  });
 
-  return function(prevState, prevVariables, input) {
-    console.debug(
-      'prevState', prevState, 'prevVariables', prevVariables, 'input', input);
-    // excuse me for abusing ternary
-    return !transitionTable[prevState]
-      ? {state: prevState, variables: prevVariables, outputs: null}
-      : !transitionTable[prevState][input.type]
-        ? {state: prevState, variables: prevVariables, outputs: null}
-        : transitionTable[prevState][input.type](prevVariables, input.value);
-  }
+  const transitionReducer$ = input$.map(input => function (prev) {
+    console.debug('input', input, 'prev', prev);
+    if (prev.state === FSMState.PEND) {
+      if (input.type === InputType.GOAL) {
+        return {
+          state: FSMState.ASK,
+          variables: {
+            goal: input.value,
+            question: input.value.goal.question,
+            answers: input.value.goal.answers.map(a => a.toLowerCase()),
+          },
+          outputs: {SpeechSynthesisAction: {goal: input.value.goal.question}},
+        };
+      }
+    } else if (prev.state === FSMState.ASK) {
+      if (input.type === InputType.ASK_DONE) {
+        return {
+          state: FSMState.LISTEN,
+          variables: prev.variables,
+          outputs: {SpeechRecognitionAction: {goal: {}}},
+        };
+      }
+    } else if (prev.state === FSMState.LISTEN) {
+      if (input.type === InputType.VALID_RESPONSE) {
+        const answer = prev.variables.answers.find(
+          a => a.toLowerCase().includes(input.value))
+        const valid = '' !== input.value && !!answer;
+        return ({
+          state: FSMState.PEND,
+          variables: null,
+          outputs: {
+            result: {
+              status: {
+                goal_id: prev.variables.goal.goal_id,
+                status: valid ? Status.SUCCEEDED : Status.ABORTED,
+              },
+              result: valid ? answer : null,
+            },
+          },
+        });
+      } else if (input.type === InputType.INVALID_RESPONSE) {
+        return {
+          state: FSMState.LISTEN,
+          variables: prev.variables,
+          outputs: {
+            result: {
+              status: {
+                goal_id: prev.variables.goal.goal_id,
+                status: Status.ABORTED,
+              },
+              result: null,
+            },
+          },
+        };
+      }
+    };
+    return prev;
+  });
+
+  return xs.merge(initReducer$, transitionReducer$);
 }
 
-const transition = createTransition();
-
-function output(machine$) {
-  const outputs$ = machine$
-    .filter(machine => !!machine.outputs)
-    .map(machine => machine.outputs);
-
+function output(reducerState$) {
+  const outputs$ = reducerState$
+    .filter(m => !!m.outputs)
+    .map(m => m.outputs);
   return {
     SpeechSynthesisAction: outputs$
-      .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(output => output.SpeechSynthesisAction.goal),
+      .filter(o => !!o.SpeechSynthesisAction)
+      .map(o => o.SpeechSynthesisAction.goal),
     SpeechRecognitionAction: outputs$
-      .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal),
+      .filter(o => !!o.SpeechRecognitionAction)
+      .map(o => o.SpeechRecognitionAction.goal),
     TabletFace: outputs$
-      .filter(outputs => !!outputs.TabletFace)
-      .map(output => output.TabletFace.goal),
+      .filter(o => !!o.TabletFace)
+      .map(o => o.TabletFace.goal),
   };
 }
 
 export default function QuestionAnswerAction(sources: Sources): Sinks {
+  const reducerState$ = sources.state.stream;
   const input$ = input(
     sources.goal,
-    sources.SpeechRecognitionAction.result,
-    sources.SpeechSynthesisAction.result,
+    sources.SpeechSynthesisAction,
+    sources.SpeechRecognitionAction,
   );
-
-  const initReducer$ = xs.of(function (): ReducerState {
-    return {
-      state: FSMState.PEND,
-      variables: {
-        goal: null,
-        question: null,
-        answers: null,
-      },
-      outputs: null,
-    };
-  });
-
-  const transitionReducer$ = input$.map(input => function (prev) {
-    return transition(prev.state, prev.variables, input);
-  });
+  const reducer$ = reducer(input$) as Stream<Reducer<ReducerState>>;
+  const outputs = output(reducerState$);
 
   return {
-    state: xs.merge(initReducer$, transitionReducer$),
+    state: reducer$,
+    outputs,
   }
 }
