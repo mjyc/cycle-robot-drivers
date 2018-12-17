@@ -2,9 +2,18 @@ import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, GoalStatus, Status, Result,
+  GoalID, Goal, GoalStatus, Status, Result, ActionSinks,
   initGoal, generateGoalID, isEqual,
 } from '@cycle-robot-drivers/action'
+
+export interface Sources {
+  goal: any,
+  AudioPlayer: any,
+}
+
+export interface Sinks extends ActionSinks {
+  output: any,
+}
 
 
 /**
@@ -24,7 +33,7 @@ import {
  *   * result: a stream of action results. `result.result` is always `null`.
  * 
  */
-export function AudioPlayerAction(sources) {
+export function AudioPlayerAction(sources: Sources): Sinks {
   // Create action stream
   type Action = {
     type: string,
