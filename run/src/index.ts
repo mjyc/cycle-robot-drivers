@@ -19,20 +19,6 @@ import {
 } from '@cycle-robot-drivers/speech';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
-export type ActionSinks = {
-  outputs: any,
-  status?: any,
-  result: any,
-}
-
-export type Sources = {
-  FacialExpressionAction: {outputs: any, status: any, result: any},
-  AudioPlayerAction: {outputs: any, status: any, result: any},
-  TwoSpeechbubblesAction: {outputs: any, result: any},
-  SpeechSynthesisAction: {outputs: any, result: any},
-  SpeechRecognitionAction: {outputs: any, result: any},
-};
-
 /**
  * A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers)
  *   function.
@@ -64,7 +50,7 @@ export type Sources = {
  *   drivers.
  */
 export function runRobotProgram(
-  main: (sources: Sources) => any,
+  main: (sources: any) => any,
   drivers?: {
     DOM?: Driver<any, any>,
     TabletFace: Driver<any, any>,

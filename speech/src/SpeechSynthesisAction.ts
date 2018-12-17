@@ -2,7 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, Status, Result, EventSource, initGoal,
+  GoalID, Goal, Status, Result, ActionSinks, EventSource, initGoal,
 } from '@cycle-robot-drivers/action';
 
 
@@ -40,6 +40,11 @@ enum InputType {
 type Input = {
   type: InputType,
   value: Goal,
+};
+
+export type Sources = {
+  goal: any,
+  SpeechSynthesis: EventSource,
 };
 
 
@@ -214,13 +219,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
  *   * result: a stream of action results. `result.result` is always `null`.
  * 
  */
-export function SpeechSynthesisAction(sources: {
-  goal: any,
-  SpeechSynthesis: EventSource,
-}): {
-  output: any,
-  result: any,
-} {
+export function SpeechSynthesisAction(sources: Sources): ActionSinks {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(sources.SpeechSynthesis.events('start')),
