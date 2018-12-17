@@ -20,11 +20,11 @@ import {
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
 // export type Sources = {
-//   FacialExpressionAction: {...dontcare: Array<any>, result: any},
-//   AudioPlayerAction: {...dontcare: Array<any>, result: any},
-//   TwoSpeechbubblesAction: {...dontcare: Array<any>, result: any},
-//   SpeechSynthesisAction: {...dontcare: Array<any>, result: any},
-//   SpeechRecognitionAction: {...dontcare: Array<any>, result: any},
+//   FacialExpressionAction: {outputs: any, result: any},
+//   AudioPlayerAction: {outputs: any, result: any},
+//   TwoSpeechbubblesAction: {outputs: any, result: any},
+//   SpeechSynthesisAction: {outputs: any, result: any},
+//   SpeechRecognitionAction: {outputs: any, result: any},
 // };
 
 // export type Sinks = {
