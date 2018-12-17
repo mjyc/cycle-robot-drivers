@@ -19,6 +19,22 @@ import {
 } from '@cycle-robot-drivers/speech';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
+// export type Sources = {
+//   FacialExpressionAction: {...dontcare: Array<any>, result: any},
+//   AudioPlayerAction: {...dontcare: Array<any>, result: any},
+//   TwoSpeechbubblesAction: {...dontcare: Array<any>, result: any},
+//   SpeechSynthesisAction: {...dontcare: Array<any>, result: any},
+//   SpeechRecognitionAction: {...dontcare: Array<any>, result: any},
+// };
+
+// export type Sinks = {
+//   FacialExpressionAction: any,
+//   AudioPlayerAction: any,
+//   TwoSpeechbubblesAction: any,
+//   SpeechSynthesisAction: any,
+//   SpeechRecognitionAction: any,
+// };
+
 /**
  * A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers)
  *   function.
