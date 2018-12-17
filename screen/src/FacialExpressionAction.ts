@@ -11,7 +11,9 @@ export interface Sources {
   TabletFace: any
 }
 
-export interface Sinks extends ActionSinks {};
+export interface Sinks extends ActionSinks {
+  output: any,
+};
 
 /**
  * FacialExpression action component.
