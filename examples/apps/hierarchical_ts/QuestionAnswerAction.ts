@@ -1,32 +1,37 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {StateSource, Reducer} from '@cycle/state';
-import {Status, Result} from '@cycle-robot-drivers/action';
+import {StateSource, Reducer as StateReducer} from '@cycle/state';
+import {Goal, Status, Result} from '@cycle-robot-drivers/action';
+import {ReducerState} from './types';
 
-enum FSMState {
+export enum FSMState {
   PEND = 'PEND',
   ASK = 'ASK',
   LISTEN = 'LISTEN',
 }
 
-enum InputType {
+export enum InputType {
   GOAL = 'GOAL',
   ASK_DONE = 'ASK_DONE',
   VALID_RESPONSE = 'VALID_RESPONSE',
   INVALID_RESPONSE = 'INVALID_RESPONSE',
 }
 
-export type ReducerState = {  // TODO: move it to ... utils or types
-  state: FSMState,  // TODO: make it a variable
-  variables: any,  // TODO: define its own type & make it a variable
-  outputs: any,  // TODO: define its own type & make it a variable
-};
+export type Variables = {
+  goal: Goal,
+  question: string,
+  answers: string[],
+}
+
+export type RState = ReducerState<FSMState, Variables, any>;
+
+export type Reducer = StateReducer<RState>;
 
 export type Sources = {  // TODO: define RobotProgramSource in run or keep it in utils
   goal: Stream<any>,
   SpeechSynthesisAction: {result: Stream<Result>},
   SpeechRecognitionAction: {result: Stream<Result>},
-  state: StateSource<ReducerState>,
+  state: StateSource<RState>,
 };
 
 export type Sinks = {  // TODO: define RobotProgramSink in run or keep it in utils
@@ -34,7 +39,7 @@ export type Sinks = {  // TODO: define RobotProgramSink in run or keep it in uti
     SpeechSynthesisAction: Stream<any>,
     SpeechRecognitionAction: Stream<any>,
   },
-  state: Stream<Reducer<ReducerState>>,
+  state: Stream<Reducer>,
 };
 
 function input(
@@ -67,6 +72,7 @@ function reducer(input$) {
       return {
         state: FSMState.PEND,
         variables: {
+          goal: null,
           question: null,
           answers: null,
         },
@@ -163,7 +169,7 @@ export default function QuestionAnswerAction(sources: Sources): Sinks {
     sources.SpeechSynthesisAction,
     sources.SpeechRecognitionAction,
   );
-  const reducer$ = reducer(input$) as Stream<Reducer<ReducerState>>;
+  const reducer$ = reducer(input$) as Stream<Reducer>;
   const outputs = output(reducerState$);
 
   return {
