@@ -27,8 +27,8 @@ export type Result = {
 
 
 export interface ActionSinks {
-  output: any,
-  status?: any,  // TODO: remove after refactoring AudioPlayerAction & FacialExpressionAction
+  feedback?: any,
+  status?: any,  // NOTE: plan to remove after refactoring AudioPlayerAction and FacialExpressionAction
   result: any,
 };
 

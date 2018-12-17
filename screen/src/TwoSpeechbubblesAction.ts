@@ -2,9 +2,9 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-import {div, span} from '@cycle/dom';
+import {div, span, DOMSource} from '@cycle/dom';
 import {
-  GoalID, Goal, Status, Result, initGoal, isEqual,
+  GoalID, Goal, Status, Result, ActionSinks, initGoal, isEqual,
 } from '@cycle-robot-drivers/action';
 import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction';
 
@@ -46,11 +46,20 @@ type Input = {
   value: Goal | Result,
 };
 
+export interface Sources {
+  goal: any,
+  DOM: DOMSource,
+}
+
+export interface Sinks extends ActionSinks {
+  DOM: any,
+}
 
 export enum TwoSpeechbubblesType {
   SET_MESSAGE = 'SET_MESSAGE',
   ASK_QUESTION = 'ASK_QUESTION',
 }
+
 
 function input(
   goal$: Stream<any>,
@@ -256,13 +265,8 @@ function output(machine$) {
  *   * result: a stream of action results.
  * 
  */
-export function TwoSpeechbubblesAction(sources: {
-  goal: any,
-  DOM: any
-}): {
-  DOM: any,
-  result: any,
-} {
+
+export function TwoSpeechbubblesAction(sources: Sources): Sinks {
   // create proxies
   const humanSpeechbubbleResult = xs.create();
 

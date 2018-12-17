@@ -5,7 +5,7 @@ import isolate from '@cycle/isolate';
 import {span, button, style} from '@cycle/dom';
 import {DOMSource} from '@cycle/dom';
 import {
-  GoalID, Goal, Status, Result, initGoal,
+  GoalID, Goal, Status, Result, ActionSinks, initGoal,
 } from '@cycle-robot-drivers/action';
 
 
@@ -46,11 +46,20 @@ type Input = {
   value: Goal,
 };
 
+export interface Sources {
+  goal: any,
+  DOM: DOMSource,
+}
+
+export interface Sinks extends ActionSinks {
+  DOM: any,
+}
 
 export enum SpeechbubbleType {
   MESSAGE = 'MESSAGE',
   CHOICE = 'CHOICE',
 }
+
 
 function input(goal$: Stream<any>, clickEvent$: Stream<any>): Stream<Input> {
   return xs.merge(
@@ -262,13 +271,7 @@ function output(machine$) {
  *   * result: a stream of action results.
  * 
  */
-export function SpeechbubbleAction(sources: {
-  goal: any,
-  DOM: DOMSource,
-}): {
-  DOM: any,
-  result: any,
-} {
+export function SpeechbubbleAction(sources: Sources): Sinks {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(

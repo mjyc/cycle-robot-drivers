@@ -2,9 +2,16 @@ import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, GoalStatus, Status, Result,
+  GoalID, Goal, GoalStatus, Status, Result, ActionSinks,
   generateGoalID, initGoal, isEqual,
 } from '@cycle-robot-drivers/action';
+
+export interface Sources {
+  goal: any,
+  TabletFace: any
+}
+
+export interface Sinks extends ActionSinks {};
 
 /**
  * FacialExpression action component.
@@ -23,7 +30,7 @@ import {
  *   * result: a stream of action results. `result.result` is always `null`.
  * 
  */
-export function FacialExpressionAction(sources) {
+export function FacialExpressionAction(sources: Sources): Sinks {
   // Create action stream
   type Action = {
     type: string,

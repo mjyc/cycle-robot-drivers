@@ -42,9 +42,13 @@ type Input = {
   value: Goal,
 };
 
-export type Sources = {
+export interface Sources {
   goal: any,
   SpeechSynthesis: EventSource,
+}
+
+export interface Sinks extends ActionSinks {
+  output: any,
 };
 
 
@@ -219,7 +223,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
  *   * result: a stream of action results. `result.result` is always `null`.
  * 
  */
-export function SpeechSynthesisAction(sources: Sources): ActionSinks {
+export function SpeechSynthesisAction(sources: Sources): Sinks {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(sources.SpeechSynthesis.events('start')),

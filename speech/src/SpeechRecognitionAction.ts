@@ -46,9 +46,13 @@ type Input = {
   value: Goal | SpeechRecognitionEvent | SpeechRecognitionError,
 };
 
-export type Sources = {
+export interface Sources {
   goal: any,
   SpeechRecognition: EventSource,
+}
+
+export interface Sinks extends ActionSinks {
+  output: any,
 };
 
 
@@ -253,7 +257,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
  *     the recognition; it will be `''` for non-speech inputs.
  * 
  */
-export function SpeechRecognitionAction(sources: Sources): ActionSinks {
+export function SpeechRecognitionAction(sources: Sources): Sinks {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(sources.SpeechRecognition.events('start')),
