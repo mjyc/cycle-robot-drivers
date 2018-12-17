@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import {Status, initGoal} from '@cycle-robot-drivers/action';
+import {Status} from '@cycle-robot-drivers/action';
 
 const State = {
   PEND: 'PEND',
@@ -145,6 +145,6 @@ export default function QuestionAnswerAction(sources) {
 
   return {
     state: reducer$,
-    outputs: outputs,
+    outputs,
   }
 }

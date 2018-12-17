@@ -55,7 +55,7 @@ const flowchart = {
 };
 
 function main(sources) {
-  const sinks = isolate(FlowchartAction, 'FlowchartAction')({
+  const fcSinks = isolate(FlowchartAction, 'FlowchartAction')({
     ...sources,
     goal: xs.of({
       flowchart,
@@ -63,13 +63,10 @@ function main(sources) {
     }).compose(delay(1000)),
   });
 
-  const state$ = sources.state.stream;
-  state$.addListener({next: s => console.log('state$', s)});
-
   return {
-    state: sinks.state,
-    SpeechSynthesisAction: sinks.outputs.SpeechSynthesisAction,
-    SpeechRecognitionAction: sinks.outputs.SpeechRecognitionAction,
+    state: fcSinks.state,
+    SpeechSynthesisAction: fcSinks.outputs.SpeechSynthesisAction,
+    SpeechRecognitionAction: fcSinks.outputs.SpeechRecognitionAction,
   };
 }
 

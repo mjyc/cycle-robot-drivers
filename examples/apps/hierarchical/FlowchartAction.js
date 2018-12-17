@@ -12,7 +12,8 @@ const State = {
 
 const InputType = {
   GOAL: 'GOAL',
-  QA_DONE: 'QA_DONE',
+  QA_SUCCEEDED: 'QA_SUCCEEDED',
+  QA_FAILED: 'QA_FAILED',
   SAY_DONE: 'SAY_DONE',
 };
 
@@ -21,16 +22,21 @@ function input(
   state$,
   speechSynthesisAction,
 ) {
+  const qaResult$ = state$
+    .filter(s => !!s.QuestionAnswerAction
+      && !!s.QuestionAnswerAction.outputs
+      && !!s.QuestionAnswerAction.outputs.result)
+    .map(s => s.QuestionAnswerAction.outputs.result)
+    .compose(
+      dropRepeats((x, y) => isEqual(x.status.goal_id, y.status.goal_id)));
   return xs.merge(
     goal$.map(x => ({type: InputType.GOAL, value: initGoal(x)})),
-    state$
-      .filter(s => !!s.QuestionAnswerAction
-        && !!s.QuestionAnswerAction.outputs
-        && !!s.QuestionAnswerAction.outputs.result)
-      .map(s => s.QuestionAnswerAction.outputs.result)
-      .compose(
-        dropRepeats((x, y) => isEqual(x.status.goal_id, y.status.goal_id)))
-      .map(r => ({type: InputType.QA_DONE, value: r.result})),
+    qaResult$
+      .filter(r => r.status.status === Status.SUCCEEDED)
+      .map(r => ({type: InputType.QA_SUCCEEDED, value: r.result})),
+    qaResult$
+      .filter(r => r.status.status !== Status.SUCCEEDED)
+      .map(r => ({type: InputType.QA_FAILED, value: r.result})),
     speechSynthesisAction.result
       .filter(result => result.status.status === 'SUCCEEDED')
       .mapTo({type: InputType.SAY_DONE}),
@@ -71,7 +77,7 @@ function reducer(input$) {
         },
         QuestionAnswerAction: prev.QuestionAnswerAction,
       }
-    } else if (prev.state === State.QA && input.type === InputType.QA_DONE) {
+    } else if (prev.state === State.QA && input.type === InputType.QA_SUCCEEDED) {
       const node = prev.variables.flowchart[prev.variables.node][input.value];
       if (Object.keys(prev.variables.flowchart).includes(node)) {
         return {
@@ -91,7 +97,7 @@ function reducer(input$) {
           },
           QuestionAnswerAction: prev.QuestionAnswerAction,
         };
-      } else {
+      } else {  // deadends
         return {
           state: State.TELL,
           variables: {
@@ -107,6 +113,21 @@ function reducer(input$) {
           QuestionAnswerAction: prev.QuestionAnswerAction,
         };
       }
+    } else if (prev.state === State.QA && input.type === InputType.QA_FAILED) {
+      return {
+        state: State.PEND,
+        variables: null,
+        outputs: {
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.ABORTED,
+            },
+            result: prev.variables.node,
+          }
+        },
+        QuestionAnswerAction: prev.QuestionAnswerAction,
+      };
     } else if (prev.state === State.TELL && input.type === InputType.SAY_DONE) {
       return {
         state: State.PEND,
@@ -144,6 +165,8 @@ function output(reducerState$) {
       .compose(dropRepeats((g1, g2) => isEqual(g1.goal_id, g2.goal_id))),
   };
 }
+
+
 
 export default function FlowchartAction(sources) {
   const reducerState$ = sources.state.stream;
