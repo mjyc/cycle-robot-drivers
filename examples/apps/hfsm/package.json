@@ -10,7 +10,6 @@
     "@cycle-robot-drivers/run": "0.0.22",
     "@cycle/isolate": "4.1.0",
     "@cycle/state": "1.1.0",
-    "brfs": "^2.0.1",
     "xstream": "11.7.0"
   },
   "devDependencies": {
@@ -26,7 +25,7 @@
   },
   "scripts": {
     "build": "mkdirp dist && browserify index.js -t babelify --outfile dist/index.js -dv",
-    "watch": "mkdirp dist && watchify index.js -t [ babelify ] -t [ brfs ] --outfile dist/index.js -dv",
+    "watch": "mkdirp dist && watchify index.js -t babelify --outfile dist/index.js -dv",
     "start": "concurrently \"npm run watch\" \"live-server\""
   }
 }
