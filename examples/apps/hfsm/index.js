@@ -5,6 +5,9 @@ import {withState} from '@cycle/state'
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 import FlowchartAction from './FlowchartAction';
 
+var fs = require('fs');
+console.log(fs.readFileSync('/tmp/test.txt', 'utf8'));
+
 const Sentence = {
   CAREER: 'Is it important that you reach your full career potential?',
   ONLINE: 'Can you see yourself working online?',
