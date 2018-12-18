@@ -1,9 +1,10 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
 import isolate from '@cycle/isolate';
-import {StateSource, Reducer, withState} from '@cycle/state'
+import {withState} from '@cycle/state'
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 import FlowchartAction from './FlowchartAction';
+import {Sinks as FcSinks} from './FlowchartAction';
 
 const Sentence = {
   CAREER: 'Is it important that you reach your full career potential?',
@@ -55,13 +56,13 @@ const flowchart = {
 };
 
 function main(sources) {
-  const fcSinks = isolate(FlowchartAction, 'FlowchartAction')({
+  const fcSinks: FcSinks = isolate(FlowchartAction, 'FlowchartAction')({
     ...sources,
     goal: xs.of({
       flowchart,
       start: Sentence.CAREER
     }).compose(delay(1000)),
-  }) as any;
+  });
 
   return {
     state: fcSinks.state,

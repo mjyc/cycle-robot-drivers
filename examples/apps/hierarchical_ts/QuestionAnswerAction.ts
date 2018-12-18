@@ -27,20 +27,22 @@ export type RState = ReducerState<FSMState, Variables, any>;
 
 export type Reducer = StateReducer<RState>;
 
-export type Sources = {  // TODO: define RobotProgramSource in run or keep it in utils
+export interface Outputs {
+  SpeechSynthesisAction: Stream<any>,
+  SpeechRecognitionAction: Stream<any>,
+}
+
+export interface Sources {
   goal: Stream<any>,
   SpeechSynthesisAction: {result: Stream<Result>},
   SpeechRecognitionAction: {result: Stream<Result>},
   state: StateSource<RState>,
-};
+}
 
-export type Sinks = {  // TODO: define RobotProgramSink in run or keep it in utils
-  outputs: {
-    SpeechSynthesisAction: Stream<any>,
-    SpeechRecognitionAction: Stream<any>,
-  },
+export interface Sinks {
+  outputs: Outputs,
   state: Stream<Reducer>,
-};
+}
 
 function input(
   goal$: Stream<any>,
@@ -67,7 +69,7 @@ function input(
 }
 
 function reducer(input$) {
-  const initReducer$ = xs.of(function (prev) {
+  const initReducer$: Stream<Reducer> = xs.of(function (prev) {
     if (typeof prev === 'undefined') {
       return {
         state: FSMState.PEND,
@@ -83,7 +85,7 @@ function reducer(input$) {
     }
   });
 
-  const transitionReducer$ = input$.map(input => function (prev) {
+  const transitionReducer$: Stream<Reducer> = input$.map(input => function (prev) {
     console.debug('input', input, 'prev', prev);
     if (prev.state === FSMState.PEND) {
       if (input.type === InputType.GOAL) {
@@ -169,7 +171,8 @@ export default function QuestionAnswerAction(sources: Sources): Sinks {
     sources.SpeechSynthesisAction,
     sources.SpeechRecognitionAction,
   );
-  const reducer$ = reducer(input$) as Stream<Reducer>;
+  // const reducer$ = reducer(input$) as Stream<Reducer>;
+  const reducer$ = reducer(input$);
   const outputs = output(reducerState$);
 
   return {

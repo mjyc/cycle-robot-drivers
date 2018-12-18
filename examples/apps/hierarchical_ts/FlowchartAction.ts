@@ -1,21 +1,53 @@
 import xs from 'xstream';
+import {Stream} from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import isolate from '@cycle/isolate';
-import {Status, initGoal, isEqual, isEqualGoal, isEqualResult} from '@cycle-robot-drivers/action';
+import {StateSource, Reducer as StateReducer} from '@cycle/state';
+import {
+  GoalID, Status, initGoal, isEqualGoal, isEqualResult
+} from '@cycle-robot-drivers/action';
+import {Omit, ReducerState} from './types';
 import QuestionAnswerAction from './QuestionAnswerAction';
+import {
+  RState as QARState, Sources as QASources, Outputs as QAOutputs
+} from './QuestionAnswerAction';
 
-const State = {
-  PEND: 'PEND',
-  QA: 'QA',
-  TELL: 'TELL',
-};
+enum FSMState {
+  PEND = 'PEND',
+  QA = 'QA',
+  TELL = 'TELL',
+}
 
-const InputType = {
-  GOAL: 'GOAL',
-  QA_SUCCEEDED: 'QA_SUCCEEDED',
-  QA_FAILED: 'QA_FAILED',
-  SAY_DONE: 'SAY_DONE',
-};
+enum InputType {
+  GOAL = 'GOAL',
+  QA_SUCCEEDED = 'QA_SUCCEEDED',
+  QA_FAILED = 'QA_FAILED',
+  SAY_DONE = 'SAY_DONE',
+}
+
+export type Variables = {
+  flowchart: any,
+  node: string,
+  goal_id: GoalID,
+  QuestionAnswerAction: QARState,
+}
+
+export type RState = ReducerState<FSMState, Variables, any>;
+
+export type Reducer = StateReducer<RState>;
+
+export interface Outputs extends QAOutputs {
+  QuestionAnswerAction: Stream<any>
+}
+
+export interface Sources extends Omit<QASources, 'state'> {
+  state: StateSource<RState>,
+}
+
+export interface Sinks {
+  outputs: Outputs,
+  state: Stream<Reducer>,
+}
 
 function input(
   goal$,
@@ -43,10 +75,10 @@ function input(
 }
 
 function reducer(input$) {
-  const initReducer$ = xs.of(function(prev) {
+  const initReducer$: Stream<Reducer> = xs.of(function(prev) {
     if (typeof prev === 'undefined') {
       return {
-        state: State.PEND,
+        state: FSMState.PEND,
         variables: null,
         outputs: null,
       };
@@ -55,11 +87,11 @@ function reducer(input$) {
     }
   });
 
-  const transitionReducer$ = input$.map(input => function(prev) {
+  const transitionReducer$: Stream<Reducer> = input$.map(input => function(prev) {
     console.debug('input', input, 'prev', prev);
-    if (prev.state === State.PEND && input.type === InputType.GOAL) {
+    if (prev.state === FSMState.PEND && input.type === InputType.GOAL) {
       return {
-        state: State.QA,
+        state: FSMState.QA,
         variables: {
           flowchart: input.value.goal.flowchart,
           node: input.value.goal.start,
@@ -76,11 +108,11 @@ function reducer(input$) {
         },
         QuestionAnswerAction: prev.QuestionAnswerAction,
       }
-    } else if (prev.state === State.QA && input.type === InputType.QA_SUCCEEDED) {
+    } else if (prev.state === FSMState.QA && input.type === InputType.QA_SUCCEEDED) {
       const node = prev.variables.flowchart[prev.variables.node][input.value];
       if (Object.keys(prev.variables.flowchart).includes(node)) {
         return {
-          state: State.QA,
+          state: FSMState.QA,
           variables: {
             flowchart: prev.variables.flowchart,
             goal_id: prev.variables.goal_id,
@@ -98,7 +130,7 @@ function reducer(input$) {
         };
       } else {  // deadends
         return {
-          state: State.TELL,
+          state: FSMState.TELL,
           variables: {
             flowchart: prev.variables.flowchart,
             goal_id: prev.variables.goal_id,
@@ -112,9 +144,9 @@ function reducer(input$) {
           QuestionAnswerAction: prev.QuestionAnswerAction,
         };
       }
-    } else if (prev.state === State.QA && input.type === InputType.QA_FAILED) {
+    } else if (prev.state === FSMState.QA && input.type === InputType.QA_FAILED) {
       return {
-        state: State.PEND,
+        state: FSMState.PEND,
         variables: null,
         outputs: {
           result: {
@@ -127,9 +159,9 @@ function reducer(input$) {
         },
         QuestionAnswerAction: prev.QuestionAnswerAction,
       };
-    } else if (prev.state === State.TELL && input.type === InputType.SAY_DONE) {
+    } else if (prev.state === FSMState.TELL && input.type === InputType.SAY_DONE) {
       return {
-        state: State.PEND,
+        state: FSMState.PEND,
         variables: null,
         outputs: {
           result: {
@@ -165,10 +197,10 @@ function output(reducerState$) {
   };
 }
 
-export default function FlowchartAction(sources) {
+export default function FlowchartAction(sources: Sources): Sinks {
   const reducerState$ = sources.state.stream;
   const outputs = output(reducerState$);
-  const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
+  const qaSinks: Sinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
     ...sources,
     goal: outputs.QuestionAnswerAction,
   }) as any;
