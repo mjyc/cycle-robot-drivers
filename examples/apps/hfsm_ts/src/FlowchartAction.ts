@@ -15,7 +15,7 @@ import {
 enum FSMState {
   PEND = 'PEND',
   QA = 'QA',
-  TELL = 'TELL',
+  SAY = 'SAY',
 }
 
 enum InputType {
@@ -89,52 +89,16 @@ function reducer(input$) {
 
   const transitionReducer$: Stream<Reducer> = input$.map(input => function(prev) {
     console.debug('input', input, 'prev', prev);
-    if (prev.state === FSMState.PEND && input.type === InputType.GOAL) {
-      return {
-        state: FSMState.QA,
-        variables: {
-          flowchart: input.value.goal.flowchart,
-          node: input.value.goal.start,
-          goal_id: input.value.goal.goal_id,
-        },
-        outputs: {
-          QuestionAnswerAction: {
-            goal: initGoal({
-              question: input.value.goal.start,
-              answers: Object.keys(
-                input.value.goal.flowchart[input.value.goal.start]),
-            }),
-          },
-        },
-        QuestionAnswerAction: prev.QuestionAnswerAction,
-      }
-    } else if (prev.state === FSMState.QA && input.type === InputType.QA_SUCCEEDED) {
-      const node = prev.variables.flowchart[prev.variables.node][input.value];
-      if (Object.keys(prev.variables.flowchart).includes(node)) {
+    if (prev.state === FSMState.PEND && input.type === InputType.GOAL) {  // goal-received
+      const node = input.value.goal.start;
+      const next = input.value.goal.flowchart[node];
+      if (typeof next === 'string' || !next) {  // do Monologue
         return {
-          state: FSMState.QA,
+          state: FSMState.SAY,
           variables: {
-            flowchart: prev.variables.flowchart,
-            goal_id: prev.variables.goal_id,
-            node: node
-          },
-          outputs: {
-            QuestionAnswerAction: {
-              goal: initGoal({
-                question: node,
-                answers: Object.keys(prev.variables.flowchart[node]),
-              })
-            },
-          },
-          QuestionAnswerAction: prev.QuestionAnswerAction,
-        };
-      } else {  // deadends
-        return {
-          state: FSMState.TELL,
-          variables: {
-            flowchart: prev.variables.flowchart,
-            goal_id: prev.variables.goal_id,
-            node: node
+            flowchart: input.value.goal.flowchart,
+            node: node,
+            goal_id: input.value.goal.goal_id,
           },
           outputs: {
             SpeechSynthesisAction: {
@@ -143,8 +107,111 @@ function reducer(input$) {
           },
           QuestionAnswerAction: prev.QuestionAnswerAction,
         };
+      } else {  // do QA
+        return {
+          state: FSMState.QA,
+          variables: {
+            flowchart: input.value.goal.flowchart,
+            node: node,
+            goal_id: input.value.goal.goal_id,
+          },
+          outputs: {
+            QuestionAnswerAction: {
+              goal: initGoal({
+                question: node,
+                answers: Object.keys(next),
+              }),
+            },
+          },
+          QuestionAnswerAction: prev.QuestionAnswerAction,
+        }
       }
-    } else if (prev.state === FSMState.QA && input.type === InputType.QA_FAILED) {
+    } else if (prev.state === FSMState.SAY && input.type === InputType.SAY_DONE) {  // monologue-done
+      const node = prev.variables.flowchart[prev.variables.node];
+      const next = prev.variables.flowchart[node];
+      if (!node) {  // deadend
+        return {
+          ...prev,
+          state: FSMState.PEND,
+          variables: null,
+          outputs: {
+            result: {
+              status: {
+                goal_id: prev.variables.goal_id,
+                status: Status.SUCCEEDED,
+              },
+              result: prev.variables.node,
+            }
+          }
+        };
+      } else if (typeof next === 'string' || !next) {  // do Monologue
+        return {
+          ...prev,
+          state: FSMState.SAY,
+          variables: {
+            ...prev.variables,
+            node: node,
+          },
+          outputs: {
+            SpeechSynthesisAction: {
+              goal: initGoal(node),
+            },
+          },
+        };
+      } else {  // do QA
+        return {
+          ...prev,
+          state: FSMState.QA,
+          variables: {
+            ...prev.variables,
+            node: node,
+          },
+          outputs: {
+            QuestionAnswerAction: {
+              goal: initGoal({
+                question: node,
+                answers: Object.keys(next),
+              })
+            },
+          },
+        };
+      }
+    } else if (prev.state === FSMState.QA && input.type === InputType.QA_SUCCEEDED) {  // qa-done
+      const node = prev.variables.flowchart[prev.variables.node][input.value];
+      const next = prev.variables.flowchart[node];
+      if (typeof next === 'string' || !next) {  // do Monologue
+        return {
+          ...prev,
+          state: FSMState.SAY,
+          variables: {
+            ...prev.variables,
+            node: node
+          },
+          outputs: {
+            SpeechSynthesisAction: {
+              goal: initGoal(node)
+            },
+          },
+        };
+      } else {  // do QA
+        return {
+          ...prev,
+          state: FSMState.QA,
+          variables: {
+            ...prev.variables,
+            node: node
+          },
+          outputs: {
+            QuestionAnswerAction: {
+              goal: initGoal({
+                question: node,
+                answers: Object.keys(next),
+              })
+            },
+          },
+        };
+      }
+    } else if (prev.state === FSMState.QA && input.type === InputType.QA_FAILED) {  // qa-failed
       return {
         state: FSMState.PEND,
         variables: null,
@@ -153,21 +220,6 @@ function reducer(input$) {
             status: {
               goal_id: prev.variables.goal_id,
               status: Status.ABORTED,
-            },
-            result: prev.variables.node,
-          }
-        },
-        QuestionAnswerAction: prev.QuestionAnswerAction,
-      };
-    } else if (prev.state === FSMState.TELL && input.type === InputType.SAY_DONE) {
-      return {
-        state: FSMState.PEND,
-        variables: null,
-        outputs: {
-          result: {
-            status: {
-              goal_id: prev.variables.goal_id,
-              status: Status.SUCCEEDED,
             },
             result: prev.variables.node,
           }

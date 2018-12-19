@@ -63,14 +63,20 @@ function main(sources) {
   const fcSinks: FcSinks = isolate(FlowchartAction, 'FlowchartAction')({
     ...sources,
     goal: xs.of({
-      flowchart,
-      start: Sentence.CAREER
+      // flowchart,
+      // start: Sentence.CAREER
+      flowchart: {
+        "start": "hello",
+        "hello": "how are you?",
+        "how are you?": {"yes": "awesome", "no": "sorry"}
+      },
+      start: "start"
     }).compose(delay(1000)),
   });
 
   return {
     state: fcSinks.state,
-    SpeechSynthesisAction: fcSinks.outputs.SpeechSynthesisAction,
+    SpeechSynthesisAction: fcSinks.outputs.SpeechSynthesisAction.debug(),
     SpeechRecognitionAction: fcSinks.outputs.SpeechRecognitionAction,
   };
 }
