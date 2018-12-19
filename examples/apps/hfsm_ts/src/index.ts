@@ -1,9 +1,6 @@
 import xs from 'xstream';
-import delay from 'xstream/extra/delay';
-import dropRepeats from 'xstream/extra/dropRepeats';
 import isolate from '@cycle/isolate';
 import {withState} from '@cycle/state'
-import {isEqualResult} from '@cycle-robot-drivers/action';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 import FlowchartAction from './FlowchartAction';
 import {Sinks as FcSinks} from './FlowchartAction';
@@ -85,11 +82,10 @@ const activities = {
 }
 
 function main(sources) {
-
   const choices$ = xs.merge(
     xs.of(null),
     sources.state.stream.filter(
-      s => !!s.FlowchartAction.outputs&& !!s.FlowchartAction.outputs.result)
+      s => !!s.FlowchartAction.outputs && !!s.FlowchartAction.outputs.result)
   ).mapTo({
     message: 'Pick one!',
     choices: Object.keys(activities),
