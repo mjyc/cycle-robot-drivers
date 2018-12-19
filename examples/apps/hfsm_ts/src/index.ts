@@ -10,6 +10,14 @@ import story1 from './data/Set 4 - Dogs!.json';
 // import story1 from './Dogs!.json';
 console.log(story1, Array.isArray(story1));
 
+story1.reduce((acc, x, i, arr) => {
+  if (i === 0) {
+    return {}
+  } else {
+    acc[arr[i-1]] = x;
+  }
+});
+
 const Sentence = {
   CAREER: 'Is it important that you reach your full career potential?',
   ONLINE: 'Can you see yourself working online?',
