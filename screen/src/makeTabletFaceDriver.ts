@@ -1,6 +1,7 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {div} from '@cycle/dom';
+import {div as cdiv} from '@cycle/dom';
+import {div as rdiv} from '@cycle/react-dom';
 import {adapt} from '@cycle/run/lib/adapt';
 
 
@@ -227,7 +228,6 @@ enum CommandType {
   START_BLINKING = 'START_BLINKING',
   STOP_BLINKING = 'STOP_BLINKING',
   SET_STATE = 'SET_STATE',
-  SPEECHBUBBLES = 'SPEECHBUBBLES',
 }
 
 export enum ExpressCommandType {
@@ -280,7 +280,8 @@ export function makeTabletFaceDriver({
     eyeColor = 'black',
     eyeSize = '33.33vmin',
     eyelidColor = 'whitesmoke',
-  }
+  } = {},
+  useReact = false,
 }: {
   styles?: {
     faceColor?: string,
@@ -290,7 +291,8 @@ export function makeTabletFaceDriver({
     eyeSize?: string,
     eyelidColor?: string,
   },
-} = {styles: {}}) {
+  useReact?: boolean,
+}) {
   const styles = {
     face: {
       backgroundColor: faceColor,
@@ -359,7 +361,6 @@ export function makeTabletFaceDriver({
 
     let animations = {};
     const animationFinish$$: Stream<Stream<any[]>> = xs.create();
-    const speechbubblesDOM$ = xs.create();
     xs.fromObservable(command$).addListener({
       next: function(command: Command) {
         if (!command) {
@@ -394,13 +395,11 @@ export function makeTabletFaceDriver({
             eyes.setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
             eyes.setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
             break;
-          case CommandType.SPEECHBUBBLES:
-            speechbubblesDOM$.shamefullySendNext(command.value);
-            break;
         }
       }
     });
 
+    const div = useReact ? rdiv : cdiv;
     const vdom$ = xs.of(
       div(`#${id}.face`, {style: styles.face}, [
         div('.eye.left', {

@@ -13,12 +13,14 @@
     "@cycle-robot-drivers/action": "~0.0.0",
     "@cycle/dom": "22.0.0",
     "@cycle/isolate": "4.1.0",
+    "@cycle/react-dom": "2.0.0",
     "@cycle/run": "5.1.0",
     "xstream": "11.7.0"
   },
   "devDependencies": {
     "@cycle/time": "^0.15.0",
-    "@types/node": "^10.7.1"
+    "@types/node": "^10.7.1",
+    "@types/react": "^16.7.17"
   },
   "scripts": {
     "build:cjs": "../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
