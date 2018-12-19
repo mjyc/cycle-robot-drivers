@@ -5,7 +5,7 @@
   "keywords": [],
   "main": "src/index.js",
   "dependencies": {
-    "@cycle-robot-drivers/screen": "0.0.22",
+    "@cycle-robot-drivers/screen": "0.0.23",
     "@cycle/react": "2.0.0",
     "@cycle/react-dom": "2.0.0",
     "@cycle/run": "5.2.0",
