@@ -1,7 +1,6 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {div as cdiv} from '@cycle/dom';
-import {div as rdiv} from '@cycle/react-dom';
+import {div} from '@cycle/dom';
 import {adapt} from '@cycle/run/lib/adapt';
 
 
@@ -280,7 +279,7 @@ type Command = {
  *     * eyelidColor {string} (default: 'whitesmoke')
  * 
  * @return {Driver} the TabletFace Cycle.js driver function. It takes a stream
- *   of `Command` and returns `DOM`, `react`, animationFinish`, and `load` streams.
+ *   of `Command` and returns `DOM`, animationFinish`, and `load` streams.
  */
 export function makeTabletFaceDriver({
   styles: {
@@ -407,36 +406,33 @@ export function makeTabletFaceDriver({
       }
     });
 
-    function createVDOM(div) {
-      return xs.of(
-        div(`#${id}.face`, {style: styles.face}, [
-          div('.eye.left', {
-            style: (Object as any).assign({}, styles.eye, styles.left),
-          }, [
-            div('.eyelid.upper', {
-              style: (Object as any).assign({}, styles.eyelid, styles.upper),
-            }),
-            div('.eyelid.lower', {
-              style: (Object as any).assign({}, styles.eyelid, styles.lower),
-            }),
-          ]),
-          div('.eye.right', {
-            style: (Object as any).assign({}, styles.eye, styles.right),
-          }, [
-            div('.eyelid.upper', {
-              style: (Object as any).assign({}, styles.eyelid, styles.upper),
-            }),
-            div('.eyelid.lower', {
-              style: (Object as any).assign({}, styles.eyelid, styles.lower),
-            }),
-          ]),
-        ])
-      );
-    }
+    const vdom$ = xs.of(
+      div(`#${id}.face`, {style: styles.face}, [
+        div('.eye.left', {
+          style: (Object as any).assign({}, styles.eye, styles.left),
+        }, [
+          div('.eyelid.upper', {
+            style: (Object as any).assign({}, styles.eyelid, styles.upper),
+          }),
+          div('.eyelid.lower', {
+            style: (Object as any).assign({}, styles.eyelid, styles.lower),
+          }),
+        ]),
+        div('.eye.right', {
+          style: (Object as any).assign({}, styles.eye, styles.right),
+        }, [
+          div('.eyelid.upper', {
+            style: (Object as any).assign({}, styles.eyelid, styles.upper),
+          }),
+          div('.eyelid.lower', {
+            style: (Object as any).assign({}, styles.eyelid, styles.lower),
+          }),
+        ]),
+      ])
+    );
 
     return {
-      DOM: adapt(createVDOM(cdiv)),
-      react: adapt(createVDOM(rdiv)),
+      DOM: adapt(vdom$),
       animationFinish: adapt(animationFinish$$.flatten()),
       load: adapt(load$),
     }
