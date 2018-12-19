@@ -3,7 +3,7 @@ import xs from 'xstream';
 
 
 function main(sources) {
-  const goals$ = sources.TabletFace.load.map(() => ({
+  const goals$ = sources.TabletFace.load.mapTo({
     face: 'happy',
     sound: 'https://raw.githubusercontent.com/aramadia/willow-sound/master/G/G15.ogg',
     speechbubble: {
@@ -12,7 +12,7 @@ function main(sources) {
     },
     synthesis: 'How are you?',
     recognition: {},
-  }));
+  });
 
   sources.TwoSpeechbubblesAction.result
     .addListener({next: result => {
