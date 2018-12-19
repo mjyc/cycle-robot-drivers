@@ -102,7 +102,7 @@ TwoSpeechbubbles, Robot and Human, action component.
 
 #### Return:
 
-* **Driver** the TabletFace Cycle.js driver function. It takes a stream   of `Command` and returns `DOM`, `react`, animationFinish`, and `load` streams.
+* **Driver** the TabletFace Cycle.js driver function. It takes a stream   of `Command` and returns `DOM`, animationFinish`, and `load` streams.
 
 <!-- End src/makeTabletFaceDriver.ts -->
 
