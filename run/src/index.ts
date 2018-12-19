@@ -181,8 +181,8 @@ export function withActions(
  */
 export function runRobotProgram(
   main,
-  drivers,
-  options,
+  drivers?,
+  options?,
 ) {
   if (!main) {
     throw new Error('Must pass the argument main');
