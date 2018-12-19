@@ -1,0 +1,26 @@
+{
+  "name": "new",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "main": "src/index.js",
+  "dependencies": {
+    "@cycle-robot-drivers/run": "0.0.27",
+    "@cycle-robot-drivers/screen": "file:../../../screen",
+    "@cycle/react": "latest",
+    "@cycle/react-dom": "latest",
+    "@cycle/run": "^5.2.0",
+    "cycle-selection-driver": "1.1.1",
+    "react": "16.3.2",
+    "react-dom": "16.3.2",
+    "react-scripts": "1.1.4",
+    "xstream": "latest"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}

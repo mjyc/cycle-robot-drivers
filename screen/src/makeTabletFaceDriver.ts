@@ -281,7 +281,6 @@ export function makeTabletFaceDriver({
     eyeSize = '33.33vmin',
     eyelidColor = 'whitesmoke',
   } = {},
-  useReact = false,
 }: {
   styles?: {
     faceColor?: string,
@@ -291,7 +290,6 @@ export function makeTabletFaceDriver({
     eyeSize?: string,
     eyelidColor?: string,
   },
-  useReact?: boolean,
 }) {
   const styles = {
     face: {
@@ -399,34 +397,36 @@ export function makeTabletFaceDriver({
       }
     });
 
-    const div = useReact ? rdiv : cdiv;
-    const vdom$ = xs.of(
-      div(`#${id}.face`, {style: styles.face}, [
-        div('.eye.left', {
-          style: (Object as any).assign({}, styles.eye, styles.left),
-        }, [
-          div('.eyelid.upper', {
-            style: (Object as any).assign({}, styles.eyelid, styles.upper),
-          }),
-          div('.eyelid.lower', {
-            style: (Object as any).assign({}, styles.eyelid, styles.lower),
-          }),
-        ]),
-        div('.eye.right', {
-          style: (Object as any).assign({}, styles.eye, styles.right),
-        }, [
-          div('.eyelid.upper', {
-            style: (Object as any).assign({}, styles.eyelid, styles.upper),
-          }),
-          div('.eyelid.lower', {
-            style: (Object as any).assign({}, styles.eyelid, styles.lower),
-          }),
-        ]),
-      ])
-    );
+    function createVDOM(div) {
+      return xs.of(
+        div(`#${id}.face`, {style: styles.face}, [
+          div('.eye.left', {
+            style: (Object as any).assign({}, styles.eye, styles.left),
+          }, [
+            div('.eyelid.upper', {
+              style: (Object as any).assign({}, styles.eyelid, styles.upper),
+            }),
+            div('.eyelid.lower', {
+              style: (Object as any).assign({}, styles.eyelid, styles.lower),
+            }),
+          ]),
+          div('.eye.right', {
+            style: (Object as any).assign({}, styles.eye, styles.right),
+          }, [
+            div('.eyelid.upper', {
+              style: (Object as any).assign({}, styles.eyelid, styles.upper),
+            }),
+            div('.eyelid.lower', {
+              style: (Object as any).assign({}, styles.eyelid, styles.lower),
+            }),
+          ]),
+        ])
+      );
+    }
 
     return {
-      DOM: adapt(vdom$),
+      DOM: adapt(createVDOM(cdiv)),
+      react: adapt(createVDOM(rdiv)),
       animationFinish: adapt(animationFinish$$.flatten()),
       load: adapt(load$),
     }
