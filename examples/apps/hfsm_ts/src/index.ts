@@ -1,23 +1,20 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
+import dropRepeats from 'xstream/extra/dropRepeats';
 import isolate from '@cycle/isolate';
 import {withState} from '@cycle/state'
+import {isEqualResult} from '@cycle-robot-drivers/action';
 import {runRobotProgram} from '@cycle-robot-drivers/run';
 import FlowchartAction from './FlowchartAction';
 import {Sinks as FcSinks} from './FlowchartAction';
 
-import story1 from './data/Set 4 - Dogs!.json';
-// import story1 from './Dogs!.json';
-console.log(story1, Array.isArray(story1));
+// import contents
+import story1 from './data/Set 4 - Insects!.json';
+import story2 from './data/Set 5 - Caterpillars!.json';
+import quiz1 from './data/how_do_you_know_if_god_exists.json';
+import quiz2 from './data/is_it_time_to_make_changes_in_your_life.json';
 
-story1.reduce((acc, x, i, arr) => {
-  if (i === 0) {
-    return {}
-  } else {
-    acc[arr[i-1]] = x;
-  }
-});
-
+// or create contents
 const Sentence = {
   CAREER: 'Is it important that you reach your full career potential?',
   ONLINE: 'Can you see yourself working online?',
@@ -67,25 +64,49 @@ const flowchart = {
   },
 };
 
+// process contents
+function story2flowchart(story) {
+  return story.reduce((acc, x, i, arr) => {
+    if (i === 0) {
+      return {};
+    } else {
+      acc[arr[i-1]] = x;
+      return acc;
+    }
+  }, {});
+};
+
+const activities = {
+  'Insects!': {flowchart:story2flowchart(story1), start: story1[0]},
+  'Caterpillars!': {flowchart:story2flowchart(story2), start: story2[0]},
+  'Travel personality quiz': {flowchart, start: Sentence.CAREER},
+  'How do you know if god exists?': {flowchart: quiz1, start: "PRAY"},
+  'Is it time to make changes in your life?': {flowchart: quiz2, start: "ARE YOU HAPPY?"},
+}
+
 function main(sources) {
+
+  const choices$ = xs.merge(
+    xs.of(null),
+    sources.state.stream.filter(
+      s => !!s.FlowchartAction.outputs&& !!s.FlowchartAction.outputs.result)
+  ).mapTo({
+    message: 'Pick one!',
+    choices: Object.keys(activities),
+  });
+
+  const goals$ = sources.TwoSpeechbubblesAction.result
+    .map(r => activities[r.result]);
   const fcSinks: FcSinks = isolate(FlowchartAction, 'FlowchartAction')({
     ...sources,
-    goal: xs.of({
-      // flowchart,
-      // start: Sentence.CAREER
-      flowchart: {
-        "start": "hello",
-        "hello": "how are you?",
-        "how are you?": {"yes": "awesome", "no": "sorry"}
-      },
-      start: "start"
-    }).compose(delay(1000)),
+    goal: goals$,
   });
 
   return {
     state: fcSinks.state,
-    SpeechSynthesisAction: fcSinks.outputs.SpeechSynthesisAction.debug(),
+    SpeechSynthesisAction: fcSinks.outputs.SpeechSynthesisAction,
     SpeechRecognitionAction: fcSinks.outputs.SpeechRecognitionAction,
+    TwoSpeechbubblesAction: choices$,
   };
 }
 

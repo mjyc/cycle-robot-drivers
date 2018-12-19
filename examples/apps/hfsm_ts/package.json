@@ -7,7 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "@cycle-robot-drivers/action": "0.0.16",
-    "@cycle-robot-drivers/run": "0.0.28",
+    "@cycle-robot-drivers/run": "0.0.29",
     "@cycle/isolate": "4.2.0",
     "@cycle/state": "1.1.0",
     "xstream": "11.7.0"

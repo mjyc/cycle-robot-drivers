@@ -1,0 +1,10 @@
+{
+  "ARE YOU HAPPY?": {
+    "yes": "KEEP DOING WHATEVER YOU'RE DOING",
+    "no": "DO YOU WANT TO BE HAPPY?",
+  },
+  "DO YOU WANT TO BE HAPPY?": {
+    "yes": "CHANGE SOMETHING",
+    "no": "KEEP DOING WHATEVER YOU'RE DOING"
+  }
+}

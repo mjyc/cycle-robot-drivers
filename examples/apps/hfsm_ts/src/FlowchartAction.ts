@@ -98,7 +98,7 @@ function reducer(input$) {
           variables: {
             flowchart: input.value.goal.flowchart,
             node: node,
-            goal_id: input.value.goal.goal_id,
+            goal_id: input.value.goal_id,
           },
           outputs: {
             SpeechSynthesisAction: {
@@ -113,7 +113,7 @@ function reducer(input$) {
           variables: {
             flowchart: input.value.goal.flowchart,
             node: node,
-            goal_id: input.value.goal.goal_id,
+            goal_id: input.value.goal_id,
           },
           outputs: {
             QuestionAnswerAction: {
