@@ -19,53 +19,14 @@ import {
 } from '@cycle-robot-drivers/speech';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
-/**
- * A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers)
- *   function.
- * 
- * @param main A function that takes incoming streams as `sources` and returns
- *   outgoing streams as sinks. By default, the following action components
- * 
- *     * [FacialExpressionAction](../screen)
- *     * [AudioPlayerAction](../sound)
- *     * [TwoSpeechbubblesAction](../screen)
- *     * [SpeechSynthesisAction](../speech)
- *     * [SpeechRecognitionAction](../speech)
- * 
- *   are can used used like drivers, i.e., catch incoming message via 
- *   `sources.FacialExpressionAction` and send outgoing message via 
- *   `return { FacialExpressionAction: xs.of(null) };`, as well as six drivers
- *   listed below.
- * 
- * @param drivers A collection of [Cycle.js drivers](). By default, `drivers` is
- *   set to an object containing:
- * 
- *     * [DOM](https://cycle.js.org/api/dom.html)
- *     * [TabletFace](../screen)
- *     * [AudioPlayer](../sound)
- *     * [SpeechSynthesis](../speech#)
- *     * [SpeechRecognition](../speech)
- *     * [PoseDetection](../3rdparty/cycle-posenet-driver)
- * 
- *   drivers.
- */
-export function runRobotProgram(
-  main: (sources: any) => any,
-  drivers?: {
+export function initializeDrivers(drivers?: {
     DOM?: Driver<any, any>,
     TabletFace: Driver<any, any>,
     AudioPlayer?: Driver<any, any>,
     SpeechSynthesis?: Driver<any, any>,
     SpeechRecognition?: Driver<any, any>,
     PoseDetection?: Driver<any, any>,
-  },
-  options?: {
-    hidePoseViz?: boolean
-  },
-) {
-  if (!main) {
-    throw new Error('Must pass the argument main');
-  }
+  }) {
   if (!drivers) {
     (drivers as any) = {};
   }
@@ -87,11 +48,21 @@ export function runRobotProgram(
   if (!drivers.PoseDetection) {
     drivers.PoseDetection = makePoseDetectionDriver();
   }
+  
+  return drivers;
+}
+
+export function withActions(
+  main: (sources: any) => any,
+  options?: {
+    hidePoseViz?: boolean
+  },
+) {
   if (!options) {
     options = {};
   }
-
-  function wrappedMain(sources) {
+  
+  function mainWithActions(sources) {
     sources.proxies = {
       FacialExpressionAction: xs.create(),
       TwoSpeechbubblesAction: xs.create(),
@@ -172,9 +143,53 @@ export function runRobotProgram(
       return sinks;
     })();
   }
+  return powerup(
+    mainWithActions,
+    (proxy, target) => !!target && proxy.imitate(target),
+  );
+}
+
+/**
+ * A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers)
+ *   function.
+ * 
+ * @param main A function that takes incoming streams as `sources` and returns
+ *   outgoing streams as sinks. By default, the following action components
+ * 
+ *     * [FacialExpressionAction](../screen)
+ *     * [AudioPlayerAction](../sound)
+ *     * [TwoSpeechbubblesAction](../screen)
+ *     * [SpeechSynthesisAction](../speech)
+ *     * [SpeechRecognitionAction](../speech)
+ * 
+ *   are can used used like drivers, i.e., catch incoming message via 
+ *   `sources.FacialExpressionAction` and send outgoing message via 
+ *   `return { FacialExpressionAction: xs.of(null) };`, as well as six drivers
+ *   listed below.
+ * 
+ * @param drivers A collection of [Cycle.js drivers](). By default, `drivers` is
+ *   set to an object containing:
+ * 
+ *     * [DOM](https://cycle.js.org/api/dom.html)
+ *     * [TabletFace](../screen)
+ *     * [AudioPlayer](../sound)
+ *     * [SpeechSynthesis](../speech#)
+ *     * [SpeechRecognition](../speech)
+ *     * [PoseDetection](../3rdparty/cycle-posenet-driver)
+ * 
+ *   drivers.
+ */
+export function runRobotProgram(
+  main,
+  drivers,
+  options,
+) {
+  if (!main) {
+    throw new Error('Must pass the argument main');
+  }
 
   return run(
-    powerup(wrappedMain, (proxy, target) => !!target && proxy.imitate(target)),
-    drivers,
+    withActions(main, options),
+    initializeDrivers(drivers),
   );
 };
