@@ -300,7 +300,7 @@ export function makeTabletFaceDriver({
     eyeSize?: string,
     eyelidColor?: string,
   },
-}) {
+} = {}) {
   const styles = {
     face: {
       backgroundColor: faceColor,

@@ -5,16 +5,15 @@
   "keywords": [],
   "main": "src/index.js",
   "dependencies": {
-    "@cycle-robot-drivers/run": "0.0.27",
-    "@cycle-robot-drivers/screen": "file:../../../screen",
-    "@cycle/react": "latest",
-    "@cycle/react-dom": "latest",
-    "@cycle/run": "^5.2.0",
+    "@cycle-robot-drivers/screen": "0.0.22",
+    "@cycle/react": "2.0.0",
+    "@cycle/react-dom": "2.0.0",
+    "@cycle/run": "5.2.0",
     "cycle-selection-driver": "1.1.1",
     "react": "16.3.2",
     "react-dom": "16.3.2",
     "react-scripts": "1.1.4",
-    "xstream": "latest"
+    "xstream": "11.7.0"
   },
   "devDependencies": {},
   "scripts": {
