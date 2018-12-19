@@ -85,13 +85,24 @@ TwoSpeechbubbles, Robot and Human, action component.
 
 <!-- Start src/makeTabletFaceDriver.ts -->
 
-### makeTabletFaceDriver()
+### makeTabletFaceDriver(options)
 
 [TabletFace](https://github.com/mjyc/tablet-robot-face) driver factory.
 
+#### Params:
+
+* *options* possible key includes 
+  * styles {object} A group of optional face style parameters:
+    * faceColor {string} (default: 'whitesmoke')
+    * faceHeight {string} (default: '100vh')
+    * faceWidth {string} (default: '100vw')
+    * eyeColor {string} (default: 'black')
+    * eyeSize {string} (default: '33.33vmin')
+    * eyelidColor {string} (default: 'whitesmoke')
+
 #### Return:
 
-* **Driver** the TabletFace Cycle.js driver function. It takes a stream   of `Command` and returns `DOM`, `animationFinish`, and `load` streams.
+* **Driver** the TabletFace Cycle.js driver function. It takes a stream   of `Command` and returns `DOM`, `react`, animationFinish`, and `load` streams.
 
 <!-- End src/makeTabletFaceDriver.ts -->
 

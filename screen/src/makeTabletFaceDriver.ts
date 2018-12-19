@@ -269,8 +269,18 @@ type Command = {
 /**
  * [TabletFace](https://github.com/mjyc/tablet-robot-face) driver factory.
  * 
+ * @param options possible key includes
+ * 
+ *   * styles {object} A group of optional face style parameters:
+ *     * faceColor {string} (default: 'whitesmoke')
+ *     * faceHeight {string} (default: '100vh')
+ *     * faceWidth {string} (default: '100vw')
+ *     * eyeColor {string} (default: 'black')
+ *     * eyeSize {string} (default: '33.33vmin')
+ *     * eyelidColor {string} (default: 'whitesmoke')
+ * 
  * @return {Driver} the TabletFace Cycle.js driver function. It takes a stream
- *   of `Command` and returns `DOM`, `animationFinish`, and `load` streams.
+ *   of `Command` and returns `DOM`, `react`, animationFinish`, and `load` streams.
  */
 export function makeTabletFaceDriver({
   styles: {

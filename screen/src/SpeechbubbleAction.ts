@@ -2,8 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-import {span, button, style} from '@cycle/dom';
-import {DOMSource} from '@cycle/dom';
+import {span, button, DOMSource} from '@cycle/dom';
 import {
   GoalID, Goal, Status, Result, ActionSinks, initGoal,
 } from '@cycle-robot-drivers/action';
