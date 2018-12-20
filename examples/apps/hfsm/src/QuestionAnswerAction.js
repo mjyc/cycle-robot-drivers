@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import {Status} from '@cycle-robot-drivers/action';
+import {Status, initGoal} from '@cycle-robot-drivers/action';
 
 const State = {
   PEND: 'PEND',
@@ -20,7 +20,7 @@ function input(
   speechRecognitionAction,
 ) {
   return xs.merge(
-    goal$.map(g => ({type: InputType.GOAL, value: g})),
+    goal$.map(g => ({type: InputType.GOAL, value: initGoal(g)})),
     speechSynthesisAction.result
       .filter(result => result.status.status === 'SUCCEEDED')
       .mapTo({type: InputType.ASK_DONE}),
@@ -127,9 +127,6 @@ function output(reducerState$) {
     SpeechRecognitionAction: outputs$
       .filter(o => !!o.SpeechRecognitionAction)
       .map(o => o.SpeechRecognitionAction.goal),
-    TabletFace: outputs$
-      .filter(o => !!o.TabletFace)
-      .map(o => o.TabletFace.goal),
   };
 }
 

@@ -2,75 +2,77 @@ import xs from 'xstream';
 import delay from 'xstream/extra/delay';
 import isolate from '@cycle/isolate';
 import {withState} from '@cycle/state'
-import {runRobotProgram} from '@cycle-robot-drivers/run';
-import FlowchartAction from './FlowchartAction';
-
-import story1 from './data/Set 4 - Dogs!.json';
-console.log(story1, Array.isArray(story1));
-
-const Sentence = {
-  CAREER: 'Is it important that you reach your full career potential?',
-  ONLINE: 'Can you see yourself working online?',
-  FAMILY: 'Do you have to be near my family/friends/pets?',
-  TRIPS: 'Do you think short trips are awesome?',
-  HOME: 'Do you want to have a home and nice things?',
-  ROUTINE: 'Do you think a routine gives your life structure?',
-  JOB: 'Do you need a secure job and a stable income?',
-  VACATIONER: 'You are a vacationer!',
-  EXPAT: 'You are an expat!',
-  NOMAD: 'You are a nomad!',
-};
-
-const Response = {
-  YES: 'yes',
-  NO: 'no',
-};
-
-const flowchart = {
-  [Sentence.CAREER]: {
-    [Response.YES]: Sentence.ONLINE,
-    [Response.NO]: Sentence.FAMILY,
-  },
-  [Sentence.ONLINE]: {
-    [Response.YES]: Sentence.NOMAD,
-    [Response.NO]: Sentence.VACATIONER,
-  },
-  [Sentence.FAMILY]: {
-    [Response.YES]: Sentence.VACATIONER,
-    [Response.NO]: Sentence.TRIPS,
-  },
-  [Sentence.TRIPS]: {
-    [Response.YES]: Sentence.VACATIONER,
-    [Response.NO]: Sentence.HOME,
-  },
-  [Sentence.HOME]: {
-    [Response.YES]: Sentence.EXPAT,
-    [Response.NO]: Sentence.ROUTINE,
-  },
-  [Sentence.ROUTINE]: {
-    [Response.YES]: Sentence.EXPAT,
-    [Response.NO]: Sentence.JOB,
-  },
-  [Sentence.JOB]: {
-    [Response.YES]: Sentence.ONLINE,
-    [Response.NO]: Sentence.NOMAD,
-  },
-};
+import {run} from '@cycle/run';
+import {
+  makeSpeechSynthesisDriver,
+  SpeechSynthesisAction,
+  makeSpeechRecognitionDriver,
+  SpeechRecognitionAction,
+} from '@cycle-robot-drivers/speech';
+import QuestionAnswerAction from './QuestionAnswerAction';
 
 function main(sources) {
-  const fcSinks = isolate(FlowchartAction, 'FlowchartAction')({
-    ...sources,
-    goal: xs.of({
-      flowchart,
-      start: Sentence.CAREER
-    }).compose(delay(1000)),
+  const state$ = sources.state.stream;
+  state$
+    .filter(s => !!s.QuestionAnswerAction 
+      && !!s.QuestionAnswerAction.outputs
+      && !!s.QuestionAnswerAction.outputs.result)
+    .addListener({
+      next: s => console.log('result', o.QuestionAnswerAction.outputs.result)
+    });
+
+  const goal$ = xs.of({
+    question: 'How are you?',
+    answers: ['Good', 'Bad'],
+  }).compose(delay(2000));
+  
+  // create action components
+  const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
+    state: sources.state,
+    goal: goal$,
+    SpeechSynthesisAction: {
+      result: state$.map(s => s.SpeechSynthesisAction.result).filter(r => !!r),
+    },
+    SpeechRecognitionAction: {
+      result: state$.map(s => s.SpeechRecognitionAction.result).filter(r => !!r),
+    },
+  });
+  const speechSynthesisAction = SpeechSynthesisAction({
+    goal: qaSinks.outputs.SpeechSynthesisAction,
+    SpeechSynthesis: sources.SpeechSynthesis,
+  });
+  const speechRecognitionAction = SpeechRecognitionAction({
+    goal: qaSinks.outputs.SpeechRecognitionAction,
+    SpeechRecognition: sources.SpeechRecognition,
   });
 
+  // define reducers
+  const reducer$ = xs.merge(
+    xs.of(function () {  // initReducer
+      return {
+        SpeechSynthesisAction: {result: null},
+        SpeechRecognitionAction: {result: null},
+      };
+    }),
+    speechSynthesisAction.result
+      .map(result => function (prevState) {
+        return {...prevState, SpeechSynthesisAction: {result}}
+      }),
+    speechRecognitionAction.result
+      .map(result => function (prevState) {
+        return {...prevState, SpeechRecognitionAction: {result}}
+      }),
+    qaSinks.state,
+  );
+
   return {
-    state: fcSinks.state,
-    SpeechSynthesisAction: fcSinks.outputs.SpeechSynthesisAction,
-    SpeechRecognitionAction: fcSinks.outputs.SpeechRecognitionAction,
-  };
+    SpeechSynthesis: speechSynthesisAction.output,
+    SpeechRecognition: speechRecognitionAction.output,
+    state: reducer$,
+  }
 }
 
-runRobotProgram(withState(main));
+run(withState(main), {
+  SpeechSynthesis: makeSpeechSynthesisDriver(),
+  SpeechRecognition: makeSpeechRecognitionDriver(),
+});
