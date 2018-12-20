@@ -40,6 +40,7 @@ export interface Outputs extends QAOutputs {
   QuestionAnswerAction: Stream<any>
 }
 
+
 export interface Sources extends Omit<QASources, 'state'> {
   state: StateSource<RState>,
 }
@@ -48,6 +49,7 @@ export interface Sinks {
   outputs: Outputs,
   state: Stream<Reducer>,
 }
+
 
 function input(
   goal$,

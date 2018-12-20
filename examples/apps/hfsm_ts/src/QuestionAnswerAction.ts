@@ -44,6 +44,7 @@ export interface Sinks {
   state: Stream<Reducer>,
 }
 
+
 function input(
   goal$: Stream<any>,
   speechSynthesisAction,
@@ -171,7 +172,6 @@ export default function QuestionAnswerAction(sources: Sources): Sinks {
     sources.SpeechSynthesisAction,
     sources.SpeechRecognitionAction,
   );
-  // const reducer$ = reducer(input$) as Stream<Reducer>;
   const reducer$ = reducer(input$);
   const outputs = output(reducerState$);
 
