@@ -2,7 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {StateSource, Reducer as StateReducer} from '@cycle/state';
 import {Goal, Status, Result} from '@cycle-robot-drivers/action';
-import {ReducerState} from './types';
+import {ReducerStateTemplate} from './types';
 
 export enum FSMState {
   PEND = 'PEND',
@@ -10,37 +10,39 @@ export enum FSMState {
   LISTEN = 'LISTEN',
 }
 
-export enum InputType {
+export enum FSMInputType {
   GOAL = 'GOAL',
   ASK_DONE = 'ASK_DONE',
   VALID_RESPONSE = 'VALID_RESPONSE',
   INVALID_RESPONSE = 'INVALID_RESPONSE',
 }
 
-export type Variables = {
+export type FSMVariables = {
   goal: Goal,
   question: string,
   answers: string[],
 }
 
-export type RState = ReducerState<FSMState, Variables, any>;
-
-export type Reducer = StateReducer<RState>;
-
-export interface Outputs {
+export interface FSMOutputs {
   SpeechSynthesisAction: Stream<any>,
   SpeechRecognitionAction: Stream<any>,
 }
+
+
+export type ReducerState = ReducerStateTemplate<FSMState, FSMVariables, any>;
+
+export type Reducer = StateReducer<ReducerState>;
+
 
 export interface Sources {
   goal: Stream<any>,
   SpeechSynthesisAction: {result: Stream<Result>},
   SpeechRecognitionAction: {result: Stream<Result>},
-  state: StateSource<RState>,
+  state: StateSource<ReducerState>,
 }
 
 export interface Sinks {
-  outputs: Outputs,
+  outputs: FSMOutputs,
   state: Stream<Reducer>,
 }
 
@@ -51,21 +53,21 @@ function input(
   speechRecognitionAction,
 ) {
   return xs.merge(
-    goal$.map(g => ({type: InputType.GOAL, value: g})),
+    goal$.map(g => ({type: FSMInputType.GOAL, value: g})),
     speechSynthesisAction.result
       .filter(result => result.status.status === 'SUCCEEDED')
-      .mapTo({type: InputType.ASK_DONE}),
+      .mapTo({type: FSMInputType.ASK_DONE}),
     speechRecognitionAction.result
       .filter(result =>
         result.status.status === 'SUCCEEDED'
       ).map(result => ({
-        type: InputType.VALID_RESPONSE,
+        type: FSMInputType.VALID_RESPONSE,
         value: result.result,
       })),
     speechRecognitionAction.result
       .filter(result =>
         result.status.status !== 'SUCCEEDED'
-      ).mapTo({type: InputType.INVALID_RESPONSE}),
+      ).mapTo({type: FSMInputType.INVALID_RESPONSE}),
   );
 }
 
@@ -89,7 +91,7 @@ function reducer(input$) {
   const transitionReducer$: Stream<Reducer> = input$.map(input => function (prev) {
     console.debug('input', input, 'prev', prev);
     if (prev.state === FSMState.PEND) {
-      if (input.type === InputType.GOAL) {
+      if (input.type === FSMInputType.GOAL) {
         return {
           state: FSMState.ASK,
           variables: {
@@ -101,7 +103,7 @@ function reducer(input$) {
         };
       }
     } else if (prev.state === FSMState.ASK) {
-      if (input.type === InputType.ASK_DONE) {
+      if (input.type === FSMInputType.ASK_DONE) {
         return {
           state: FSMState.LISTEN,
           variables: prev.variables,
@@ -109,7 +111,7 @@ function reducer(input$) {
         };
       }
     } else if (prev.state === FSMState.LISTEN) {
-      if (input.type === InputType.VALID_RESPONSE) {
+      if (input.type === FSMInputType.VALID_RESPONSE) {
         const answer = prev.variables.answers.find(
           a => a.toLowerCase().includes(input.value))
         const valid = '' !== input.value && !!answer;
@@ -126,7 +128,7 @@ function reducer(input$) {
             },
           },
         });
-      } else if (input.type === InputType.INVALID_RESPONSE) {
+      } else if (input.type === FSMInputType.INVALID_RESPONSE) {
         return {
           state: FSMState.LISTEN,
           variables: prev.variables,

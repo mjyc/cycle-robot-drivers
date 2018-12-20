@@ -31,21 +31,20 @@ function main(sources) {
   );
 
   const mainScreen$ = data$.map(data => ({
-    message: 'Pick one',
+    message: 'I can help you answer some questions',
     choices: data.map(d => d.name),
   }));
 
   const fcSinks: FcSinks = isolate(FlowchartAction, 'FlowchartAction')({
     ...sources,
     goal: xs.combine(data$, sources.TwoSpeechbubblesAction.result)
-      .debug()
-      .map(([data, r]) => ({
-        flowchart: (data as any).filter(d => d.name === (r as any).result)[0].flowchart,
-        start: (data as any).filter(d => d.name === (r as any).result)[0].start,
+      .map(([data, r]: [any, any]) => ({
+        flowchart: data.filter(d => d.name === r.result)[0].flowchart,
+        start: data.filter(d => d.name === r.result)[0].start,
       })),
   });
   const result$ = sources.state.stream
-    .filter(s => !!s.FlowchartAction.outputs && !!s.FlowchartAction.outputs.result)
+    .filter(s => !!s.FlowchartAction && !!s.FlowchartAction.outputs && !!s.FlowchartAction.outputs.result)
     .startWith(null);
 
   return {

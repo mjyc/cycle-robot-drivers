@@ -6,10 +6,10 @@ import {StateSource, Reducer as StateReducer} from '@cycle/state';
 import {
   GoalID, Status, initGoal, isEqualGoal, isEqualResult
 } from '@cycle-robot-drivers/action';
-import {Omit, ReducerState} from './types';
+import {Omit, ReducerStateTemplate} from './types';
 import QuestionAnswerAction from './QuestionAnswerAction';
 import {
-  RState as QARState, Sources as QASources, Outputs as QAOutputs
+  ReducerState as QARState, Sources as QASources, FSMOutputs as QAOutputs
 } from './QuestionAnswerAction';
 
 enum FSMState {
@@ -18,35 +18,36 @@ enum FSMState {
   SAY = 'SAY',
 }
 
-enum InputType {
+enum FSMInputType {
   GOAL = 'GOAL',
   QA_SUCCEEDED = 'QA_SUCCEEDED',
   QA_FAILED = 'QA_FAILED',
   SAY_DONE = 'SAY_DONE',
 }
 
-export type Variables = {
+export type FSMVariables = {
   flowchart: any,
   node: string,
   goal_id: GoalID,
   QuestionAnswerAction: QARState,
 }
 
-export type RState = ReducerState<FSMState, Variables, any>;
-
-export type Reducer = StateReducer<RState>;
-
-export interface Outputs extends QAOutputs {
+export interface FSMOutputs extends QAOutputs {
   QuestionAnswerAction: Stream<any>
 }
 
 
+export type ReducerState = ReducerStateTemplate<FSMState, FSMVariables, any>;
+
+export type Reducer = StateReducer<ReducerState>;
+
+
 export interface Sources extends Omit<QASources, 'state'> {
-  state: StateSource<RState>,
+  state: StateSource<ReducerState>,
 }
 
 export interface Sinks {
-  outputs: Outputs,
+  outputs: FSMOutputs,
   state: Stream<Reducer>,
 }
 
@@ -63,16 +64,16 @@ function input(
     .map(s => s.QuestionAnswerAction.outputs.result)
     .compose(dropRepeats(isEqualResult));
   return xs.merge(
-    goal$.map(x => ({type: InputType.GOAL, value: initGoal(x)})),
+    goal$.map(x => ({type: FSMInputType.GOAL, value: initGoal(x)})),
     qaResult$
       .filter(r => r.status.status === Status.SUCCEEDED)
-      .map(r => ({type: InputType.QA_SUCCEEDED, value: r.result})),
+      .map(r => ({type: FSMInputType.QA_SUCCEEDED, value: r.result})),
     qaResult$
       .filter(r => r.status.status !== Status.SUCCEEDED)
-      .map(r => ({type: InputType.QA_FAILED, value: r.result})),
+      .map(r => ({type: FSMInputType.QA_FAILED, value: r.result})),
     speechSynthesisAction.result
       .filter(result => result.status.status === 'SUCCEEDED')
-      .mapTo({type: InputType.SAY_DONE}),
+      .mapTo({type: FSMInputType.SAY_DONE}),
   );
 }
 
@@ -91,7 +92,7 @@ function reducer(input$) {
 
   const transitionReducer$: Stream<Reducer> = input$.map(input => function(prev) {
     console.debug('input', input, 'prev', prev);
-    if (prev.state === FSMState.PEND && input.type === InputType.GOAL) {  // goal-received
+    if (prev.state === FSMState.PEND && input.type === FSMInputType.GOAL) {  // goal-received
       const node = input.value.goal.start;
       const next = input.value.goal.flowchart[node];
       if (typeof next === 'string' || !next) {  // do Monologue
@@ -128,7 +129,7 @@ function reducer(input$) {
           QuestionAnswerAction: prev.QuestionAnswerAction,
         }
       }
-    } else if (prev.state === FSMState.SAY && input.type === InputType.SAY_DONE) {  // monologue-done
+    } else if (prev.state === FSMState.SAY && input.type === FSMInputType.SAY_DONE) {  // monologue-done
       const node = prev.variables.flowchart[prev.variables.node];
       const next = prev.variables.flowchart[node];
       if (!node) {  // deadend
@@ -178,7 +179,7 @@ function reducer(input$) {
           },
         };
       }
-    } else if (prev.state === FSMState.QA && input.type === InputType.QA_SUCCEEDED) {  // qa-done
+    } else if (prev.state === FSMState.QA && input.type === FSMInputType.QA_SUCCEEDED) {  // qa-done
       const node = prev.variables.flowchart[prev.variables.node][input.value];
       const next = prev.variables.flowchart[node];
       if (typeof next === 'string' || !next) {  // do Monologue
@@ -213,7 +214,7 @@ function reducer(input$) {
           },
         };
       }
-    } else if (prev.state === FSMState.QA && input.type === InputType.QA_FAILED) {  // qa-failed
+    } else if (prev.state === FSMState.QA && input.type === FSMInputType.QA_FAILED) {  // qa-failed
       return {
         state: FSMState.PEND,
         variables: null,
