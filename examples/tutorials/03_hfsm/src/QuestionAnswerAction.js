@@ -118,8 +118,8 @@ function reducer(input$) {
 
 function output(reducerState$) {
   const outputs$ = reducerState$
-    .filter(m => !!m.outputs)
-    .map(m => m.outputs);
+    .filter(s => !!s.outputs)
+    .map(s => s.outputs);
   return {
     SpeechSynthesisAction: outputs$
       .filter(o => !!o.SpeechSynthesisAction)
