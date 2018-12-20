@@ -161,9 +161,6 @@ function output(reducerState$) {
     SpeechRecognitionAction: outputs$
       .filter(o => !!o.SpeechRecognitionAction)
       .map(o => o.SpeechRecognitionAction.goal),
-    TabletFace: outputs$
-      .filter(o => !!o.TabletFace)
-      .map(o => o.TabletFace.goal),
   };
 }
 
