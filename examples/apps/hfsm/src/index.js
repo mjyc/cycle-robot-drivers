@@ -1,48 +1,55 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
+import dropRepeats from 'xstream/extra/dropRepeats';
 import isolate from '@cycle/isolate';
 import {withState} from '@cycle/state'
 import {run} from '@cycle/run';
+import {isEqualResult} from '@cycle-robot-drivers/action';
 import {
   makeSpeechSynthesisDriver,
   SpeechSynthesisAction,
   makeSpeechRecognitionDriver,
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
-import QuestionAnswerAction from './QuestionAnswerAction';
+import FlowchartAction from './FlowchartAction';
 
 function main(sources) {
   const state$ = sources.state.stream;
   state$
-    .filter(s => !!s.QuestionAnswerAction 
-      && !!s.QuestionAnswerAction.outputs
-      && !!s.QuestionAnswerAction.outputs.result)
+    .filter(s => !!s.FlowchartAction 
+      && !!s.FlowchartAction.outputs
+      && !!s.FlowchartAction.outputs.result)
+    .map(s => s.FlowchartAction.outputs.result)
+    .compose(dropRepeats(isEqualResult))
     .addListener({
-      next: s => console.log('result', o.QuestionAnswerAction.outputs.result)
+      next: r => console.log('result', r)
     });
 
-  const goal$ = xs.of({
-    question: 'How are you?',
-    answers: ['Good', 'Bad'],
-  }).compose(delay(2000));
+  const goal$ = xs.of({}).compose(delay(2000));
   
   // create action components
-  const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
+  const fcSinks = isolate(FlowchartAction, 'FlowchartAction')({
     state: sources.state,
     goal: goal$,
     SpeechSynthesisAction: {
-      result: state$.map(s => s.SpeechSynthesisAction.result).filter(r => !!r),
+      result: state$
+        .map(s => s.SpeechSynthesisAction.result)
+        .filter(r => !!r)
+        .compose(dropRepeats(isEqualResult)),
     },
     SpeechRecognitionAction: {
-      result: state$.map(s => s.SpeechRecognitionAction.result).filter(r => !!r),
+      result: state$
+        .map(s => s.SpeechRecognitionAction.result)
+        .filter(r => !!r)
+        .compose(dropRepeats(isEqualResult)),
     },
   });
   const speechSynthesisAction = SpeechSynthesisAction({
-    goal: qaSinks.outputs.SpeechSynthesisAction,
+    goal: fcSinks.outputs.SpeechSynthesisAction,
     SpeechSynthesis: sources.SpeechSynthesis,
   });
   const speechRecognitionAction = SpeechRecognitionAction({
-    goal: qaSinks.outputs.SpeechRecognitionAction,
+    goal: fcSinks.outputs.SpeechRecognitionAction,
     SpeechRecognition: sources.SpeechRecognition,
   });
 
@@ -62,7 +69,7 @@ function main(sources) {
       .map(result => function (prevState) {
         return {...prevState, SpeechRecognitionAction: {result}}
       }),
-    qaSinks.state,
+    fcSinks.state,
   );
 
   return {

@@ -1,26 +1,30 @@
 import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import isolate from '@cycle/isolate';
-import {Status, initGoal, isEqualGoal} from '@cycle-robot-drivers/action';
+import {
+  Status, initGoal, isEqualGoal, isEqualResult
+} from '@cycle-robot-drivers/action';
 import QuestionAnswerAction from './QuestionAnswerAction';
 
 const State = {
   PEND: 'PEND',
   QA: 'QA',
+  SAY: 'SAY',
 }
 
 const InputType = {
   GOAL: 'GOAL',
   QA_SUCCEEDED: 'QA_SUCCEEDED',
   QA_FAILED: 'QA_FAILED',
+  SAY_DONE: 'SAY_DONE',
 }
 
 function input(
   goal$,
-  state$,
+  reducerState$,
   speechSynthesisAction,
 ) {
-  const qaResult$ = state$
+  const qaResult$ = reducerState$
     .filter(s => !!s.QuestionAnswerAction
       && !!s.QuestionAnswerAction.outputs
       && !!s.QuestionAnswerAction.outputs.result)
@@ -35,7 +39,7 @@ function input(
       .filter(r => r.status.status !== Status.SUCCEEDED)
       .map(r => ({type: InputType.QA_FAILED, value: r.result})),
     speechSynthesisAction.result
-      .filter(result => result.status.status === 'SUCCEEDED')
+      .filter(r => r.status.status === Status.SUCCEEDED)
       .mapTo({type: InputType.SAY_DONE}),
   );
 }
@@ -45,7 +49,7 @@ function reducer(input$) {
     if (typeof prev === 'undefined') {
       return {
         state: State.PEND,
-        variable: null,
+        variables: null,
         outputs: null,
       };
     } else {
@@ -106,55 +110,91 @@ function reducer(input$) {
       if (input.type === InputType.GOAL) {
         const node = Sentence.CAREER;
         return {
+          ...prev,
           state: State.QA,
-          variable: {
+          variables: {
             goal_id: input.value.goal_id,
             node,
           },
           outputs: {
             QuestionAnswerAction: {
-              goal: {
+              goal: initGoal({
                 question: node,
                 answers: Object.keys(flowchart[node]),
-              },
+              }),
             },
           },
         };
       }
     } else if (prev.state === State.QA) {
-      if (prev.state === State.QA_SUCCEEDED) {
-        const node = flowchart[prev.variable][input.value];
-        return {
-          ...prev,
-          variable: {
-            ...prev.variable,
-            node
-          },
-          outputs: {
-            QuestionAnswerAction: {
-              goal: {
-                question: node,
-                answers: Object.keys(flowchart[node]),
+      if (input.type === InputType.QA_SUCCEEDED) {
+        const node = flowchart[prev.variables.node][input.value];
+        if (!flowchart[node]) {
+          return {
+            ...prev,
+            state: State.SAY,
+            variables: {
+              ...prev.variables,
+              node,
+            },
+            outputs: {
+              SpeechSynthesisAction: {
+                goal: initGoal(node),
               },
             },
-          },
-        };
-      } else if (prev.state === State.QA_FAILED) {
+          };
+        } else {
+          return {
+            ...prev,
+            variables: {
+              ...prev.variables,
+              node,
+            },
+            outputs: {
+              QuestionAnswerAction: {
+                goal: initGoal({
+                  question: node,
+                  answers: Object.keys(flowchart[node]),
+                }),
+              },
+            },
+          };
+        }
+      } else if (input.type === InputType.QA_FAILED) {
         return {
+          ...prev,
           state: State.PEND,
-          variable: null,
+          variables: null,
           outputs: {
             result: {
               status: {
-                goal_id: prev.variable.goal_id,
+                goal_id: prev.variables.goal_id,
                 status: State.ABORTED,
               },
-              result: prev.variable.node,
+              result: prev.variables.node,
+            },
+          },
+        };
+      }
+    } else if (prev.state === State.SAY) {
+      if (input.type === InputType.SAY_DONE) {
+        return {
+          ...prev,
+          state: State.PEND,
+          variables: null,
+          outputs: {
+            result: {
+              status: {
+                goal_id: prev.variables.goal_id,
+                status: State.SUCCEEDED,
+              },
+              result: prev.variables.node,
             },
           },
         };
       }
     }
+    return prev;
   });
 
   return xs.merge(initReducer$, transitionReducer$);
@@ -177,7 +217,7 @@ function output(reducerState$) {
 }
 
 export default function FlowchartAction(sources) {
-  const state$ = sources.state.stream;
+  const reducerState$ = sources.state.stream;
   const outputs = output(reducerState$);
   const qaSinks = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
     state: sources.state,
@@ -187,7 +227,7 @@ export default function FlowchartAction(sources) {
   });
   const input$ = input(
     sources.goal,
-    state$,
+    reducerState$,
     sources.SpeechSynthesisAction,
   );
   const reducer$ = xs.merge(reducer(input$), qaSinks.state);
