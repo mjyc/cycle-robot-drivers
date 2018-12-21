@@ -92,8 +92,8 @@ function output(reducerState$) {
 
 export default function AllAction(sources) {
   const reducerState$ = sources.state.stream;
-  const reducer$: Stream<Reducer<State>> = reducer(xs.never());
-
+  const input$ = input(sources.goal);
+  const reducer$: Stream<Reducer<State>> = reducer(input$);
   const outputs = output(reducerState$)
   return {
     ...outputs,
