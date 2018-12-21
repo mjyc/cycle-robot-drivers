@@ -2,6 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import delay from 'xstream/extra/delay';
 import {DOMSource, div, VNode} from '@cycle/dom';
+import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
 import {Result} from '@cycle-robot-drivers/action';
 import {
@@ -12,10 +13,12 @@ import {
   FacialExpressionActionSinks as FEASinks,
   TwoSpeechbuttonsActionSinks as TWASinks,
 } from './types';
+import AllAction from './AllAction';
 
 export interface State {
   FacialExpressionAction: {result: Result},
   TwoSpeechbubblesAction: {result: Result},
+  AllAction?: any,  // TODO: import
 }
 
 export interface Sources {
@@ -31,6 +34,10 @@ export interface Sinks {
 }
 
 export default function RobotApp(sources: Sources): Sinks {
+  sources.state.stream.addListener({
+    next: s => console.log(s),
+  });
+
   const facialExpressionAction: FEASinks = FacialExpressionAction({
     goal: xs.of('happy').compose(delay(1000)),
     TabletFace: sources.TabletFace,
@@ -40,8 +47,10 @@ export default function RobotApp(sources: Sources): Sinks {
     DOM: sources.DOM,
   });
 
-  const reducer$: Stream<Reducer<State>> = xs.merge(
-    xs.of((prev?) => ({
+  const allAction: any = isolate(AllAction, 'AllAction')(sources);
+
+  const parentReducer$: Stream<Reducer<State>> = xs.merge(
+    xs.of(() => ({
       FacialExpressionAction: {result: null},
       TwoSpeechbubblesAction: {result: null},
     })),
@@ -50,6 +59,8 @@ export default function RobotApp(sources: Sources): Sinks {
     twoSpeechbubblesAction.result.map(result =>
       prev => ({...prev, TwoSpeechbubblesAction: {result}})),
   );
+  const allActionReducer$: Stream<Reducer<State>> = allAction.state;
+  const reducer$ = xs.merge(parentReducer$, allActionReducer$);
 
   const vdom$ = xs.combine(
     twoSpeechbubblesAction.DOM,
