@@ -1,14 +1,17 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import delay from 'xstream/extra/delay';
-import {VNode, DOMSource, div} from '@cycle/dom';
+import {DOMSource, div, VNode} from '@cycle/dom';
 import {StateSource, Reducer} from '@cycle/state';
-// import {isEqualResult} from '@cycle-robot-drivers/action';
 import {Result} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
   TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
+import {
+  FacialExpressionActionSinks as FEASinks,
+  TwoSpeechbuttonsActionSinks as TWASinks,
+} from './types';
 
 export interface State {
   FacialExpressionAction: {result: Result},
@@ -21,38 +24,31 @@ export interface Sources {
   state: StateSource<State>;
 }
 
-export default function RobotApp(sources: Sources) {
-  const state$ = sources.state.stream;
+export interface Sinks {
+  DOM: Stream<VNode>,
+  TabletFace: any,
+  state: Stream<Reducer<State>>,
+}
 
-  // output of will SubAction will go into here
-
-  const facialExpressionAction = FacialExpressionAction({
+export default function RobotApp(sources: Sources): Sinks {
+  const facialExpressionAction: FEASinks = FacialExpressionAction({
     goal: xs.of('happy').compose(delay(1000)),
     TabletFace: sources.TabletFace,
   });
-  const twoSpeechbubblesAction = TwoSpeechbubblesAction({
+  const twoSpeechbubblesAction: TWASinks = TwoSpeechbubblesAction({
     goal: xs.of('Hello!').compose(delay(1000)),
     DOM: sources.DOM,
   });
-
-  const goal = xs.of({
-    FacialExpressionAction: {goal: 'happy'},
-    TwoSpeechbubblesAction: {goal: 'Hello'},
-  });
-
-  // state$.FacialExpressionAction  // result
 
   const reducer$: Stream<Reducer<State>> = xs.merge(
     xs.of((prev?) => ({
       FacialExpressionAction: {result: null},
       TwoSpeechbubblesAction: {result: null},
     })),
-    (facialExpressionAction.result as Stream<Result>)
-      .map(result => 
-        prev => ({...prev, FacialExpressionAction: {result}})),
-    (twoSpeechbubblesAction.result as Stream<Result>)
-      .map(result =>
-        prev => ({...prev, TwoSpeechbubblesAction: {result}})),
+    facialExpressionAction.result.map(result => 
+      prev => ({...prev, FacialExpressionAction: {result}})),
+    twoSpeechbubblesAction.result.map(result =>
+      prev => ({...prev, TwoSpeechbubblesAction: {result}})),
   );
 
   const vdom$ = xs.combine(
@@ -65,8 +61,8 @@ export default function RobotApp(sources: Sources) {
   );
 
   return {
-    TabletFace: facialExpressionAction.output,
     DOM: vdom$,
+    TabletFace: facialExpressionAction.output,
     state: reducer$,
   };
 }
