@@ -45,28 +45,14 @@ export default function RobotApp(sources: Sources): Sinks {
   });
   // Process state stream
   const state$ = sources.state.stream;
+  const getActionResult = (actionName: string) =>
+    (in$: Stream<State>) => in$
+      .map(s => s[actionName].result)
+      .compose(dropRepeats(isEqualResult));
   const facialExpressionResult$ = state$
-    .filter(s => !!s.FacialExpressionAction.result)
-    .map(s => s.FacialExpressionAction.result)
-    .compose(dropRepeats(isEqualResult))
-    .startWith({
-      status: {
-        goal_id: generateGoalID(),
-        status: Status.SUCCEEDED,
-      },
-      result: null,
-    });
+    .compose(getActionResult('FacialExpressionAction'));
   const twoSpeechbubblesResult$ = state$
-    .filter(s => !!s.TwoSpeechbubblesAction.result)
-    .map(s => s.TwoSpeechbubblesAction.result)
-    .compose(dropRepeats(isEqualResult))
-    .startWith({
-      status: {
-        goal_id: generateGoalID(),
-        status: Status.SUCCEEDED,
-      },
-      result: null,
-    });
+    .compose(getActionResult('TwoSpeechbubblesAction'));
 
 
   // "main" component
@@ -96,10 +82,17 @@ export default function RobotApp(sources: Sources): Sinks {
 
 
   // Define Reducers
+  const createDummyResult = () => ({
+    status: {
+      goal_id: generateGoalID(),
+      status: Status.SUCCEEDED,
+    },
+    result: null,
+  });
   const parentReducer$: Stream<Reducer<State>> = xs.merge(
     xs.of(() => ({
-      FacialExpressionAction: {result: null},
-      TwoSpeechbubblesAction: {result: null},
+      FacialExpressionAction: {result: createDummyResult()},
+      TwoSpeechbubblesAction: {result: createDummyResult()},
     })),
     facialExpressionAction.result.map(result => 
       prev => ({...prev, FacialExpressionAction: {result}})),
