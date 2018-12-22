@@ -45,14 +45,14 @@ export default function RobotApp(sources: Sources): Sinks {
   });
   // Process state stream
   const state$ = sources.state.stream;
-  const getActionResult = (actionName: string) =>
+  const selectActionResult = (actionName: string) =>
     (in$: Stream<State>) => in$
       .map(s => s[actionName].result)
       .compose(dropRepeats(isEqualResult));
   const facialExpressionResult$ = state$
-    .compose(getActionResult('FacialExpressionAction'));
+    .compose(selectActionResult('FacialExpressionAction'));
   const twoSpeechbubblesResult$ = state$
-    .compose(getActionResult('TwoSpeechbubblesAction'));
+    .compose(selectActionResult('TwoSpeechbubblesAction'));
 
 
   // "main" component

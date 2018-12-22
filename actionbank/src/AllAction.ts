@@ -84,11 +84,12 @@ export function createConcurrentAction(
             goal_id: input.value.goal_id,
           },
           outputs,
-        }
+        };
+        // TODO: handle receiving a goal while running another
       } else if (input.type === SIGType.RESULTS) {
         const results = input.value;
-        if (
-          !isRace
+        if (  // TODO: handle !!isRace failed case; immediately fails after one
+          !!isRace
           && results
             .every(r => isEqual(r.status.goal_id, prev.variables.goal_id))
           && results
@@ -109,6 +110,33 @@ export function createConcurrentAction(
                 result: input.value,
               }
             }
+          };
+        } else if (  // TODO: handle !isRace failed case; wait til all fails
+          !isRace
+          && results
+            .some(r => (
+              isEqual(r.status.goal_id, prev.variables.goal_id)
+              && r.status.status === Status.SUCCEEDED
+            ))
+        ) {
+          const result = results.filter(r => (
+            isEqual(r.status.goal_id, prev.variables.goal_id)
+            && r.status.status === Status.SUCCEEDED
+          ))[0];  // break the tie here
+          return {
+            state: S.PEND,
+            variables: {
+              goal_id: prev.variables.goal_id,
+            },
+            outputs: {
+              result: {
+                status: {
+                  goal_id: prev.variables.goal_id,
+                  status: Status.SUCCEEDED,
+                },
+                result: result.result,  // IDEA: {type: 'FaceExpression', value: result.result}
+              },
+            },
           };
         }
       }
