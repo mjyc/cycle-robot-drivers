@@ -162,11 +162,18 @@ function createTransition() {
         }
       },
       [InputType.CANCEL]: (variables, inputValue) => ({
-        state: State.RUNNING,
+        state: State.DONE,
         variables,
         outputs: {
           RobotSpeechbubble: {goal: null},
           HumanSpeechbubble: {goal: null},
+          result: {
+            status: {
+              goal_id: variables.goal_id,
+              status: Status.PREEMPTED,
+            },
+            result: null,
+          },
         }
       }),
       [InputType.RESULT]: (variables, inputValue) => 

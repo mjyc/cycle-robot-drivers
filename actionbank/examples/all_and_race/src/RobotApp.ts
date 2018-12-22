@@ -14,7 +14,7 @@ import {
   FacialExpressionActionSinks as FEASinks,
   TwoSpeechbuttonsActionSinks as TWASinks,
 } from './types';
-import AllAction from './AllAction';
+import {AllAction} from '@cycle-robot-drivers/actionbank';
 
 export interface State {
   FacialExpressionAction: {result: Result},
@@ -68,7 +68,10 @@ export default function RobotApp(sources: Sources): Sinks {
     TabletFace: sources.TabletFace,
   });
   const twoSpeechbubblesAction: TWASinks = TwoSpeechbubblesAction({
-    goal: childSinks.TwoSpeechbubblesAction,
+    // goal: childSinks.TwoSpeechbubblesAction,
+    goal: xs.merge(childSinks.TwoSpeechbubblesAction,
+      xs.of(null).compose(delay(2000)),
+      ),
     DOM: sources.DOM,
   });
 

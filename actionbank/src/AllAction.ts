@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {StateSource, Reducer} from '@cycle/state';
+import {Reducer} from '@cycle/state';
 import {initGoal, isEqual, Status, Result} from '@cycle-robot-drivers/action';
 
 // FSM types
@@ -84,11 +84,29 @@ function reducer(input$: Stream<SIG>) {
         outputs,
       }
     } else if (input.type === SIGType.RESULTS) {
-      // TODO: catch preempt & aborted cases
+
       if (
+        input.value.some(r => r.status.status === Status.PREEMPTED
+          || r.status.status === Status.ABORTED)
+      ) {
+        return {
+          ...prev,
+          state: S.PEND,
+          variables: null,
+          outputs: {
+            result: {
+              status: {
+                goal_id: prev.variables.goal_id,
+                status: Status.ABORTED,
+              },
+              result: input.value,
+            }
+          }
+        };
+      } else if (
         input.value
-        .map(r => isEqual(r.status.goal_id, prev.variables.goal_id))
-        .every(v => !!v)
+          .map(r => isEqual(r.status.goal_id, prev.variables.goal_id))
+          .every(r => r.status.status === Status.SUCCEEDED)
       ) {
         return {
           ...prev,
@@ -125,7 +143,7 @@ function output(reducerState$: Stream<State>) {
   }, {});
 }
 
-export default function AllAction(sources) {
+export function AllAction(sources) {
   const reducerState$ = sources.state.stream;
   const results = actionNames.map(x => sources[x].result);
   const input$ = input(sources.goal, results);
