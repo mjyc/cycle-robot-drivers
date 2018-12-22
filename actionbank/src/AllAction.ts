@@ -38,10 +38,7 @@ export function createConcurrentAction(
     results: Stream<Result>[],
   ) => {
     const results$: Stream<Result[]>
-      = xs.combine.apply(null, results).startWith([]);
-      // TODO: update this
-      // {status: {goal_id: , result: null}
-      // change the strategy here
+      = xs.combine.apply(null, results);
     return xs.merge(
       goal$.filter(goal => typeof goal !== 'undefined')
         .map(goal => (goal === null)
@@ -61,7 +58,9 @@ export function createConcurrentAction(
       if (typeof prev === 'undefined') {
         return {
           state: S.PEND,
-          variables: null,
+          variables: {
+            goal_id: null,
+          },
           outputs: null,
         };
       } else {
@@ -69,7 +68,7 @@ export function createConcurrentAction(
       }
     });
 
-    const transitionReducer$: Stream<Reducer<State>> = input$.map(input => function (prev) {
+    const transitionReducer$: Stream<Reducer<State>> = input$.map(input => prev => {
       console.debug('input', input, 'prev', prev);
       if (prev.state === S.PEND && input.type === SIGType.GOAL) {
         const outputs = Object.keys(input.value.goal).reduce((acc, x) => {
@@ -87,36 +86,20 @@ export function createConcurrentAction(
           outputs,
         }
       } else if (input.type === SIGType.RESULTS) {
-        const results$ = input.value
-          .map(r => isEqual(r.status.goal_id, prev.variables.goal_id));
+        const results = input.value;
         if (
-          isRace
-            ? results$.some(r => r.status.status === Status.SUCCEEDED)
-            : results$.every(r => r.status.status === Status.SUCCEEDED)
-        ) {
-          return {
-            ...prev,
-            state: S.PEND,
-            variables: null,
-            outputs: {
-              result: {
-                status: {
-                  goal_id: prev.variables.goal_id,
-                  status: Status.ABORTED,
-                },
-                result: input.value,
-              }
-            }
-          };
-        } else if (
-          input.value
-            .map(r => isEqual(r.status.goal_id, prev.variables.goal_id))
+          !isRace
+          && results
+            .every(r => isEqual(r.status.goal_id, prev.variables.goal_id))
+          && results
             .every(r => r.status.status === Status.SUCCEEDED)
         ) {
           return {
             ...prev,
             state: S.PEND,
-            variables: null,
+            variables: {
+              goal_id: null,
+            },
             outputs: {
               result: {
                 status: {

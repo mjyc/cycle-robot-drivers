@@ -5,7 +5,7 @@ import dropRepeats from 'xstream/extra/dropRepeats';
 import {div, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
-import {isEqualResult, Result} from '@cycle-robot-drivers/action';
+import {Status, Result, generateGoalID, isEqualResult} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
   TwoSpeechbubblesAction,
@@ -18,7 +18,7 @@ import {createConcurrentAction} from '@cycle-robot-drivers/actionbank';
 
 const AllAction = createConcurrentAction(
   ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
-  true,
+  false,
 );
 
 export interface State {
@@ -48,11 +48,25 @@ export default function RobotApp(sources: Sources): Sinks {
   const facialExpressionResult$ = state$
     .filter(s => !!s.FacialExpressionAction.result)
     .map(s => s.FacialExpressionAction.result)
-    .compose(dropRepeats(isEqualResult));
+    .compose(dropRepeats(isEqualResult))
+    .startWith({
+      status: {
+        goal_id: generateGoalID(),
+        status: Status.SUCCEEDED,
+      },
+      result: null,
+    });
   const twoSpeechbubblesResult$ = state$
     .filter(s => !!s.TwoSpeechbubblesAction.result)
     .map(s => s.TwoSpeechbubblesAction.result)
-    .compose(dropRepeats(isEqualResult));
+    .compose(dropRepeats(isEqualResult))
+    .startWith({
+      status: {
+        goal_id: generateGoalID(),
+        status: Status.SUCCEEDED,
+      },
+      result: null,
+    });
 
 
   // "main" component
