@@ -1,1 +1,1 @@
-export {AllAction} from './AllAction';
+export {createConcurrentAction} from './AllAction';
