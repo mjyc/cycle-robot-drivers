@@ -38,6 +38,7 @@ export default function RobotApp(sources: Sources): Sinks {
   sources.state.stream.addListener({
     next: s => console.log(s),
   });
+  // Process state stream
   const state$ = sources.state.stream;
   const facialExpressionResult$ = state$
     .filter(s => !!s.FacialExpressionAction.result)
@@ -49,8 +50,8 @@ export default function RobotApp(sources: Sources): Sinks {
     .compose(dropRepeats(isEqualResult));
 
 
-  // Define Actions
-  const allAction: any = isolate(AllAction, 'AllAction')({
+  // "main" component
+  const childSinks: any = isolate(AllAction, 'AllAction')({
     ...sources,
     goal: xs.of({
       FacialExpressionAction: 'sad',
@@ -60,12 +61,14 @@ export default function RobotApp(sources: Sources): Sinks {
     TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
   });
 
+
+  // Define Actions
   const facialExpressionAction: FEASinks = FacialExpressionAction({
-    goal: allAction.FacialExpressionAction,
+    goal: childSinks.FacialExpressionAction,
     TabletFace: sources.TabletFace,
   });
   const twoSpeechbubblesAction: TWASinks = TwoSpeechbubblesAction({
-    goal: allAction.TwoSpeechbubblesAction,
+    goal: childSinks.TwoSpeechbubblesAction,
     DOM: sources.DOM,
   });
 
@@ -81,8 +84,8 @@ export default function RobotApp(sources: Sources): Sinks {
     twoSpeechbubblesAction.result.map(result =>
       prev => ({...prev, TwoSpeechbubblesAction: {result}})),
   );
-  const allActionReducer$: Stream<Reducer<State>> = allAction.state;
-  const reducer$ = xs.merge(parentReducer$, allActionReducer$);
+  const childReducer$: Stream<Reducer<State>> = childSinks.state;
+  const reducer$ = xs.merge(parentReducer$, childReducer$);
 
 
   // Define Sinks

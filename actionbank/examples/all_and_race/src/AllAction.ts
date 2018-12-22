@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {Reducer} from '@cycle/state';
+import {StateSource, Reducer} from '@cycle/state';
 import {initGoal, isEqual, Status, Result} from '@cycle-robot-drivers/action';
 
 // FSM types
@@ -29,13 +29,15 @@ export interface State {
   outputs: any
 }
 
+// TODO: make this an argument; another function that creates an action
+// {execute()}
 const actionNames = ['FacialExpressionAction', 'TwoSpeechbubblesAction'];
 
 function input(
   goal$: Stream<any>,
   results: Stream<Result>[],
 ) {
-  const results$ = xs.combine.apply(null, results);
+  const results$: Stream<Result[]> = xs.combine.apply(null, results);
   return xs.merge(
     goal$.filter(goal => typeof goal !== 'undefined')
       .map(goal => (goal === null)
@@ -51,7 +53,7 @@ function input(
   );
 }
 
-function reducer(input$) {
+function reducer(input$: Stream<SIG>) {
   const initReducer$: Stream<Reducer<State>> = xs.of(function (prev) {
     if (typeof prev === 'undefined') {
       return {
@@ -110,7 +112,7 @@ function reducer(input$) {
   return xs.merge(initReducer$, transitionReducer$);
 }
 
-function output(reducerState$) {
+function output(reducerState$: Stream<State>) {
   const outputs$ = reducerState$
     .filter(m => !!m.outputs)
     .map(m => m.outputs);
