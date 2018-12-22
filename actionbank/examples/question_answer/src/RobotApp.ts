@@ -5,14 +5,20 @@ import dropRepeats from 'xstream/extra/dropRepeats';
 import {div, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
-import {Status, Result, generateGoalID, isEqualResult} from '@cycle-robot-drivers/action';
+import {Status, Result, EventSource, generateGoalID, isEqualResult} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
   TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
 import {
+  SpeechSynthesisAction,
+  SpeechRecognitionAction,
+} from '@cycle-robot-drivers/speech';
+import {
   FacialExpressionActionSinks as FEASinks,
   TwoSpeechbuttonsActionSinks as TWASinks,
+  SpeechSynthesisActionSinks as SSSinks,
+  SpeechRecogntionActionSinks as SRSinks,
 } from './types';
 import {makeConcurrentAction} from '@cycle-robot-drivers/actionbank';
 
@@ -29,21 +35,28 @@ const RaceAction = makeConcurrentAction(
 export interface State {
   FacialExpressionAction: {result: Result},
   TwoSpeechbubblesAction: {result: Result},
+  SpeechSynthesisAction: {result: Result},
+  SpeechRecognitionAction: {result: Result},
 }
 
 export interface Sources {
   DOM: DOMSource,
   TabletFace: any,
+  SpeechSynthesis: EventSource,
+  SpeechRecognition: EventSource,
   state: StateSource<State>;
 }
 
 export interface Sinks {
   DOM: Stream<VNode>,
   TabletFace: any,
+  SpeechSynthesis: any,
+  SpeechRecognition: any,
   state: Stream<Reducer<State>>,
 }
 
 export default function RobotApp(sources: Sources): Sinks {
+  sources.state.stream.addListener({next: v => console.log('state$', v)})
   // Process state stream
   const state$ = sources.state.stream;
   const selectActionResult = (actionName: string) =>
@@ -54,6 +67,10 @@ export default function RobotApp(sources: Sources): Sinks {
     .compose(selectActionResult('FacialExpressionAction'));
   const twoSpeechbubblesResult$ = state$
     .compose(selectActionResult('TwoSpeechbubblesAction'));
+  const speechSynthesisResult$ = state$
+    .compose(selectActionResult('SpeechSynthesisAction'));
+  const speechRecognitionResult$ = state$
+    .compose(selectActionResult('SpeechRecognitionAction'));
 
 
   // "main" component
@@ -79,6 +96,16 @@ export default function RobotApp(sources: Sources): Sinks {
     goal: childSinks.TwoSpeechbubblesAction,
     DOM: sources.DOM,
   });
+  const speechSynthesisAction: SSSinks = SpeechSynthesisAction({
+    // goal: childSinks.SpeechSynthesisAction,
+    goal: xs.never(),
+    SpeechSynthesis: sources.SpeechSynthesis,
+  });
+  const speechRecognitionAction: SRSinks = SpeechRecognitionAction({
+    // goal: childSinks.SpeechRecognitionAction,
+    goal: xs.never(),
+    SpeechRecognition: sources.SpeechRecognition,
+  });
 
 
   // Define Reducers
@@ -93,11 +120,17 @@ export default function RobotApp(sources: Sources): Sinks {
     xs.of(() => ({
       FacialExpressionAction: {result: createDummyResult()},
       TwoSpeechbubblesAction: {result: createDummyResult()},
+      SpeechSynthesisAction: {result: createDummyResult()},
+      SpeechRecognitionAction: {result: createDummyResult()},
     })),
     facialExpressionAction.result.map(result => 
       prev => ({...prev, FacialExpressionAction: {result}})),
     twoSpeechbubblesAction.result.map(result =>
       prev => ({...prev, TwoSpeechbubblesAction: {result}})),
+    speechSynthesisAction.result.map(result => 
+      prev => ({...prev, SpeechSynthesisAction: {result}})),
+    speechRecognitionAction.result.map(result =>
+      prev => ({...prev, SpeechRecognitionAction: {result}})),
   );
   const childReducer$: Stream<Reducer<State>> = childSinks.state;
   const reducer$ = xs.merge(parentReducer$, childReducer$);
@@ -116,6 +149,8 @@ export default function RobotApp(sources: Sources): Sinks {
   return {
     DOM: vdom$,
     TabletFace: facialExpressionAction.output,
+    SpeechSynthesis: speechSynthesisAction.output,
+    SpeechRecognition: speechRecognitionAction.output,
     state: reducer$,
   };
 }
