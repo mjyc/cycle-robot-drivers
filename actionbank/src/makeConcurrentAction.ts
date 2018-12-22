@@ -1,7 +1,9 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import {Reducer} from '@cycle/state';
-import {initGoal, isEqual, Status, Result} from '@cycle-robot-drivers/action';
+import {
+  initGoal, isEqual, GoalID, Status, Result
+} from '@cycle-robot-drivers/action';
 
 // FSM types
 export enum S {
@@ -24,12 +26,14 @@ export interface SIG {
 export interface State {
   state: S,
   variables: {
-    goal_id: any
+    goal_id: GoalID
   },
-  outputs: any
+  outputs: {
+    [actionNameOrResult: string]: any,
+  },
 }
 
-export function createConcurrentAction(
+export function makeConcurrentAction(
   actionNames: string[] = [],
   isRace: boolean = false,
 ) {
@@ -53,6 +57,7 @@ export function createConcurrentAction(
       results$.map(r => ({type: SIGType.RESULTS, value: r})),
     );
   }
+
   const reducer = (input$: Stream<SIG>) => {
     const initReducer$: Stream<Reducer<State>> = xs.of(function (prev) {
       if (typeof prev === 'undefined') {
@@ -85,11 +90,10 @@ export function createConcurrentAction(
           },
           outputs,
         };
-        // TODO: handle receiving a goal while running another
-      } else if (input.type === SIGType.RESULTS) {
+      } else if (prev.state === S.RUN && input.type === SIGType.RESULTS) {
         const results = input.value;
-        if (  // TODO: handle !!isRace failed case; immediately fails after one
-          !!isRace
+        if (
+          !isRace
           && results
             .every(r => isEqual(r.status.goal_id, prev.variables.goal_id))
           && results
@@ -111,8 +115,8 @@ export function createConcurrentAction(
               }
             }
           };
-        } else if (  // TODO: handle !isRace failed case; wait til all fails
-          !isRace
+        } else if (
+          !!isRace
           && results
             .some(r => (
               isEqual(r.status.goal_id, prev.variables.goal_id)
@@ -145,6 +149,7 @@ export function createConcurrentAction(
 
     return xs.merge(initReducer$, transitionReducer$);
   }
+
   const output = (reducerState$: Stream<State>) => {
     const outputs$ = reducerState$
       .filter(m => !!m.outputs)
@@ -155,7 +160,11 @@ export function createConcurrentAction(
         .filter(o => !!o[x])
         .map(o => o[x].goal);
       return acc;
-    }, {});
+    }, {
+      result: outputs$
+        .filter(o => !!o.result)
+        .map(o => o.result)
+    });
   }
 
   return function ConcurrentAction(sources) {
@@ -170,11 +179,3 @@ export function createConcurrentAction(
     };
   }
 }
-
-// const All2Action = createConcurrentActionFactory(actionNames, () => {
-
-// });
-
-// const RaceAction = createConcurrentActionFactory(actionNames, () => {
-
-// })

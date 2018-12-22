@@ -14,17 +14,21 @@ import {
   FacialExpressionActionSinks as FEASinks,
   TwoSpeechbuttonsActionSinks as TWASinks,
 } from './types';
-import {createConcurrentAction} from '@cycle-robot-drivers/actionbank';
+import {makeConcurrentAction} from '@cycle-robot-drivers/actionbank';
 
-const AllAction = createConcurrentAction(
+const AllAction = makeConcurrentAction(
   ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
   false,
+);
+
+const RaceAction = makeConcurrentAction(
+  ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
+  true,
 );
 
 export interface State {
   FacialExpressionAction: {result: Result},
   TwoSpeechbubblesAction: {result: Result},
-  AllAction?: any,  // TODO: import
 }
 
 export interface Sources {
@@ -40,9 +44,6 @@ export interface Sinks {
 }
 
 export default function RobotApp(sources: Sources): Sinks {
-  sources.state.stream.addListener({
-    next: s => console.log(s),
-  });
   // Process state stream
   const state$ = sources.state.stream;
   const selectActionResult = (actionName: string) =>
@@ -56,15 +57,17 @@ export default function RobotApp(sources: Sources): Sinks {
 
 
   // "main" component
-  const childSinks: any = isolate(AllAction, 'AllAction')({
+  const childSinks: any = isolate(RaceAction, 'RaceAction')({
     ...sources,
     goal: xs.of({
-      FacialExpressionAction: 'sad',
-      TwoSpeechbubblesAction: {message: 'Hey', choices: ['hey']},
+      FacialExpressionAction: 'happy',
+      TwoSpeechbubblesAction: {message: 'Hello', choices: ['Hello']},
     }).compose(delay(1000)),
     FacialExpressionAction: {result: facialExpressionResult$},
     TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
   });
+
+  childSinks.result.addListener({next: r => console.log('result', r)});
 
 
   // Define Actions
@@ -74,9 +77,6 @@ export default function RobotApp(sources: Sources): Sinks {
   });
   const twoSpeechbubblesAction: TWASinks = TwoSpeechbubblesAction({
     goal: childSinks.TwoSpeechbubblesAction,
-    // goal: xs.merge(childSinks.TwoSpeechbubblesAction,
-    //   xs.of(null).compose(delay(2000)),
-    //   ),
     DOM: sources.DOM,
   });
 
