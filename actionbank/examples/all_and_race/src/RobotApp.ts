@@ -1,10 +1,11 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import delay from 'xstream/extra/delay';
-import {DOMSource, div, VNode, del} from '@cycle/dom';
+import dropRepeats from 'xstream/extra/dropRepeats';
+import {div, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
-import {Result} from '@cycle-robot-drivers/action';
+import {isEqualResult, Result} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
   TwoSpeechbubblesAction,
@@ -37,31 +38,39 @@ export default function RobotApp(sources: Sources): Sinks {
   sources.state.stream.addListener({
     next: s => console.log(s),
   });
+  const state$ = sources.state.stream;
+  const facialExpressionResult$ = state$
+    .filter(s => !!s.FacialExpressionAction.result)
+    .map(s => s.FacialExpressionAction.result)
+    .compose(dropRepeats(isEqualResult));
+  const twoSpeechbubblesResult$ = state$
+    .filter(s => !!s.TwoSpeechbubblesAction.result)
+    .map(s => s.TwoSpeechbubblesAction.result)
+    .compose(dropRepeats(isEqualResult));
 
+
+  // Define Actions
   const allAction: any = isolate(AllAction, 'AllAction')({
     ...sources,
     goal: xs.of({
-      FacialExpressionAction: {goal: 'sad'},
-      TwoSpeechbubblesAction: {goal: 'Hey'},
+      FacialExpressionAction: 'sad',
+      TwoSpeechbubblesAction: {message: 'Hey', choices: ['hey']},
     }).compose(delay(1000)),
+    FacialExpressionAction: {result: facialExpressionResult$},
+    TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
   });
 
   const facialExpressionAction: FEASinks = FacialExpressionAction({
-    // goal: xs.of('happy').compose(delay(1000)),
-    // goal: xs.never(),
     goal: allAction.FacialExpressionAction,
     TabletFace: sources.TabletFace,
-    result: sources.state.stream.FacialExpressionAction
   });
   const twoSpeechbubblesAction: TWASinks = TwoSpeechbubblesAction({
-    // goal: xs.of('Hello!').compose(delay(1000)),
-    // goal: xs.never(),
     goal: allAction.TwoSpeechbubblesAction,
     DOM: sources.DOM,
-    result: sources.state.stream.FacialExpressionAction
   });
 
 
+  // Define Reducers
   const parentReducer$: Stream<Reducer<State>> = xs.merge(
     xs.of(() => ({
       FacialExpressionAction: {result: null},
@@ -75,6 +84,8 @@ export default function RobotApp(sources: Sources): Sinks {
   const allActionReducer$: Stream<Reducer<State>> = allAction.state;
   const reducer$ = xs.merge(parentReducer$, allActionReducer$);
 
+
+  // Define Sinks
   const vdom$ = xs.combine(
     twoSpeechbubblesAction.DOM,
     sources.TabletFace.DOM,
