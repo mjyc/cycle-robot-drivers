@@ -65,10 +65,16 @@ export default function RobotApp(sources: Sources): Sinks {
 
   // "main" component
   const childSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
-    goal: xs.of({
-      question: 'how are you?',
-      answers: ['good', 'bad'],
-    }).compose(delay(1000)),
+    goal: xs.merge(
+      xs.of({
+        question: 'How are you?',
+        answers: ['good', 'bad'],
+      }).compose(delay(1000)),
+      xs.of({
+        question: 'How was today?',
+        answers: ['Great', 'Okay'],
+      }).compose(delay(2000)),
+    ),
     SpeechSynthesisAction: {result: speechSynthesisResult$},
     SpeechRecognitionAction: {result: speechRecognitionResult$},
     state: sources.state,

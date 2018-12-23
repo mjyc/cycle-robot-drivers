@@ -13,6 +13,7 @@ export enum S {
 
 export enum SIGType {
   GOAL = 'GOAL',
+  CANCEL = 'CANCEL',
   ASK_DONE = 'ASK_DONE',
   VALID_RESPONSE = 'VALID_RESPONSE',
   INVALID_RESPONSE = 'INVALID_RESPONSE',
@@ -53,7 +54,9 @@ function input(
   speechRecognitionResult: Stream<Result>,
 ): Stream<SIG> {
   return xs.merge(
-    goal$.map(g => ({type: SIGType.GOAL, value: initGoal(g)})),
+    goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
+      ? ({type: SIGType.CANCEL, value: null})
+      : ({type: SIGType.GOAL, value: initGoal(g)})),
     speechSynthesisResult
       .filter(result => result.status.status === 'SUCCEEDED')
       .mapTo({type: SIGType.ASK_DONE}),
@@ -96,6 +99,42 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
         },
         outputs: {SpeechSynthesisAction: {goal: input.value.goal.question}},
       };
+    } else if (prev.state !== S.PEND && input.type === SIGType.GOAL) {
+      return {
+        state: S.ASK,
+        variables: {
+          goal_id: input.value.goal_id,
+          question: input.value.goal.question,
+          answers: input.value.goal.answers,
+        },
+        outputs: {
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.PREEMPTED,
+            },
+            result: null,
+          },
+          SpeechSynthesisAction: {goal: input.value.goal.question},
+          SpeechRecognitionAction: {goal: null},
+        },
+      }
+    } else if (prev.state !== S.PEND && input.type === SIGType.CANCEL) {
+      return {
+        state: S.PEND,
+        variables: null,
+        outputs: {
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.PREEMPTED,
+            },
+            result: null,
+          },
+          SpeechSynthesisAction: {goal: null},
+          SpeechRecognitionAction: {goal: null},
+        }
+      }
     } else if (prev.state === S.ASK && input.type === SIGType.ASK_DONE) {
       return {
         state: S.LISTEN,
