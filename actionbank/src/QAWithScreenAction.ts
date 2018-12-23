@@ -30,10 +30,10 @@ export interface Sinks {
 }
 
 export function QAWithScreenAction(sources: Sources): Sinks {
-  sources.state.stream.addListener({next: v => console.log('state$', v)})
+  // sources.state.stream.addListener({next: v => console.log('reducerState$', v)})
 
-  const state$ = sources.state.stream;
-  const questionAnswerResult$ = state$
+  const reducerState$ = sources.state.stream;
+  const questionAnswerResult$ = reducerState$
     .compose(selectActionResult('QuestionAnswerAction'));
 
   const RaceAction = makeConcurrentAction(

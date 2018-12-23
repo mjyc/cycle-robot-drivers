@@ -6,7 +6,6 @@ import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
 import {Result, EventSource} from '@cycle-robot-drivers/action';
 import {
-  FacialExpressionAction,
   TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
 import {
@@ -21,6 +20,7 @@ import {
   SpeechSynthesisActionSinks as SSSinks,
   SpeechRecogntionActionSinks as SRSinks,
 } from './types';
+import {FlowchartAction} from './FlowchartAction';
 
 export interface State {
   FacialExpressionAction: {result: Result},
@@ -72,7 +72,7 @@ export default function RobotApp(sources: Sources): Sinks {
   //   SpeechRecognitionAction: {result: speechRecognitionResult$},
   //   state: sources.state,
   // });
-  const childSinks: any = isolate(QAWithScreenAction)({
+  const childSinks: any = isolate(FlowchartAction)({
     goal: xs.of({
       question: 'How are you?',
       answers: ['Good', 'Bad'],
