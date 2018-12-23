@@ -4,7 +4,7 @@ import delay from 'xstream/extra/delay';
 import {div, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
-import {Status, Result, EventSource, generateGoalID, isEqualResult} from '@cycle-robot-drivers/action';
+import {Result, EventSource} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
   TwoSpeechbubblesAction,
@@ -60,7 +60,6 @@ export default function RobotApp(sources: Sources): Sinks {
   const speechRecognitionResult$ = state$
     .compose(selectActionResult('SpeechRecognitionAction'));
 
-
   // "main" component
   // const childSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
   //   goal: xs.merge(
@@ -80,8 +79,8 @@ export default function RobotApp(sources: Sources): Sinks {
   const childSinks: any = isolate(QAWithScreenAction)({
     ...sources,
     goal: xs.of({
-      FacialExpressionAction: 'happy',
-      TwoSpeechbubblesAction: {message: 'Hello', choices: ['Hello']},
+      question: 'How are you?',
+      answers: ['Good', 'Bad'],
     }).compose(delay(1000)),
     FacialExpressionAction: {result: facialExpressionResult$},
     TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
@@ -114,13 +113,13 @@ export default function RobotApp(sources: Sources): Sinks {
   // Define Reducers
   const parentReducer$: Stream<Reducer<State>> = xs.merge(
     facialExpressionAction.result.map(result => 
-      prev => ({...prev, FacialExpressionAction: {result}})),
+      prev => ({...prev, FacialExpressionAction: {outputs: {result}}})),
     twoSpeechbubblesAction.result.map(result =>
-      prev => ({...prev, TwoSpeechbubblesAction: {result}})),
+      prev => ({...prev, TwoSpeechbubblesAction: {outputs: {result}}})),
     speechSynthesisAction.result.map(result => 
-      prev => ({...prev, SpeechSynthesisAction: {result}})),
+      prev => ({...prev, SpeechSynthesisAction: {outputs: {result}}})),
     speechRecognitionAction.result.map(result =>
-      prev => ({...prev, SpeechRecognitionAction: {result}})),
+      prev => ({...prev, SpeechRecognitionAction: {outputs: {result}}})),
   );
   const childReducer$: Stream<Reducer<State>> = childSinks.state;
   const reducer$ = xs.merge(parentReducer$, childReducer$);
