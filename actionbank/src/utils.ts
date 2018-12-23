@@ -1,6 +1,6 @@
 import {Stream} from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
-import {isEqualResult} from "@cycle-robot-drivers/action";
+import {Status, isEqualResult} from "@cycle-robot-drivers/action";
 
 export const selectActionResult = (actionName: string) =>
   (in$: Stream<any>) => in$

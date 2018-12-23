@@ -1,4 +1,4 @@
-import xs from 'xstream';
+import xs, {Stream} from 'xstream';
 import isolate from '@cycle/isolate';
 import {makeConcurrentAction} from './makeConcurrentAction';
 import {QuestionAnswerAction} from './QuestionAnswerAction';
