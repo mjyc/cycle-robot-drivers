@@ -59,6 +59,7 @@ export default function RobotApp(sources: Sources): Sinks {
 
 
   // "main" component
+  // const childSinks: any = isolate(AllAction, 'AllAction')({
   const childSinks: any = isolate(RaceAction, 'RaceAction')({
     ...sources,
     goal: xs.of({
