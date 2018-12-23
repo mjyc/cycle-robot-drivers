@@ -1,7 +1,6 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import delay from 'xstream/extra/delay';
-import dropRepeats from 'xstream/extra/dropRepeats';
 import {div, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
@@ -20,6 +19,7 @@ import {
   SpeechSynthesisActionSinks as SSSinks,
   SpeechRecogntionActionSinks as SRSinks,
 } from './types';
+import {selectActionResult} from './utils';
 import {QuestionAnswerAction} from './QuestionAnswerAction';
 import {QAWithScreenAction} from './QAWithScreenAction';
 
@@ -51,10 +51,6 @@ export default function RobotApp(sources: Sources): Sinks {
 
   // Process state stream
   const state$ = sources.state.stream;
-  const selectActionResult = (actionName: string) =>
-    (in$: Stream<State>) => in$
-      .map(s => s[actionName].result)
-      .compose(dropRepeats(isEqualResult));
   const facialExpressionResult$ = state$
     .compose(selectActionResult('FacialExpressionAction'));
   const twoSpeechbubblesResult$ = state$
@@ -88,7 +84,7 @@ export default function RobotApp(sources: Sources): Sinks {
       TwoSpeechbubblesAction: {message: 'Hello', choices: ['Hello']},
     }).compose(delay(1000)),
     FacialExpressionAction: {result: facialExpressionResult$},
-    TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$.debug()},
+    TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
     SpeechSynthesisAction: {result: speechSynthesisResult$},
     SpeechRecognitionAction: {result: speechRecognitionResult$},
   })
@@ -116,20 +112,7 @@ export default function RobotApp(sources: Sources): Sinks {
 
 
   // Define Reducers
-  const createDummyResult = () => ({
-    status: {
-      goal_id: generateGoalID(),
-      status: Status.SUCCEEDED,
-    },
-    result: null,
-  });
   const parentReducer$: Stream<Reducer<State>> = xs.merge(
-    xs.of(() => ({
-      FacialExpressionAction: {result: createDummyResult()},
-      TwoSpeechbubblesAction: {result: createDummyResult()},
-      SpeechSynthesisAction: {result: createDummyResult()},
-      SpeechRecognitionAction: {result: createDummyResult()},
-    })),
     facialExpressionAction.result.map(result => 
       prev => ({...prev, FacialExpressionAction: {result}})),
     twoSpeechbubblesAction.result.map(result =>

@@ -16,17 +16,15 @@ export function QAWithScreenAction(sources) {
     ['TwoSpeechbubblesAction', 'QuestionAnswerAction'],
     true,
   );
-  sources.TwoSpeechbubblesAction.result.addListener({next: v => console.error(v)});
   const raceSinks: any = isolate(RaceAction, 'RaceAction')({
     goal: xs.of({
       QuestionAnswerAction: {question: 'Hello', answers: ['Hello']},
       TwoSpeechbubblesAction: {message: 'Hello', choices: ['Hello']},
     }).compose(delay(1000)),  // TODO: update this
     TwoSpeechbubblesAction: sources.TwoSpeechbubblesAction,
-    QuestionAnswerAction: {result: questionAnswerResult$.debug()},
+    QuestionAnswerAction: {result: questionAnswerResult$},
     state: sources.state,
   });
-  raceSinks.result.addListener({next: r => console.error('raceSinks.result', r)});
   const qaSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
     goal: raceSinks.QuestionAnswerAction,
     SpeechSynthesisAction: sources.SpeechSynthesisAction,
