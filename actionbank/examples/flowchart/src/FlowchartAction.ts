@@ -168,58 +168,57 @@ function reducer(input$) {
           },
         };
       }
+    } else if (prev.state === S.QA && input.type === SIGType.QA_SUCCEEDED) {  // qa-done
+      const node = prev.variables.flowchart[prev.variables.node][input.value];
+      const next = prev.variables.flowchart[node];
+      if (typeof next === 'string' || !next) {  // do Monologue
+        return {
+          ...prev,
+          state: S.SAY,
+          variables: {
+            ...prev.variables,
+            node: node
+          },
+          outputs: {
+            MonologueAction: {
+              goal: initGoal(node)
+            },
+          },
+        };
+      } else {  // do QA
+        return {
+          ...prev,
+          state: S.QA,
+          variables: {
+            ...prev.variables,
+            node: node
+          },
+          outputs: {
+            QAAction: {
+              goal: initGoal({
+                question: node,
+                answers: Object.keys(next),
+              })
+            },
+          },
+        };
+      }
+    } else if (prev.state === S.QA && input.type === SIGType.QA_FAILED) {  // qa-failed
+      return {
+        ...prev,
+        state: S.PEND,
+        variables: null,
+        outputs: {
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.ABORTED,
+            },
+            result: prev.variables.node,
+          }
+        },
+      };
     }
-  //   } else if (prev.state === S.QA && input.type === SIGType.QA_SUCCEEDED) {  // qa-done
-  //     const node = prev.variables.flowchart[prev.variables.node][input.value];
-  //     const next = prev.variables.flowchart[node];
-  //     if (typeof next === 'string' || !next) {  // do Monologue
-  //       return {
-  //         ...prev,
-  //         state: S.SAY,
-  //         variables: {
-  //           ...prev.variables,
-  //           node: node
-  //         },
-  //         outputs: {
-  //           SpeechSynthesisAction: {
-  //             goal: initGoal(node)
-  //           },
-  //         },
-  //       };
-  //     } else {  // do QA
-  //       return {
-  //         ...prev,
-  //         state: S.QA,
-  //         variables: {
-  //           ...prev.variables,
-  //           node: node
-  //         },
-  //         outputs: {
-  //           QuestionAnswerAction: {
-  //             goal: initGoal({
-  //               question: node,
-  //               answers: Object.keys(next),
-  //             })
-  //           },
-  //         },
-  //       };
-  //     }
-  //   } else if (prev.state === S.QA && input.type === SIGType.QA_FAILED) {  // qa-failed
-  //     return {
-  //       state: S.PEND,
-  //       variables: null,
-  //       outputs: {
-  //         result: {
-  //           status: {
-  //             goal_id: prev.variables.goal_id,
-  //             status: Status.ABORTED,
-  //           },
-  //           result: prev.variables.node,
-  //         }
-  //       },
-  //       QuestionAnswerAction: prev.QuestionAnswerAction,
-  //     };
-  //   }
     return prev;
   });
 
@@ -237,9 +236,6 @@ function output(reducerState$) {
     MonologueAction: outputs$
       .filter(o => !!o.MonologueAction)
       .map(o => o.MonologueAction.goal),
-    // SpeechRecognitionAction: outputs$
-    //   .filter(o => !!o.SpeechRecognitionAction)
-    //   .map(o => o.SpeechRecognitionAction.goal),
     QAAction: outputs$
       .filter(o => !!o.QAAction)
       .map(o => o.QAAction.goal),
@@ -255,14 +251,7 @@ export function FlowchartAction(sources) {
     ...sources,
     goal: outputs.QAAction.compose(dropRepeats(isEqualGoal)),
   });
-  // const questionAnswerResult$ = reducerState$
-  //   .compose(selectActionResult('QAAction'));
-  // questionAnswerResult$.addListener({
-  //   next: r => console.log('questionAnswerResult$', r),
-  // });
-  qaSinks.result.addListener({
-    next: r => console.log('qaSinks.result', r),
-  });
+  qaSinks.result.debug(r => console.log('qaSinks.result', r));
   const input$ = input(
     sources.goal,
     qaSinks.result,
@@ -273,10 +262,10 @@ export function FlowchartAction(sources) {
 
   return {
     result: xs.never(),
-    TwoSpeechbubblesAction: qaSinks.TwoSpeechbubblesAction.compose(dropRepeats(isEqualGoal)).debug(v => console.log('TwoSpeech', v)),
+    TwoSpeechbubblesAction: qaSinks.TwoSpeechbubblesAction.compose(dropRepeats(isEqualGoal)),
     SpeechSynthesisAction: xs.merge(
-      qaSinks.SpeechSynthesisAction.debug(v => console.log('SpeechSynth', v)),
-      outputs.MonologueAction.compose(dropRepeats(isEqualGoal)).debug(v => console.log('Monologue', v)),
+      qaSinks.SpeechSynthesisAction,
+      outputs.MonologueAction.compose(dropRepeats(isEqualGoal)),
       ),
     SpeechRecognitionAction: qaSinks.SpeechRecognitionAction,
     state: reducer$,
