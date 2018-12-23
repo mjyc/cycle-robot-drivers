@@ -72,10 +72,17 @@ export default function RobotApp(sources: Sources): Sinks {
   //   SpeechRecognitionAction: {result: speechRecognitionResult$},
   //   state: sources.state,
   // });
+  const flowchart = {
+    "PRAY": "Did it work?",
+    "Did it work?": {
+      "yes": "PRAISE THE LORD",
+      "no": "God works in mysterious ways"
+    }
+  }; 
   const childSinks: any = isolate(FlowchartAction)({
     goal: xs.of({
-      question: 'How are you?',
-      answers: ['Good', 'Bad'],
+      flowchart,
+      start: 'PRAY',
     }).compose(delay(1000)),
     TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
     SpeechSynthesisAction: {result: speechSynthesisResult$},

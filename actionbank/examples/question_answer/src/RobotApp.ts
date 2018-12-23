@@ -6,7 +6,6 @@ import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
 import {Result, EventSource} from '@cycle-robot-drivers/action';
 import {
-  FacialExpressionAction,
   TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
 import {

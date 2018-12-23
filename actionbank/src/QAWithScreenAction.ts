@@ -1,6 +1,6 @@
 import xs, {Stream} from 'xstream';
 import isolate from '@cycle/isolate';
-import {Result} from '@cycle-robot-drivers/action';
+import {Result, initGoal} from '@cycle-robot-drivers/action';
 import {makeConcurrentAction} from './makeConcurrentAction';
 import {QuestionAnswerAction} from './QuestionAnswerAction';
 import {selectActionResult} from './utils';
@@ -36,15 +36,24 @@ export function QAWithScreenAction(sources: Sources): Sinks {
   const questionAnswerResult$ = reducerState$
     .compose(selectActionResult('QuestionAnswerAction'));
 
+  const goal$ = sources.goal
+    .filter(g => typeof g !== 'undefined').map(g => initGoal(g))
+    .map(g => ({
+      goal_id: g.goal_id,
+      goal: {
+        QuestionAnswerAction: g.goal,
+        TwoSpeechbubblesAction: {
+          message: g.goal.question,
+          choices: g.goal.answers
+        },
+      },
+    }));
   const RaceAction = makeConcurrentAction(
     ['TwoSpeechbubblesAction', 'QuestionAnswerAction'],
     true,
   );
   const raceSinks: any = isolate(RaceAction, 'RaceAction')({
-    goal: sources.goal.map(g => ({
-      QuestionAnswerAction: g,
-      TwoSpeechbubblesAction: {message: g.question, choices: g.answers},
-    })),
+    goal: goal$,
     TwoSpeechbubblesAction: sources.TwoSpeechbubblesAction,
     QuestionAnswerAction: {result: questionAnswerResult$},
     state: sources.state,

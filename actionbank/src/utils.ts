@@ -7,5 +7,5 @@ export const selectActionResult = (actionName: string) =>
     .filter(s => !!s
       && !!s[actionName]
       && !!s[actionName].result)
-    .map(s => s[actionName].outputs.result)
+    .map(s => s[actionName].result)
     .compose(dropRepeats(isEqualResult));
