@@ -44,6 +44,8 @@ export interface Sinks {
 }
 
 export default function RobotApp(sources: Sources): Sinks {
+  // sources.state.stream.addListener({next: v => console.log('state$', v)})
+
   // Process state stream
   const state$ = sources.state.stream;
   const selectActionResult = (actionName: string) =>
