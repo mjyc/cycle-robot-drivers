@@ -21,7 +21,7 @@ import {
   SpeechRecogntionActionSinks as SRSinks,
 } from './types';
 import {QuestionAnswerAction} from './QuestionAnswerAction';
-import {QuestionAnswerAction2} from './QuestionAnswerAction2';
+import {QAWithScreenAction} from './QAWithScreenAction';
 
 export interface State {
   FacialExpressionAction: {result: Result},
@@ -47,7 +47,7 @@ export interface Sinks {
 }
 
 export default function RobotApp(sources: Sources): Sinks {
-  sources.state.stream.addListener({next: v => console.log('state$', v)})
+  // sources.state.stream.addListener({next: v => console.log('state$', v)})
 
   // Process state stream
   const state$ = sources.state.stream;
@@ -81,14 +81,14 @@ export default function RobotApp(sources: Sources): Sinks {
   //   SpeechRecognitionAction: {result: speechRecognitionResult$},
   //   state: sources.state,
   // });
-  const childSinks: any = isolate(QuestionAnswerAction2)({
+  const childSinks: any = isolate(QAWithScreenAction)({
     ...sources,
     goal: xs.of({
       FacialExpressionAction: 'happy',
       TwoSpeechbubblesAction: {message: 'Hello', choices: ['Hello']},
     }).compose(delay(1000)),
     FacialExpressionAction: {result: facialExpressionResult$},
-    TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
+    TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$.debug()},
     SpeechSynthesisAction: {result: speechSynthesisResult$},
     SpeechRecognitionAction: {result: speechRecognitionResult$},
   })

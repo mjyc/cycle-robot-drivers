@@ -2,7 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {Reducer} from '@cycle/state';
 import {
-  initGoal, isEqual, GoalID, Status, Result
+  initGoal, isEqual, GoalID, Status, Result, generateGoalID
 } from '@cycle-robot-drivers/action';
 
 // FSM types
@@ -43,6 +43,7 @@ export function makeConcurrentAction(
   ) => {
     const results$: Stream<Result[]>
       = xs.combine.apply(null, results);
+    results$.addListener({next: v => console.warn('result',v)})
     return xs.merge(
       goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
         ? ({type: SIGType.CANCEL, value: null})
@@ -155,8 +156,17 @@ export function makeConcurrentAction(
   }
 
   return function ConcurrentAction(sources) {
+    const createDummyResult = () => ({
+      status: {
+        goal_id: generateGoalID(),
+        status: Status.SUCCEEDED,
+      },
+      result: null,
+    });
+
+    sources.TwoSpeechbubblesAction.result.addListener({next: v => console.warn(v)});
     const reducerState$ = sources.state.stream;
-    const results = actionNames.map(x => sources[x].result);
+    const results = actionNames.map(x => sources[x].result.startWith(createDummyResult()));
     const input$ = input(sources.goal, results);
     const reducer$: Stream<Reducer<State>> = reducer(input$);
     const outputs = output(reducerState$)
