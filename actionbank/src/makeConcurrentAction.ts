@@ -44,16 +44,9 @@ export function makeConcurrentAction(
     const results$: Stream<Result[]>
       = xs.combine.apply(null, results);
     return xs.merge(
-      goal$.filter(goal => typeof goal !== 'undefined')
-        .map(goal => (goal === null)
-          ? ({
-              type: SIGType.CANCEL,
-              value: null,  // means "cancel"
-            })
-          : ({
-              type: SIGType.GOAL,
-              value: initGoal(goal),
-            })),
+      goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
+        ? ({type: SIGType.CANCEL, value: null})
+        : ({type: SIGType.GOAL, value: initGoal(g)})),
       results$.map(r => ({type: SIGType.RESULTS, value: r})),
     );
   }
