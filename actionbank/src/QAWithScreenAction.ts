@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import isolate from '@cycle/isolate';
-import {makeConcurrentAction} from '@cycle-robot-drivers/actionbank';
+import {makeConcurrentAction} from './makeConcurrentAction';
 import {QuestionAnswerAction} from './QuestionAnswerAction';
 import {selectActionResult} from './utils';
 

@@ -14,14 +14,14 @@ import {
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
 import {
+  selectActionResult, QuestionAnswerAction, QAWithScreenAction
+} from '@cycle-robot-drivers/actionbank';
+import {
   FacialExpressionActionSinks as FEASinks,
   TwoSpeechbuttonsActionSinks as TWASinks,
   SpeechSynthesisActionSinks as SSSinks,
   SpeechRecogntionActionSinks as SRSinks,
 } from './types';
-import {selectActionResult} from './utils';
-import {QuestionAnswerAction} from './QuestionAnswerAction';
-import {QAWithScreenAction} from './QAWithScreenAction';
 
 export interface State {
   FacialExpressionAction: {result: Result},
