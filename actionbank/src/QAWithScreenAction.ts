@@ -1,11 +1,36 @@
 import xs, {Stream} from 'xstream';
 import isolate from '@cycle/isolate';
+import {Result} from '@cycle-robot-drivers/action';
 import {makeConcurrentAction} from './makeConcurrentAction';
 import {QuestionAnswerAction} from './QuestionAnswerAction';
 import {selectActionResult} from './utils';
+import {StateSource, Reducer} from '@cycle/state';
+import {State as RaceActionState} from './makeConcurrentAction';
+import {State as QuestionAnswerActionState} from './QuestionAnswerAction';
 
-export function QAWithScreenAction(sources) {
-  // sources.state.stream.addListener({next: v => console.log('state$', v)})
+export interface State {
+  RaceAction: RaceActionState,
+  QuestionAnswerAction: QuestionAnswerActionState,
+}
+
+export interface Sources {
+  goal: Stream<any>,
+  TwoSpeechbubblesAction: any,
+  SpeechSynthesisAction: any,
+  SpeechRecognitionAction: any,
+  state: StateSource<State>,
+}
+
+export interface Sinks {
+  result: Stream<Result>,
+  TwoSpeechbubblesAction: {result: Stream<Result>},
+  SpeechSynthesisAction: {result: Stream<Result>},
+  SpeechRecognitionAction: {result: Stream<Result>},
+  state: Stream<Reducer<State>>;
+}
+
+export function QAWithScreenAction(sources: Sources): Sinks {
+  sources.state.stream.addListener({next: v => console.log('state$', v)})
 
   const state$ = sources.state.stream;
   const questionAnswerResult$ = state$
@@ -33,7 +58,7 @@ export function QAWithScreenAction(sources) {
   });
   // qaSinks.result.addListener({next: v => console.log('qaSinks.result', v)});
 
-  const reducer$ = xs.merge(raceSinks.state, qaSinks.state);
+  const reducer$: any = xs.merge(raceSinks.state, qaSinks.state);
   
   return {
     result: raceSinks.result,

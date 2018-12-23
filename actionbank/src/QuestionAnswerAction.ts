@@ -47,6 +47,13 @@ export interface Sources {
   state: StateSource<State>,
 }
 
+export interface Sinks {
+  result: Stream<Result>,
+  SpeechSynthesisAction: Stream<any>,
+  SpeechRecognitionAction: Stream<any>,
+  state: Stream<Reducer<State>>;
+}
+
 function input(
   goal$: Stream<any>,
   speechSynthesisResult: Stream<Result>,
@@ -197,7 +204,7 @@ function output(reducerState$: Stream<State>) {
   };
 }
 
-export function QuestionAnswerAction(sources: Sources) {
+export function QuestionAnswerAction(sources: Sources): Sinks {
   const reducerState$ = sources.state.stream;
   const input$ = input(
     sources.goal,
