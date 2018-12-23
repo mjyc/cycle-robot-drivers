@@ -63,9 +63,7 @@ export function makeConcurrentAction(
       if (typeof prev === 'undefined') {
         return {
           state: S.PEND,
-          variables: {
-            goal_id: null,
-          },
+          variables: null,
           outputs: null,
         };
       } else {
@@ -102,9 +100,7 @@ export function makeConcurrentAction(
           return {
             ...prev,
             state: S.PEND,
-            variables: {
-              goal_id: null,
-            },
+            variables: null,
             outputs: {
               result: {
                 status: {
@@ -129,9 +125,7 @@ export function makeConcurrentAction(
           ))[0];  // break the tie here
           return {
             state: S.PEND,
-            variables: {
-              goal_id: prev.variables.goal_id,
-            },
+            variables: null,
             outputs: {
               result: {
                 status: {
