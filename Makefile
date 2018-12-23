@@ -1,4 +1,4 @@
-.PHONY: lib action screen speech sound run 3rdparty/cycle-posenet-driver
+.PHONY: lib action screen speech sound run 3rdparty/cycle-posenet-driver actionbank
 
 ROOTDIR=$(shell pwd)
 BINDIR=node_modules/.bin
@@ -91,4 +91,7 @@ run:
 	@:
 
 3rdparty/cycle-posenet-driver:
+	@:
+
+actionbank:
 	@:
