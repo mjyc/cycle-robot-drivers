@@ -104,11 +104,11 @@ export default function RobotApp(sources: Sources): Sinks {
   // Define Reducers
   const parentReducer$: Stream<Reducer<State>> = xs.merge(
     twoSpeechbubblesAction.result.map(result =>
-      prev => ({...prev, TwoSpeechbubblesAction: {outputs: {result}}})),
+      prev => ({...prev, TwoSpeechbubblesAction: {result}})),
     speechSynthesisAction.result.map(result => 
-      prev => ({...prev, SpeechSynthesisAction: {outputs: {result}}})),
+      prev => ({...prev, SpeechSynthesisAction: {result}})),
     speechRecognitionAction.result.map(result =>
-      prev => ({...prev, SpeechRecognitionAction: {outputs: {result}}})),
+      prev => ({...prev, SpeechRecognitionAction: {result}})),
   );
   const childReducer$: Stream<Reducer<State>> = childSinks.state;
   const reducer$ = xs.merge(parentReducer$, childReducer$);
