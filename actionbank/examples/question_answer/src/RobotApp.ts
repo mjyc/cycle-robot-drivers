@@ -21,7 +21,7 @@ import {
   SpeechRecogntionActionSinks as SRSinks,
 } from './types';
 import {QuestionAnswerAction} from './QuestionAnswerAction';
-import { QuestionAnswerAction2 } from './QuestionAnswerAction2';
+import {QuestionAnswerAction2} from './QuestionAnswerAction2';
 
 export interface State {
   FacialExpressionAction: {result: Result},
@@ -89,6 +89,8 @@ export default function RobotApp(sources: Sources): Sinks {
     }).compose(delay(1000)),
     FacialExpressionAction: {result: facialExpressionResult$},
     TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
+    SpeechSynthesisAction: {result: speechSynthesisResult$},
+    SpeechRecognitionAction: {result: speechRecognitionResult$},
   })
 
   childSinks.result.addListener({next: r => console.log('result', r)});
