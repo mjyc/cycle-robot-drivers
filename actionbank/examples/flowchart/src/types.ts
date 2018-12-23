@@ -1,7 +1,22 @@
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+import {Stream} from 'xstream';
+import {Result} from '@cycle-robot-drivers/action';
 
-export type ReducerStateTemplate<S, V, O> = {
-  state: S
-  variables: V,
-  outputs: O,
-};
+export interface ActionSinks {
+  result: Stream<Result>,
+}
+
+export interface FacialExpressionActionSinks extends ActionSinks {
+  output?: Stream<any>,
+}
+
+export interface TwoSpeechbuttonsActionSinks extends ActionSinks {
+  DOM?: Stream<any>,
+}
+
+export interface SpeechSynthesisActionSinks extends ActionSinks {
+  output?: Stream<any>,
+}
+
+export interface SpeechRecogntionActionSinks extends ActionSinks {
+  output?: Stream<any>,
+}

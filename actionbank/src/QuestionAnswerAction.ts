@@ -47,7 +47,6 @@ export interface Sources {
   state: StateSource<State>,
 }
 
-
 function input(
   goal$: Stream<any>,
   speechSynthesisResult: Stream<Result>,

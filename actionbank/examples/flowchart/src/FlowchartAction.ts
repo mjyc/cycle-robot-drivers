@@ -6,26 +6,25 @@ import {StateSource, Reducer as StateReducer} from '@cycle/state';
 import {
   GoalID, Status, initGoal, isEqualGoal, isEqualResult
 } from '@cycle-robot-drivers/action';
-import {Omit, ReducerStateTemplate} from './types';
-import QuestionAnswerAction from './QuestionAnswerAction';
+import {QAWithScreenAction} from '@cycle-robot-drivers/actionbank';
 import {
   ReducerState as QARState, Sources as QASources, FSMOutputs as QAOutputs
 } from './QuestionAnswerAction';
 
-enum FSMState {
+enum State {
   PEND = 'PEND',
   QA = 'QA',
   SAY = 'SAY',
 }
 
-enum FSMInputType {
+enum SIGType {
   GOAL = 'GOAL',
   QA_SUCCEEDED = 'QA_SUCCEEDED',
   QA_FAILED = 'QA_FAILED',
   SAY_DONE = 'SAY_DONE',
 }
 
-export type FSMVariables = {
+export type V = {
   flowchart: any,
   node: string,
   goal_id: GoalID,
@@ -37,7 +36,7 @@ export interface FSMOutputs extends QAOutputs {
 }
 
 
-export type ReducerState = ReducerStateTemplate<FSMState, FSMVariables, any>;
+export type ReducerState = ReducerStateTemplate<State, V, any>;
 
 export type Reducer = StateReducer<ReducerState>;
 
@@ -64,16 +63,16 @@ function input(
     .map(s => s.QuestionAnswerAction.outputs.result)
     .compose(dropRepeats(isEqualResult));
   return xs.merge(
-    goal$.map(x => ({type: FSMInputType.GOAL, value: initGoal(x)})),
+    goal$.map(x => ({type: SIGType.GOAL, value: initGoal(x)})),
     qaResult$
       .filter(r => r.status.status === Status.SUCCEEDED)
-      .map(r => ({type: FSMInputType.QA_SUCCEEDED, value: r.result})),
+      .map(r => ({type: SIGType.QA_SUCCEEDED, value: r.result})),
     qaResult$
       .filter(r => r.status.status !== Status.SUCCEEDED)
-      .map(r => ({type: FSMInputType.QA_FAILED, value: r.result})),
+      .map(r => ({type: SIGType.QA_FAILED, value: r.result})),
     speechSynthesisAction.result
       .filter(result => result.status.status === 'SUCCEEDED')
-      .mapTo({type: FSMInputType.SAY_DONE}),
+      .mapTo({type: SIGType.SAY_DONE}),
   );
 }
 
@@ -81,7 +80,7 @@ function reducer(input$) {
   const initReducer$: Stream<Reducer> = xs.of(function(prev) {
     if (typeof prev === 'undefined') {
       return {
-        state: FSMState.PEND,
+        state: State.PEND,
         variables: null,
         outputs: null,
       };
@@ -92,12 +91,12 @@ function reducer(input$) {
 
   const transitionReducer$: Stream<Reducer> = input$.map(input => function(prev) {
     console.debug('input', input, 'prev', prev);
-    if (prev.state === FSMState.PEND && input.type === FSMInputType.GOAL) {  // goal-received
+    if (prev.state === State.PEND && input.type === SIGType.GOAL) {  // goal-received
       const node = input.value.goal.start;
       const next = input.value.goal.flowchart[node];
       if (typeof next === 'string' || !next) {  // do Monologue
         return {
-          state: FSMState.SAY,
+          state: State.SAY,
           variables: {
             flowchart: input.value.goal.flowchart,
             node: node,
@@ -112,7 +111,7 @@ function reducer(input$) {
         };
       } else {  // do QA
         return {
-          state: FSMState.QA,
+          state: State.QA,
           variables: {
             flowchart: input.value.goal.flowchart,
             node: node,
@@ -129,13 +128,13 @@ function reducer(input$) {
           QuestionAnswerAction: prev.QuestionAnswerAction,
         }
       }
-    } else if (prev.state === FSMState.SAY && input.type === FSMInputType.SAY_DONE) {  // monologue-done
+    } else if (prev.state === State.SAY && input.type === SIGType.SAY_DONE) {  // monologue-done
       const node = prev.variables.flowchart[prev.variables.node];
       const next = prev.variables.flowchart[node];
       if (!node) {  // deadend
         return {
           ...prev,
-          state: FSMState.PEND,
+          state: State.PEND,
           variables: null,
           outputs: {
             result: {
@@ -150,7 +149,7 @@ function reducer(input$) {
       } else if (typeof next === 'string' || !next) {  // do Monologue
         return {
           ...prev,
-          state: FSMState.SAY,
+          state: State.SAY,
           variables: {
             ...prev.variables,
             node: node,
@@ -164,7 +163,7 @@ function reducer(input$) {
       } else {  // do QA
         return {
           ...prev,
-          state: FSMState.QA,
+          state: State.QA,
           variables: {
             ...prev.variables,
             node: node,
@@ -179,13 +178,13 @@ function reducer(input$) {
           },
         };
       }
-    } else if (prev.state === FSMState.QA && input.type === FSMInputType.QA_SUCCEEDED) {  // qa-done
+    } else if (prev.state === State.QA && input.type === SIGType.QA_SUCCEEDED) {  // qa-done
       const node = prev.variables.flowchart[prev.variables.node][input.value];
       const next = prev.variables.flowchart[node];
       if (typeof next === 'string' || !next) {  // do Monologue
         return {
           ...prev,
-          state: FSMState.SAY,
+          state: State.SAY,
           variables: {
             ...prev.variables,
             node: node
@@ -199,7 +198,7 @@ function reducer(input$) {
       } else {  // do QA
         return {
           ...prev,
-          state: FSMState.QA,
+          state: State.QA,
           variables: {
             ...prev.variables,
             node: node
@@ -214,9 +213,9 @@ function reducer(input$) {
           },
         };
       }
-    } else if (prev.state === FSMState.QA && input.type === FSMInputType.QA_FAILED) {  // qa-failed
+    } else if (prev.state === State.QA && input.type === SIGType.QA_FAILED) {  // qa-failed
       return {
-        state: FSMState.PEND,
+        state: State.PEND,
         variables: null,
         outputs: {
           result: {
