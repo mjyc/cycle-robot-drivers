@@ -1,7 +1,7 @@
-
 import {Stream} from 'xstream';
 import {Result} from '@cycle-robot-drivers/action';
 
+// Action types
 export interface ActionSinks {
   result: Stream<Result>,
 }
@@ -21,3 +21,10 @@ export interface SpeechSynthesisActionSinks extends ActionSinks {
 export interface SpeechRecogntionActionSinks extends ActionSinks {
   output?: Stream<any>,
 }
+
+// Reducer types
+export type FSMReducerState<S, V, O> = {
+  state: S
+  variables: V,
+  outputs: O,
+};

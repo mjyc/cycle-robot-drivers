@@ -20,17 +20,7 @@ import {
   SpeechSynthesisActionSinks as SSSinks,
   SpeechRecogntionActionSinks as SRSinks,
 } from './types';
-import {makeConcurrentAction} from '@cycle-robot-drivers/actionbank';
-
-const AllAction = makeConcurrentAction(
-  ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
-  false,
-);
-
-const RaceAction = makeConcurrentAction(
-  ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
-  true,
-);
+import {QuestionAnswerAction} from './QuestionAnswerAction';
 
 export interface State {
   FacialExpressionAction: {result: Result},
@@ -74,14 +64,14 @@ export default function RobotApp(sources: Sources): Sinks {
 
 
   // "main" component
-  const childSinks: any = isolate(RaceAction, 'RaceAction')({
-    ...sources,
+  const childSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
     goal: xs.of({
-      FacialExpressionAction: 'happy',
-      TwoSpeechbubblesAction: {message: 'Hello', choices: ['Hello']},
+      question: 'how are you?',
+      answers: ['good', 'bad'],
     }).compose(delay(1000)),
-    FacialExpressionAction: {result: facialExpressionResult$},
-    TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
+    SpeechSynthesisAction: {result: speechSynthesisResult$},
+    SpeechRecognitionAction: {result: speechRecognitionResult$},
+    state: sources.state,
   });
 
   childSinks.result.addListener({next: r => console.log('result', r)});
@@ -89,21 +79,19 @@ export default function RobotApp(sources: Sources): Sinks {
 
   // Define Actions
   const facialExpressionAction: FEASinks = FacialExpressionAction({
-    goal: childSinks.FacialExpressionAction,
+    goal: childSinks.FacialExpressionAction || xs.never(),
     TabletFace: sources.TabletFace,
   });
   const twoSpeechbubblesAction: TWASinks = TwoSpeechbubblesAction({
-    goal: childSinks.TwoSpeechbubblesAction,
+    goal: childSinks.TwoSpeechbubblesAction || xs.never(),
     DOM: sources.DOM,
   });
   const speechSynthesisAction: SSSinks = SpeechSynthesisAction({
-    // goal: childSinks.SpeechSynthesisAction,
-    goal: xs.never(),
+    goal: childSinks.SpeechSynthesisAction || xs.never(),
     SpeechSynthesis: sources.SpeechSynthesis,
   });
   const speechRecognitionAction: SRSinks = SpeechRecognitionAction({
-    // goal: childSinks.SpeechRecognitionAction,
-    goal: xs.never(),
+    goal: childSinks.SpeechRecognitionAction || xs.never(),
     SpeechRecognition: sources.SpeechRecognition,
   });
 
