@@ -21,6 +21,7 @@ import {
   SpeechRecogntionActionSinks as SRSinks,
 } from './types';
 import {QuestionAnswerAction} from './QuestionAnswerAction';
+import { QuestionAnswerAction2 } from './QuestionAnswerAction2';
 
 export interface State {
   FacialExpressionAction: {result: Result},
@@ -46,7 +47,7 @@ export interface Sinks {
 }
 
 export default function RobotApp(sources: Sources): Sinks {
-  // sources.state.stream.addListener({next: v => console.log('state$', v)})
+  sources.state.stream.addListener({next: v => console.log('state$', v)})
 
   // Process state stream
   const state$ = sources.state.stream;
@@ -65,21 +66,30 @@ export default function RobotApp(sources: Sources): Sinks {
 
 
   // "main" component
-  const childSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
-    goal: xs.merge(
-      xs.of({
-        question: 'How are you?',
-        answers: ['good', 'bad'],
-      }).compose(delay(1000)),
-      xs.of({
-        question: 'How was today?',
-        answers: ['Great', 'Okay'],
-      }).compose(delay(2000)),
-    ),
-    SpeechSynthesisAction: {result: speechSynthesisResult$},
-    SpeechRecognitionAction: {result: speechRecognitionResult$},
-    state: sources.state,
-  });
+  // const childSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
+  //   goal: xs.merge(
+  //     xs.of({
+  //       question: 'How are you?',
+  //       answers: ['good', 'bad'],
+  //     }).compose(delay(1000)),
+  //     xs.of({
+  //       question: 'How was today?',
+  //       answers: ['Great', 'Okay'],
+  //     }).compose(delay(2000))
+  //   ),
+  //   SpeechSynthesisAction: {result: speechSynthesisResult$},
+  //   SpeechRecognitionAction: {result: speechRecognitionResult$},
+  //   state: sources.state,
+  // });
+  const childSinks: any = isolate(QuestionAnswerAction2)({
+    ...sources,
+    goal: xs.of({
+      FacialExpressionAction: 'happy',
+      TwoSpeechbubblesAction: {message: 'Hello', choices: ['Hello']},
+    }).compose(delay(1000)),
+    FacialExpressionAction: {result: facialExpressionResult$},
+    TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
+  })
 
   childSinks.result.addListener({next: r => console.log('result', r)});
 
