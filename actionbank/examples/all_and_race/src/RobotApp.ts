@@ -14,7 +14,7 @@ import {
   FacialExpressionActionSinks as FEASinks,
   TwoSpeechbuttonsActionSinks as TWASinks,
 } from './types';
-import {makeConcurrentAction} from '@cycle-robot-drivers/actionbank';
+import {selectActionResult, makeConcurrentAction} from '@cycle-robot-drivers/actionbank';
 
 const AllAction = makeConcurrentAction(
   ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
@@ -48,10 +48,6 @@ export default function RobotApp(sources: Sources): Sinks {
 
   // Process state stream
   const state$ = sources.state.stream;
-  const selectActionResult = (actionName: string) =>
-    (in$: Stream<State>) => in$
-      .map(s => s[actionName].result)
-      .compose(dropRepeats(isEqualResult));
   const facialExpressionResult$ = state$
     .compose(selectActionResult('FacialExpressionAction'));
   const twoSpeechbubblesResult$ = state$
@@ -85,22 +81,11 @@ export default function RobotApp(sources: Sources): Sinks {
 
 
   // Define Reducers
-  const createDummyResult = () => ({
-    status: {
-      goal_id: generateGoalID(),
-      status: Status.SUCCEEDED,
-    },
-    result: null,
-  });
   const parentReducer$: Stream<Reducer<State>> = xs.merge(
-    xs.of(() => ({
-      FacialExpressionAction: {result: createDummyResult()},
-      TwoSpeechbubblesAction: {result: createDummyResult()},
-    })),
     facialExpressionAction.result.map(result => 
-      prev => ({...prev, FacialExpressionAction: {result}})),
+      prev => ({...prev, FacialExpressionAction: {outputs: {result}}})),
     twoSpeechbubblesAction.result.map(result =>
-      prev => ({...prev, TwoSpeechbubblesAction: {result}})),
+      prev => ({...prev, TwoSpeechbubblesAction: {outputs: {result}}})),
   );
   const childReducer$: Stream<Reducer<State>> = childSinks.state;
   const reducer$ = xs.merge(parentReducer$, childReducer$);
