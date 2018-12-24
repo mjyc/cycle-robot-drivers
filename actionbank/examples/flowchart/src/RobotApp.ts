@@ -12,9 +12,7 @@ import {
   SpeechSynthesisAction,
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
-import {
-  selectActionResult, QuestionAnswerAction, QAWithScreenAction
-} from '@cycle-robot-drivers/actionbank';
+import {selectActionResult} from '@cycle-robot-drivers/actionbank';
 import {
   TwoSpeechbuttonsActionSinks as TWASinks,
   SpeechSynthesisActionSinks as SSSinks,
@@ -57,32 +55,20 @@ export default function RobotApp(sources: Sources): Sinks {
     .compose(selectActionResult('SpeechRecognitionAction'));
 
   // "main" component
-  // const childSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
-  //   goal: xs.merge(
-  //     xs.of({
-  //       question: 'How are you?',
-  //       answers: ['good', 'bad'],
-  //     }).compose(delay(1000)),
-  //     xs.of({
-  //       question: 'How was today?',
-  //       answers: ['Great', 'Okay'],
-  //     }).compose(delay(2000))
-  //   ),
-  //   SpeechSynthesisAction: {result: speechSynthesisResult$},
-  //   SpeechRecognitionAction: {result: speechRecognitionResult$},
-  //   state: sources.state,
-  // });
   const flowchart = {
-    "PRAY": "Did it work?",
-    "Did it work?": {
-      "yes": "PRAISE THE LORD",
-      "no": "God works in mysterious ways"
+    "ARE YOU HAPPY?": {
+      "Yes": "KEEP DOING WHATEVER YOU'RE DOING",
+      "No": "DO YOU WANT TO BE HAPPY?"
+    },
+    "DO YOU WANT TO BE HAPPY?": {
+      "Yes": "CHANGE SOMETHING",
+      "No": "KEEP DOING WHATEVER YOU'RE DOING"
     }
-  }; 
+  };  
   const childSinks: any = isolate(FlowchartAction)({
     goal: xs.of({
       flowchart,
-      start: 'PRAY',
+      start: 'ARE YOU HAPPY?',
     }).compose(delay(1000)),
     TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
     SpeechSynthesisAction: {result: speechSynthesisResult$},
@@ -111,11 +97,11 @@ export default function RobotApp(sources: Sources): Sinks {
   // Define Reducers
   const parentReducer$: Stream<Reducer<State>> = xs.merge(
     twoSpeechbubblesAction.result.map(result =>
-      prev => ({...prev, TwoSpeechbubblesAction: {result}})),
+      prev => ({...prev, TwoSpeechbubblesAction: {outputs: {result}}})),
     speechSynthesisAction.result.map(result => 
-      prev => ({...prev, SpeechSynthesisAction: {result}})),
+      prev => ({...prev, SpeechSynthesisAction: {outputs: {result}}})),
     speechRecognitionAction.result.map(result =>
-      prev => ({...prev, SpeechRecognitionAction: {result}})),
+      prev => ({...prev, SpeechRecognitionAction: {outputs: {result}}})),
   );
   const childReducer$: Stream<Reducer<State>> = childSinks.state;
   const reducer$ = xs.merge(parentReducer$, childReducer$);

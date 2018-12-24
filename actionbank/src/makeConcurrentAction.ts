@@ -17,7 +17,7 @@ export enum SIGType {
   RESULTS = 'RESULTS',
 }
 
-export interface SIG {
+export type SIG = {
   type: SIGType,
   value: any,
 }

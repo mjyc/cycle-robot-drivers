@@ -3,29 +3,28 @@ import isolate from '@cycle/isolate';
 import {Result, initGoal} from '@cycle-robot-drivers/action';
 import {makeConcurrentAction} from './makeConcurrentAction';
 import {QuestionAnswerAction} from './QuestionAnswerAction';
+import {Reducer, StateSource} from '@cycle/state';
+import {Omit} from './types';
 import {selectActionResult} from './utils';
-import {StateSource, Reducer} from '@cycle/state';
 import {State as RaceActionState} from './makeConcurrentAction';
-import {State as QuestionAnswerActionState} from './QuestionAnswerAction';
+import {
+  State as QuestionAnswerActionState,
+  Sources as QuestionAnswerActionSources,
+  Sinks as QuestionAnswerActionSinks,
+} from './QuestionAnswerAction';
 
 export interface State {
   RaceAction: RaceActionState,
   QuestionAnswerAction: QuestionAnswerActionState,
 }
 
-export interface Sources {
-  goal: Stream<any>,
-  TwoSpeechbubblesAction: any,
-  SpeechSynthesisAction: any,
-  SpeechRecognitionAction: any,
+export interface Sources extends Omit<QuestionAnswerActionSources, 'state'> {
+  TwoSpeechbubblesAction: {result: Stream<Result>},
   state: StateSource<State>,
 }
 
-export interface Sinks {
-  result: Stream<Result>,
+export interface Sinks extends Omit<QuestionAnswerActionSinks, 'state'> {
   TwoSpeechbubblesAction: {result: Stream<Result>},
-  SpeechSynthesisAction: {result: Stream<Result>},
-  SpeechRecognitionAction: {result: Stream<Result>},
   state: Stream<Reducer<State>>;
 }
 

@@ -19,7 +19,7 @@ export enum SIGType {
   INVALID_RESPONSE = 'INVALID_RESPONSE',
 }
 
-export interface SIG {
+export type SIG = {
   type: SIGType,
   value?: any,
 }
@@ -30,14 +30,14 @@ export type V = {
   answers: string[],
 }
 
-export interface LAM {
+export type LAM = {
   result?: Result,
   SpeechSynthesisAction?: {goal: any},
   SpeechRecognitionAction?: {goal: any},
 }
 
 // Reducer types
-export type State = FSMReducerState<S, V, LAM>;
+export interface State extends FSMReducerState<S, V, LAM> {};
 
 // Component types
 export interface Sources {
@@ -56,24 +56,24 @@ export interface Sinks {
 
 function input(
   goal$: Stream<any>,
-  speechSynthesisResult: Stream<Result>,
-  speechRecognitionResult: Stream<Result>,
+  speechSynthesisResult$: Stream<Result>,
+  speechRecognitionResult$: Stream<Result>,
 ): Stream<SIG> {
   return xs.merge(
     goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
       ? ({type: SIGType.CANCEL, value: null})
       : ({type: SIGType.GOAL, value: initGoal(g)})),
-    speechSynthesisResult
+    speechSynthesisResult$
       .filter(result => result.status.status === 'SUCCEEDED')
       .mapTo({type: SIGType.ASK_DONE}),
-    speechRecognitionResult
+    speechRecognitionResult$
       .filter(result =>
         result.status.status === 'SUCCEEDED'
       ).map(result => ({
         type: SIGType.VALID_RESPONSE,
         value: result.result,
       })),
-    speechRecognitionResult
+    speechRecognitionResult$
       .filter(result =>
         result.status.status !== 'SUCCEEDED'
       ).mapTo({type: SIGType.INVALID_RESPONSE}),

@@ -1,4 +1,4 @@
-export {FSMReducerState} from './types';
+export {Omit, FSMReducerState} from './types';
 export {selectActionResult} from './utils';
 export {makeConcurrentAction} from './makeConcurrentAction';
 export {

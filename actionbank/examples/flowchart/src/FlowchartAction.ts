@@ -5,12 +5,14 @@ import {Stream} from 'xstream';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
 import {
-  GoalID, Status, initGoal, isEqualGoal, isEqualResult
+  Goal, GoalID, Result, Status, initGoal, isEqualGoal,
 } from '@cycle-robot-drivers/action';
 import {
-  QAWithScreenAction, FSMReducerState, selectActionResult
+  Omit, FSMReducerState,
+  QAWithScreenActionSources, QAWithScreenActionSinks, QAWithScreenAction
 } from '@cycle-robot-drivers/actionbank';
 
+// FSM types
 enum S {
   PEND = 'PEND',
   QA = 'QA',
@@ -25,31 +27,42 @@ enum SIGType {
   SAY_DONE = 'SAY_DONE',
 }
 
+export type SIG = {
+  type: SIGType,
+  value?: any,
+}
+
 export type V = {
   goal_id: GoalID,
   flowchart: any,
   node: string,
-  QuestionAnswerAction: any,
 }
 
-// export interface LAM {
-//   result?: Result,
-//   QuestionAnswerAction?: Stream<any>
-// }
+export type LAM = {
+  result?: Result,
+  MonologueAction?: {goal: Goal},
+  QAAction?: {goal: Goal},
+}
 
 // Reducer types
-export type State = FSMReducerState<S, V, any>;
+export interface State extends FSMReducerState<S, V, LAM> {
+  QAAction?: any,
+}
 
 // Component types
-// export interface Sources extends Omit<QASources, 'state'> {
-//   state: StateSource<State>,
-// }
+export interface Sources extends Omit<QAWithScreenActionSources, 'state'> {
+  state: StateSource<State>,
+}
+
+export interface Sinks extends Omit<QAWithScreenActionSinks, 'state'>{
+  state: Stream<Reducer<State>>;
+}
 
 function input(
-  goal$,
-  questionAnswerResult$,
-  monologueResult$,
-) {
+  goal$: Stream<any>,
+  questionAnswerResult$: Stream<Result>,
+  monologueResult$: Stream<Result>,
+): Stream<SIG> {
   return xs.merge(
     goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
       ? ({type: SIGType.CANCEL, value: null})
@@ -66,8 +79,8 @@ function input(
   );
 }
 
-function reducer(input$) {
-  const initReducer$: Stream<Reducer<State>> = xs.of(function(prev) {
+function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
+  const initReducer$: Stream<Reducer<State>> = xs.of(function(prev?: State): State {
     if (typeof prev === 'undefined') {
       return {
         state: S.PEND,
@@ -79,7 +92,7 @@ function reducer(input$) {
     }
   });
 
-  const transitionReducer$: Stream<Reducer<State>> = input$.map(input => function(prev) {
+  const transitionReducer$: Stream<Reducer<State>> = input$.map((input: SIG) => (prev: State): State => {
     console.debug('input', input, 'prev', prev);
     if (prev.state === S.PEND && input.type === SIGType.GOAL) {  // goal-received
       const node = input.value.goal.start;
@@ -225,7 +238,7 @@ function reducer(input$) {
   return xs.merge(initReducer$, transitionReducer$);
 }
 
-function output(reducerState$) {
+function output(reducerState$: Stream<State>) {
   const outputs$ = reducerState$
     .filter(m => !!m.outputs)
     .map(m => m.outputs);
@@ -242,31 +255,37 @@ function output(reducerState$) {
   };
 }
 
-export function FlowchartAction(sources) {
+export function FlowchartAction(sources: Sources): Sinks {
   sources.state.stream.addListener({next: v => console.log('state$', v)})
 
-  const reducerState$ = sources.state.stream;
-  const outputs = output(reducerState$);
+  const goalProxy$ = xs.create();
   const qaSinks = isolate(QAWithScreenAction, 'QAAction')({
     ...sources,
-    goal: outputs.QAAction.compose(dropRepeats(isEqualGoal)),
+    goal: goalProxy$,
   });
-  qaSinks.result.debug(r => console.log('qaSinks.result', r));
+
   const input$ = input(
     sources.goal,
     qaSinks.result,
     sources.SpeechSynthesisAction.result,
   );
   const parentReducer$ = reducer(input$);
-  const reducer$ = xs.merge(parentReducer$, qaSinks.state);
+  const reducer$ = xs.merge(
+    parentReducer$,
+    qaSinks.state as Stream<Reducer<State>>
+  );
+  const reducerState$ = sources.state.stream;
+  const outputs = output(reducerState$);
+  goalProxy$.imitate(outputs.QAAction.compose(dropRepeats(isEqualGoal)));
 
+  const speechbubbles$ = xs.merge(
+    qaSinks.SpeechSynthesisAction,
+    outputs.MonologueAction.compose(dropRepeats(isEqualGoal)),
+  );
   return {
-    result: xs.never(),
-    TwoSpeechbubblesAction: qaSinks.TwoSpeechbubblesAction.compose(dropRepeats(isEqualGoal)),
-    SpeechSynthesisAction: xs.merge(
-      qaSinks.SpeechSynthesisAction,
-      outputs.MonologueAction.compose(dropRepeats(isEqualGoal)),
-      ),
+    result: outputs.result,
+    TwoSpeechbubblesAction: qaSinks.TwoSpeechbubblesAction,
+    SpeechSynthesisAction: speechbubbles$,
     SpeechRecognitionAction: qaSinks.SpeechRecognitionAction,
     state: reducer$,
   };
