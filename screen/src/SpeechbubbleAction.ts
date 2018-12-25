@@ -144,7 +144,8 @@ function createTransition() {
               ? span({style: styles.message}, inputValue.goal.value)
               : inputValue.goal.type === SpeechbubbleType.CHOICE
                 ? span(
-                  inputValue.goal.value.map(text => button('.choice', text))
+                  inputValue.goal.value.map(text => button(
+                    '.choice', {style: styles.button}, text))
                 ) : ''
           },
           result: {
@@ -176,7 +177,7 @@ function createTransition() {
           }
         },
       }),
-      [InputType.CLICK]: (variables, inputValue) => 
+      [InputType.CLICK]: (variables, inputValue) =>
         variables.goal.type === SpeechbubbleType.CHOICE
         ? {
           state: State.DONE,
@@ -255,20 +256,20 @@ function output(machine$) {
 
 /**
  * Speechbubble action component.
- * 
+ *
  * @param sources
- * 
+ *
  *   * goal: a stream of `null` (as "cancel"),
  *     `{type: 'MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
  *     "message"), or `{type: 'CHOICE', value: ['Hello', 'World']}`
  *     or `['Hello', 'World']` (as "multiple choice").
  *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
- * 
+ *
  * @return sinks
- * 
+ *
  *   * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
  *   * result: a stream of action results.
- * 
+ *
  */
 export function SpeechbubbleAction(sources: Sources): Sinks {
   const input$ = input(
