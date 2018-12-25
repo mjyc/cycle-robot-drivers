@@ -1,11 +1,10 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import delay from 'xstream/extra/delay';
-import dropRepeats from 'xstream/extra/dropRepeats';
 import {div, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
-import {Status, Result, generateGoalID, isEqualResult} from '@cycle-robot-drivers/action';
+import {Result} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
   TwoSpeechbubblesAction,
@@ -16,16 +15,6 @@ import {
 } from './types';
 import {selectActionResult, makeConcurrentAction} from '@cycle-robot-drivers/actionbank';
 
-const AllAction = makeConcurrentAction(
-  ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
-  false,
-);
-
-const RaceAction = makeConcurrentAction(
-  ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
-  true,
-);
-
 export interface State {
   FacialExpressionAction: {result: Result},
   TwoSpeechbubblesAction: {result: Result},
@@ -34,7 +23,7 @@ export interface State {
 export interface Sources {
   DOM: DOMSource,
   TabletFace: any,
-  state: StateSource<State>;
+  state: StateSource<State>,
 }
 
 export interface Sinks {
@@ -55,7 +44,15 @@ export default function RobotApp(sources: Sources): Sinks {
 
 
   // "main" component
+  // const AllAction = makeConcurrentAction(
+  //   ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
+  //   false,
+  // );
   // const childSinks: any = isolate(AllAction, 'AllAction')({
+  const RaceAction = makeConcurrentAction(
+    ['FacialExpressionAction', 'TwoSpeechbubblesAction'],
+    true,
+  );
   const childSinks: any = isolate(RaceAction, 'RaceAction')({
     ...sources,
     goal: xs.of({
