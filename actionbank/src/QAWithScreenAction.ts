@@ -1,16 +1,17 @@
 import xs, {Stream} from 'xstream';
 import isolate from '@cycle/isolate';
-import {Result, initGoal} from '@cycle-robot-drivers/action';
-import {makeConcurrentAction} from './makeConcurrentAction';
-import {QuestionAnswerAction} from './QuestionAnswerAction';
 import {Reducer, StateSource} from '@cycle/state';
+import {Result, initGoal} from '@cycle-robot-drivers/action';
 import {Omit} from './types';
 import {selectActionResult} from './utils';
-import {State as RaceActionState} from './makeConcurrentAction';
+import {
+  State as RaceActionState, makeConcurrentAction
+} from './makeConcurrentAction';
 import {
   State as QuestionAnswerActionState,
   Sources as QuestionAnswerActionSources,
   Sinks as QuestionAnswerActionSinks,
+  QuestionAnswerAction,
 } from './QuestionAnswerAction';
 
 export interface State {
@@ -24,7 +25,7 @@ export interface Sources extends Omit<QuestionAnswerActionSources, 'state'> {
 }
 
 export interface Sinks extends Omit<QuestionAnswerActionSinks, 'state'> {
-  TwoSpeechbubblesAction: {result: Stream<Result>},
+  TwoSpeechbubblesAction: Stream<any>,
   state: Stream<Reducer<State>>;
 }
 
@@ -67,7 +68,7 @@ export function QAWithScreenAction(sources: Sources): Sinks {
   // qaSinks.result.addListener({next: v => console.log('qaSinks.result', v)});
 
   const reducer$: any = xs.merge(raceSinks.state, qaSinks.state);
-  
+
   return {
     result: raceSinks.result,
     TwoSpeechbubblesAction: raceSinks.TwoSpeechbubblesAction,
