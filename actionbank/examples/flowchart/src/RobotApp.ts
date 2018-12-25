@@ -66,6 +66,16 @@ export default function RobotApp(sources: Sources): Sinks {
       path: '/src/data/is_it_time_to_make_changes_in_your_life.json',
       start: 'ARE YOU HAPPY?'
     },
+    {
+      name: 'Insects!',
+      path: '/src/data/Set 4 - Insects!.json',
+      start: 'INSECTS!'
+    },
+    {
+      name: 'Caterpillars!',
+      path: '/src/data/Set 5 - Caterpillars!.json',
+      start: 'CATERPILLARS!',
+    },
   ];
 
   // fetch flowchart data
@@ -87,7 +97,24 @@ export default function RobotApp(sources: Sources): Sinks {
     .map(([data, r]: [any, any]) => ({
       flowchart: data.filter(d => d.name === r.result)[0].flowchart,
       start: data.filter(d => d.name === r.result)[0].start,
-    }));
+    }))
+    .map(structData => {
+      if (Array.isArray(structData.flowchart)) {
+        return {
+          ...structData,
+          flowchart: structData.flowchart.reduce((acc, x, i, arr) => {
+            if (i === 0) {
+              return acc;
+            } else {
+              acc[arr[i-1]] = arr[i];
+              return acc;
+            }
+          }, {}),
+        };
+      } else {
+        return structData;
+      }
+    });
   const childSinks: any = isolate(FlowchartAction)({
     goal: goal$,
     TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},

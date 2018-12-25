@@ -1,5 +1,4 @@
 import xs from 'xstream';
-import delay from 'xstream/extra/delay';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {Stream} from 'xstream';
 import isolate from '@cycle/isolate';
