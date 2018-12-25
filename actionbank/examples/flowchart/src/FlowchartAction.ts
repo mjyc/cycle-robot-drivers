@@ -4,7 +4,7 @@ import {Stream} from 'xstream';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
 import {
-  Goal, GoalID, Result, Status, initGoal, isEqualGoal,
+  Goal, GoalID, Result, Status, initGoal, isEqualGoal, isEqualResult,
 } from '@cycle-robot-drivers/action';
 import {
   Omit, FSMReducerState,
@@ -245,13 +245,16 @@ function output(reducerState$: Stream<State>) {
   return {
     result: outputs$
       .filter(o => !!o.result)
-      .map(o => o.result),
+      .map(o => o.result)
+      .compose(dropRepeats(isEqualResult)),
     MonologueAction: outputs$
       .filter(o => !!o.MonologueAction)
-      .map(o => o.MonologueAction.goal),
+      .map(o => o.MonologueAction.goal)
+      .compose(dropRepeats(isEqualGoal)),
     QAAction: outputs$
       .filter(o => !!o.QAAction)
-      .map(o => o.QAAction.goal),
+      .map(o => o.QAAction.goal)
+      .compose(dropRepeats(isEqualGoal)),
   };
 }
 
@@ -265,8 +268,7 @@ export function FlowchartAction(sources: Sources): Sinks {
     goal: goalProxy$,
   });
   const monoSinks = isolate(SpeakWithScreenAction, 'SpeakWithScreenAction')({
-    // ...sources,
-    goal: goalProxy2$.debug(),
+    goal: goalProxy2$,
     TwoSpeechbubblesAction: sources.TwoSpeechbubblesAction,
     SpeechSynthesisAction: sources.SpeechSynthesisAction,
     state: sources.state,
@@ -294,7 +296,7 @@ export function FlowchartAction(sources: Sources): Sinks {
   );
   const speak$ = xs.merge(
     qaSinks.SpeechSynthesisAction,
-    monoSinks.SpeechSynthesisAction.debug(),
+    monoSinks.SpeechSynthesisAction,
   );
   return {
     result: outputs.result,

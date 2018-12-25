@@ -7,7 +7,7 @@ JASE=$(BINDIR)/jase
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action screen speech sound run 3rdparty/cycle-posenet-driver
+PACKAGES := action screen speech sound run 3rdparty/cycle-posenet-driver actionbank
 
 all:
 	@echo "npm install"
@@ -90,8 +90,8 @@ speech:
 run:
 	@:
 
-3rdparty/cycle-posenet-driver:
+actionbank:
 	@:
 
-actionbank:
+3rdparty/cycle-posenet-driver:
 	@:

@@ -92,7 +92,8 @@ export default function RobotApp(sources: Sources): Sinks {
   );
   const goalId = {stamp: new Date(), id: '#main-screen'};
   const goal$ = xs.combine(data$, twoSpeechbubblesResult$)
-    .filter(([data, r]) => isEqual(r.status.goal_id, goalId)
+    .filter(([data, r]) =>
+      isEqual(r.status.goal_id, goalId)
       && r.status.status !== Status.PREEMPTED)
     .map(([data, r]: [any, any]) => ({
       flowchart: data.filter(d => d.name === r.result)[0].flowchart,
