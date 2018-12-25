@@ -1,10 +1,9 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import delay from 'xstream/extra/delay';
 import {div, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
-import {Result, EventSource} from '@cycle-robot-drivers/action';
+import {Result, EventSource, isEqual, Status} from '@cycle-robot-drivers/action';
 import {
   TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
@@ -54,34 +53,66 @@ export default function RobotApp(sources: Sources): Sinks {
   const speechRecognitionResult$ = state$
     .compose(selectActionResult('SpeechRecognitionAction'));
 
+
   // "main" component
-  const flowchart = {
-    "ARE YOU HAPPY?": {
-      "Yes": "KEEP DOING WHATEVER YOU'RE DOING",
-      "No": "DO YOU WANT TO BE HAPPY?"
+  const flowchartMetadata = [
+    {
+      name: 'How do you know if god exists?',
+      path: '/src/data/how_do_you_know_if_god_exists.json',
+      start: 'PRAY',
     },
-    "DO YOU WANT TO BE HAPPY?": {
-      "Yes": "CHANGE SOMETHING",
-      "No": "KEEP DOING WHATEVER YOU'RE DOING"
-    }
-  };  
+    {
+      name: 'Is it time to make changes in your life?',
+      path: '/src/data/is_it_time_to_make_changes_in_your_life.json',
+      start: 'ARE YOU HAPPY?'
+    },
+  ];
+
+  // fetch flowchart data
+  const data$ = xs.combine.apply(
+    null,
+    flowchartMetadata.map(d => xs.fromPromise(fetch(d.path, {
+      headers: {
+        "content-type": "application/json"
+      }
+    })).map(v => xs.fromPromise(v.json()).map(j => ({
+      ...d,
+      flowchart: j,
+    }))).flatten()),
+  );
+  const goalId = {stamp: new Date(), id: '#main-screen'};
+  const goal$ = xs.combine(data$, twoSpeechbubblesResult$)
+    .filter(([data, r]) => isEqual(r.status.goal_id, goalId)
+      && r.status.status !== Status.PREEMPTED)
+    .map(([data, r]: [any, any]) => ({
+      flowchart: data.filter(d => d.name === r.result)[0].flowchart,
+      start: data.filter(d => d.name === r.result)[0].start,
+    }));
   const childSinks: any = isolate(FlowchartAction)({
-    goal: xs.of({
-      flowchart,
-      start: 'ARE YOU HAPPY?',
-    }).compose(delay(1000)),
+    goal: goal$,
     TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
     SpeechSynthesisAction: {result: speechSynthesisResult$},
     SpeechRecognitionAction: {result: speechRecognitionResult$},
     state: sources.state,
-  })
+  });
 
-  childSinks.result.addListener({next: r => console.log('result', r)});
+  // create the main menu screen
+  const mainScreen$ = data$.map(data => ({
+    goal_id: goalId,
+    goal: {
+      message: 'I can help you answer some questions',
+      choices: data.map(d => d.name),
+    }
+  }));
+  const twoSpeechbubblesGoal$ = xs.merge(
+    xs.combine(mainScreen$, childSinks.result.startWith(null)).map(x => x[0]),
+    childSinks.TwoSpeechbubblesAction,
+  ) || xs.never();
 
 
   // Define Actions
   const twoSpeechbubblesAction: TWASinks = TwoSpeechbubblesAction({
-    goal: childSinks.TwoSpeechbubblesAction || xs.never(),
+    goal: twoSpeechbubblesGoal$,
     DOM: sources.DOM,
   });
   const speechSynthesisAction: SSSinks = SpeechSynthesisAction({
@@ -98,7 +129,7 @@ export default function RobotApp(sources: Sources): Sinks {
   const parentReducer$: Stream<Reducer<State>> = xs.merge(
     twoSpeechbubblesAction.result.map(result =>
       prev => ({...prev, TwoSpeechbubblesAction: {outputs: {result}}})),
-    speechSynthesisAction.result.map(result => 
+    speechSynthesisAction.result.map(result =>
       prev => ({...prev, SpeechSynthesisAction: {outputs: {result}}})),
     speechRecognitionAction.result.map(result =>
       prev => ({...prev, SpeechRecognitionAction: {outputs: {result}}})),
@@ -111,7 +142,7 @@ export default function RobotApp(sources: Sources): Sinks {
   const vdom$ = xs.combine(
     twoSpeechbubblesAction.DOM,
     sources.TabletFace.DOM,
-  ).map(([speechbubbles, face]) => 
+  ).map(([speechbubbles, face]) =>
     div({
       style: {position: 'relative'}
     }, [speechbubbles, face])
