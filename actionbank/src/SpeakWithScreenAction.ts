@@ -2,10 +2,12 @@ import {Stream} from 'xstream';
 import isolate from '@cycle/isolate';
 import {Reducer, StateSource} from '@cycle/state';
 import {Result, initGoal} from '@cycle-robot-drivers/action';
-import {makeConcurrentAction} from '@cycle-robot-drivers/actionbank';  // makeConcurrentAction  //, State as RaceActionState
+import {
+  makeConcurrentAction, State as RaceActionState
+} from './makeConcurrentAction';
 
 export interface State {
-  RaceAction: any,  // RaceActionState
+  RaceAction: RaceActionState,
   QuestionAnswerAction: any,
 }
 

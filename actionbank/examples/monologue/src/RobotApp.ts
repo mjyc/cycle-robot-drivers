@@ -11,12 +11,14 @@ import {
 import {
   SpeechSynthesisAction,
 } from '@cycle-robot-drivers/speech';
-import {selectActionResult} from '@cycle-robot-drivers/actionbank';
+import {
+  selectActionResult,
+  SpeakWithScreenAction,
+} from '@cycle-robot-drivers/actionbank';
 import {
   TwoSpeechbuttonsActionSinks as TWASinks,
   SpeechSynthesisActionSinks as SSSinks,
 } from './types';
-import {SpeakWithScreenAction} from './SpeakWithScreenAction';
 
 export interface State {
   TwoSpeechbubblesAction: {result: Result},
@@ -47,7 +49,7 @@ export default function RobotApp(sources: Sources): Sinks {
     .compose(selectActionResult('SpeechSynthesisAction'));
 
   // "main" component
-  const childSinks = isolate(SpeakWithScreenAction)({
+  const childSinks: any = isolate(SpeakWithScreenAction)({
     goal: xs.of('Hello world!').compose(delay(1000)),
     TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
     SpeechSynthesisAction: {result: speechSynthesisResult$},
