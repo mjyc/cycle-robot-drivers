@@ -8,7 +8,8 @@ import {
 } from '@cycle-robot-drivers/action';
 import {
   Omit, FSMReducerState,
-  QAWithScreenActionSources, QAWithScreenActionSinks, QAWithScreenAction
+  QAWithScreenActionSources, QAWithScreenActionSinks, QAWithScreenAction,
+  SpeakWithScreenAction
 } from '@cycle-robot-drivers/actionbank';
 
 // FSM types
@@ -258,9 +259,17 @@ export function FlowchartAction(sources: Sources): Sinks {
   sources.state.stream.addListener({next: v => console.log('state$', v)})
 
   const goalProxy$ = xs.create();
+  const goalProxy2$ = xs.create();
   const qaSinks = isolate(QAWithScreenAction, 'QAAction')({
     ...sources,
     goal: goalProxy$,
+  });
+  const monoSinks = isolate(SpeakWithScreenAction, 'SpeakWithScreenAction')({
+    // ...sources,
+    goal: goalProxy2$.debug(),
+    TwoSpeechbubblesAction: sources.TwoSpeechbubblesAction,
+    SpeechSynthesisAction: sources.SpeechSynthesisAction,
+    state: sources.state,
   });
 
   const input$ = input(
@@ -271,20 +280,26 @@ export function FlowchartAction(sources: Sources): Sinks {
   const parentReducer$ = reducer(input$);
   const reducer$ = xs.merge(
     parentReducer$,
-    qaSinks.state as Stream<Reducer<State>>
+    qaSinks.state as Stream<Reducer<State>>,
+    monoSinks.state as Stream<Reducer<State>>,
   );
   const reducerState$ = sources.state.stream;
   const outputs = output(reducerState$);
   goalProxy$.imitate(outputs.QAAction.compose(dropRepeats(isEqualGoal)));
+  goalProxy2$.imitate(outputs.MonologueAction.compose(dropRepeats(isEqualGoal)));
 
   const speechbubbles$ = xs.merge(
+    qaSinks.TwoSpeechbubblesAction,
+    monoSinks.TwoSpeechbubblesAction,
+  );
+  const speak$ = xs.merge(
     qaSinks.SpeechSynthesisAction,
-    outputs.MonologueAction.compose(dropRepeats(isEqualGoal)),
+    monoSinks.SpeechSynthesisAction.debug(),
   );
   return {
     result: outputs.result,
-    TwoSpeechbubblesAction: qaSinks.TwoSpeechbubblesAction,
-    SpeechSynthesisAction: speechbubbles$,
+    TwoSpeechbubblesAction: speechbubbles$,
+    SpeechSynthesisAction: speak$,
     SpeechRecognitionAction: qaSinks.SpeechRecognitionAction,
     state: reducer$,
   };

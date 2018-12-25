@@ -26,7 +26,7 @@ export interface Sinks {
 }
 
 export function SpeakWithScreenAction(sources: Sources): Sinks {
-  // sources.state.stream.addListener({next: v => console.log('reducerState$', v)})
+  sources.state.stream.addListener({next: v => console.log('reducerState$', v)})
 
   const goal$ = sources.goal
     .filter(g => typeof g !== 'undefined').map(g => initGoal(g))
@@ -34,7 +34,7 @@ export function SpeakWithScreenAction(sources: Sources): Sinks {
       goal_id: g.goal_id,
       goal: {
         TwoSpeechbubblesAction: g.goal,
-        SpeechSynthesisAction: g.goal
+        SpeechSynthesisAction: g.goal,
       },
     }));
   const RaceAction = makeConcurrentAction(
