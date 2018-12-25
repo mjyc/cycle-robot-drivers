@@ -32,7 +32,7 @@ export interface Sources {
   TabletFace: any,
   SpeechSynthesis: EventSource,
   SpeechRecognition: EventSource,
-  state: StateSource<State>;
+  state: StateSource<State>,
 }
 
 export interface Sinks {
