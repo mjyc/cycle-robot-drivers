@@ -5,6 +5,7 @@
     "sourceMap": true,
     "alwaysStrict": true,
     "module": "commonjs",
-    "target": "es5"
+    "target": "es5",
+    "lib": ["dom", "es5", "scripthost", "es2015.promise"]
   }
 }

@@ -1,6 +1,7 @@
 import xs from 'xstream';
 import {div, makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';
+import {adapt} from '@cycle/run/lib/adapt';
 
 // TODO: update this
 // import Meyda from 'meyda';
@@ -9,33 +10,72 @@ var Meyda = require('meyda');
 console.log(Meyda);
 
 
+function makeMeydaDriver() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    throw 'Browser API navigator.mediaDevices.getUserMedia not available';
+  }
+
+  const bufferSize = 1024;
+  let context = null;
+  let stream = null;
+  let meyda = null;
+
+  // async function initialize() {
+  //   context = new AudioContext();
+  //   stream = await navigator.mediaDevices.getUserMedia({
+  //     'audio': true,
+  //     'video': false,
+  //   });
+  //   meyda = Meyda.createMeydaAnalyzer({
+  //     audioContext: context,
+  //     source: stream,
+  //     bufferSize: bufferSize,
+  //     windowingFunction: 'blackman',
+  //   });
+  // }
+
+  return function(sink$) {
+    // sink$.take(1).addListener({next: initialize()});
+    context = new AudioContext();
+    // stream = await navigator.mediaDevices.getUserMedia({
+    //   'audio': true,
+    //   'video': false,
+    // });
+    navigator.mediaDevices.getUserMedia({
+      'audio': true,
+      'video': false,
+    }).then((mediaStream) => {
+      const source = context.createMediaStreamSource(mediaStream);
+      meyda = Meyda.createMeydaAnalyzer({
+        audioContext: context,
+        source: source,
+        bufferSize: bufferSize,
+        windowingFunction: 'blackman',
+      });
+    });
+    // meyda = Meyda.createMeydaAnalyzer({
+    //   audioContext: context,
+    //   source: stream,
+    //   bufferSize: bufferSize,
+    //   windowingFunction: 'blackman',
+    // });
+
+    return adapt(
+      xs.periodic(1000)
+        .map(x => {
+          if (!meyda) return null;
+          context.resume();
+          return meyda.get(['rms']);
+        })
+        // .mapTo(1)
+        .filter(f => !!f)
+      );  // TODO: update 'rms' part
+  }
+}
+
 function main(sources) {
 
-  const audioContext = new AudioContext();
-  const htmlAudioElement = document.getElementById("audio");
-  // Create an "Audio Node" from the Audio Element
-  const source = audioContext.createMediaElementSource(htmlAudioElement as any);
-  // Connect the Audio Node to your speakers. Now that the audio lives in the
-  // Audio Context, you have to explicitly connect it to the speakers in order to
-  // hear it
-  source.connect(audioContext.destination);
-
-  if (typeof Meyda === "undefined") {
-  console.log("Meyda could not be found! Have you included it?");
-  }
-  else {
-    const analyzer = Meyda.createMeydaAnalyzer({
-      "audioContext": audioContext,
-      "source": source,
-      "bufferSize": 512,
-      "featureExtractors": ["rms"],
-      "callback": features => {
-        console.log(features);
-      }
-    });
-    analyzer.start();
-  }
-
+  sources.Meyda.addListener({next: f => console.log(f)});
 
   return {
     DOM: xs.of(div('Hello world!')),
@@ -44,4 +84,5 @@ function main(sources) {
 
 run(main, {
   DOM: makeDOMDriver('#app'),
+  Meyda: makeMeydaDriver(),
 });
