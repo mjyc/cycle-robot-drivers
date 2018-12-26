@@ -1,9 +1,5 @@
 {
   "extends": "../../tsconfig.common.json",
-  "compilerOptions": {
-    "jsx": "react",
-    "reactNamespace": "Snabbdom"
-  },
   "files": [
     "src/index.ts"
   ]
