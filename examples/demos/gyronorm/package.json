@@ -1,0 +1,27 @@
+{
+  "name": "example",
+  "version": "0.0.0",
+  "description": "",
+  "repository": "",
+  "author": "Michael Jae-Yoon Chung",
+  "license": "MIT",
+  "dependencies": {
+    "@cycle/dom": "22.3.0",
+    "@cycle/run": "5.2.0",
+    "cycle-gyronorm-driver": "file:../../../3rdparty/cycle-gyronorm-driver",
+    "xstream": "11.7.0"
+  },
+  "devDependencies": {
+    "browserify": "^16.2.2",
+    "concurrently": "^4.0.1",
+    "live-server": "^1.2.0",
+    "mkdirp": "~0.5.0",
+    "tsify": "^4.0.0",
+    "watchify": "^3.11.0"
+  },
+  "scripts": {
+    "build": "mkdirp dist && browserify src/index.ts -p tsify --outfile dist/index.js -dv",
+    "watch": "mkdirp dist && watchify src/index.ts -p tsify --outfile dist/index.js -dv",
+    "start": "concurrently \"npm run watch\" \"live-server\""
+  }
+}

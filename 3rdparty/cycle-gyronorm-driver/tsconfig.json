@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "lib": ["dom", "es5", "scripthost"]
+  },
+  "files": [
+    "src/index.ts"
+  ]
+}
