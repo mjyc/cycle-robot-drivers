@@ -1,4 +1,4 @@
-.PHONY: lib action screen speech sound run 3rdparty/cycle-posenet-driver actionbank
+.PHONY: lib action screen speech sound run actionbank 3rdparty/cycle-posenet-driver
 
 ROOTDIR=$(shell pwd)
 BINDIR=node_modules/.bin
@@ -7,7 +7,7 @@ JASE=$(BINDIR)/jase
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action screen speech sound run 3rdparty/cycle-posenet-driver actionbank
+PACKAGES := action screen speech sound run actionbank 3rdparty/cycle-posenet-driver
 
 all:
 	@echo "npm install"
@@ -15,7 +15,7 @@ all:
 	@echo ""
 	@for d in $(PACKAGES); do \
 		echo "$$d: npm install"; \
-		cd $$d && npm install && cd .. && \
+		cd $$d && npm install && cd $(ROOTDIR) && \
 		echo ""; \
 	done
 	@make lib
