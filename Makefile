@@ -1,4 +1,4 @@
-.PHONY: lib action screen speech sound run actionbank 3rdparty/cycle-posenet-driver 3rdparty/cycle-meyda-driver
+.PHONY: lib action screen speech sound run actionbank 3rdparty/cycle-posenet-driver 3rdparty/cycle-meyda-driver 3rdparty/cycle-gyronorm-driver
 
 ROOTDIR=$(shell pwd)
 BINDIR=node_modules/.bin
@@ -7,7 +7,7 @@ JASE=$(BINDIR)/jase
 
 ARG=$(filter-out $@,$(MAKECMDGOALS))
 
-PACKAGES := action screen speech sound run actionbank 3rdparty/cycle-posenet-driver 3rdparty/cycle-meyda-driver
+PACKAGES := action screen speech sound run actionbank 3rdparty/cycle-posenet-driver 3rdparty/cycle-meyda-driver 3rdparty/cycle-gyronorm-driver
 
 all:
 	@echo "npm install"
@@ -97,4 +97,7 @@ run:
 	@:
 
 3rdparty/cycle-meyda-driver:
+	@:
+
+3rdparty/cycle-gyronorm-driver:
 	@:

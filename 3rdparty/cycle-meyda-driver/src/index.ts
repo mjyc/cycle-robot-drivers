@@ -47,6 +47,7 @@ export function makeMeydaDriver(options: {
           'video': false,
         }).then((stream) => {
           const source = context.createMediaStreamSource(stream);
+          context.resume();
           meyda = Meyda.createMeydaAnalyzer({
             ...options,
             startImmediately: true,
