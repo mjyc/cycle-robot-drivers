@@ -7,8 +7,11 @@ import {makeGyronormDriver} from 'cycle-gyronorm-driver';
 
 function main(sources) {
   sources.Meyda.addListener({next: f => console.log(f)});
+  const vdom$ = sources.Meyda.map(data => {
+    return div(JSON.stringify(data))
+  });
   return {
-    DOM: xs.of(div('Hello world!')),
+    DOM: vdom$,
   };
 }
 

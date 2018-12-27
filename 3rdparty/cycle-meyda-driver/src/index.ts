@@ -5,7 +5,7 @@ import {adapt} from '@cycle/run/lib/adapt';
 /**
  * [Meyda](https://github.com/meyda/meyda) audio feature extraction driver factory.
  *
- * @param options a subset of "MeydaOptions" (https://meyda.js.org/reference/module-meyda.html)
+ * @param options a subset of MeydaOptions (https://meyda.js.org/reference/module-meyda.html)
  *
  *   * bufferSize? {number}
  *   * hopSize? {number}
