@@ -8,7 +8,7 @@
   "dependencies": {
     "@cycle/dom": "22.3.0",
     "@cycle/run": "5.2.0",
-    "cycle-gyronorm-driver": "file:../../../3rdparty/cycle-gyronorm-driver",
+    "cycle-gyronorm-driver": "0.0.4",
     "xstream": "11.7.0"
   },
   "devDependencies": {
