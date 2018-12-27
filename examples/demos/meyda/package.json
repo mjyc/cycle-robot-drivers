@@ -6,9 +6,8 @@
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "dependencies": {
-    "@cycle/dom": "22.3.0",
     "@cycle/run": "5.2.0",
-    "cycle-meyda-driver": "file:../../",
+    "cycle-meyda-driver": "file:../../../3rdparty/cycle-meyda-driver",
     "xstream": "11.7.0"
   },
   "devDependencies": {
