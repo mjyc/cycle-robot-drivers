@@ -1,7 +1,7 @@
 import xs from 'xstream';
 import {div, makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';
-import {makeMeydaDriver} from './makeMeydaDriver';
+import {makeMeydaDriver} from 'cycle-meyda-driver';
 
 function main(sources) {
   sources.Meyda.addListener({next: f => console.log(f)});

@@ -3,13 +3,20 @@
   "version": "0.0.0",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
-  "main": "src/cjs/index.js",
+  "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",
+  "repository": "https://github.com/mjyc/cycle-robot-drivers/tree/meyda/3rdparty/cycle-posenet-driver",
+  "main": "lib/cjs/index.js",
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "meyda": "4.1.3"
+    "@cycle/run": "5.2.0",
+    "meyda": "4.2.0",
+    "xstream": "11.7.0"
   },
   "scripts": {
-    "start": "node src/index.js"
+    "build:cjs": "../../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
+    "build:es6": "../../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",
+    "build:doc": "echo 'build:doc is not implemented yet'",
+    "build": "npm run build:cjs; npm run build:es6"
   }
 }
