@@ -1,3 +1,5 @@
+// TODO: move to examples/demos/meyda?
+
 import xs from 'xstream';
 import {div, makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';

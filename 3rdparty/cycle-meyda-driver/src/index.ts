@@ -7,7 +7,7 @@ export function makeMeydaDriver() {
     throw 'Browser API navigator.mediaDevices.getUserMedia not available';
   }
 
-  const bufferSize = 1024;
+  const bufferSize = 1024;  // TODO: parameterize it
   let context = null;
   let meyda = null;
 
@@ -21,15 +21,15 @@ export function makeMeydaDriver() {
       meyda = Meyda.createMeydaAnalyzer({
         audioContext: context,
         source: source,
-        bufferSize: bufferSize,
-        windowingFunction: 'blackman',
+        bufferSize: bufferSize,  // TODO: parameterize it options = {bufferSize: ..., windowingFunction: ...}
+        windowingFunction: 'blackman',  // TODO: parameterize it
       });
     }).catch((err) => {
       console.error(err);
       throw 'Failed to create Meyda analyzer';
     });
 
-    const source$ = xs.periodic(500)
+    const source$ = xs.periodic(500)  // make it dependent on $sink?
       .map(dummy => (!meyda ? null : meyda.get(['rms'])))
       .filter(f => !!f);
     return adapt(source$);
