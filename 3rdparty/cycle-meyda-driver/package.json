@@ -4,7 +4,7 @@
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",
-  "repository": "https://github.com/mjyc/cycle-robot-drivers/tree/meyda/3rdparty/cycle-posenet-driver",
+  "repository": "https://github.com/mjyc/cycle-robot-drivers/tree/master/3rdparty/cycle-posenet-driver",
   "main": "lib/cjs/index.js",
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
