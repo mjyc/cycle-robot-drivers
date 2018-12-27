@@ -29,11 +29,16 @@ export function makeGyronormDriver(options: {
   function gyronormDriver() {
     const source$ = xs.create({
       start: listener => {
-        gn.init().then(() => {
-          gn.start((data) => {
-            listener.next(data);
+        gn.init()
+          .then(() => {
+            gn.start((data) => {
+              listener.next(data);
+            });
+          })
+          .catch((e) => {
+            console.error('Failed to initialize GyroNorm:', e);
+            listener.error(e);
           });
-        });
       },
       stop: () => {
         gn.stop();
