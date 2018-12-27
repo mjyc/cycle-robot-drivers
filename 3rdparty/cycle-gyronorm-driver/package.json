@@ -17,7 +17,7 @@
   "scripts": {
     "build:cjs": "../../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
     "build:es6": "../../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",
-    "build:doc": "echo 'build:doc is not implemented yet'",
+    "build:doc": "../../node_modules/.bin/markdox ./src/* -o api.md && sed -i '1s/^.*$/\\n# API/' api.md && sed -i 's/^#.*/#&/' api.md && cat ../../docs/readmes/${PWD##*/}.md api.md > README.md && rm api.md",
     "build": "npm run build:cjs; npm run build:es6"
   }
 }

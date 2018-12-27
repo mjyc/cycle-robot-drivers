@@ -2,7 +2,7 @@
 
 # cycle-gyronorm-driver
 
-[Cycle.js](http://cycle.js.org/) [drivers](https://cycle.js.org/drivers.html) and action [components](https://cycle.js.org/components.html) for accessing normalized accelerometer and gyroscope data using [gyronorm.js](https://github.com/dorukeker/gyronorm.js).
+[Cycle.js](http://cycle.js.org/) [drivers](https://cycle.js.org/drivers.html) for accessing normalized accelerometer and gyroscope data using [gyronorm.js](https://github.com/dorukeker/gyronorm.js).
 
 Try [the demo](https://cycle-robot-drivers-demos-gyronorm.stackblitz.io) on your mobile device!
 

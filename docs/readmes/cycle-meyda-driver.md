@@ -2,7 +2,7 @@
 
 # cycle-meyda-driver
 
-[Cycle.js](http://cycle.js.org/) [drivers](https://cycle.js.org/drivers.html) and action [components](https://cycle.js.org/components.html) for audio feature extraction using [Meyda](https://github.com/meyda/meyda).
+[Cycle.js](http://cycle.js.org/) [drivers](https://cycle.js.org/drivers.html)  for audio feature extraction using [Meyda](https://github.com/meyda/meyda).
 
 Try [the demo](https://stackblitz.com/edit/cycle-robot-drivers-demos-meyda) at StackBlitz!
 
