@@ -7,7 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "@cycle-robot-drivers/action": "0.0.16",
-    "@cycle-robot-drivers/actionbank": "file:../../",
+    "@cycle-robot-drivers/actionbank": "file:../../../actionbank",
     "@cycle-robot-drivers/screen": "file:../../../screen",
     "@cycle-robot-drivers/speech": "file:../../../speech",
     "@cycle/dom": "22.0.0",
