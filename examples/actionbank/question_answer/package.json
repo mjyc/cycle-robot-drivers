@@ -8,8 +8,8 @@
   "dependencies": {
     "@cycle-robot-drivers/action": "0.0.16",
     "@cycle-robot-drivers/actionbank": "file:../../../actionbank",
-    "@cycle-robot-drivers/screen": "file:../../../screen",
-    "@cycle-robot-drivers/speech": "file:../../../speech",
+    "@cycle-robot-drivers/screen": "0.0.26",
+    "@cycle-robot-drivers/speech": "0.0.11",
     "@cycle/dom": "22.0.0",
     "@cycle/isolate": "4.2.0",
     "@cycle/state": "1.1.0",
