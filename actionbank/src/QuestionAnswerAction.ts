@@ -170,17 +170,9 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
       });
     } else if (prev.state === S.LISTEN && input.type === SIGType.INVALID_RESPONSE) {
       return {
-        state: S.PEND,
-        variables: null,
-        outputs: {
-          result: {
-            status: {
-              goal_id: prev.variables.goal_id,
-              status: Status.ABORTED,
-            },
-            result: null,
-          },
-        },
+        state: prev.state,
+        variables: prev.variables,
+        outputs: {SpeechRecognitionAction: {goal: {}}},
       };
     };
     return prev;
