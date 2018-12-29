@@ -151,20 +151,22 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
       // this matching logic must be delegated to the recognizer
       const matched = prev.variables.answers
         .filter(a => a.toLowerCase() === input.value);
-      return ({
+      return (matched.length > 0 ? {
         state: S.PEND,
         variables: null,
         outputs: {
           result: {
             status: {
               goal_id: prev.variables.goal_id,
-              status: matched.length > 0 ? Status.SUCCEEDED : Status.ABORTED,
+              status: Status.SUCCEEDED,
             },
-            result: matched.length > 0
-              ? matched[0]  // break the tie here
-              : null,
+            result: matched[0],  // break the tie here
           },
         },
+      } : {
+        state: prev.state,
+        variables: prev.variables,
+        outputs: {SpeechRecognitionAction: {goal: {}}},
       });
     } else if (prev.state === S.LISTEN && input.type === SIGType.INVALID_RESPONSE) {
       return {
