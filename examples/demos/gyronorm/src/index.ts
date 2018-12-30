@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import {div, makeDOMDriver} from '@cycle/dom';
+import {div, a, makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';
 import {makeGyronormDriver} from 'cycle-gyronorm-driver';
 
@@ -8,10 +8,13 @@ function main(sources) {
   const vdom$ = sources.GyroNorm
     .replaceError((err) => xs.of(false))
     .map(data => !data
-      ? div('To view this demo, try browsing to "https://stackblitz.com/edit/cycle-robot-drivers-demos-gyronorm" on your mobile device')
-      : div({}, [
+      ? div([
+        'To view this demo, try browsing to ',
+        a({props: {href: 'https://stackblitz.com/edit/cycle-robot-drivers-demos-gyronorm'}},'https://stackblitz.com/edit/cycle-robot-drivers-demos-gyronorm'),
+        ' on your mobile device'
+      ]) : div({}, [
         div(`DeviceOrientation: ${JSON.stringify(data.do)}`),
-        div(`DeviceMotion: ${JSON.stringify(data.dm)}`),
+        div(`DeviceMotion: ${JSON.stringify(data.dm)}`)
       ])
     );
   return {
