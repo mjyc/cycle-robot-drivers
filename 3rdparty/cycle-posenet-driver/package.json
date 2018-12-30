@@ -1,7 +1,7 @@
 {
   "name": "cycle-posenet-driver",
   "version": "0.0.20",
-  "description": "",
+  "description": "A Cycle.js driver for pose detection using TensorFlow.js-powered PoseNet",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",

@@ -96,7 +96,7 @@ export default function RobotApp(sources: Sources): Sinks {
   const mainScreen$ = data$.map(data => ({
     goal_id: goalId,
     goal: {
-      message: 'I can help you answer some questions',
+      message: 'I can help you cook',
       choices: data.map(d => d.name),
     }
   }));

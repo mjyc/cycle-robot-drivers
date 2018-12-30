@@ -1,7 +1,7 @@
 {
   "name": "@cycle-robot-drivers/sound",
   "version": "0.0.8",
-  "description": "",
+  "description": "A Cycle.js driver for playing sounds using HTMLAudioElement",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",
