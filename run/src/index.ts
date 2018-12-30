@@ -1,56 +1,17 @@
 import xs from 'xstream';
-import {div, makeDOMDriver} from '@cycle/dom';
-import {run, Driver} from '@cycle/run';
+import {div} from '@cycle/dom';
+import {run} from '@cycle/run';
 import {powerup} from '@cycle-robot-drivers/action';
 import {
-  makeTabletFaceDriver,
   FacialExpressionAction,
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
+import {AudioPlayerAction} from '@cycle-robot-drivers/sound';
 import {
-  makeAudioPlayerDriver,
-  AudioPlayerAction,
-} from '@cycle-robot-drivers/sound';
-import {
-  makeSpeechSynthesisDriver,
   SpeechSynthesisAction,
-  makeSpeechRecognitionDriver,
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
-import {makePoseDetectionDriver} from 'cycle-posenet-driver';
-
-export function initializeDrivers(drivers?: {
-    DOM?: Driver<any, any>,
-    TabletFace: Driver<any, any>,
-    AudioPlayer?: Driver<any, any>,
-    SpeechSynthesis?: Driver<any, any>,
-    SpeechRecognition?: Driver<any, any>,
-    PoseDetection?: Driver<any, any>,
-  }) {
-  if (!drivers) {
-    (drivers as any) = {};
-  }
-  if (!drivers.DOM) {
-    drivers.DOM = makeDOMDriver(document.body.firstElementChild);
-  }
-  if (!drivers.TabletFace) {
-    drivers.TabletFace = makeTabletFaceDriver();
-  }
-  if (!drivers.AudioPlayer) {
-    drivers.AudioPlayer = makeAudioPlayerDriver();
-  }
-  if (!drivers.SpeechSynthesis) {
-    drivers.SpeechSynthesis = makeSpeechSynthesisDriver();
-  }
-  if (!drivers.SpeechRecognition) {
-    drivers.SpeechRecognition = makeSpeechRecognitionDriver();
-  }
-  if (!drivers.PoseDetection) {
-    drivers.PoseDetection = makePoseDetectionDriver();
-  }
-  
-  return drivers;
-}
+import {initializeDrivers} from './initializeDrivers';
 
 export function withActions(
   main: (sources: any) => any,
@@ -61,7 +22,7 @@ export function withActions(
   if (!options) {
     options = {};
   }
-  
+
   function mainWithActions(sources) {
     sources.proxies = {
       FacialExpressionAction: xs.create(),
@@ -152,31 +113,31 @@ export function withActions(
 /**
  * A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers)
  *   function.
- * 
+ *
  * @param main A function that takes incoming streams as `sources` and returns
  *   outgoing streams as sinks. By default, the following action components
- * 
+ *
  *     * [FacialExpressionAction](../screen)
  *     * [AudioPlayerAction](../sound)
  *     * [TwoSpeechbubblesAction](../screen)
  *     * [SpeechSynthesisAction](../speech)
  *     * [SpeechRecognitionAction](../speech)
- * 
- *   are can used used like drivers, i.e., catch incoming message via 
- *   `sources.FacialExpressionAction` and send outgoing message via 
+ *
+ *   are can used used like drivers, i.e., catch incoming message via
+ *   `sources.FacialExpressionAction` and send outgoing message via
  *   `return { FacialExpressionAction: xs.of(null) };`, as well as six drivers
  *   listed below.
- * 
+ *
  * @param drivers A collection of [Cycle.js drivers](). By default, `drivers` is
  *   set to an object containing:
- * 
+ *
  *     * [DOM](https://cycle.js.org/api/dom.html)
  *     * [TabletFace](../screen)
  *     * [AudioPlayer](../sound)
  *     * [SpeechSynthesis](../speech#)
  *     * [SpeechRecognition](../speech)
  *     * [PoseDetection](../3rdparty/cycle-posenet-driver)
- * 
+ *
  *   drivers.
  */
 export function runRobotProgram(
