@@ -17,7 +17,7 @@ import {adapt} from '@cycle/run/lib/adapt';
  *   and returns [GyroNorm output data](https://github.com/dorukeker/gyronorm.js#how-to-use).
  *
  */
-export function makeGyroNormDriver(options: {
+export function makeGyronormDriver(options: {
   frequency?: number,
 	gravityNormalized?: boolean,
 	orientationBase?: string,

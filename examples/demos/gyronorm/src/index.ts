@@ -1,7 +1,7 @@
 import xs from 'xstream';
 import {div, makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';
-import {makeGyroNormDriver} from 'cycle-gyronorm-driver';
+import {makeGyronormDriver} from 'cycle-gyronorm-driver';
 
 function main(sources) {
   sources.GyroNorm.addListener({next: f => console.log(f)});
@@ -21,5 +21,5 @@ function main(sources) {
 
 run(main, {
   DOM: makeDOMDriver('#app'),
-  GyroNorm: makeGyroNormDriver(),
+  GyroNorm: makeGyronormDriver(),
 });

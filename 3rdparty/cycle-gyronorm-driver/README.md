@@ -12,7 +12,7 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 <!-- Start src/index.ts -->
 
-### makeGyroNormDriver(options)
+### makeGyronormDriver(options)
 
 [gyronorm.js](https://github.com/dorukeker/gyronorm.js) accelerometer and gyroscope driver factory.
 
