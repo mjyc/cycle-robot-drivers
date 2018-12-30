@@ -128,13 +128,46 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
             },
           },
         };
+      } else if (node.type === 'INSTRUCTION') {
+        return {
+          ...prev,
+          state: S.INSTRUCTION,
+          variables: {
+            goal_id: input.value.goal_id,
+            flowchart,
+            node,
+          },
+          outputs: {
+            InstructionAction: {
+              goal: initGoal({
+                question: node.arg,
+                answers: ['Done'],
+              }),
+            },
+          },
+        };
       }
     } else if (
       prev.state === S.MONOLOGUE && input.type === SIGType.MONO_DONE
       || prev.state === S.INSTRUCTION && input.type === SIGType.INST_SUCCEEDED
     ) {
       const node = prev.variables.flowchart[prev.variables.node.next];
-      if (node.type === 'MONOLOGUE') {
+      if (!node) {  // deadend
+        return {
+          ...prev,
+          state: S.PEND,
+          variables: null,
+          outputs: {
+            result: {
+              status: {
+                goal_id: prev.variables.goal_id,
+                status: Status.SUCCEEDED,
+              },
+              result: prev.variables.node,
+            },
+          },
+        };
+      } else if (node.type === 'MONOLOGUE') {
         return {
           ...prev,
           state: S.MONOLOGUE,

@@ -8,6 +8,9 @@ import {
 } from '@cycle-robot-drivers/speech';
 import RobotApp from './RobotApp';
 
+document.body.style.backgroundColor = "white";
+document.body.style.margin = "0px";
+
 const main = withState(RobotApp);
 
 run(main, {
