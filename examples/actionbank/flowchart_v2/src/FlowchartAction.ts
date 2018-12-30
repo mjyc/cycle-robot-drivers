@@ -157,7 +157,7 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
             node,
           },
           outputs: {
-            QuestionAnswerAction: {
+            InstructionAction: {
               goal: initGoal({
                 question: node.arg,
                 answers: ['Done'],
@@ -190,55 +190,72 @@ function output(reducerState$: Stream<State>) {
       .filter(o => !!o.QuestionAnswerAction)
       .map(o => o.QuestionAnswerAction.goal)
       .compose(dropRepeats(isEqualGoal)),
+    InstructionAction: outputs$
+      .filter(o => !!o.InstructionAction)
+      .map(o => o.InstructionAction.goal)
+      .compose(dropRepeats(isEqualGoal)),
   };
 }
 
 export function FlowchartAction(sources: Sources): Sinks {
   sources.state.stream.addListener({next: v => console.log('state$', v)})
 
-  const goalProxy$ = xs.create();
-  const goalProxy2$ = xs.create();
+  const qaGoalProxy$ = xs.create();
   const qaSinks = isolate(QAWithScreenAction, 'QuestionAnswerAction')({
     ...sources,
-    goal: goalProxy$,
+    goal: qaGoalProxy$,
   });
+  const monoGoalProxy$ = xs.create();
   const monoSinks = isolate(SpeakWithScreenAction, 'SpeakWithScreenAction')({
-    goal: goalProxy2$,
+    goal: monoGoalProxy$,
     TwoSpeechbubblesAction: sources.TwoSpeechbubblesAction,
     SpeechSynthesisAction: sources.SpeechSynthesisAction,
     state: sources.state,
+  });
+  const instGoalProxy$ = xs.create();
+  const instSinks = isolate(QAWithScreenAction, 'InstructionAction')({
+    ...sources,
+    goal: instGoalProxy$,
   });
 
   const input$ = input(
     sources.goal,
     sources.SpeechSynthesisAction.result,
     qaSinks.result,
-    qaSinks.result,  // for now,
+    instSinks.result,
   );
   const parentReducer$ = reducer(input$);
   const reducer$ = xs.merge(
     parentReducer$,
     qaSinks.state as Stream<Reducer<State>>,
     monoSinks.state as Stream<Reducer<State>>,
+    instSinks.state as Stream<Reducer<State>>,
   );
   const reducerState$ = sources.state.stream;
   const outputs = output(reducerState$);
-  goalProxy$.imitate(outputs.QuestionAnswerAction.compose(dropRepeats(isEqualGoal)));
-  goalProxy2$.imitate(outputs.MonologueAction.compose(dropRepeats(isEqualGoal)));
+  qaGoalProxy$.imitate(outputs.QuestionAnswerAction.compose(dropRepeats(isEqualGoal)));
+  monoGoalProxy$.imitate(outputs.MonologueAction.compose(dropRepeats(isEqualGoal)));
+  instGoalProxy$.imitate(outputs.InstructionAction.compose(dropRepeats(isEqualGoal)));
 
   const speechbubbles$ = xs.merge(
     qaSinks.TwoSpeechbubblesAction,
     monoSinks.TwoSpeechbubblesAction,
+    instSinks.TwoSpeechbubblesAction,
   );
   const speak$ = xs.merge(
     qaSinks.SpeechSynthesisAction,
     monoSinks.SpeechSynthesisAction,
+    instSinks.SpeechSynthesisAction,
   );
+  const recog$ = xs.merge(
+    qaSinks.SpeechRecognitionAction,
+    instSinks.SpeechRecognitionAction,
+  )
   return {
     result: outputs.result,
     TwoSpeechbubblesAction: speechbubbles$,
     SpeechSynthesisAction: speak$,
-    SpeechRecognitionAction: qaSinks.SpeechRecognitionAction,
+    SpeechRecognitionAction: recog$,
     state: reducer$,
   };
 }
