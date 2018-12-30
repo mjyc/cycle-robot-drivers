@@ -95,15 +95,16 @@ function createTransition() {
   const styles = {
     message: {
       fontFamily: 'helvetica',
-      fontSize: '3em',
+      fontSize: '12.5vmin',
       fontWeight: 'lighter',
     },
     button: {
-      margin: '0 0.25em 0 0.25em',
+      margin: '0 0.25em 0.25em 0.25em',
       backgroundColor: 'transparent',
       border: '0.05em solid black',
+      borderRadius: '0.25em',
       fontFamily: 'helvetica',
-      fontSize: '2.5em',
+      fontSize: '10vmin',
       fontWeight: 'lighter',
     },
   }

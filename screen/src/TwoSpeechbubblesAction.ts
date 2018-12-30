@@ -176,8 +176,8 @@ function createTransition() {
           },
         }
       }),
-      [InputType.RESULT]: (variables, inputValue) => 
-        isEqual(inputValue.status.goal_id, variables.goal_id) 
+      [InputType.RESULT]: (variables, inputValue) =>
+        isEqual(inputValue.status.goal_id, variables.goal_id)
         && typeof inputValue.result === 'string' ? {  // CHOICES SUCCEEDED
           state: State.DONE,
           variables: {
@@ -257,20 +257,20 @@ function output(machine$) {
 
 /**
  * TwoSpeechbubbles, Robot and Human, action component.
- * 
+ *
  * @param sources
- * 
+ *
  *   * goal: a stream of `null` (as "cancel"),
  *     `{type: 'SET_MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
  *     "set message"), or `{type: 'ASK_QUESTION', message: 'Blue pill or
  *     red pill?', choices: ['Blue', 'Red']}` (as "ask multiple choice").
  *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
- * 
+ *
  * @return sinks
- * 
+ *
  *   * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
  *   * result: a stream of action results.
- * 
+ *
  */
 
 export function TwoSpeechbubblesAction(sources: Sources): Sinks {
@@ -311,22 +311,38 @@ export function TwoSpeechbubblesAction(sources: Sources): Sinks {
   const styles = {
     outer: {
       position: 'absolute',
-      width: '100vw',
+      width: '96vw',
       zIndex: 1,  // face has zIndex === 0, eyes has zIndex === 1
-      margin: '1em',
+      margin: '2vw',
+      backgroundColor: 'white',
+      border: '0.2vmin solid lightgray',
+      borderRadius: '3vmin 3vmin 3vmin 3vmin',
     },
     bubble: {
       margin: 0,
       padding: '1em',
-      maxWidth: '90%',
+      maxWidth: '100%',
+      textAlign: 'center',
     },
   };
   const vdom$ = xs.combine(robotSpeechbubble.DOM, humanSpeechbubble.DOM)
     .map(([robotVTree, humanVTree]) => {
-      return div({style: styles.outer}, [
-        div({style: styles.bubble}, [span(robotVTree)]),
-        div({style: {...styles.bubble, textAlign: 'right'}}, [span(humanVTree)]),
-      ])
+      if (robotVTree === "" &&  humanVTree === "") {
+        return "";
+      } else if (robotVTree !== "" &&  humanVTree === "") {
+        return div({style: styles.outer},
+          div({style: styles.bubble}, span(robotVTree))
+        );
+      } else  if (robotVTree !== "" &&  humanVTree === "") {
+        return div({style: styles.outer},
+          div({style: styles.bubble}, span(humanVTree))
+        );
+      } else {
+        return div({style: styles.outer}, [
+          div({style: styles.bubble}, [span(robotVTree)]),
+          div({style: styles.bubble}, [span(humanVTree)]),
+        ]);
+      }
     });
 
 
