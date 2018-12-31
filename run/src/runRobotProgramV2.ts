@@ -1,10 +1,12 @@
-// import xs from 'xstream';
+import xs from 'xstream';
 import {Stream} from 'xstream';
-// import {div, DOMSource, VNode} from '@cycle/dom';
-// import isolate from '@cycle/isolate';
-import {StateSource, Reducer} from '@cycle/state';
-// import {Result, EventSource, isEqual, Status} from '@cycle-robot-drivers/action';
+import dropRepeats from "xstream/extra/dropRepeats";
+import {div} from '@cycle/dom';
+import {withState} from '@cycle/state';
+import {run} from '@cycle/run';
+import {Result, isEqualResult} from '@cycle-robot-drivers/action';
 import {
+  FacialExpressionAction,
   IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
 import {AudioPlayerAction} from '@cycle-robot-drivers/sound';
@@ -12,72 +14,125 @@ import {
   SpeechSynthesisAction,
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
-import {selectActionResult} from '@cycle-robot-drivers/actionbank';
 import {initializeDrivers} from './initializeDrivers';
 
-export function withRobotActions(main) {
-  return (sources) => {
+const selectActionResult = (actionName: string) =>
+  (in$: Stream<any>): Stream<Result> => in$
+    .filter(s => !!s
+      && !!s[actionName]
+      && !!s[actionName].outputs
+      && !!s[actionName].outputs.result)
+    .map(s => s[actionName].outputs.result)
+    .compose(dropRepeats(isEqualResult));
+
+export function withRobotActions(
+  main,
+  options?: {
+    hidePoseViz?: boolean
+  }
+) {
+  if (!main) {
+    throw new Error('Must pass the argument main');
+  }
+  if (!options) {
+    options = {};
+  }
+
+  const mainWithRobotActions = (sources) => {
     const state$ = sources.state.stream;
+    const facialExpressionResult$ = state$
+      .compose(selectActionResult('FacialExpression'));
     const twoSpeechbubblesResult$ = state$
       .compose(selectActionResult('TwoSpeechbubblesAction'));
+    const audioPlayerResult$ = state$
+      .compose(selectActionResult('AudioPlayer'));
     const speechSynthesisResult$ = state$
       .compose(selectActionResult('SpeechSynthesisAction'));
     const speechRecognitionResult$ = state$
       .compose(selectActionResult('SpeechRecognitionAction'));
 
+    // Call main
     const mainSinks: any = main({
       ...sources,
+      FacialExpressionAction: {result: facialExpressionResult$},
       TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
+      AudioPlayerAction: {result: audioPlayerResult$},
       SpeechSynthesisAction: {result: speechSynthesisResult$},
       SpeechRecognitionAction: {result: speechRecognitionResult$},
       state: sources.state,
     });
 
-    // Define Actions
-    const twoSpeechbubblesAction: TWASinks = TwoSpeechbubblesAction({
-      goal: mainSinks.TwoSpeechSynthesisAction || xs.never(),
+    // Define actions
+    const facialExpressionAction: any = FacialExpressionAction({
+      goal: mainSinks.FacialExpressionAction || xs.never(),
+      TabletFace: sources.TabletFace,
+    });
+    const twoSpeechbubblesAction: any = TwoSpeechbubblesAction({
+      goal: mainSinks.TwoSpeechbubblesAction || xs.never(),
       DOM: sources.DOM,
     });
-    const speechSynthesisAction: SSSinks = SpeechSynthesisAction({
+    const audioPlayerAction: any = AudioPlayerAction({
+      goal: mainSinks.AudioPlayerAction || xs.never(),
+      AudioPlayer: sources.AudioPlayer,
+    });
+    const speechSynthesisAction: any = SpeechSynthesisAction({
       goal: mainSinks.SpeechSynthesisAction || xs.never(),
       SpeechSynthesis: sources.SpeechSynthesis,
     });
-    const speechRecognitionAction: SRSinks = SpeechRecognitionAction({
+    const speechRecognitionAction: any = SpeechRecognitionAction({
       goal: mainSinks.SpeechRecognitionAction || xs.never(),
       SpeechRecognition: sources.SpeechRecognition,
     });
 
-    // Define Reducers
-    const parentReducer$: Stream<Reducer<State>> = xs.merge(
+    // Define reducers
+    const parentReducer$: any = xs.merge(
+      facialExpressionAction.result.map(result =>
+        prev => ({...prev, FacialExpressionAction: {outputs: {result}}})),
       twoSpeechbubblesAction.result.map(result =>
         prev => ({...prev, TwoSpeechbubblesAction: {outputs: {result}}})),
+      audioPlayerAction.result.map(result =>
+        prev => ({...prev, AudioPlayerAction: {outputs: {result}}})),
       speechSynthesisAction.result.map(result =>
         prev => ({...prev, SpeechSynthesisAction: {outputs: {result}}})),
       speechRecognitionAction.result.map(result =>
         prev => ({...prev, SpeechRecognitionAction: {outputs: {result}}})),
     );
-    const childReducer$: Stream<Reducer<State>> = mainSinks.state;
+    const childReducer$: any = mainSinks.state || xs.never();
     const reducer$ = xs.merge(parentReducer$, childReducer$);
 
-
-    // Define Sinks
+    // Define sinks
     const vdom$ = xs.combine(
       twoSpeechbubblesAction.DOM,
       sources.TabletFace.DOM,
-    ).map(([speechbubbles, face]) =>
-      div({
+      sources.PoseDetection.DOM
+    ).map(([speechbubbles, face, poseDetectionViz]) => {
+      (poseDetectionViz as any).data.style.display = options.hidePoseViz
+        ? 'none' : 'block';
+      return div({
         style: {position: 'relative'}
-      }, [speechbubbles, face])
-    );
+      }, [speechbubbles, face, poseDetectionViz]);
+    });
+    const tablet$ = !!mainSinks.TabletFace
+      ? mainSinks.TabletFace : facialExpressionAction.output;
+    const audio$ = !!mainSinks.AudioPlayer
+      ? mainSinks.AudioPlayer : audioPlayerAction.output;
+    const synth$ = !!mainSinks.SpeechSynthesis
+      ? mainSinks.SpeechSynthesis : speechSynthesisAction.output;
+    const recog$ = !!mainSinks.SpeechRecognition
+      ? mainSinks.SpeechRecognition : speechRecognitionAction.output;
 
-    // update here, allow user to define theri own outputs (if they want)
     return {
+      ...mainSinks,
       DOM: vdom$,
-      SpeechSynthesis: speechSynthesisAction.output,
-      SpeechRecognition: speechRecognitionAction.output,
+      TabletFace: tablet$,
+      AudioPlayer: audio$,
+      SpeechSynthesis: synth$,
+      SpeechRecognition: recog$,
       state: reducer$,
     };
   }
+
+  return mainWithRobotActions;
 }
 
 export function runRobotProgramV2(
@@ -90,8 +145,7 @@ export function runRobotProgramV2(
   }
 
   return run(
-    // withState(withActions(main, options)),
-    main,
+    withState(withRobotActions(main, options) as any),
     initializeDrivers(drivers),
   );
 };

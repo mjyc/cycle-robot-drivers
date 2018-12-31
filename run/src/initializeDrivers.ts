@@ -20,7 +20,10 @@ export function initializeDrivers(drivers?: {
     (drivers as any) = {};
   }
   if (!drivers.DOM) {
-    drivers.DOM = makeDOMDriver(document.body.firstElementChild);
+    if (document.body.getElementsByTagName('div').length === 0) {
+      throw 'Cannot find a child of body with div tag; please create the DOM driver yourself';
+    }
+    drivers.DOM = makeDOMDriver(document.body.getElementsByTagName('div')[0]);
   }
   if (!drivers.TabletFace) {
     drivers.TabletFace = makeTabletFaceDriver();
