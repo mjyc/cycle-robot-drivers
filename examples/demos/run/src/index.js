@@ -28,7 +28,7 @@ function main(sources) {
     }});
   sources.PoseDetection.poses
     .addListener({next: () => {}});  // see outputs on the browser
-    
+
   return {
     FacialExpressionAction: goals$.map(goals => goals.face),
     TwoSpeechbubblesAction: goals$.map(goals => goals.speechbubble),
