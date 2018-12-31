@@ -2,7 +2,7 @@
 
 # @cycle-robot-drivers/run
 
-`runRobotProgram` function that creates [Cycle.js](http://cycle.js.org/) [drivers](https://cycle.js.org/drivers.html) and action [components](https://cycle.js.org/components.html) for creating [tablet-face robot](https://github.com/mjyc/tablet-robot-face) applications using [xstream](https://github.com/staltz/xstream).
+`runRobotProgram` function that creates [Cycle.js](http://cycle.js.org/) [drivers](https://cycle.js.org/drivers.html) and action [components](https://cycle.js.org/components.html) for creating [Tabletface robot](https://github.com/mjyc/tablet-robot-face) applications.
 
 Try [the demo](https://stackblitz.com/edit/cycle-robot-drivers-demos-run) at StackBlitz!
 

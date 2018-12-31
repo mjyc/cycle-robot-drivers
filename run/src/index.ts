@@ -137,7 +137,7 @@ export function withRobotActions(
 
 /**
  * A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers)
- *   function for a TabletFace robot.
+ *   function for Tabletface robot.
  *
  * @param main A function that takes incoming streams as `sources` and returns
  *   outgoing streams as sinks. By default, the following action components

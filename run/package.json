@@ -1,7 +1,7 @@
 {
   "name": "@cycle-robot-drivers/run",
-  "version": "0.0.30",
-  "description": "",
+  "version": "0.1.0",
+  "description": "A Cycle.js run() wrapper, runRobotProgram, for Tabletface robot",
   "author": "Michael Jae-Yoon Chung",
   "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",
   "repository": "https://github.com/mjyc/cycle-robot-drivers/tree/master/run",
@@ -16,7 +16,7 @@
     "@cycle-robot-drivers/speech": "~0.0.0",
     "@cycle/dom": "22.0.0",
     "@cycle/run": "5.1.0",
-    "@cycle/state": "^1.1.0",
+    "@cycle/state": "1.1.0",
     "cycle-posenet-driver": "~0.0.0",
     "xstream": "11.7.0"
   },

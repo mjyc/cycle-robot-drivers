@@ -9,13 +9,13 @@ makeSpeechRecognitionDriver,
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
 export function initializeDrivers(drivers?: {
-    DOM?: Driver<any, any>,
-    TabletFace: Driver<any, any>,
-    AudioPlayer?: Driver<any, any>,
-    SpeechSynthesis?: Driver<any, any>,
-    SpeechRecognition?: Driver<any, any>,
-    PoseDetection?: Driver<any, any>,
-  }) {
+  DOM?: Driver<any, any>,
+  TabletFace: Driver<any, any>,
+  AudioPlayer?: Driver<any, any>,
+  SpeechSynthesis?: Driver<any, any>,
+  SpeechRecognition?: Driver<any, any>,
+  PoseDetection?: Driver<any, any>,
+}) {
   if (!drivers) {
     (drivers as any) = {};
   }
