@@ -1,0 +1,64 @@
+{
+  "flowchart": [
+    {
+      "id": "d3ffe771-b3f3-464e-9804-3ea78a8d12b7",
+      "type": "MONOLOGUE",
+      "arg": "Let's make Downtown Marinade",
+      "next": "7103f97c-dd22-4a97-8db0-82bc96674833"
+    },
+    {
+      "id": "7103f97c-dd22-4a97-8db0-82bc96674833",
+      "type": "MONOLOGUE",
+      "arg": "You will need",
+      "next": "cc89fb3d-7cf5-4fde-84e0-fc5cbdb0bc5d"
+    },
+    {
+      "id": "cc89fb3d-7cf5-4fde-84e0-fc5cbdb0bc5d",
+      "type": "INSTRUCTION",
+      "arg": "1 cup Italian dressing",
+      "next": "2520625b-95d7-425e-ab5f-c1a280bb79b3"
+    },
+    {
+      "id": "2520625b-95d7-425e-ab5f-c1a280bb79b3",
+      "type": "INSTRUCTION",
+      "arg": "1/4 cup soy sauce",
+      "next": "0201b5ed-7ed0-4b39-9f28-67a05ae7871e"
+    },
+    {
+      "id": "0201b5ed-7ed0-4b39-9f28-67a05ae7871e",
+      "type": "INSTRUCTION",
+      "arg": "1/4 cup chili paste (like ",
+      "next": "57080390-5ffa-4772-a6e7-6248647181a6"
+    },
+    {
+      "id": "57080390-5ffa-4772-a6e7-6248647181a6",
+      "type": "INSTRUCTION",
+      "arg": "1/4 sugar",
+      "next": "51954358-c3d8-4220-9c5f-47b8ff30f74f"
+    },
+    {
+      "id": "51954358-c3d8-4220-9c5f-47b8ff30f74f",
+      "type": "INSTRUCTION",
+      "arg": "dash hot sauce (like Texas Champagne or Yellowbird)",
+      "next": "7dceefcf-5b7d-4119-9d9b-19bdc5d630bb"
+    },
+    {
+      "id": "7dceefcf-5b7d-4119-9d9b-19bdc5d630bb",
+      "type": "INSTRUCTION",
+      "arg": "Let's start!",
+      "next": "45e7aa67-f618-40c7-ad63-495e69cefe62"
+    },
+    {
+      "id": "45e7aa67-f618-40c7-ad63-495e69cefe62",
+      "type": "INSTRUCTION",
+      "arg": "Mix everythiing in a large zip bag (or bowl)",
+      "next": "ebdf9bad-3249-4226-a016-5d258453afc2"
+    },
+    {
+      "id": "ebdf9bad-3249-4226-a016-5d258453afc2",
+      "type": "INSTRUCTION",
+      "arg": "Toss meat and let sit (from 1-36hr)"
+    }
+  ],
+  "start_id": "d3ffe771-b3f3-464e-9804-3ea78a8d12b7"
+}

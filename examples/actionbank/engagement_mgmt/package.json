@@ -9,10 +9,7 @@
     "@cycle-robot-drivers/action": "0.0.16",
     "@cycle-robot-drivers/actionbank": "file:../../../actionbank",
     "@cycle-robot-drivers/run": "^0.1.1",
-    "@cycle/dom": "22.0.0",
     "@cycle/isolate": "4.2.0",
-    "@cycle/run": "5.1.0",
-    "@cycle/state": "1.1.0",
     "cycle-posenet-driver": "0.0.20",
     "xstream": "11.7.0"
   },

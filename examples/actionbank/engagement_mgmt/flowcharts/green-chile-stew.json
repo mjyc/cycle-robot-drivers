@@ -1,0 +1,76 @@
+{
+  "flowchart": [
+    {
+      "id": "da389992-d630-4dcc-9183-16a99b729005",
+      "type": "MONOLOGUE",
+      "arg": "Let's make Green Chile Stew",
+      "next": "8588f1ac-a943-4ca9-abf2-8f3f46625b8b"
+    },
+    {
+      "id": "8588f1ac-a943-4ca9-abf2-8f3f46625b8b",
+      "type": "MONOLOGUE",
+      "arg": "You will need",
+      "next": "1cc4aaaf-19b1-4f02-96b3-c5c887a90022"
+    },
+    {
+      "id": "1cc4aaaf-19b1-4f02-96b3-c5c887a90022",
+      "type": "INSTRUCTION",
+      "arg": "1 jar of ",
+      "next": "f6209341-c11a-4d9b-a336-574c204e9543"
+    },
+    {
+      "id": "f6209341-c11a-4d9b-a336-574c204e9543",
+      "type": "INSTRUCTION",
+      "arg": "1lb ground chicken",
+      "next": "444409bc-44c7-425e-9e82-f975091d91c6"
+    },
+    {
+      "id": "444409bc-44c7-425e-9e82-f975091d91c6",
+      "type": "INSTRUCTION",
+      "arg": "1 red onion",
+      "next": "5ba593be-d4db-4d42-b5b7-4b6bfe06c500"
+    },
+    {
+      "id": "5ba593be-d4db-4d42-b5b7-4b6bfe06c500",
+      "type": "INSTRUCTION",
+      "arg": "1 green onion",
+      "next": "c8542922-6fdd-4d9a-8474-bee8b415c3c8"
+    },
+    {
+      "id": "c8542922-6fdd-4d9a-8474-bee8b415c3c8",
+      "type": "INSTRUCTION",
+      "arg": "1 can corn",
+      "next": "43e1adcd-7742-42d8-b692-41ecd986f213"
+    },
+    {
+      "id": "43e1adcd-7742-42d8-b692-41ecd986f213",
+      "type": "INSTRUCTION",
+      "arg": "Let's start!",
+      "next": "c4b6aca2-65ab-4a10-a742-0b15d1620dbb"
+    },
+    {
+      "id": "c4b6aca2-65ab-4a10-a742-0b15d1620dbb",
+      "type": "INSTRUCTION",
+      "arg": "Start onions in pan, cook down",
+      "next": "7b307f20-249c-4a06-ac2d-b484be4132a2"
+    },
+    {
+      "id": "7b307f20-249c-4a06-ac2d-b484be4132a2",
+      "type": "INSTRUCTION",
+      "arg": "Add chicken, corn",
+      "next": "9aa52942-cf0a-46f6-8dc3-95e9d29bb0c2"
+    },
+    {
+      "id": "9aa52942-cf0a-46f6-8dc3-95e9d29bb0c2",
+      "type": "INSTRUCTION",
+      "arg": "Add stew mix",
+      "next": "0125e3bd-de22-4e5b-9830-ed4a4c0daef2"
+    },
+    {
+      "id": "0125e3bd-de22-4e5b-9830-ed4a4c0daef2",
+      "type": "INSTRUCTION",
+      "arg": "Serve with croutons"
+    }
+  ],
+  "start_id": "da389992-d630-4dcc-9183-16a99b729005"
+}
