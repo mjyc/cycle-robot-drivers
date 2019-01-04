@@ -122,7 +122,7 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
             result: null,
           },
           SpeechSynthesisAction: {goal: input.value.goal.question},
-          SpeechRecognitionAction: {goal: null},
+          SpeechRecognitionAction: prev.state === S.LISTEN ? {goal: null} : null,
         },
       }
     } else if (prev.state !== S.PEND && input.type === SIGType.CANCEL) {
@@ -138,7 +138,7 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
             result: null,
           },
           SpeechSynthesisAction: {goal: null},
-          SpeechRecognitionAction: {goal: null},
+          SpeechRecognitionAction: prev.state === S.LISTEN ? {goal: null} : null,
         }
       }
     } else if (prev.state === S.ASK && input.type === SIGType.ASK_DONE) {
