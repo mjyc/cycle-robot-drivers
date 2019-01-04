@@ -147,6 +147,17 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
           },
         };
       }
+    } else if (prev.state !== S.PEND && input.type === SIGType.CANCEL) {
+      return {
+        ...prev,
+        state: S.PEND,
+        variables: null,
+        outputs: {
+          MonologueAction: prev.state === S.MONOLOGUE ? {goal: null} : null,
+          QuestionAnswerAction: prev.state === S.QUESTION_ANSWER ? {goal: null} : null,
+          InstructionAction: prev.state === S.INSTRUCTION ? {goal: null} : null,
+        },
+      };
     } else if (
       prev.state === S.MONOLOGUE && input.type === SIGType.MONO_DONE
       || prev.state === S.INSTRUCTION && input.type === SIGType.INST_SUCCEEDED
