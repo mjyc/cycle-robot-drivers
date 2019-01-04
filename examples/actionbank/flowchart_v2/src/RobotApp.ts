@@ -103,7 +103,7 @@ export default function RobotApp(sources: Sources): Sinks {
   const twoSpeechbubblesGoal$ = xs.merge(
     xs.combine(mainScreen$, childSinks.result.startWith(null)).map(x => x[0]),
     childSinks.TwoSpeechbubblesAction,
-  ) || xs.never();
+  );
 
 
   // Define Actions
