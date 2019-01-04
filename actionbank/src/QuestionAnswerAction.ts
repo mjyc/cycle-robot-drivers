@@ -137,7 +137,7 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
             },
             result: null,
           },
-          SpeechSynthesisAction: {goal: null},
+          SpeechSynthesisAction: prev.state === S.ASK ? {goal: null} : null,
           SpeechRecognitionAction: prev.state === S.LISTEN ? {goal: null} : null,
         }
       }
