@@ -13,7 +13,6 @@ export enum S {
 
 export enum SIGType {
   GOAL = 'GOAL',
-  CANCEL = 'CANCEL',
   RESULTS = 'RESULTS',
 }
 
@@ -44,9 +43,8 @@ export function makeConcurrentAction(
     const results$: Stream<Result[]>
       = xs.combine.apply(null, results);
     return xs.merge(
-      goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
-        ? ({type: SIGType.CANCEL, value: null})
-        : ({type: SIGType.GOAL, value: initGoal(g)})),
+      goal$.filter(g => typeof g !== 'undefined')
+        .map(g => ({type: SIGType.GOAL, value: initGoal(g)})),
       results$.map(r => ({type: SIGType.RESULTS, value: r})),
     );
   }
