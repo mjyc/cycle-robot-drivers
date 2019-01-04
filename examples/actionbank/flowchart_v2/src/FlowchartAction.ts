@@ -13,14 +13,14 @@ import {
 } from '@cycle-robot-drivers/actionbank';
 
 // FSM types
-enum S {
+export enum S {
   PEND = 'PEND',
   MONOLOGUE = 'MONOLOGUE',
   QUESTION_ANSWER = 'QUESTION_ANSWER',
   INSTRUCTION = 'INSTRUCTION',
 }
 
-enum SIGType {
+export enum SIGType {
   GOAL = 'GOAL',
   CANCEL = 'CANCEL',
   MONO_DONE = 'MONO_DONE',
