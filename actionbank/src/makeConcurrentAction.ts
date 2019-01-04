@@ -80,29 +80,29 @@ export function makeConcurrentAction(
           outputs,
         };
       } else if (prev.state === S.RUN && input.type === SIGType.GOAL) {
-          const outputs = Object.keys(input.value.goal).reduce((acc, x) => {
-            acc[x] = {goal: {
-              goal_id: input.value.goal_id,
-              goal: input.value.goal[x]
-            }};
-            return acc;
-          }, {});
-          return {
-            state: S.RUN,
-            variables: {
-              goal_id: input.value.goal_id,
-            },
-            outputs: {
-              ...outputs,
-              result: {
-                status: {
-                  goal_id: prev.variables.goal_id,
-                  status: Status.PREEMPTED,
-                },
-                result: null,
+        const outputs = Object.keys(input.value.goal).reduce((acc, x) => {
+          acc[x] = {goal: {
+            goal_id: input.value.goal_id,
+            goal: input.value.goal[x]
+          }};
+          return acc;
+        }, {});
+        return {
+          state: S.RUN,
+          variables: {
+            goal_id: input.value.goal_id,
+          },
+          outputs: {
+            ...outputs,
+            result: {
+              status: {
+                goal_id: prev.variables.goal_id,
+                status: Status.PREEMPTED,
               },
+              result: null,
             },
-          };
+          },
+        };
       } else if (prev.state === S.RUN && input.type === SIGType.RESULTS) {
         const results = input.value;
         if (
