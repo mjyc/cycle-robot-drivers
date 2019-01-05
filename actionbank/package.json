@@ -11,7 +11,7 @@
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
     "xstream": "11.7.0",
-    "@cycle-robot-drivers/action": "0.0.18",
+    "@cycle-robot-drivers/action": "0.0.19",
     "@cycle/state": "1.1.0"
   },
   "scripts": {
