@@ -1,0 +1,30 @@
+{
+  "flowchart": [
+    {
+      "id": "470999b3-1110-4588-8346-2458caddd9ae",
+      "type": "MONOLOGUE",
+      "arg": "PRAY",
+      "next": "d79a76ec-2cba-4e62-905a-3006c41dc939"
+    },
+    {
+      "id": "d79a76ec-2cba-4e62-905a-3006c41dc939",
+      "type": "QUESTION_ANSWER",
+      "arg": {"question": "Did it work?", "answers": ["Yes", "No"]},
+      "next": [
+        "c00b7cd3-d0b8-47b6-8eaa-1eb7919dae92",
+        "126628a0-7a4e-4175-ac1c-a4fb680edecb"
+      ]
+    },
+    {
+      "id": "c00b7cd3-d0b8-47b6-8eaa-1eb7919dae92",
+      "type": "MONOLOGUE",
+      "arg": "PRAISE THE LORD"
+    },
+    {
+      "id": "126628a0-7a4e-4175-ac1c-a4fb680edecb",
+      "type": "MONOLOGUE",
+      "arg": "God works in mysterious ways"
+    }
+  ],
+  "start_id": "470999b3-1110-4588-8346-2458caddd9ae"
+}

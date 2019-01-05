@@ -128,6 +128,21 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
             },
           },
         };
+      } else if (node && node.type === 'QUESTION_ANSWER') {
+        return {
+          ...prev,
+          state: S.QUESTION_ANSWER,
+          variables: {
+            goal_id: input.value.goal_id,
+            flowchart,
+            node,
+          },
+          outputs: {
+            QuestionAnswerAction: {
+              goal: initGoal(node.arg),
+            },
+          },
+        };
       } else if (node.type === 'INSTRUCTION') {
         return {
           ...prev,
@@ -160,9 +175,13 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
       };
     } else if (
       prev.state === S.MONOLOGUE && input.type === SIGType.MONO_DONE
+      || prev.state === S.QUESTION_ANSWER && input.type === SIGType.QA_SUCCEEDED
       || prev.state === S.INSTRUCTION && input.type === SIGType.INST_SUCCEEDED
     ) {
-      const node = prev.variables.flowchart[prev.variables.node.next];
+      const next = prev.state === S.QUESTION_ANSWER
+        ? prev.variables.node.next[prev.variables.node.arg.answers.indexOf(input.value)]
+        : prev.variables.node.next;
+      const node = prev.variables.flowchart[next];
       if (!node) {  // deadend
         return {
           ...prev,
@@ -188,6 +207,20 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
           },
           outputs: {
             MonologueAction: {
+              goal: initGoal(node.arg),
+            },
+          },
+        };
+      } else if (node.type === 'QUESTION_ANSWER') {
+        return {
+          ...prev,
+          state: S.QUESTION_ANSWER,
+          variables: {
+            ...prev.variables,
+            node,
+          },
+          outputs: {
+            QuestionAnswerAction: {
               goal: initGoal(node.arg),
             },
           },
