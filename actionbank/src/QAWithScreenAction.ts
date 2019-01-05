@@ -37,12 +37,12 @@ export function QAWithScreenAction(sources: Sources): Sinks {
     .compose(selectActionResult('QuestionAnswerAction'));
 
   const goal$ = sources.goal
-    .filter(g => typeof g !== 'undefined').map(g => initGoal(g))
-    .map(g => ({
+    .filter(g => typeof g !== 'undefined')
+    .map(g => g === null ? null : initGoal({
       goal_id: g.goal_id,
       goal: {
         QuestionAnswerAction: g.goal,
-        TwoSpeechbubblesAction: g === null ? null : {
+        TwoSpeechbubblesAction: {
           message: g.goal.question,
           choices: g.goal.answers
         },

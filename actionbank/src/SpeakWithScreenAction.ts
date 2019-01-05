@@ -29,8 +29,8 @@ export function SpeakWithScreenAction(sources: Sources): Sinks {
   sources.state.stream.addListener({next: v => console.log('reducerState$', v)})
 
   const goal$ = sources.goal
-    .filter(g => typeof g !== 'undefined').map(g => initGoal(g))
-    .map(g => ({
+    .filter(g => typeof g !== 'undefined')
+    .map(g => g === null ? null : initGoal({
       goal_id: g.goal_id,
       goal: {
         TwoSpeechbubblesAction: g.goal,
