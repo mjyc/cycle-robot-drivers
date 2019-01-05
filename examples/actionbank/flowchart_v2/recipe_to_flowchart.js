@@ -14,10 +14,10 @@ function uuidv4() {
 }
 
 fs.readFile(process.argv[2], function(err, data) {
-  const d = JSON.parse(data.toString());
+  var d = JSON.parse(data.toString());
 
-  const startId = uuidv4();
-  const out = {
+  var startId = uuidv4();
+  var out = {
     flowchart: [].concat([
       {
         id: startId,

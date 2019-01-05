@@ -13,8 +13,8 @@ export default function RobotApp(sources) {
       path: '/flowcharts/crockpot-buffalo-chicken.json',
     },
     {
-      name: 'Downtown Marinade',
-      path: '/flowcharts/downtown-chowdown-marinade.json',
+      name: 'Dogs!',
+      path: '/flowcharts/Set 4 - Dogs!.json',
     },
   ];
   const data$ = xs.combine.apply(
