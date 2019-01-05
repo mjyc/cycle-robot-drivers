@@ -27,6 +27,7 @@ export interface State {
   state: S,
   variables: {
     goal_id: GoalID
+    activeActionNames: string[],
   },
   outputs: {
     [actionNameOrResult: string]: any,
@@ -64,7 +65,7 @@ export function makeConcurrentAction(
       }
     });
 
-    const transitionReducer$: Stream<Reducer<State>> = input$.map(input => prev => {
+    const transitionReducer$: Stream<Reducer<State>> = input$.map(input => (prev: State): State => {
       console.debug('input', input, 'prev', prev);
       if (prev.state === S.PEND && input.type === SIGType.GOAL) {
         const outputs = Object.keys(input.value.goal).reduce((acc, x) => {
@@ -78,6 +79,7 @@ export function makeConcurrentAction(
           state: S.RUN,
           variables: {
             goal_id: input.value.goal_id,
+            activeActionNames: Object.keys(outputs),
           },
           outputs,
         };
@@ -93,6 +95,7 @@ export function makeConcurrentAction(
           state: S.RUN,
           variables: {
             goal_id: input.value.goal_id,
+            activeActionNames: Object.keys(outputs),
           },
           outputs: {
             ...outputs,
@@ -106,7 +109,7 @@ export function makeConcurrentAction(
           },
         };
       } else if (prev.state === S.RUN && input.type === SIGType.CANCEL) {
-        const outputs = actionNames.reduce((acc, x) => {
+        const outputs = prev.variables.activeActionNames.reduce((acc, x) => {
           acc[x] = {goal: null};
           return acc;
         }, {});
@@ -171,6 +174,21 @@ export function makeConcurrentAction(
                 result: result.result,  // IDEA: {type: 'FaceExpression', value: result.result}
               },
             },
+          };
+        } else {
+          const finishedActionNames = results.map((r, i) =>
+            isEqual(r.status.goal_id, prev.variables.goal_id)
+              ? actionNames[i]
+              : null
+          );
+          return {
+            ...prev,
+            variables: {
+              ...prev.variables,
+              activeActionNames: prev.variables.activeActionNames
+                .filter(n => finishedActionNames.indexOf(n) === -1)
+            },
+            outputs: null,
           };
         }
       }
