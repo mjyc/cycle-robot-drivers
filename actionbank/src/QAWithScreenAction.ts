@@ -42,7 +42,7 @@ export function QAWithScreenAction(sources: Sources): Sinks {
       goal_id: g.goal_id,
       goal: {
         QuestionAnswerAction: g.goal,
-        TwoSpeechbubblesAction: {
+        TwoSpeechbubblesAction: g === null ? null : {
           message: g.goal.question,
           choices: g.goal.answers
         },
