@@ -2,9 +2,9 @@ import {makeDOMDriver} from '@cycle/dom';
 import {withState} from '@cycle/state';
 import {run} from '@cycle/run';
 import {makeTabletFaceDriver} from '@cycle-robot-drivers/screen';
-import RobotApp from './RobotApp';
+import Robot from './Robot';
 
-const main = withState(RobotApp);
+const main = withState(Robot);
 
 run(main, {
   DOM: makeDOMDriver('#app'),

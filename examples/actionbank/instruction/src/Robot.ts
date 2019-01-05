@@ -43,7 +43,7 @@ export interface Sinks {
   state: Stream<Reducer<State>>,
 }
 
-export default function RobotApp(sources: Sources): Sinks {
+export default function Robot(sources: Sources): Sinks {
   // sources.state.stream.addListener({next: v => console.log('state$', v)})
 
   // Process state stream

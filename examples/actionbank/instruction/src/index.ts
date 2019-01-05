@@ -6,9 +6,9 @@ import {
   makeSpeechSynthesisDriver,
   makeSpeechRecognitionDriver,
 } from '@cycle-robot-drivers/speech';
-import RobotApp from './RobotApp';
+import Robot from './Robot';
 
-const main = withState(RobotApp);
+const main = withState(Robot);
 
 run(main, {
   DOM: makeDOMDriver('#app'),

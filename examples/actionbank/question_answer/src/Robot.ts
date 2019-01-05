@@ -43,7 +43,7 @@ export interface Sinks {
   state: Stream<Reducer<State>>,
 }
 
-export default function RobotApp(sources: Sources): Sinks {
+export default function Robot(sources: Sources): Sinks {
   // sources.state.stream.addListener({next: v => console.log('state$', v)})
 
   // Process state stream
@@ -104,7 +104,7 @@ export default function RobotApp(sources: Sources): Sinks {
   const parentReducer$: Stream<Reducer<State>> = xs.merge(
     twoSpeechbubblesAction.result.map(result =>
       prev => ({...prev, TwoSpeechbubblesAction: {outputs: {result}}})),
-    speechSynthesisAction.result.map(result => 
+    speechSynthesisAction.result.map(result =>
       prev => ({...prev, SpeechSynthesisAction: {outputs: {result}}})),
     speechRecognitionAction.result.map(result =>
       prev => ({...prev, SpeechRecognitionAction: {outputs: {result}}})),
@@ -117,7 +117,7 @@ export default function RobotApp(sources: Sources): Sinks {
   const vdom$ = xs.combine(
     twoSpeechbubblesAction.DOM,
     sources.TabletFace.DOM,
-  ).map(([speechbubbles, face]) => 
+  ).map(([speechbubbles, face]) =>
     div({
       style: {position: 'relative'}
     }, [speechbubbles, face])
