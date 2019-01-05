@@ -27,6 +27,9 @@ export function isEqual(first: GoalID, second: GoalID) {
 }
 
 export function isEqualGoal(first: Goal, second: Goal) {
+  if (first === null && second === null) {
+    return true;
+  }
   if (!first || !second) {
     return false;
   }
