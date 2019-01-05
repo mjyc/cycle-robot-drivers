@@ -8,12 +8,9 @@
   "dependencies": {
     "@cycle-robot-drivers/action": "0.0.16",
     "@cycle-robot-drivers/actionbank": "file:../../../actionbank",
-    "@cycle-robot-drivers/screen": "0.0.27",
-    "@cycle-robot-drivers/speech": "0.0.11",
-    "@cycle/dom": "22.0.0",
+    "@cycle-robot-drivers/run": "^0.1.1",
     "@cycle/isolate": "4.2.0",
     "@cycle/state": "1.1.0",
-    "@cycle/run": "5.1.0",
     "xstream": "11.7.0"
   },
   "devDependencies": {
@@ -25,6 +22,7 @@
     "watchify": "^3.11.0"
   },
   "scripts": {
+    "build:flowcharts": "mkdirp flowcharts && for f in recipes/*.json ; do node recipe_to_flowchart.js \"$f\" \"./flowcharts/$(basename \"${f%%.*}\").json\"; done;",
     "build": "mkdirp dist && browserify src/index.ts -p tsify --outfile dist/index.js -dv",
     "watch": "mkdirp dist && watchify src/index.ts -p tsify --outfile dist/index.js -dv",
     "start": "concurrently \"npm run watch\" \"live-server\""

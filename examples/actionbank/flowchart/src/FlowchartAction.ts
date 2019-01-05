@@ -13,18 +13,21 @@ import {
 } from '@cycle-robot-drivers/actionbank';
 
 // FSM types
-enum S {
+export enum S {
   PEND = 'PEND',
-  QA = 'QA',
-  SAY = 'SAY',
+  MONOLOGUE = 'MONOLOGUE',
+  QUESTION_ANSWER = 'QUESTION_ANSWER',
+  INSTRUCTION = 'INSTRUCTION',
 }
 
-enum SIGType {
+export enum SIGType {
   GOAL = 'GOAL',
   CANCEL = 'CANCEL',
+  MONO_DONE = 'MONO_DONE',
   QA_SUCCEEDED = 'QA_SUCCEEDED',
   QA_FAILED = 'QA_FAILED',
-  SAY_DONE = 'SAY_DONE',
+  INST_SUCCEEDED = 'INST_SUCCEEDED',
+  INST_FAILED = 'INST_FAILED',
 }
 
 export type SIG = {
@@ -35,18 +38,19 @@ export type SIG = {
 export type V = {
   goal_id: GoalID,
   flowchart: any,
-  node: string,
+  node: any,
 }
 
 export type LAM = {
   result?: Result,
   MonologueAction?: {goal: Goal},
-  QAAction?: {goal: Goal},
+  QuestionAnswerAction?: {goal: Goal},
+  InstructionAction?: {goal: Goal},
 }
 
 // Reducer types
 export interface State extends FSMReducerState<S, V, LAM> {
-  QAAction?: any,
+  QuestionAnswerAction?: any,
 }
 
 // Component types
@@ -60,27 +64,34 @@ export interface Sinks extends Omit<QAWithScreenActionSinks, 'state'>{
 
 function input(
   goal$: Stream<any>,
-  questionAnswerResult$: Stream<Result>,
   monologueResult$: Stream<Result>,
+  questionAnswerResult$: Stream<Result>,
+  instructionResult$: Stream<Result>,
 ): Stream<SIG> {
   return xs.merge(
     goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
       ? ({type: SIGType.CANCEL, value: null})
       : ({type: SIGType.GOAL, value: initGoal(g)})),
+    monologueResult$
+      .filter(r => r.status.status === Status.SUCCEEDED)
+      .mapTo({type: SIGType.MONO_DONE}).debug(),
     questionAnswerResult$
       .filter(r => r.status.status === Status.SUCCEEDED)
       .map(r => ({type: SIGType.QA_SUCCEEDED, value: r.result})),
     questionAnswerResult$
       .filter(r => r.status.status !== Status.SUCCEEDED)
       .map(r => ({type: SIGType.QA_FAILED, value: r.result})),
-    monologueResult$
+    instructionResult$
       .filter(r => r.status.status === Status.SUCCEEDED)
-      .mapTo({type: SIGType.SAY_DONE}),
+      .map(r => ({type: SIGType.INST_SUCCEEDED, value: r.result})),
+    instructionResult$
+      .filter(r => r.status.status !== Status.SUCCEEDED)
+      .map(r => ({type: SIGType.INST_FAILED, value: r.result})),
   );
 }
 
 function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
-  const initReducer$: Stream<Reducer<State>> = xs.of(function(prev?: State): State {
+  const initReducer$: Stream<Reducer<State>> = xs.of((prev?: State): State => {
     if (typeof prev === 'undefined') {
       return {
         state: S.PEND,
@@ -95,45 +106,82 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
   const transitionReducer$: Stream<Reducer<State>> = input$.map((input: SIG) => (prev: State): State => {
     console.debug('input', input, 'prev', prev);
     if (prev.state === S.PEND && input.type === SIGType.GOAL) {  // goal-received
-      const node = input.value.goal.start;
-      const next = input.value.goal.flowchart[node];
-      if (typeof next === 'string' || !next) {  // do Monologue
+      const flowchart = Object.assign(
+        {},
+        ...Array.from(
+          input.value.goal.flowchart, ({id, ...o}) => ({[id]: {id, ...o}})
+        ),
+      );
+      const node = flowchart[input.value.goal.start_id];
+      if (node && node.type === 'MONOLOGUE') {
         return {
           ...prev,
-          state: S.SAY,
+          state: S.MONOLOGUE,
           variables: {
-            flowchart: input.value.goal.flowchart,
-            node: node,
             goal_id: input.value.goal_id,
+            flowchart,
+            node,
           },
           outputs: {
             MonologueAction: {
-              goal: initGoal(node),
+              goal: initGoal(node.arg),
             },
           },
         };
-      } else {  // do QA
+      } else if (node && node.type === 'QUESTION_ANSWER') {
         return {
           ...prev,
-          state: S.QA,
+          state: S.QUESTION_ANSWER,
           variables: {
-            flowchart: input.value.goal.flowchart,
-            node: node,
             goal_id: input.value.goal_id,
+            flowchart,
+            node,
           },
           outputs: {
-            QAAction: {
+            QuestionAnswerAction: {
+              goal: initGoal(node.arg),
+            },
+          },
+        };
+      } else if (node.type === 'INSTRUCTION') {
+        return {
+          ...prev,
+          state: S.INSTRUCTION,
+          variables: {
+            goal_id: input.value.goal_id,
+            flowchart,
+            node,
+          },
+          outputs: {
+            InstructionAction: {
               goal: initGoal({
-                question: node,
-                answers: Object.keys(next),
+                question: node.arg,
+                answers: ['Done'],
               }),
             },
           },
         };
       }
-    } else if (prev.state === S.SAY && input.type === SIGType.SAY_DONE) {  // monologue-done
-      const node = prev.variables.flowchart[prev.variables.node];
-      const next = prev.variables.flowchart[node];
+    } else if (prev.state !== S.PEND && input.type === SIGType.CANCEL) {
+      return {
+        ...prev,
+        state: S.PEND,
+        variables: null,
+        outputs: {
+          MonologueAction: prev.state === S.MONOLOGUE ? {goal: null} : null,
+          QuestionAnswerAction: prev.state === S.QUESTION_ANSWER ? {goal: null} : null,
+          InstructionAction: prev.state === S.INSTRUCTION ? {goal: null} : null,
+        },
+      };
+    } else if (
+      prev.state === S.MONOLOGUE && input.type === SIGType.MONO_DONE
+      || prev.state === S.QUESTION_ANSWER && input.type === SIGType.QA_SUCCEEDED
+      || prev.state === S.INSTRUCTION && input.type === SIGType.INST_SUCCEEDED
+    ) {
+      const next = prev.state === S.QUESTION_ANSWER
+        ? prev.variables.node.next[prev.variables.node.arg.answers.indexOf(input.value)]
+        : prev.variables.node.next;
+      const node = prev.variables.flowchart[next];
       if (!node) {  // deadend
         return {
           ...prev,
@@ -146,91 +194,55 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
                 status: Status.SUCCEEDED,
               },
               result: prev.variables.node,
-            }
-          }
-        };
-      } else if (typeof next === 'string' || !next) {  // do Monologue
-        return {
-          ...prev,
-          state: S.SAY,
-          variables: {
-            ...prev.variables,
-            node: node,
-          },
-          outputs: {
-            MonologueAction: {
-              goal: initGoal(node),
             },
           },
         };
-      } else {  // do QA
+      } else if (node.type === 'MONOLOGUE') {
         return {
           ...prev,
-          state: S.QA,
+          state: S.MONOLOGUE,
           variables: {
             ...prev.variables,
-            node: node,
+            node,
           },
           outputs: {
-            QAAction: {
+            MonologueAction: {
+              goal: initGoal(node.arg),
+            },
+          },
+        };
+      } else if (node.type === 'QUESTION_ANSWER') {
+        return {
+          ...prev,
+          state: S.QUESTION_ANSWER,
+          variables: {
+            ...prev.variables,
+            node,
+          },
+          outputs: {
+            QuestionAnswerAction: {
+              goal: initGoal(node.arg),
+            },
+          },
+        };
+      } else if (node.type === 'INSTRUCTION') {
+        return {
+          ...prev,
+          state: S.INSTRUCTION,
+          variables: {
+            ...prev.variables,
+            node,
+          },
+          outputs: {
+            InstructionAction: {
               goal: initGoal({
-                question: node,
-                answers: Object.keys(next),
-              })
+                question: node.arg,
+                answers: ['Done'],
+              }),
             },
           },
         };
       }
-    } else if (prev.state === S.QA && input.type === SIGType.QA_SUCCEEDED) {  // qa-done
-      const node = prev.variables.flowchart[prev.variables.node][input.value];
-      const next = prev.variables.flowchart[node];
-      if (typeof next === 'string' || !next) {  // do Monologue
-        return {
-          ...prev,
-          state: S.SAY,
-          variables: {
-            ...prev.variables,
-            node: node
-          },
-          outputs: {
-            MonologueAction: {
-              goal: initGoal(node)
-            },
-          },
-        };
-      } else {  // do QA
-        return {
-          ...prev,
-          state: S.QA,
-          variables: {
-            ...prev.variables,
-            node: node
-          },
-          outputs: {
-            QAAction: {
-              goal: initGoal({
-                question: node,
-                answers: Object.keys(next),
-              })
-            },
-          },
-        };
-      }
-    } else if (prev.state === S.QA && input.type === SIGType.QA_FAILED) {  // qa-failed
-      return {
-        ...prev,
-        state: S.PEND,
-        variables: null,
-        outputs: {
-          result: {
-            status: {
-              goal_id: prev.variables.goal_id,
-              status: Status.ABORTED,
-            },
-            result: prev.variables.node,
-          }
-        },
-      };
     }
     return prev;
   });
@@ -251,9 +263,13 @@ function output(reducerState$: Stream<State>) {
       .filter(o => !!o.MonologueAction)
       .map(o => o.MonologueAction.goal)
       .compose(dropRepeats(isEqualGoal)),
-    QAAction: outputs$
-      .filter(o => !!o.QAAction)
-      .map(o => o.QAAction.goal)
+    QuestionAnswerAction: outputs$
+      .filter(o => !!o.QuestionAnswerAction)
+      .map(o => o.QuestionAnswerAction.goal)
+      .compose(dropRepeats(isEqualGoal)),
+    InstructionAction: outputs$
+      .filter(o => !!o.InstructionAction)
+      .map(o => o.InstructionAction.goal)
       .compose(dropRepeats(isEqualGoal)),
   };
 }
@@ -261,48 +277,62 @@ function output(reducerState$: Stream<State>) {
 export function FlowchartAction(sources: Sources): Sinks {
   sources.state.stream.addListener({next: v => console.log('state$', v)})
 
-  const goalProxy$ = xs.create();
-  const goalProxy2$ = xs.create();
-  const qaSinks = isolate(QAWithScreenAction, 'QAAction')({
+  const qaGoalProxy$ = xs.create();
+  const qaSinks = isolate(QAWithScreenAction, 'QuestionAnswerAction')({
     ...sources,
-    goal: goalProxy$,
+    goal: qaGoalProxy$,
   });
+  const monoGoalProxy$ = xs.create();
   const monoSinks = isolate(SpeakWithScreenAction, 'SpeakWithScreenAction')({
-    goal: goalProxy2$,
+    goal: monoGoalProxy$,
     TwoSpeechbubblesAction: sources.TwoSpeechbubblesAction,
     SpeechSynthesisAction: sources.SpeechSynthesisAction,
     state: sources.state,
   });
+  const instGoalProxy$ = xs.create();
+  const instSinks = isolate(QAWithScreenAction, 'InstructionAction')({
+    ...sources,
+    goal: instGoalProxy$,
+  });
 
   const input$ = input(
     sources.goal,
-    qaSinks.result,
     sources.SpeechSynthesisAction.result,
+    qaSinks.result,
+    instSinks.result,
   );
   const parentReducer$ = reducer(input$);
   const reducer$ = xs.merge(
     parentReducer$,
     qaSinks.state as Stream<Reducer<State>>,
     monoSinks.state as Stream<Reducer<State>>,
+    instSinks.state as Stream<Reducer<State>>,
   );
   const reducerState$ = sources.state.stream;
   const outputs = output(reducerState$);
-  goalProxy$.imitate(outputs.QAAction.compose(dropRepeats(isEqualGoal)));
-  goalProxy2$.imitate(outputs.MonologueAction.compose(dropRepeats(isEqualGoal)));
+  qaGoalProxy$.imitate(outputs.QuestionAnswerAction.compose(dropRepeats(isEqualGoal)));
+  monoGoalProxy$.imitate(outputs.MonologueAction.compose(dropRepeats(isEqualGoal)));
+  instGoalProxy$.imitate(outputs.InstructionAction.compose(dropRepeats(isEqualGoal)));
 
   const speechbubbles$ = xs.merge(
     qaSinks.TwoSpeechbubblesAction,
     monoSinks.TwoSpeechbubblesAction,
+    instSinks.TwoSpeechbubblesAction,
   );
   const speak$ = xs.merge(
     qaSinks.SpeechSynthesisAction,
     monoSinks.SpeechSynthesisAction,
+    instSinks.SpeechSynthesisAction,
   );
+  const recog$ = xs.merge(
+    qaSinks.SpeechRecognitionAction,
+    instSinks.SpeechRecognitionAction,
+  )
   return {
     result: outputs.result,
     TwoSpeechbubblesAction: speechbubbles$,
     SpeechSynthesisAction: speak$,
-    SpeechRecognitionAction: qaSinks.SpeechRecognitionAction,
+    SpeechRecognitionAction: recog$,
     state: reducer$,
   };
 }
