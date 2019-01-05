@@ -1,11 +1,11 @@
 import {runRobotProgram} from '@cycle-robot-drivers/run';
-import EngagementManagementApp from './EngagementManagementApp';
+import EngagementManagement from './EngagementManagement';
 
 function main(sources) {
   document.body.style.backgroundColor = "white";
   document.body.style.margin = "0px";
 
-  return EngagementManagementApp(sources);
+  return EngagementManagement(sources);
 }
 
 runRobotProgram(main);
