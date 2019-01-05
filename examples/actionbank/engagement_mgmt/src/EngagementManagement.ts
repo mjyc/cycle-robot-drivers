@@ -3,7 +3,9 @@ import delay from 'xstream/extra/delay';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import pairwise from 'xstream/extra/pairwise';
 import isolate from '@cycle/isolate';
-import {SpeakWithScreenAction} from '@cycle-robot-drivers/actionbank';
+import {
+  SpeakWithScreenAction, selectActionResult
+} from '@cycle-robot-drivers/actionbank';
 import {Status, isEqualGoal, initGoal} from '@cycle-robot-drivers/action';
 import {FlowchartAction} from './FlowchartAction';
 
@@ -19,6 +21,7 @@ export enum SIGType {
   FOUND_PERSON = 'FOUND_PERSON',
   LOST_PERSON = 'LOST_PERSON',
   ENGAGE_DONE = 'ENGAGE_DONE',
+  MAINTAIN_DONE = 'MAINTAIN_DONE',
 }
 
 export type SIG = {
@@ -29,11 +32,9 @@ export type SIG = {
 function input(
   poses$,
   monologueResult$,
+  flowchartResult$,
 ) {
   return xs.merge(
-    monologueResult$
-      .filter(r => r.status.status === Status.SUCCEEDED)
-      .mapTo({type: SIGType.ENGAGE_DONE}),
     poses$
       .map(poses => poses.length)
       .compose(pairwise)
@@ -45,6 +46,10 @@ function input(
           return {type: SIGType.LOST_PERSON};
         }
       }),
+    monologueResult$
+      .filter(r => r.status.status === Status.SUCCEEDED)
+      .mapTo({type: SIGType.ENGAGE_DONE}),
+    flowchartResult$.mapTo({type: SIGType.MAINTAIN_DONE}),
   );
 }
 
@@ -109,7 +114,6 @@ function reducer(input$) {
       return {
         ...prev,
         state: S.MAINTAIN,
-        variables: null,
         outputs: {
           FlowchartAction: {goal},
         },
@@ -120,7 +124,6 @@ function reducer(input$) {
       return {
         ...prev,
         state: S.WAIT,
-        variables: null,
         outputs: {
           MonologueAction: {goal: initGoal('Bye now!')},
           FlowchartAction: {goal: null},
@@ -172,6 +175,7 @@ export default function EngagementManagement(sources) {
   const input$ = input(
     sources.PoseDetection.poses,
     sources.SpeechSynthesisAction.result,
+    fcSinks.result,
   );
   const parentReducer$ = reducer(input$);
   const reducer$ = xs.merge(parentReducer$, mnSinks.state, fcSinks.state);

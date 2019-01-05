@@ -6,7 +6,7 @@
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "dependencies": {
-    "@cycle-robot-drivers/action": "0.0.18",
+    "@cycle-robot-drivers/action": "0.0.19",
     "@cycle-robot-drivers/actionbank": "file:../../../actionbank",
     "@cycle-robot-drivers/run": "^0.1.1",
     "@cycle/isolate": "4.2.0",

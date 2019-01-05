@@ -168,9 +168,16 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
         state: S.PEND,
         variables: null,
         outputs: {
-          MonologueAction: prev.state === S.MONOLOGUE ? {goal: null} : null,
-          QuestionAnswerAction: prev.state === S.QUESTION_ANSWER ? {goal: null} : null,
-          InstructionAction: prev.state === S.INSTRUCTION ? {goal: null} : null,
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.PREEMPTED,
+            },
+            result: prev.variables.node,
+          },
+          // MonologueAction: prev.state === S.MONOLOGUE ? {goal: null} : null,
+          // QuestionAnswerAction: prev.state === S.QUESTION_ANSWER ? {goal: null} : null,
+          // InstructionAction: prev.state === S.INSTRUCTION ? {goal: null} : null,
         },
       };
     } else if (
