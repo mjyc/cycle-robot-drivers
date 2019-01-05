@@ -1,5 +1,5 @@
 if (process.argv.length < 4) {
-  console.error("usage: node txt_to_json.js infile.txt outfile.json");
+  console.error("usage: node story_to_json.js infile.txt outfile.json");
   process.exit(1);
 }
 

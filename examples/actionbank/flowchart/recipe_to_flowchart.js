@@ -1,5 +1,5 @@
 if (process.argv.length < 4) {
-  console.error('usage: node json_to_flowchart.js infile.json outfile.json');
+  console.error('usage: node recipe_to_flowchart.js infile.json outfile.json');
   process.exit(1);
 }
 
