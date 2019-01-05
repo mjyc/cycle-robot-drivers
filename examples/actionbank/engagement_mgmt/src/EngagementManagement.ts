@@ -1,7 +1,9 @@
 import xs from 'xstream';
+import delay from 'xstream/extra/delay';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import pairwise from 'xstream/extra/pairwise';
 import isolate from '@cycle/isolate';
+import {SpeakWithScreenAction} from '@cycle-robot-drivers/actionbank';
 import {Status, isEqualGoal, initGoal} from '@cycle-robot-drivers/action';
 import {FlowchartAction} from './FlowchartAction';
 
@@ -26,10 +28,10 @@ export type SIG = {
 
 function input(
   poses$,
-  speechSynthesisResult$,
+  monologueResult$,
 ) {
   return xs.merge(
-    speechSynthesisResult$
+    monologueResult$
       .filter(r => r.status.status === Status.SUCCEEDED)
       .mapTo({type: SIGType.ENGAGE_DONE}),
     poses$
@@ -59,6 +61,37 @@ function reducer(input$) {
     }
   });
 
+  const goal = initGoal({
+    "flowchart": [
+      {
+        "id": "470999b3-1110-4588-8346-2458caddd9ae",
+        "type": "MONOLOGUE",
+        "arg": "PRAY",
+        "next": "d79a76ec-2cba-4e62-905a-3006c41dc939"
+      },
+      {
+        "id": "d79a76ec-2cba-4e62-905a-3006c41dc939",
+        "type": "QUESTION_ANSWER",
+        "arg": {"question": "Did it work?", "answers": ["Yes", "No"]},
+        "next": [
+          "c00b7cd3-d0b8-47b6-8eaa-1eb7919dae92",
+          "126628a0-7a4e-4175-ac1c-a4fb680edecb"
+        ]
+      },
+      {
+        "id": "c00b7cd3-d0b8-47b6-8eaa-1eb7919dae92",
+        "type": "MONOLOGUE",
+        "arg": "PRAISE THE LORD"
+      },
+      {
+        "id": "126628a0-7a4e-4175-ac1c-a4fb680edecb",
+        "type": "MONOLOGUE",
+        "arg": "God works in mysterious ways"
+      }
+    ],
+    "start_id": "470999b3-1110-4588-8346-2458caddd9ae"
+  });
+
   const transitionReducer = input$.map(input => prev => {
     console.debug('input', input, 'prev', prev);
     if (prev.state === S.WAIT && input.type === SIGType.FOUND_PERSON) {
@@ -67,7 +100,7 @@ function reducer(input$) {
         state: S.ENGAGE,
         variables: null,
         outputs: {
-          SpeechSynthesisAction: {goal: initGoal('Hello there!')},
+          MonologueAction: {goal: initGoal('Hello there!')},
         },
       };
     } else if (
@@ -77,7 +110,9 @@ function reducer(input$) {
         ...prev,
         state: S.MAINTAIN,
         variables: null,
-        outputs: null,
+        outputs: {
+          FlowchartAction: {goal},
+        },
       };
     } else if (
       prev.state === S.MAINTAIN && input.type === SIGType.LOST_PERSON
@@ -87,7 +122,8 @@ function reducer(input$) {
         state: S.WAIT,
         variables: null,
         outputs: {
-          SpeechSynthesisAction: {goal: initGoal('Bye now!')}
+          MonologueAction: {goal: initGoal('Bye now!')},
+          FlowchartAction: {goal: null},
         },
       };
     }
@@ -99,40 +135,60 @@ function reducer(input$) {
 
 function output(reducerState$) {
   const outputs$ = reducerState$
-    .debug()
     .filter(m => !!m.outputs)
     .map(m => m.outputs);
   return {
     result: outputs$
       .filter(o => !!o.result)
       .map(o => o.result),
-    SpeechSynthesisAction: outputs$
-      .filter(o => !!o.SpeechSynthesisAction)
-      .map(o => o.SpeechSynthesisAction.goal)
+    MonologueAction: outputs$
+      .filter(o => !!o.MonologueAction)
+      .map(o => o.MonologueAction.goal)
+      .compose(dropRepeats(isEqualGoal)),
+    FlowchartAction: outputs$
+      .filter(o => !!o.FlowchartAction)
+      .map(o => o.FlowchartAction.goal)
       .compose(dropRepeats(isEqualGoal)),
   };
-}
+};
 
 export default function EngagementManagement(sources) {
-  const input$ = input(
-    sources.PoseDetection.poses,
-    sources.SpeechSynthesisAction.result,
-  );
-  const parentReducer$ = reducer(input$);
   const reducerState$ = sources.state.stream;
   const outputs = output(reducerState$)
-
+  const mnSinks = isolate(SpeakWithScreenAction, 'SpeakWithScreenAction')({
+    goal: outputs.MonologueAction,
+    TwoSpeechbubblesAction: {result: sources.TwoSpeechbubblesAction.result},
+    SpeechSynthesisAction: {result: sources.SpeechSynthesisAction.result},
+    state: sources.state,
+  });
   const fcSinks = isolate(FlowchartAction, 'FlowchartAction')({
-    goal: xs.never(),
+    goal: outputs.FlowchartAction,
     TwoSpeechbubblesAction: {result: sources.TwoSpeechbubblesAction.result},
     SpeechSynthesisAction: {result: sources.SpeechSynthesisAction.result},
     SpeechRecognitionAction: {result: sources.SpeechRecognitionAction.result},
     state: sources.state,
   });
-  const reducer$ = xs.merge(parentReducer$, fcSinks.state);
 
-  return {
-    ...outputs,
-    state: reducer$,  // outReducer$
-  }
+  const input$ = input(
+    sources.PoseDetection.poses,
+    sources.SpeechSynthesisAction.result,
+  );
+  const parentReducer$ = reducer(input$);
+  const reducer$ = xs.merge(parentReducer$, mnSinks.state, fcSinks.state);
+
+  const twoSpeechbubblesGoal$ = xs.merge(
+    fcSinks.TwoSpeechbubblesAction, mnSinks.TwoSpeechbubblesAction);
+  const speechSynthesisGoal$ = xs.merge(
+    fcSinks.SpeechSynthesisAction, mnSinks.SpeechSynthesisAction);
+  const sinks = {
+    TwoSpeechbubblesAction: twoSpeechbubblesGoal$,
+    SpeechSynthesisAction: speechSynthesisGoal$,
+    SpeechRecognitionAction: fcSinks.SpeechRecognitionAction,
+    PoseDetection: xs.of({
+      algorithm: 'single-pose',
+      singlePoseDetection: {minPoseConfidence: 0.2},
+    }),
+    state: reducer$,
+  };
+  return sinks;
 }
