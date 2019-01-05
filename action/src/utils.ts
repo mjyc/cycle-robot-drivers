@@ -10,7 +10,8 @@ export function generateGoalID(): GoalID {
 
 export function initGoal(
   goal: any,
-  isGoal: (g: any) => boolean = g => !!g.goal_id,
+  isGoal: (g: any) => boolean = g =>
+    typeof g === 'object' && g !== null && !!g.goal_id,
 ): Goal {
   return isGoal(goal) ? goal : {
     goal_id: generateGoalID(),
