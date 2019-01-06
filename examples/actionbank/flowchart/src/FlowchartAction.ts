@@ -23,7 +23,8 @@ export enum S {
 export enum SIGType {
   GOAL = 'GOAL',
   CANCEL = 'CANCEL',
-  MONO_DONE = 'MONO_DONE',
+  MONO_SUCCEEDED = 'MONO_SUCCEEDED',
+  MONO_FAILED = 'MONO_FAILED',
   QA_SUCCEEDED = 'QA_SUCCEEDED',
   QA_FAILED = 'QA_FAILED',
   INST_SUCCEEDED = 'INST_SUCCEEDED',
@@ -74,7 +75,10 @@ function input(
       : ({type: SIGType.GOAL, value: initGoal(g)})),
     monologueResult$
       .filter(r => r.status.status === Status.SUCCEEDED)
-      .mapTo({type: SIGType.MONO_DONE}).debug(),
+      .mapTo({type: SIGType.MONO_SUCCEEDED}),
+    monologueResult$
+      .filter(r => r.status.status !== Status.SUCCEEDED)
+      .mapTo({type: SIGType.MONO_FAILED}),
     questionAnswerResult$
       .filter(r => r.status.status === Status.SUCCEEDED)
       .map(r => ({type: SIGType.QA_SUCCEEDED, value: r.result})),
@@ -168,13 +172,20 @@ function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
         state: S.PEND,
         variables: null,
         outputs: {
-          MonologueAction: prev.state === S.MONOLOGUE ? {goal: null} : null,
-          QuestionAnswerAction: prev.state === S.QUESTION_ANSWER ? {goal: null} : null,
-          InstructionAction: prev.state === S.INSTRUCTION ? {goal: null} : null,
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.PREEMPTED,
+            },
+            result: prev.variables.node,
+          },
+          // MonologueAction: prev.state === S.MONOLOGUE ? {goal: null} : null,
+          // QuestionAnswerAction: prev.state === S.QUESTION_ANSWER ? {goal: null} : null,
+          // InstructionAction: prev.state === S.INSTRUCTION ? {goal: null} : null,
         },
       };
     } else if (
-      prev.state === S.MONOLOGUE && input.type === SIGType.MONO_DONE
+      prev.state === S.MONOLOGUE && input.type === SIGType.MONO_SUCCEEDED
       || prev.state === S.QUESTION_ANSWER && input.type === SIGType.QA_SUCCEEDED
       || prev.state === S.INSTRUCTION && input.type === SIGType.INST_SUCCEEDED
     ) {
