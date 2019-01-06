@@ -58,7 +58,6 @@ function reducer(input$) {
     if (typeof prev === 'undefined') {
       return {
         state: S.WAIT,
-        variables: null,
         outputs: null,
       };
     } else {
@@ -103,9 +102,15 @@ function reducer(input$) {
       return {
         ...prev,
         state: S.ENGAGE,
-        variables: null,
         outputs: {
           MonologueAction: {goal: initGoal('Hello there!')},
+        },
+      };
+    } else if (prev.state === S.WAIT && input.type === SIGType.ENGAGE_DONE) {
+      return {
+        ...prev,
+        outputs: {
+          MonologueAction: {goal: null},
         },
       };
     } else if (
@@ -116,6 +121,16 @@ function reducer(input$) {
         state: S.MAINTAIN,
         outputs: {
           FlowchartAction: {goal},
+        },
+      };
+    } else if (
+      prev.state === S.ENGAGE && input.type === SIGType.LOST_PERSON
+    ) {
+      return {
+        ...prev,
+        state: S.WAIT,
+        outputs: {
+          MonologueAction: {goal: initGoal('Bye now!')},
         },
       };
     } else if (
