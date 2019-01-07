@@ -101,17 +101,19 @@ export function withRobotActions(
     const reducer$ = xs.merge(parentReducer$, childReducer$);
 
     // Define sinks
-    const vdom$ = xs.combine(
-      twoSpeechbubblesAction.DOM,
-      sources.TabletFace.DOM,
-      sources.PoseDetection.DOM
-    ).map(([speechbubbles, face, poseDetectionViz]) => {
-      (poseDetectionViz as any).data.style.display = options.hidePoseViz
-        ? 'none' : 'block';
-      return div({
-        style: {position: 'relative'}
-      }, [speechbubbles, face, poseDetectionViz]);
-    });
+    const vdom$ = !!mainSinks.DOM
+      ? mainSinks.DOM
+      : xs.combine(
+          twoSpeechbubblesAction.DOM,
+          sources.TabletFace.DOM,
+          sources.PoseDetection.DOM
+        ).map(([speechbubbles, face, poseDetectionViz]) => {
+          (poseDetectionViz as any).data.style.display = options.hidePoseViz
+            ? 'none' : 'block';
+          return div({
+            style: {position: 'relative'}
+          }, [speechbubbles, face, poseDetectionViz]);
+        });
     const tablet$ = !!mainSinks.TabletFace
       ? mainSinks.TabletFace : facialExpressionAction.output;
     const audio$ = !!mainSinks.AudioPlayer
