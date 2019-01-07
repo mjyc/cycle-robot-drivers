@@ -9,8 +9,11 @@
     "@cycle-robot-drivers/action": "0.0.19",
     "@cycle-robot-drivers/actionbank": "file:../../../actionbank",
     "@cycle-robot-drivers/run": "file:../../../run",
+    "@cycle-robot-drivers/screen": "0.0.27",
     "@cycle/dom": "22.3.0",
     "@cycle/isolate": "4.2.0",
+    "@cycle/run": "^5.2.0",
+    "@cycle/state": "1.1.0",
     "cycle-posenet-driver": "0.0.20",
     "mermaid": "8.0.0",
     "xstream": "11.7.0"

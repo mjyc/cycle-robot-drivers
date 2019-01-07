@@ -1,40 +1,17 @@
 import xs from 'xstream';
 import {mermaidAPI} from "mermaid";
-import {div, source} from '@cycle/dom';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
+import {div} from '@cycle/dom';
+import {run} from '@cycle/run';
+import {withState} from '@cycle/state';
+import {initializeDrivers, withRobotActions} from '@cycle-robot-drivers/run';
+import {makeTabletFaceDriver} from '@cycle-robot-drivers/screen';
 
 mermaidAPI.initialize({
   startOnLoad: false
 });
 
-function main(sources) {
-  document.body.style.backgroundColor = "white";
-  document.body.style.margin = "0px";
-
-  const vdom$ = xs.combine(
-    sources.TabletFace.DOM.debug(),
-    sources.PoseDetection.DOM.debug()
-  ).map(([face, poseDetectionViz]) => {
-    (poseDetectionViz as any).data.style.display = true//options.hidePoseViz
-      ? 'none' : 'block';
-    return div({
-      style: {position: 'relative'}
-    }, [face as any, poseDetectionViz as any, div(`#graphDiv`, 'Graph will be here!')]);
-  });
-
-  sources.DOM.select('#graphDiv').element().take(1).addListener({next: e => {
-    var graphDefinition = "graph LR\na-->b";
-
-    var insertSvg = function(svgCode, bindFunctions) {
-      e.innerHTML = svgCode;
-    };
-
-    var graph = mermaidAPI.render("graphDiv", graphDefinition, insertSvg);
-    console.error(e);
-  }})
-
+function Robot(sources) {
   return {
-    DOM: vdom$,
     PoseDetection: xs.of({
       algorithm: 'single-pose',
       singlePoseDetection: {minPoseConfidence: 0.2},
@@ -42,4 +19,46 @@ function main(sources) {
   }
 }
 
-runRobotProgram(main);
+function main(sources) {
+  document.body.style.backgroundColor = "white";
+  document.body.style.margin = "0px";
+
+
+  // setup mermaidAPI
+  const sinks: any = withRobotActions(Robot, {hidePoseViz: true})(sources);
+  const vdom$ = sinks.DOM.map(face =>
+    div([face, div(`#graphDiv`)]));
+
+  mermaidAPI.initialize({startOnLoad: true});
+
+  sources.DOM.select('#graphDiv').element().take(1).addListener({next: elem => {
+    const graphDefinition = "graph LR\na-->b";
+    const insertSvg = (svgCode) => {
+      elem.innerHTML = svgCode;
+    };
+    mermaidAPI.render("graphDiv", graphDefinition, insertSvg);
+  }});
+
+
+  // fetch data
+  const data$ = xs.fromPromise(fetch('/fsms/sandbox.txt', {headers: {
+    "content-type": "text/plain"
+  }})).map(v => xs.fromPromise(v.text())).flatten();
+  data$.addListener({next: d => console.log('data$', d)});
+
+
+  return {
+    ...sinks,
+    DOM: vdom$,
+  };
+}
+
+run(
+  withState(main),
+  initializeDrivers({
+    TabletFace: makeTabletFaceDriver({styles: {
+      faceWidth: '960px',
+      faceHeight: '600px'
+    }})
+  }),
+);
