@@ -1,1 +1,2 @@
-Hello world!
+S1[speak "hello"] -> |speakDone| S2
+S2[speak "bye"] -> |speakDone| S3
