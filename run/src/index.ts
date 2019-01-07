@@ -15,6 +15,7 @@ import {
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
 import {initializeDrivers} from './initializeDrivers';
+export {initializeDrivers} from './initializeDrivers';
 
 const selectActionResult = (actionName: string) =>
   (in$: Stream<any>): Stream<Result> => in$
