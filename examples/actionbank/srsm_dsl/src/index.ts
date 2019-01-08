@@ -1,5 +1,4 @@
 import xs from 'xstream';
-import delay from 'xstream/extra/delay';
 import mermaid from "mermaid";
 import pegjs from 'pegjs';
 import {div} from '@cycle/dom';
@@ -100,9 +99,9 @@ function main(sources) {
   document.body.style.margin = '0px';
 
   // fetch & parse code
-  const code$ = xs.merge(xs.fromPromise(fetch('/fsms/sandbox.txt', {headers: {
+  const code$ = xs.fromPromise(fetch('/fsms/sandbox.txt', {headers: {
     'content-type': 'text/plain'
-  }})).map(v => xs.fromPromise(v.text())).flatten().compose(delay(1000)), xs.of('H1[speak "Jello"] -> |speakDone| K2'));
+  }})).map(v => xs.fromPromise(v.text())).flatten();
 
   const parser = pegjs.generate(grammar);
   const sinks: any = withRobotActions(Robot, {hidePoseViz: true})(sources);
