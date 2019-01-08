@@ -1,4 +1,5 @@
 import xs from 'xstream';
+import delay from 'xstream/extra/delay';
 import mermaid from "mermaid";
 import pegjs from 'pegjs';
 import {div} from '@cycle/dom';
@@ -98,39 +99,33 @@ function main(sources) {
   document.body.style.backgroundColor = 'white';
   document.body.style.margin = '0px';
 
-  // fetch code
+  // fetch & parse code
+  const code$ = xs.merge(xs.fromPromise(fetch('/fsms/sandbox.txt', {headers: {
+    'content-type': 'text/plain'
+  }})).map(v => xs.fromPromise(v.text())).flatten().compose(delay(1000)), xs.of('H1[speak "Jello"] -> |speakDone| K2'));
+
   const parser = pegjs.generate(grammar);
   const sinks: any = withRobotActions(Robot, {hidePoseViz: true})(sources);
-  const code$ = xs.fromPromise(fetch('/fsms/sandbox.txt', {headers: {
-    'content-type': 'text/plain'
-  }})).map(v => xs.fromPromise(v.text())).flatten();
-  const vdom$ = xs.combine(sinks.DOM, code$).map(([face, code]) =>
-  // console.log('code', 'graph TB\n' + toMermaid(parser.parse(code)))
-  // );
-    div([div(`#graphDiv`, 'graph TB\n' + toMermaid(parser.parse(code))), face]));
+  const vdom$ = xs.combine(sinks.DOM, code$).map(([face, code]) => {
+    let ast;
+    try {
+      ast = parser.parse(code);
+    } catch (e) {
+      console.log(`Parsing error on line ${e.location.start.line}:
+...${code.split('\n')[e.location.start.line-1]}
+${'-'.repeat(3+e.location.start.column-1) + '^'}
+${e.message}`);
+    }
+    return div([div('#graphDiv', 'graph TB\n' + toMermaid(ast)), face]);
+  });
 
-  // parse & render code
-
-  // const graphElem$ =
-  sources.DOM.select('#graphDiv').element().debug(e =>
-    console.log('e', e)
-  ).take(1)
-    .addListener({next: v => {
-      try {
-        // const out = parser.parse(code);
-        mermaid.init({noteMargin: 10}, "#graphDiv");
-      } catch (e) {
-        console.log(e);
-//         console.log(
-// `Parsing error on line ${e.location.start.line}:
-// ...${code.split('\n')[e.location.start.line-1]}
-// ${'-'.repeat(3+e.location.start.column-1) + '^'}
-// ${e.message}
-// `
-        // );
-      }
-    }});
-
+  // render code
+  sources.DOM.select('#graphDiv').element().addListener({next: elem => {
+    if (elem.children.length === 0) {
+      elem.removeAttribute('data-processed');
+      mermaid.init({noteMargin: 10}, elem);
+    }
+  }});
 
   return {
     ...sinks,
@@ -142,8 +137,9 @@ run(
   withState(main),
   initializeDrivers({
     TabletFace: makeTabletFaceDriver({styles: {
-      faceWidth: '960px',
-      faceHeight: '600px'
+      faceWidth: '640px',
+      faceHeight: '400px',
+      eyeSize: '133px'
     }})
   }),
 );
