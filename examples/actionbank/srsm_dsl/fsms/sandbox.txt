@@ -1,3 +1,4 @@
-S1[speak "hello"] -> |speakDone| S2
-S2[displayMessage "bye" ] -> |speakDone| S3
-S3[askQuestion "are you happy?" "yes"] -> |askQuestionDone| S4
+START -> |started| S1[askQuestion "Hello" "Hi"]
+S1 -> |askQuestionDone| S2[speak "hello"]
+S2 -> |askQuestionDone| S3[speak "hello"]
+S3 -> |speakDone| S4[speak "bye"]

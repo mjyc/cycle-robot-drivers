@@ -1,22 +1,13 @@
 import xs from 'xstream';
 import mermaid from "mermaid";
-import {div} from '@cycle/dom';
+import {div, button} from '@cycle/dom';
 import {run} from '@cycle/run';
 import {withState} from '@cycle/state';
 import {initializeDrivers, withRobotActions} from '@cycle-robot-drivers/run';
 import {makeTabletFaceDriver} from '@cycle-robot-drivers/screen';
 import Robot from './Robot';
-import parser from './parser';
+import {parser, compileToMermaid} from './utils';
 
-function toMermaid(node) {
-  if (node.type === 'transition') {
-    return node.value[0].value
-      + '[\"'  + node.value[1].value.type + ': ' + node.value[1].value.value + '\"]'
-      + '--> |' + node.value[2].value.type + '| ' + node.value[3].value;
-  } else if (node.type === 'fsm') {
-    return node.value.map(toMermaid).join('\n');
-  }
-}
 
 function main(sources) {
   sources.state.stream.addListener({next: s => console.warn(s)});
@@ -29,7 +20,18 @@ function main(sources) {
     'content-type': 'text/plain'
   }})).map(v => xs.fromPromise(v.text())).flatten();
 
-  const sinks: any = withRobotActions(Robot, {hidePoseViz: true})(sources);
+  const goal$ = xs.combine(
+    code$,
+    sources.DOM.select('button#start').events('click', {preventDefault: true}),
+  ).map(([code, click]) => code)
+  ;
+    // .addListener({next: v => console.log('clicked!', v)});
+  const sinks: any = withRobotActions(Robot, {hidePoseViz: true})({
+    ...sources,
+    goal: goal$,
+  });
+
+  // const sinks: any = withRobotActions(Robot, {hidePoseViz: true})(sources);
   const vdom$ = xs.combine(sinks.DOM, code$).map(([face, code]) => {
     let ast;
     try {
@@ -40,10 +42,10 @@ function main(sources) {
 ${'-'.repeat(3+e.location.start.column-1) + '^'}
 ${e.message}`);
     }
-    console.log('toMermaid(ast)', toMermaid(ast));
     return div([
       face,
-      div('#graphDiv', 'graph TB\n' + toMermaid(ast)),
+      button('#start', 'Start'),
+      div('#graphDiv', 'graph TB\n' + compileToMermaid(ast)),
     ]);
   });
 

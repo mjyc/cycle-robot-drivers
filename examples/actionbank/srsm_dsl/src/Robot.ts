@@ -1,29 +1,36 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
 import dropRepeats from 'xstream/extra/dropRepeats';
-import parser from './parser';
+import {parser} from './utils';
 import {Status, isEqualGoal, initGoal} from '@cycle-robot-drivers/action';
 
 
-const testCode = `
-S1[speak "hello"] -> |speakDone| S2
-S2[speak "how are you?"] -> |speakDone| S3
-S3[speak "okay bye"] -> |speakDone| S4
-`;
+// const testCode = `
+// S1[askQuestion "Hello" "Hi"] -> |askQuestionDone| S2
+// S2[speak "hello"] -> |speakDone| S3
+// S3[askQuestion "Bye" "Bye"] -> |askQuestionDone| S4
+// `;
 
-const testTree = parser.parse(testCode);
+// const testTree = parser.parse(testCode);
 
-console.log(testTree);
+// console.log(testTree);
 
 
 
 function interp(tree) {
   if (tree.type === 'speakDone') {
     return tree;
+  } else if (tree.type === 'askQuestionDone') {
+    return tree;
   } else if (tree.type === 'input') {
-    return interp(tree.value);  // TODO: support arrays
+    return interp(tree.value);
   } else if (tree.type === 'speak') {
     return {SpeechSynthesisAction: {goal: initGoal(tree.value)}};
+  } else if (tree.type === 'askQuestion') {
+    return {TwoSpeechbubblesAction: {goal: initGoal({
+      question: tree.value[0],
+      answers: tree.value[1],
+    })}};
   } else if (tree.type === 'action') {
     return {outputs: interp(tree.value)};  // TODO: support arrays
   } else if (tree.type === 'state') {
@@ -48,16 +55,18 @@ function interp(tree) {
   }
 }
 
-const trans = interp(testTree);
+// const trans = interp(testTree);
 
-console.log(trans);
+// console.log(trans);
 
 
 function input(
+  goal$,
   speechSynthesisResult$,
   twoSpeechbubblesResult$,
 ) {
   return xs.merge(
+    goal$.map(g => ({type: 'goal', value: g})).debug(),
     speechSynthesisResult$
       .filter(r => r.status.status === Status.SUCCEEDED)
       .mapTo({type: 'speakDone'}).compose(delay(200)),
@@ -81,7 +90,8 @@ function reducer(input$) {
 
   const transitionReducer = input$.map((input) => (prev) => {
     console.debug('input', input, 'prev', prev);
-    return trans(prev,input);
+    // return trans(prev, input);
+    return prev;
   });
 
   return xs.merge(initReducer$, transitionReducer);
@@ -105,7 +115,10 @@ function output(reducerState$) {
 
 export default function Robot(sources) {
 
+  // sources.goal.addListener({next: v => console.log('clicked!', v)});
   const input$ = input(
+    sources.goal,
+    // xs.never(),
     sources.SpeechSynthesisAction.result,
     sources.TwoSpeechbubblesAction.result,
   );
