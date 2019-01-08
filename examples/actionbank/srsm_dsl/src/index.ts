@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import {mermaidAPI} from "mermaid";
+import mermaid from "mermaid";
 import pegjs from 'pegjs';
 import {div} from '@cycle/dom';
 import {run} from '@cycle/run';
@@ -76,16 +76,6 @@ ws "whitespace" = [ \\t]*
 brp "linebreak" = [\\r\\n]+
 `;
 
-
-mermaidAPI.initialize({
-  startOnLoad: false,
-  mermaid: {
-    flowChart: {
-      width: "150%",
-    }
-  }
-});
-
 function Robot(sources) {
   return {
     PoseDetection: xs.of({
@@ -108,44 +98,38 @@ function main(sources) {
   document.body.style.backgroundColor = 'white';
   document.body.style.margin = '0px';
 
-
-  // setup mermaidAPI
-  const sinks: any = withRobotActions(Robot, {hidePoseViz: true})(sources);
-  const vdom$ = sinks.DOM.map(face =>
-    div([face, div(`#graphDiv`)]));
-
-  mermaidAPI.initialize({startOnLoad: true});
-
-  const graphElem$ = sources.DOM.select('#graphDiv').element().take(1);
-
-
   // fetch code
+  const parser = pegjs.generate(grammar);
+  const sinks: any = withRobotActions(Robot, {hidePoseViz: true})(sources);
   const code$ = xs.fromPromise(fetch('/fsms/sandbox.txt', {headers: {
     'content-type': 'text/plain'
   }})).map(v => xs.fromPromise(v.text())).flatten();
+  const vdom$ = xs.combine(sinks.DOM, code$).map(([face, code]) =>
+  // console.log('code', 'graph TB\n' + toMermaid(parser.parse(code)))
+  // );
+    div([div(`#graphDiv`, 'graph TB\n' + toMermaid(parser.parse(code))), face]));
 
+  // parse & render code
 
-  // parse & render data
-  const parser = pegjs.generate(grammar);
-  xs.combine(graphElem$, code$).addListener({
-    next: ([graphElem, code]) => {
+  // const graphElem$ =
+  sources.DOM.select('#graphDiv').element().debug(e =>
+    console.log('e', e)
+  ).take(1)
+    .addListener({next: v => {
       try {
-        const out = parser.parse(code);
-        const insertSvg = (svgCode) => {
-          (graphElem as any).innerHTML = svgCode;
-        };
-        // console.log(JSON.stringify(parser.parse(code), null, 2));
-        mermaidAPI.render('graphDiv', 'graph TD\n'+toMermaid(out), insertSvg);
+        // const out = parser.parse(code);
+        mermaid.init({noteMargin: 10}, "#graphDiv");
       } catch (e) {
-        console.log(
-`Parsing error on line ${e.location.start.line}:
-...${code.split('\n')[e.location.start.line-1]}
-${'-'.repeat(3+e.location.start.column-1) + '^'}
-${e.message}
-`
-        );
+        console.log(e);
+//         console.log(
+// `Parsing error on line ${e.location.start.line}:
+// ...${code.split('\n')[e.location.start.line-1]}
+// ${'-'.repeat(3+e.location.start.column-1) + '^'}
+// ${e.message}
+// `
+        // );
       }
-  }});
+    }});
 
 
   return {
