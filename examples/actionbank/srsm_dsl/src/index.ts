@@ -15,6 +15,7 @@ function main(sources) {
   document.body.style.backgroundColor = 'white';
   document.body.style.margin = '0px';
 
+
   // fetch & parse code
   const code$ = xs.fromPromise(fetch('/fsms/sandbox.txt', {headers: {
     'content-type': 'text/plain'
@@ -23,15 +24,13 @@ function main(sources) {
   const goal$ = xs.combine(
     code$,
     sources.DOM.select('button#start').events('click', {preventDefault: true}),
-  ).map(([code, click]) => code)
-  ;
-    // .addListener({next: v => console.log('clicked!', v)});
+  ).map(([code, click]) => code);
+
   const sinks: any = withRobotActions(Robot, {hidePoseViz: true})({
     ...sources,
     goal: goal$,
   });
 
-  // const sinks: any = withRobotActions(Robot, {hidePoseViz: true})(sources);
   const vdom$ = xs.combine(sinks.DOM, code$).map(([face, code]) => {
     let ast;
     try {
@@ -48,6 +47,7 @@ ${e.message}`);
       div('#graphDiv', 'graph TB\n' + compileToMermaid(ast)),
     ]);
   });
+
 
   // render code
   sources.DOM.select('#graphDiv').element().addListener({next: elem => {

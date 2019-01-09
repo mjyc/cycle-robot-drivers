@@ -5,18 +5,6 @@ import {parser} from './utils';
 import {Status, isEqualGoal, initGoal} from '@cycle-robot-drivers/action';
 
 
-// const testCode = `
-// S1[askQuestion "Hello" "Hi"] -> |askQuestionDone| S2
-// S2[speak "hello"] -> |speakDone| S3
-// S3[askQuestion "Bye" "Bye"] -> |askQuestionDone| S4
-// `;
-
-// const testTree = parser.parse(testCode);
-
-// console.log(testTree);
-
-
-
 function interp(tree) {
   if (tree.type === 'speakDone') {
     return tree;
@@ -55,10 +43,6 @@ function interp(tree) {
   }
 }
 
-// const trans = interp(testTree);
-
-// console.log(trans);
-
 
 function input(
   goal$,
@@ -90,7 +74,20 @@ function reducer(input$) {
 
   const transitionReducer = input$.map((input) => (prev) => {
     console.debug('input', input, 'prev', prev);
-    // return trans(prev, input);
+
+    let trans = null;
+    if (input.type === 'goal') {
+      // trans = parser.parse(input.value)
+      // return trans({
+      //   ...prev,
+      //   s: 'START',
+      //   o: null,
+      // }, {type: 'started', value: null});
+      return trans;
+    } else if (!!trans) {
+      return trans(prev, input);
+    }
+
     return prev;
   });
 
@@ -114,7 +111,6 @@ function output(reducerState$) {
 }
 
 export default function Robot(sources) {
-
   // sources.goal.addListener({next: v => console.log('clicked!', v)});
   const input$ = input(
     sources.goal,
