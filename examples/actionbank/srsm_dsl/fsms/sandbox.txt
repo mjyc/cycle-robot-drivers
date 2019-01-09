@@ -1,4 +1,3 @@
 START -> |started| S1[askQuestion "Hello" "Hi"]
 S1 -> |askQuestionDone| S2[speak "hello"]
-S2 -> |askQuestionDone| S3[speak "hello"]
-S3 -> |speakDone| S4[speak "bye"]
+S2 -> |speakDone| S3[speak "bye"]

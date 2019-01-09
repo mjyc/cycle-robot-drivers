@@ -110,10 +110,12 @@ br "linebreak" = [\\r\\n]+
 export const parser = pegjs.generate(grammar);
 
 export function compileToMermaid(tree) {
-  if (tree.type === 'speakDone') {
-    return `${tree.type}: ${tree.value}`;
+  if (tree.type === 'started') {
+    return `${tree.type}`;
+  } else if (tree.type === 'speakDone') {
+    return `${tree.type}`;
   } else if (tree.type === 'askQuestionDone') {
-    return `${tree.type}: ${tree.value}`;
+    return `${tree.type}`;
   } else if (tree.type === 'input') {
     return `|${compileToMermaid(tree.value)}|`;
   } else if (tree.type === 'speak') {

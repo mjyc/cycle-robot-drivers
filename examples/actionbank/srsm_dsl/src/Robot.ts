@@ -6,7 +6,9 @@ import {Status, isEqualGoal, initGoal} from '@cycle-robot-drivers/action';
 
 
 function interp(tree) {
-  if (tree.type === 'speakDone') {
+  if (tree.type === 'started') {
+    return tree;
+  } else if (tree.type === 'speakDone') {
     return tree;
   } else if (tree.type === 'askQuestionDone') {
     return tree;
@@ -16,20 +18,20 @@ function interp(tree) {
     return {SpeechSynthesisAction: {goal: initGoal(tree.value)}};
   } else if (tree.type === 'askQuestion') {
     return {TwoSpeechbubblesAction: {goal: initGoal({
-      question: tree.value[0],
-      answers: tree.value[1],
+      message: tree.value[0],
+      choices: [tree.value[1]],  // done
     })}};
-  } else if (tree.type === 'action') {
-    return {outputs: interp(tree.value)};  // TODO: support arrays
+  } else if (tree.type === 'actions') {
+    return {outputs: interp(tree.value[0])};  // TODO: support arrays
   } else if (tree.type === 'state') {
     return tree.value;
   } else if (tree.type === 'transition') {
     return (prev, input) =>
-      (prev.s === interp(tree.value[0]) && input.type === interp(tree.value[2]).type)
+      (prev.s === interp(tree.value[0]) && input.type === interp(tree.value[1]).type)
         ? {
             ...prev,
-            s: interp(tree.value[3]),
-            o: interp(tree.value[1]).outputs,
+            s: interp(tree.value[2]),  // TODO: 3 & 2
+            o: interp(tree.value[3]).outputs,
           }
         : null;
   } else if (tree.type === 'fsm') {
@@ -50,7 +52,7 @@ function input(
   twoSpeechbubblesResult$,
 ) {
   return xs.merge(
-    goal$.map(g => ({type: 'goal', value: g})).debug(),
+    goal$.map(g => ({type: 'goal', value: g})),
     speechSynthesisResult$
       .filter(r => r.status.status === Status.SUCCEEDED)
       .mapTo({type: 'speakDone'}).compose(delay(200)),
@@ -64,26 +66,26 @@ function reducer(input$) {
   const initReducer$ = xs.of((prev) => {
     if (typeof prev === 'undefined') {
       return {
-        s: 'S1',
-        o: {SpeechSynthesisAction: {goal: initGoal('Hello')}},
+        s: '',
+        o: null,
       };
     } else {
       return prev;
     }
   });
 
+  let trans = null;
   const transitionReducer = input$.map((input) => (prev) => {
     console.debug('input', input, 'prev', prev);
 
-    let trans = null;
     if (input.type === 'goal') {
-      // trans = parser.parse(input.value)
-      // return trans({
-      //   ...prev,
-      //   s: 'START',
-      //   o: null,
-      // }, {type: 'started', value: null});
-      return trans;
+      const ast = parser.parse(input.value);
+      trans = interp(ast)
+      return trans({
+        ...prev,
+        s: 'START',
+        o: null,
+      }, {type: 'started', value: null});
     } else if (!!trans) {
       return trans(prev, input);
     }
@@ -99,10 +101,10 @@ function output(reducerState$) {
     .filter(m => !!m.o)
     .map(m => m.o);
   return {
-    // result: outputs$
-    //   .filter(o => !!o.result)
-    //   .map(o => o.result)
-    //   .compose(dropRepeats(isEqualResult)),
+    TwoSpeechbubblesAction: outputs$
+      .filter(o => !!o.TwoSpeechbubblesAction)
+      .map(o => o.TwoSpeechbubblesAction.goal)
+      .compose(dropRepeats(isEqualGoal)),
     SpeechSynthesisAction: outputs$
       .filter(o => !!o.SpeechSynthesisAction)
       .map(o => o.SpeechSynthesisAction.goal)
@@ -111,19 +113,15 @@ function output(reducerState$) {
 }
 
 export default function Robot(sources) {
-  // sources.goal.addListener({next: v => console.log('clicked!', v)});
+  const reducerState$ = sources.state.stream;
+
+  const outputs = output(reducerState$);
   const input$ = input(
     sources.goal,
-    // xs.never(),
     sources.SpeechSynthesisAction.result,
     sources.TwoSpeechbubblesAction.result,
   );
-
   const reducer$ = reducer(input$);
-
-  const reducerState$ = sources.state.stream.debug();
-  reducerState$.addListener({next: s => console.warn(s)});
-  const outputs = output(reducerState$);
 
   return {
     ...outputs,

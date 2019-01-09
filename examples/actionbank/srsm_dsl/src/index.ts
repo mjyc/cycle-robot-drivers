@@ -10,7 +10,7 @@ import {parser, compileToMermaid} from './utils';
 
 
 function main(sources) {
-  sources.state.stream.addListener({next: s => console.warn(s)});
+  // sources.state.stream.addListener({next: s => console.log(s)});
 
   document.body.style.backgroundColor = 'white';
   document.body.style.margin = '0px';
