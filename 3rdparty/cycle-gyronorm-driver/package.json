@@ -1,6 +1,6 @@
 {
   "name": "cycle-gyronorm-driver",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A Cycle.js driver for accessing accelerometer and gyroscope data using Gyronorm.js",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
