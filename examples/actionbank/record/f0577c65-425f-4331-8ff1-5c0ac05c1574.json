@@ -1,0 +1,1945 @@
+{
+  "DOM": [
+    [
+      {
+        "sel": "div",
+        "data": {
+          "style": {
+            "position": "relative"
+          }
+        },
+        "children": [
+          {
+            "sel": "div",
+            "data": {
+              "style": {
+                "position": "absolute",
+                "width": "96vw",
+                "zIndex": 1,
+                "margin": "2vw",
+                "backgroundColor": "white",
+                "border": "0.2vmin solid lightgray",
+                "borderRadius": "3vmin 3vmin 3vmin 3vmin"
+              },
+              "isolate": [
+                {
+                  "type": "total",
+                  "scope": "cycle1"
+                }
+              ]
+            },
+            "children": [
+              {
+                "sel": "div",
+                "data": {
+                  "style": {
+                    "margin": 0,
+                    "padding": "1em",
+                    "maxWidth": "100%",
+                    "textAlign": "center"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "span",
+                    "data": {},
+                    "children": [
+                      {
+                        "sel": "span",
+                        "data": {
+                          "style": {
+                            "fontFamily": "helvetica",
+                            "fontSize": "12.5vmin",
+                            "fontWeight": "lighter"
+                          },
+                          "isolate": [
+                            {
+                              "type": "total",
+                              "scope": "cycle1"
+                            },
+                            {
+                              "type": "total",
+                              "scope": "cycle2"
+                            }
+                          ]
+                        },
+                        "text": "I can help you",
+                        "elm": {},
+                        "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"},{\"type\":\"total\",\"scope\":\"cycle2\"}]"
+                      }
+                    ],
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {},
+            "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"}]"
+          },
+          {
+            "sel": "div#face-3443758084099051.face",
+            "data": {
+              "style": {
+                "backgroundColor": "whitesmoke",
+                "height": "100vh",
+                "width": "100vw",
+                "position": "relative",
+                "overflow": "hidden",
+                "zIndex": 0
+              }
+            },
+            "children": [
+              {
+                "sel": "div.eye.left",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "left": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              },
+              {
+                "sel": "div.eye.right",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "right": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          },
+          {
+            "sel": "div",
+            "data": {
+              "props": {
+                "id": "posenet-2269941277577603"
+              },
+              "style": {
+                "position": "relative",
+                "display": "block"
+              }
+            },
+            "children": [
+              {
+                "sel": "video",
+                "data": {
+                  "props": {
+                    "id": "pose-video-2269941277577603",
+                    "autoPlay": true
+                  },
+                  "style": {
+                    "display": "none"
+                  }
+                },
+                "children": [],
+                "elm": {
+                  "autoPlay": true
+                }
+              },
+              {
+                "sel": "canvas",
+                "data": {
+                  "props": {
+                    "id": "pose-canvas-2269941277577603"
+                  }
+                },
+                "children": [],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          }
+        ],
+        "elm": {}
+      },
+      89.721
+    ],
+    [
+      {
+        "sel": "div",
+        "data": {
+          "style": {
+            "position": "relative"
+          }
+        },
+        "children": [
+          {
+            "sel": "div",
+            "data": {
+              "style": {
+                "position": "absolute",
+                "width": "96vw",
+                "zIndex": 1,
+                "margin": "2vw",
+                "backgroundColor": "white",
+                "border": "0.2vmin solid lightgray",
+                "borderRadius": "3vmin 3vmin 3vmin 3vmin"
+              },
+              "isolate": [
+                {
+                  "type": "total",
+                  "scope": "cycle1"
+                }
+              ]
+            },
+            "children": [
+              {
+                "sel": "div",
+                "data": {
+                  "style": {
+                    "margin": 0,
+                    "padding": "1em",
+                    "maxWidth": "100%",
+                    "textAlign": "center"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "span",
+                    "data": {},
+                    "children": [
+                      {
+                        "sel": "span",
+                        "data": {
+                          "style": {
+                            "fontFamily": "helvetica",
+                            "fontSize": "12.5vmin",
+                            "fontWeight": "lighter"
+                          },
+                          "isolate": [
+                            {
+                              "type": "total",
+                              "scope": "cycle1"
+                            },
+                            {
+                              "type": "total",
+                              "scope": "cycle2"
+                            }
+                          ]
+                        },
+                        "text": "I can help you",
+                        "elm": {},
+                        "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"},{\"type\":\"total\",\"scope\":\"cycle2\"}]"
+                      }
+                    ],
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              },
+              {
+                "sel": "div",
+                "data": {
+                  "style": {
+                    "margin": 0,
+                    "padding": "1em",
+                    "maxWidth": "100%",
+                    "textAlign": "center"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "span",
+                    "data": {},
+                    "children": [
+                      {
+                        "sel": "span",
+                        "data": {
+                          "isolate": [
+                            {
+                              "type": "total",
+                              "scope": "cycle1"
+                            },
+                            {
+                              "type": "total",
+                              "scope": "cycle3"
+                            }
+                          ]
+                        },
+                        "children": [
+                          {
+                            "sel": "button.choice",
+                            "data": {
+                              "style": {
+                                "margin": "0 0.25em 0.25em 0.25em",
+                                "backgroundColor": "transparent",
+                                "border": "0.05em solid black",
+                                "borderRadius": "0.25em",
+                                "fontFamily": "helvetica",
+                                "fontSize": "10vmin",
+                                "fontWeight": "lighter"
+                              }
+                            },
+                            "text": "Cook \"Broccoli cheese soup\"",
+                            "elm": {}
+                          },
+                          {
+                            "sel": "button.choice",
+                            "data": {
+                              "style": {
+                                "margin": "0 0.25em 0.25em 0.25em",
+                                "backgroundColor": "transparent",
+                                "border": "0.05em solid black",
+                                "borderRadius": "0.25em",
+                                "fontFamily": "helvetica",
+                                "fontSize": "10vmin",
+                                "fontWeight": "lighter"
+                              }
+                            },
+                            "text": "Read \"Dogs!\"",
+                            "elm": {}
+                          },
+                          {
+                            "sel": "button.choice",
+                            "data": {
+                              "style": {
+                                "margin": "0 0.25em 0.25em 0.25em",
+                                "backgroundColor": "transparent",
+                                "border": "0.05em solid black",
+                                "borderRadius": "0.25em",
+                                "fontFamily": "helvetica",
+                                "fontSize": "10vmin",
+                                "fontWeight": "lighter"
+                              }
+                            },
+                            "text": "Answer \"How do you know god exists?\"",
+                            "elm": {}
+                          }
+                        ],
+                        "elm": {},
+                        "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"},{\"type\":\"total\",\"scope\":\"cycle3\"}]"
+                      }
+                    ],
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {},
+            "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"}]"
+          },
+          {
+            "sel": "div#face-3443758084099051.face",
+            "data": {
+              "style": {
+                "backgroundColor": "whitesmoke",
+                "height": "100vh",
+                "width": "100vw",
+                "position": "relative",
+                "overflow": "hidden",
+                "zIndex": 0
+              }
+            },
+            "children": [
+              {
+                "sel": "div.eye.left",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "left": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              },
+              {
+                "sel": "div.eye.right",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "right": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          },
+          {
+            "sel": "div",
+            "data": {
+              "props": {
+                "id": "posenet-2269941277577603"
+              },
+              "style": {
+                "position": "relative",
+                "display": "block"
+              }
+            },
+            "children": [
+              {
+                "sel": "video",
+                "data": {
+                  "props": {
+                    "id": "pose-video-2269941277577603",
+                    "autoPlay": true
+                  },
+                  "style": {
+                    "display": "none"
+                  }
+                },
+                "children": [],
+                "elm": {
+                  "autoPlay": true
+                }
+              },
+              {
+                "sel": "canvas",
+                "data": {
+                  "props": {
+                    "id": "pose-canvas-2269941277577603"
+                  }
+                },
+                "children": [],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          }
+        ],
+        "elm": {}
+      },
+      89.721
+    ],
+    [
+      {
+        "sel": "div",
+        "data": {
+          "style": {
+            "position": "relative"
+          }
+        },
+        "children": [
+          {
+            "sel": "div",
+            "data": {
+              "style": {
+                "position": "absolute",
+                "width": "96vw",
+                "zIndex": 1,
+                "margin": "2vw",
+                "backgroundColor": "white",
+                "border": "0.2vmin solid lightgray",
+                "borderRadius": "3vmin 3vmin 3vmin 3vmin"
+              },
+              "isolate": [
+                {
+                  "type": "total",
+                  "scope": "cycle1"
+                }
+              ]
+            },
+            "children": [
+              {
+                "sel": "div",
+                "data": {
+                  "style": {
+                    "margin": 0,
+                    "padding": "1em",
+                    "maxWidth": "100%",
+                    "textAlign": "center"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "span",
+                    "data": {},
+                    "children": [
+                      {
+                        "sel": "span",
+                        "data": {
+                          "style": {
+                            "fontFamily": "helvetica",
+                            "fontSize": "12.5vmin",
+                            "fontWeight": "lighter"
+                          },
+                          "isolate": [
+                            {
+                              "type": "total",
+                              "scope": "cycle1"
+                            },
+                            {
+                              "type": "total",
+                              "scope": "cycle2"
+                            }
+                          ]
+                        },
+                        "text": "I can help you",
+                        "elm": {},
+                        "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"},{\"type\":\"total\",\"scope\":\"cycle2\"}]"
+                      }
+                    ],
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {},
+            "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"}]"
+          },
+          {
+            "sel": "div#face-3443758084099051.face",
+            "data": {
+              "style": {
+                "backgroundColor": "whitesmoke",
+                "height": "100vh",
+                "width": "100vw",
+                "position": "relative",
+                "overflow": "hidden",
+                "zIndex": 0
+              }
+            },
+            "children": [
+              {
+                "sel": "div.eye.left",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "left": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              },
+              {
+                "sel": "div.eye.right",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "right": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          },
+          {
+            "sel": "div",
+            "data": {
+              "props": {
+                "id": "posenet-2269941277577603"
+              },
+              "style": {
+                "position": "relative",
+                "display": "block"
+              }
+            },
+            "children": [
+              {
+                "sel": "video",
+                "data": {
+                  "props": {
+                    "id": "pose-video-2269941277577603",
+                    "autoPlay": true
+                  },
+                  "style": {
+                    "display": "none"
+                  }
+                },
+                "children": [],
+                "elm": {
+                  "autoPlay": true
+                }
+              },
+              {
+                "sel": "canvas",
+                "data": {
+                  "props": {
+                    "id": "pose-canvas-2269941277577603"
+                  }
+                },
+                "children": [],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          }
+        ],
+        "elm": {}
+      },
+      1539.924
+    ],
+    [
+      {
+        "sel": "div",
+        "data": {
+          "style": {
+            "position": "relative"
+          }
+        },
+        "children": [
+          {
+            "text": "",
+            "elm": {}
+          },
+          {
+            "sel": "div#face-3443758084099051.face",
+            "data": {
+              "style": {
+                "backgroundColor": "whitesmoke",
+                "height": "100vh",
+                "width": "100vw",
+                "position": "relative",
+                "overflow": "hidden",
+                "zIndex": 0
+              }
+            },
+            "children": [
+              {
+                "sel": "div.eye.left",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "left": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              },
+              {
+                "sel": "div.eye.right",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "right": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          },
+          {
+            "sel": "div",
+            "data": {
+              "props": {
+                "id": "posenet-2269941277577603"
+              },
+              "style": {
+                "position": "relative",
+                "display": "block"
+              }
+            },
+            "children": [
+              {
+                "sel": "video",
+                "data": {
+                  "props": {
+                    "id": "pose-video-2269941277577603",
+                    "autoPlay": true
+                  },
+                  "style": {
+                    "display": "none"
+                  }
+                },
+                "children": [],
+                "elm": {
+                  "autoPlay": true
+                }
+              },
+              {
+                "sel": "canvas",
+                "data": {
+                  "props": {
+                    "id": "pose-canvas-2269941277577603"
+                  }
+                },
+                "children": [],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          }
+        ],
+        "elm": {}
+      },
+      1539.924
+    ],
+    [
+      {
+        "sel": "div",
+        "data": {
+          "style": {
+            "position": "relative"
+          }
+        },
+        "children": [
+          {
+            "sel": "div",
+            "data": {
+              "style": {
+                "position": "absolute",
+                "width": "96vw",
+                "zIndex": 1,
+                "margin": "2vw",
+                "backgroundColor": "white",
+                "border": "0.2vmin solid lightgray",
+                "borderRadius": "3vmin 3vmin 3vmin 3vmin"
+              },
+              "isolate": [
+                {
+                  "type": "total",
+                  "scope": "cycle1"
+                }
+              ]
+            },
+            "children": [
+              {
+                "sel": "div",
+                "data": {
+                  "style": {
+                    "margin": 0,
+                    "padding": "1em",
+                    "maxWidth": "100%",
+                    "textAlign": "center"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "span",
+                    "data": {},
+                    "children": [
+                      {
+                        "sel": "span",
+                        "data": {
+                          "style": {
+                            "fontFamily": "helvetica",
+                            "fontSize": "12.5vmin",
+                            "fontWeight": "lighter"
+                          },
+                          "isolate": [
+                            {
+                              "type": "total",
+                              "scope": "cycle1"
+                            },
+                            {
+                              "type": "total",
+                              "scope": "cycle2"
+                            }
+                          ]
+                        },
+                        "text": "S!",
+                        "elm": {},
+                        "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"},{\"type\":\"total\",\"scope\":\"cycle2\"}]"
+                      }
+                    ],
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {},
+            "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"}]"
+          },
+          {
+            "sel": "div#face-3443758084099051.face",
+            "data": {
+              "style": {
+                "backgroundColor": "whitesmoke",
+                "height": "100vh",
+                "width": "100vw",
+                "position": "relative",
+                "overflow": "hidden",
+                "zIndex": 0
+              }
+            },
+            "children": [
+              {
+                "sel": "div.eye.left",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "left": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              },
+              {
+                "sel": "div.eye.right",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "right": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          },
+          {
+            "sel": "div",
+            "data": {
+              "props": {
+                "id": "posenet-2269941277577603"
+              },
+              "style": {
+                "position": "relative",
+                "display": "block"
+              }
+            },
+            "children": [
+              {
+                "sel": "video",
+                "data": {
+                  "props": {
+                    "id": "pose-video-2269941277577603",
+                    "autoPlay": true
+                  },
+                  "style": {
+                    "display": "none"
+                  }
+                },
+                "children": [],
+                "elm": {
+                  "autoPlay": true
+                }
+              },
+              {
+                "sel": "canvas",
+                "data": {
+                  "props": {
+                    "id": "pose-canvas-2269941277577603"
+                  }
+                },
+                "children": [],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          }
+        ],
+        "elm": {}
+      },
+      1539.924
+    ],
+    [
+      {
+        "sel": "div",
+        "data": {
+          "style": {
+            "position": "relative"
+          }
+        },
+        "children": [
+          {
+            "sel": "div",
+            "data": {
+              "style": {
+                "position": "absolute",
+                "width": "96vw",
+                "zIndex": 1,
+                "margin": "2vw",
+                "backgroundColor": "white",
+                "border": "0.2vmin solid lightgray",
+                "borderRadius": "3vmin 3vmin 3vmin 3vmin"
+              },
+              "isolate": [
+                {
+                  "type": "total",
+                  "scope": "cycle1"
+                }
+              ]
+            },
+            "children": [
+              {
+                "sel": "div",
+                "data": {
+                  "style": {
+                    "margin": 0,
+                    "padding": "1em",
+                    "maxWidth": "100%",
+                    "textAlign": "center"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "span",
+                    "data": {},
+                    "children": [
+                      {
+                        "sel": "span",
+                        "data": {
+                          "style": {
+                            "fontFamily": "helvetica",
+                            "fontSize": "12.5vmin",
+                            "fontWeight": "lighter"
+                          },
+                          "isolate": [
+                            {
+                              "type": "total",
+                              "scope": "cycle1"
+                            },
+                            {
+                              "type": "total",
+                              "scope": "cycle2"
+                            }
+                          ]
+                        },
+                        "text": "written by Bel Richardson",
+                        "elm": {},
+                        "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"},{\"type\":\"total\",\"scope\":\"cycle2\"}]"
+                      }
+                    ],
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {},
+            "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"}]"
+          },
+          {
+            "sel": "div#face-3443758084099051.face",
+            "data": {
+              "style": {
+                "backgroundColor": "whitesmoke",
+                "height": "100vh",
+                "width": "100vw",
+                "position": "relative",
+                "overflow": "hidden",
+                "zIndex": 0
+              }
+            },
+            "children": [
+              {
+                "sel": "div.eye.left",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "left": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              },
+              {
+                "sel": "div.eye.right",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "right": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          },
+          {
+            "sel": "div",
+            "data": {
+              "props": {
+                "id": "posenet-2269941277577603"
+              },
+              "style": {
+                "position": "relative",
+                "display": "block"
+              }
+            },
+            "children": [
+              {
+                "sel": "video",
+                "data": {
+                  "props": {
+                    "id": "pose-video-2269941277577603",
+                    "autoPlay": true
+                  },
+                  "style": {
+                    "display": "none"
+                  }
+                },
+                "children": [],
+                "elm": {
+                  "autoPlay": true
+                }
+              },
+              {
+                "sel": "canvas",
+                "data": {
+                  "props": {
+                    "id": "pose-canvas-2269941277577603"
+                  }
+                },
+                "children": [],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          }
+        ],
+        "elm": {}
+      },
+      2039.994
+    ],
+    [
+      {
+        "sel": "div",
+        "data": {
+          "style": {
+            "position": "relative"
+          }
+        },
+        "children": [
+          {
+            "sel": "div",
+            "data": {
+              "style": {
+                "position": "absolute",
+                "width": "96vw",
+                "zIndex": 1,
+                "margin": "2vw",
+                "backgroundColor": "white",
+                "border": "0.2vmin solid lightgray",
+                "borderRadius": "3vmin 3vmin 3vmin 3vmin"
+              },
+              "isolate": [
+                {
+                  "type": "total",
+                  "scope": "cycle1"
+                }
+              ]
+            },
+            "children": [
+              {
+                "sel": "div",
+                "data": {
+                  "style": {
+                    "margin": 0,
+                    "padding": "1em",
+                    "maxWidth": "100%",
+                    "textAlign": "center"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "span",
+                    "data": {},
+                    "children": [
+                      {
+                        "sel": "span",
+                        "data": {
+                          "style": {
+                            "fontFamily": "helvetica",
+                            "fontSize": "12.5vmin",
+                            "fontWeight": "lighter"
+                          },
+                          "isolate": [
+                            {
+                              "type": "total",
+                              "scope": "cycle1"
+                            },
+                            {
+                              "type": "total",
+                              "scope": "cycle2"
+                            }
+                          ]
+                        },
+                        "text": "DOG",
+                        "elm": {},
+                        "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"},{\"type\":\"total\",\"scope\":\"cycle2\"}]"
+                      }
+                    ],
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {},
+            "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"}]"
+          },
+          {
+            "sel": "div#face-3443758084099051.face",
+            "data": {
+              "style": {
+                "backgroundColor": "whitesmoke",
+                "height": "100vh",
+                "width": "100vw",
+                "position": "relative",
+                "overflow": "hidden",
+                "zIndex": 0
+              }
+            },
+            "children": [
+              {
+                "sel": "div.eye.left",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "left": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              },
+              {
+                "sel": "div.eye.right",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "right": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          },
+          {
+            "sel": "div",
+            "data": {
+              "props": {
+                "id": "posenet-2269941277577603"
+              },
+              "style": {
+                "position": "relative",
+                "display": "block"
+              }
+            },
+            "children": [
+              {
+                "sel": "video",
+                "data": {
+                  "props": {
+                    "id": "pose-video-2269941277577603",
+                    "autoPlay": true
+                  },
+                  "style": {
+                    "display": "none"
+                  }
+                },
+                "children": [],
+                "elm": {
+                  "autoPlay": true
+                }
+              },
+              {
+                "sel": "canvas",
+                "data": {
+                  "props": {
+                    "id": "pose-canvas-2269941277577603"
+                  }
+                },
+                "children": [],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          }
+        ],
+        "elm": {}
+      },
+      3606.88
+    ],
+    [
+      {
+        "sel": "div",
+        "data": {
+          "style": {
+            "position": "relative"
+          }
+        },
+        "children": [
+          {
+            "sel": "div",
+            "data": {
+              "style": {
+                "position": "absolute",
+                "width": "96vw",
+                "zIndex": 1,
+                "margin": "2vw",
+                "backgroundColor": "white",
+                "border": "0.2vmin solid lightgray",
+                "borderRadius": "3vmin 3vmin 3vmin 3vmin"
+              },
+              "isolate": [
+                {
+                  "type": "total",
+                  "scope": "cycle1"
+                }
+              ]
+            },
+            "children": [
+              {
+                "sel": "div",
+                "data": {
+                  "style": {
+                    "margin": 0,
+                    "padding": "1em",
+                    "maxWidth": "100%",
+                    "textAlign": "center"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "span",
+                    "data": {},
+                    "children": [
+                      {
+                        "sel": "span",
+                        "data": {
+                          "style": {
+                            "fontFamily": "helvetica",
+                            "fontSize": "12.5vmin",
+                            "fontWeight": "lighter"
+                          },
+                          "isolate": [
+                            {
+                              "type": "total",
+                              "scope": "cycle1"
+                            },
+                            {
+                              "type": "total",
+                              "scope": "cycle2"
+                            }
+                          ]
+                        },
+                        "text": "A dog is on sand.",
+                        "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"},{\"type\":\"total\",\"scope\":\"cycle2\"}]"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "key": "[{\"type\":\"total\",\"scope\":\"cycle1\"}]"
+          },
+          {
+            "sel": "div#face-3443758084099051.face",
+            "data": {
+              "style": {
+                "backgroundColor": "whitesmoke",
+                "height": "100vh",
+                "width": "100vw",
+                "position": "relative",
+                "overflow": "hidden",
+                "zIndex": 0
+              }
+            },
+            "children": [
+              {
+                "sel": "div.eye.left",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "left": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              },
+              {
+                "sel": "div.eye.right",
+                "data": {
+                  "style": {
+                    "backgroundColor": "black",
+                    "borderRadius": "100%",
+                    "height": "33.33vmin",
+                    "width": "33.33vmin",
+                    "bottom": "calc(33.33vmin / 3)",
+                    "zIndex": 1,
+                    "position": "absolute",
+                    "right": "calc(33.33vmin / 3)"
+                  }
+                },
+                "children": [
+                  {
+                    "sel": "div.eyelid.upper",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "bottom": "calc(33.33vmin * 1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  },
+                  {
+                    "sel": "div.eyelid.lower",
+                    "data": {
+                      "style": {
+                        "backgroundColor": "whitesmoke",
+                        "height": "33.33vmin",
+                        "width": "calc(33.33vmin * 1.75)",
+                        "zIndex": 2,
+                        "position": "absolute",
+                        "borderRadius": "100%",
+                        "bottom": "calc(33.33vmin * -1)",
+                        "left": "calc(33.33vmin * -0.375)"
+                      }
+                    },
+                    "elm": {}
+                  }
+                ],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          },
+          {
+            "sel": "div",
+            "data": {
+              "props": {
+                "id": "posenet-2269941277577603"
+              },
+              "style": {
+                "position": "relative",
+                "display": "block"
+              }
+            },
+            "children": [
+              {
+                "sel": "video",
+                "data": {
+                  "props": {
+                    "id": "pose-video-2269941277577603",
+                    "autoPlay": true
+                  },
+                  "style": {
+                    "display": "none"
+                  }
+                },
+                "children": [],
+                "elm": {
+                  "autoPlay": true
+                }
+              },
+              {
+                "sel": "canvas",
+                "data": {
+                  "props": {
+                    "id": "pose-canvas-2269941277577603"
+                  }
+                },
+                "children": [],
+                "elm": {}
+              }
+            ],
+            "elm": {}
+          }
+        ]
+      },
+      4507.545
+    ]
+  ],
+  "SpeechSynthesis": [
+    [
+      {
+        "text": "S!"
+      },
+      1539.924
+    ],
+    [
+      {
+        "text": "written by Bel Richardson"
+      },
+      2039.994
+    ],
+    [
+      {
+        "text": "DOG"
+      },
+      3606.88
+    ],
+    [
+      {
+        "text": "A dog is on sand."
+      },
+      4507.545
+    ]
+  ]
+}
