@@ -1,0 +1,94 @@
+{
+  "flowchart": [
+    {
+      "id": "a7b3e561-5fd3-425a-b9a5-56d64ceac543",
+      "type": "MONOLOGUE",
+      "arg": "TS!",
+      "next": "27963459-734c-4693-b348-eb9f993c869b"
+    },
+    {
+      "id": "27963459-734c-4693-b348-eb9f993c869b",
+      "type": "MONOLOGUE",
+      "arg": "written by Bel Richardson",
+      "next": "7c58830b-2d9c-47e0-a155-a171fec64187"
+    },
+    {
+      "id": "7c58830b-2d9c-47e0-a155-a171fec64187",
+      "type": "MONOLOGUE",
+      "arg": "INSEC",
+      "next": "4e45351b-fa56-42a7-adea-32f8b921b6ed"
+    },
+    {
+      "id": "4e45351b-fa56-42a7-adea-32f8b921b6ed",
+      "type": "MONOLOGUE",
+      "arg": "An insect. It can hop.",
+      "next": "49c72045-e917-4ba6-83e5-96ac47b94b02"
+    },
+    {
+      "id": "49c72045-e917-4ba6-83e5-96ac47b94b02",
+      "type": "MONOLOGUE",
+      "arg": "An insect. Spots on top.",
+      "next": "92f22c6f-f13e-436b-a333-4ddb2e33b228"
+    },
+    {
+      "id": "92f22c6f-f13e-436b-a333-4ddb2e33b228",
+      "type": "MONOLOGUE",
+      "arg": "An insect. It can cut.",
+      "next": "3b3e3c50-eaf2-4e7b-a3f3-8c0747f608a2"
+    },
+    {
+      "id": "3b3e3c50-eaf2-4e7b-a3f3-8c0747f608a2",
+      "type": "MONOLOGUE",
+      "arg": "Not an insect. A lot of legs!",
+      "next": "7e809bdb-9dbf-4420-9d61-fb1fe4268980"
+    },
+    {
+      "id": "7e809bdb-9dbf-4420-9d61-fb1fe4268980",
+      "type": "MONOLOGUE",
+      "arg": "An insect. It can hunt.",
+      "next": "740ee51d-bad1-47d0-8550-8c5eb5119440"
+    },
+    {
+      "id": "740ee51d-bad1-47d0-8550-8c5eb5119440",
+      "type": "MONOLOGUE",
+      "arg": "An insect. It can suck.",
+      "next": "bef20446-56e8-4624-a76d-f0adfde9f2e3"
+    },
+    {
+      "id": "bef20446-56e8-4624-a76d-f0adfde9f2e3",
+      "type": "MONOLOGUE",
+      "arg": "An insect. It can flap.",
+      "next": "595551b2-e462-44f2-9457-c37d0e24ad25"
+    },
+    {
+      "id": "595551b2-e462-44f2-9457-c37d0e24ad25",
+      "type": "MONOLOGUE",
+      "arg": "Not an insect. I cannot see legs.",
+      "next": "513142ae-c7e6-4a31-a270-f487329e3f0b"
+    },
+    {
+      "id": "513142ae-c7e6-4a31-a270-f487329e3f0b",
+      "type": "MONOLOGUE",
+      "arg": "An insect. It pretends.",
+      "next": "7d3e9d79-de01-4e11-ae2f-cc0e182bd7d1"
+    },
+    {
+      "id": "7d3e9d79-de01-4e11-ae2f-cc0e182bd7d1",
+      "type": "MONOLOGUE",
+      "arg": "An insect. It can stink.",
+      "next": "81d490a9-0d14-41ba-abdf-80ddfa57dd25"
+    },
+    {
+      "id": "81d490a9-0d14-41ba-abdf-80ddfa57dd25",
+      "type": "MONOLOGUE",
+      "arg": "An insect. It can rob.",
+      "next": "f6b501ae-d19a-4c72-ac01-3de28ef6b2ee"
+    },
+    {
+      "id": "f6b501ae-d19a-4c72-ac01-3de28ef6b2ee",
+      "type": "MONOLOGUE",
+      "arg": "Not an insect. I can tell from its legs."
+    }
+  ],
+  "start_id": "a7b3e561-5fd3-425a-b9a5-56d64ceac543"
+}

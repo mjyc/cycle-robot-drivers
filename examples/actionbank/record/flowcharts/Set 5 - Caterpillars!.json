@@ -1,0 +1,100 @@
+{
+  "flowchart": [
+    {
+      "id": "abd0f7e8-67e1-4a62-817e-46b410ad397d",
+      "type": "MONOLOGUE",
+      "arg": "caterPILL",
+      "next": "363df566-42c7-4732-b076-d694a8bcd4d5"
+    },
+    {
+      "id": "363df566-42c7-4732-b076-d694a8bcd4d5",
+      "type": "MONOLOGUE",
+      "arg": "ARS!written by Bel Richardson",
+      "next": "315a0e80-3894-4fbf-8afc-ee55d1e98371"
+    },
+    {
+      "id": "315a0e80-3894-4fbf-8afc-ee55d1e98371",
+      "type": "MONOLOGUE",
+      "arg": "It can twist on a twig. It can hang from a twig.",
+      "next": "bf5f7694-f4a3-4f45-bca2-2920ca980086"
+    },
+    {
+      "id": "bf5f7694-f4a3-4f45-bca2-2920ca980086",
+      "type": "MONOLOGUE",
+      "arg": "It has a green snack.",
+      "next": "1540c24f-84bd-4b62-9b02-bcb3d49aa4c4"
+    },
+    {
+      "id": "1540c24f-84bd-4b62-9b02-bcb3d49aa4c4",
+      "type": "MONOLOGUE",
+      "arg": "It has got a lot of lumps and bumps.",
+      "next": "6033fa87-a0d6-47b8-9a2f-fa5c1bfeef90"
+    },
+    {
+      "id": "6033fa87-a0d6-47b8-9a2f-fa5c1bfeef90",
+      "type": "MONOLOGUE",
+      "arg": "It has got feet that cling.",
+      "next": "1a4a085a-c54f-48cc-a59f-966345f3b742"
+    },
+    {
+      "id": "1a4a085a-c54f-48cc-a59f-966345f3b742",
+      "type": "MONOLOGUE",
+      "arg": "It can stick.",
+      "next": "9860ffbd-538e-49c9-ae31-3467aa9d2c88"
+    },
+    {
+      "id": "9860ffbd-538e-49c9-ae31-3467aa9d2c88",
+      "type": "MONOLOGUE",
+      "arg": "It can travel along.",
+      "next": "18eeaa82-cf01-4530-8adf-b207328242aa"
+    },
+    {
+      "id": "18eeaa82-cf01-4530-8adf-b207328242aa",
+      "type": "MONOLOGUE",
+      "arg": "It travels across rocks.",
+      "next": "0804f8a0-a45c-48d3-bdb2-88d02d2e536e"
+    },
+    {
+      "id": "0804f8a0-a45c-48d3-bdb2-88d02d2e536e",
+      "type": "MONOLOGUE",
+      "arg": "It is like a cactus.",
+      "next": "63c0896d-f7bb-44b4-b899-accfe3cbfc05"
+    },
+    {
+      "id": "63c0896d-f7bb-44b4-b899-accfe3cbfc05",
+      "type": "MONOLOGUE",
+      "arg": "It has got soft fluff.",
+      "next": "9d92cbf0-3d0c-49e0-8edb-3e185135e808"
+    },
+    {
+      "id": "9d92cbf0-3d0c-49e0-8edb-3e185135e808",
+      "type": "MONOLOGUE",
+      "arg": "It has got twirling, black feelers.",
+      "next": "42cfca9a-952b-4b55-b198-e199fc2a5bc4"
+    },
+    {
+      "id": "42cfca9a-952b-4b55-b198-e199fc2a5bc4",
+      "type": "MONOLOGUE",
+      "arg": "Can you see its back?",
+      "next": "282cfe4d-5c84-4800-a549-89f66d5271e0"
+    },
+    {
+      "id": "282cfe4d-5c84-4800-a549-89f66d5271e0",
+      "type": "MONOLOGUE",
+      "arg": "It has fuzz. It has come to visit.",
+      "next": "1a6bd9fd-4525-4f37-9c8b-9656c87370ef"
+    },
+    {
+      "id": "1a6bd9fd-4525-4f37-9c8b-9656c87370ef",
+      "type": "MONOLOGUE",
+      "arg": "Hi!",
+      "next": "756587c1-d17a-4589-91c3-eddbfbd49579"
+    },
+    {
+      "id": "756587c1-d17a-4589-91c3-eddbfbd49579",
+      "type": "MONOLOGUE",
+      "arg": "Hi!"
+    }
+  ],
+  "start_id": "abd0f7e8-67e1-4a62-817e-46b410ad397d"
+}
