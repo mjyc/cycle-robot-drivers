@@ -122,20 +122,20 @@ export type PoseNetParameters = {
 };
 
 /**
- * [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet) 
+ * [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet)
  * driver factory.
- * 
+ *
  * @param options possible key includes
- * 
+ *
  *   * videoWidth {number} An optional video height (default: 640).
  *   * videoWidth {number} An optional video width (default: 480).
  *   * flipHorizontal {boolean} An optional flag for horizontally flipping the
  *     video (default: true).
- * 
+ *
  * @return {Driver} the PoseNet Cycle.js driver function. It takes a stream
- *   of [`PoseNetParameters`](./src/pose_detection.tsx) and returns a stream of
+ *   of [`PoseNetParameters`](./src/makePoseDetectionDriver.tsx) and returns a stream of
  *   [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm).
- * 
+ *
  */
 export function makePoseDetectionDriver({
   videoWidth = 640,
@@ -287,7 +287,7 @@ export function makePoseDetectionDriver({
             return;
           }
           clearInterval(intervalID);
-    
+
           // Setup a camera
           const video: any = await setupCamera(
             document.querySelector(`#${videoID}`),
@@ -295,12 +295,12 @@ export function makePoseDetectionDriver({
             videoHeight
           );
           video.play();
-  
+
           const canvas: any = document.querySelector(`#${canvasID}`);
           const context = canvas.getContext('2d');
           canvas.width = videoWidth;
           canvas.height = videoHeight;
-  
+
           // Setup the posenet
           params.net = await posenet.load(0.75);
 
@@ -323,12 +323,12 @@ export function makePoseDetectionDriver({
             }
           }
           execute();
-  
+
           // Setup UIs
           stats.showPanel(0);
           stats.dom.style.setProperty('position', 'absolute');
           document.querySelector(`#${divID}`).appendChild(stats.dom);
-  
+
           const gui = setupGui(video, params.net, params);
           gui.domElement.style.setProperty('position', 'absolute');
           gui.domElement.style.setProperty('top', '0px');
