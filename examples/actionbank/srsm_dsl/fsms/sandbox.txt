@@ -1,3 +1,0 @@
-START -> |started| S1[askQuestion "Hello" "Hi"]
-S1 -> |askQuestionDone| S2[speak "hello"]
-S2 -> |speakDone| S3[speak "bye"]
