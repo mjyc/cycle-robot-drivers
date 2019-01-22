@@ -141,18 +141,19 @@ export function makePoseDetectionDriver({
   videoWidth = 640,
   videoHeight = 480,
   flipHorizontal = true,
+  id = String(Math.random()).substr(2)
 }: {
   videoWidth?: number,
   videoHeight?: number,
   flipHorizontal?: boolean,
+  id?: string,
 } = {}): Driver<
   any,
   {DOM: any, poses: any}
 > {
-  const id = String(Math.random()).substr(2);
   const divID = `posenet-${id}`;
-  const videoID = `pose-video-${id}`;
-  const canvasID = `pose-canvas-${id}`;
+  const videoID = `posenet-video-${id}`;
+  const canvasID = `posenet-canvas-${id}`;
 
   return function(params$: Stream<PoseNetParameters>): any {
     let params: PoseNetParameters = null;
