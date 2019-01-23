@@ -267,9 +267,9 @@ type Command = {
 
 /**
  * [TabletFace](https://github.com/mjyc/tablet-robot-face) driver factory.
- * 
+ *
  * @param options possible key includes
- * 
+ *
  *   * styles {object} A group of optional face style parameters:
  *     * faceColor {string} (default: 'whitesmoke')
  *     * faceHeight {string} (default: '100vh')
@@ -277,7 +277,7 @@ type Command = {
  *     * eyeColor {string} (default: 'black')
  *     * eyeSize {string} (default: '33.33vmin')
  *     * eyelidColor {string} (default: 'whitesmoke')
- * 
+ *
  * @return {Driver} the TabletFace Cycle.js driver function. It takes a stream
  *   of `Command` and returns `DOM`, animationFinish`, and `load` streams.
  */
@@ -342,18 +342,17 @@ export function makeTabletFaceDriver({
     },
   };
   const eyes = new EyeController();
-  const id = `face-${String(Math.random()).substr(2)}`;
 
   return function(command$) {
     const load$ = xs.create();
     const intervalID = setInterval(() => {
-      if (!document.querySelector(`#${id}`)) {
-        console.debug(`Waiting for #${id} to appear...`);
+      if (!document.querySelector(`.face`)) {
+        console.debug(`Waiting for .face to appear...`);
         return;
       }
       clearInterval(intervalID);
 
-      const element = document.querySelector(`#${id}`);
+      const element = document.querySelector(`.face`);
       eyes.setElements({
         leftEye: element.querySelector('.left.eye'),
         rightEye: element.querySelector('.right.eye'),
@@ -407,7 +406,7 @@ export function makeTabletFaceDriver({
     });
 
     const vdom$ = xs.of(
-      div(`#${id}.face`, {style: styles.face}, [
+      div(`.face`, {style: styles.face}, [
         div('.eye.left', {
           style: (Object as any).assign({}, styles.eye, styles.left),
         }, [
