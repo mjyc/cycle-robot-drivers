@@ -149,9 +149,9 @@ export function makePoseDetectionDriver({
   any,
   {DOM: any, poses: any}
 > {
-  const divID = `posenet`;
-  const videoID = `posenet-video`;
-  const canvasID = `posenet-canvas`;
+  const divClass = `posenet`;
+  const videoClass = `posenet-video`;
+  const canvasClass = `posenet-canvas`;
 
   return function(params$: Stream<PoseNetParameters>): any {
     let params: PoseNetParameters = null;
@@ -281,21 +281,21 @@ export function makePoseDetectionDriver({
       start: listener => {
         // Poll the canvas element
         const intervalID = setInterval(async () => {
-          if (!document.querySelector(`#${canvasID}`)) {
-            console.debug(`Waiting for #${canvasID} to appear...`);
+          if (!document.querySelector(`.${canvasClass}`)) {
+            console.debug(`Waiting for .${canvasClass} to appear...`);
             return;
           }
           clearInterval(intervalID);
 
           // Setup a camera
           const video: any = await setupCamera(
-            document.querySelector(`#${videoID}`),
+            document.querySelector(`.${videoClass}`),
             videoWidth,
             videoHeight
           );
           video.play();
 
-          const canvas: any = document.querySelector(`#${canvasID}`);
+          const canvas: any = document.querySelector(`.${canvasClass}`);
           const context = canvas.getContext('2d');
           canvas.width = videoWidth;
           canvas.height = videoHeight;
@@ -326,13 +326,13 @@ export function makePoseDetectionDriver({
           // Setup UIs
           stats.showPanel(0);
           stats.dom.style.setProperty('position', 'absolute');
-          document.querySelector(`#${divID}`).appendChild(stats.dom);
+          document.querySelector(`.${divClass}`).appendChild(stats.dom);
 
           const gui = setupGui(video, params.net, params);
           gui.domElement.style.setProperty('position', 'absolute');
           gui.domElement.style.setProperty('top', '0px');
           gui.domElement.style.setProperty('right', '0px');
-          document.querySelector(`#${divID}`)
+          document.querySelector(`.${divClass}`)
             .appendChild(gui.domElement);
           gui.closed = true;
         }, 1000);
@@ -343,13 +343,13 @@ export function makePoseDetectionDriver({
     });
 
     const vdom$ = xs.of((
-      <div id={divID} style={{position: "relative"}}>
+      <div className={divClass} style={{position: "relative"}}>
         <video
-          id={videoID}
+          className={videoClass}
           style={{display: 'none'}}
           autoPlay
         />
-        <canvas id={canvasID} />
+        <canvas className={canvasClass} />
       </div>
     ));
 
