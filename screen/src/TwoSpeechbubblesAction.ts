@@ -312,7 +312,7 @@ export function TwoSpeechbubblesAction(sources: Sources): Sinks {
     outer: {
       position: 'absolute',
       width: '96vw',
-      zIndex: 1,  // face has zIndex === 0, eyes has zIndex === 1
+      zIndex: 3,  // eyelid has zIndex of 2
       margin: '2vw',
       backgroundColor: 'white',
       border: '0.2vmin solid lightgray',

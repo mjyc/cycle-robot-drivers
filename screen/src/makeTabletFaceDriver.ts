@@ -341,7 +341,7 @@ export function makeTabletFaceDriver({
       left: `calc(${eyeSize} * -0.375)`,
     },
   };
-  const eyes = new EyeController();
+  const eyes = new EyeController({}, eyeSize);
 
   return function(command$) {
     const load$ = xs.create();
