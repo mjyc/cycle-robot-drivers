@@ -1,5 +1,5 @@
 import {run} from '@cycle/run';
-import {div, label, input, hr, h1, makeDOMDriver} from '@cycle/dom';
+import {div, makeDOMDriver} from '@cycle/dom';
 import {makeMeydaDriver} from 'cycle-meyda-driver';
 
 function makeVibrationDriver() {
