@@ -13,6 +13,7 @@
   "dependencies": {
     "@cycle/dom": "22.3.0",
     "@cycle/run": "5.2.0",
+    "cycle-meyda-driver": "0.0.7",
     "xstream": "11.10.0"
   },
   "devDependencies": {
