@@ -210,18 +210,18 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 /**
  * Web Speech API's [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
  * action component.
- * 
+ *
  * @param sources
- * 
+ *
  *   * goal: a stream of `null` (as "cancel") or `SpeechSynthesisUtterance`
  *     properties (as "goal").
  *   * SpeechSynthesis: `EventSource` for `start` and `end` events.
- * 
+ *
  * @return sinks
- * 
+ *
  *   * output: a stream for the SpeechSynthesis driver input.
  *   * result: a stream of action results. `result.result` is always `null`.
- * 
+ *
  */
 export function SpeechSynthesisAction(sources: Sources): Sinks {
   const input$ = input(
@@ -229,6 +229,39 @@ export function SpeechSynthesisAction(sources: Sources): Sinks {
     xs.fromObservable(sources.SpeechSynthesis.events('start')),
     xs.fromObservable(sources.SpeechSynthesis.events('end')),
   );
+
+  const state$ = transitionReducer(input$)
+    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
+    .drop(1);  // drop "null"
+  const outputs$ = state$.map(state => state.outputs)
+    .filter(outputs => !!outputs);
+  const result$ = state$.map(state => state.result).filter(result => !!result);
+
+  return {
+    output: adapt(outputs$.map(outputs => outputs.args)),
+    result: adapt(result$),
+  };
+}
+
+
+function input2(goal$, cancel$, startEvent$, endEvent$,) => {
+  return xs.never();
+}
+
+// function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
+function reducer(input$) {
+  const initReducer = xs.never();
+  const transitionReducer = xs.never();
+  return xs.never();
+}
+
+export function SpeechSynthesisAction2(sources: Sources): Sinks {
+  // const input$ = input2(
+  //   xs.fromObservable(sources.goal),
+  //   xs.fromObservable(sources.SpeechSynthesis.events('start')),
+  //   xs.fromObservable(sources.SpeechSynthesis.events('end')),
+  // );
+  const input$ = xs.never();
 
   const state$ = transitionReducer(input$)
     .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
