@@ -2,8 +2,9 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, Status, Result, ActionSinks, EventSource, initGoal,
+  GoalID, Goal, Status, GoalStatus, Result, ActionSinks, EventSource, initGoal,
 } from '@cycle-robot-drivers/action';
+import {UtteranceArg} from './makeSpeechSynthesisDriver';
 
 
 enum State {
@@ -184,7 +185,7 @@ function transition(
   };
 }
 
-function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
+function transitionReducer2(input$: Stream<Input>): Stream<Reducer> {
   const initReducer$ = xs.of(
     function initReducer(prev) {
       return {
@@ -230,7 +231,7 @@ export function SpeechSynthesisAction(sources: Sources): Sinks {
     xs.fromObservable(sources.SpeechSynthesis.events('end')),
   );
 
-  const state$ = transitionReducer(input$)
+  const state$ = transitionReducer2(input$)
     .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
     .drop(1);  // drop "null"
   const outputs$ = state$.map(state => state.outputs)
@@ -244,24 +245,188 @@ export function SpeechSynthesisAction(sources: Sources): Sinks {
 }
 
 
-function input2(goal$, cancel$, startEvent$, endEvent$,) => {
-  return xs.never();
+
+
+
+//------------------------------------------------------------------------------
+export interface ActionSources {
+  goal: Stream<Goal>,
+  cancel: Stream<GoalID>,
 }
 
-// function reducer(input$: Stream<SIG>): Stream<Reducer<State>> {
-function reducer(input$) {
-  const initReducer = xs.never();
-  const transitionReducer = xs.never();
-  return xs.never();
+export interface ActionSinks2 {
+  feedback?: Stream<any>,
+  status: Stream<GoalStatus>,
+  result: Stream<Result>,
 }
 
-export function SpeechSynthesisAction2(sources: Sources): Sinks {
-  // const input$ = input2(
-  //   xs.fromObservable(sources.goal),
-  //   xs.fromObservable(sources.SpeechSynthesis.events('start')),
-  //   xs.fromObservable(sources.SpeechSynthesis.events('end')),
-  // );
-  const input$ = xs.never();
+//------------------------------------------------------------------------------
+export interface Sources2 extends ActionSources {
+  SpeechSynthesis: EventSource,
+}
+
+export interface Sinks2 extends ActionSinks {
+  SpeechSynthesis: Stream<UtteranceArg>,
+};
+
+function input2(
+  goal$: Stream<Goal>,
+  cancel$: Stream<GoalID>,
+  startEvent$: Stream<any>,
+  endEvent$: Stream<any>,
+) {
+  return xs.merge(
+    goal$.map(goal => {
+      return {
+        type: InputType.GOAL,
+        value: typeof goal.goal === 'string'
+          ? {
+            goal_id: goal.goal_id,
+            goal: {text: goal.goal},
+          } : goal,
+      };
+    }),
+    cancel$.mapTo({type: InputType.CANCEL, value: null}),
+    startEvent$.mapTo({type: InputType.START, value: null}),
+    endEvent$.mapTo({type: InputType.END, value: null}),
+  );
+}
+
+const transitionTable2 = {
+  [State.DONE]: {
+    [InputType.GOAL]: State.RUNNING,
+  },
+  [State.RUNNING]: {
+    [InputType.GOAL]: State.PREEMPTING,
+    [InputType.CANCEL]: State.PREEMPTING,
+    [InputType.START]: State.RUNNING,
+    [InputType.END]: State.DONE,
+  },
+  [State.PREEMPTING]: {
+    [InputType.END]: State.DONE,
+  }
+};
+
+function transition2(
+  prevState: State, prevVariables: Variables, input: Input
+): ReducerState {
+  const states = transitionTable2[prevState];
+  if (!states) {
+    throw new Error(`Invalid prevState="${prevState}"`);
+  }
+
+  let state = states[input.type];
+  if (!state) {
+    console.debug(`Undefined transition for "${prevState}" "${input.type}"; `
+      + `set state to prevState`);
+    state = prevState;
+  }
+
+  if (prevState === State.DONE && state === State.RUNNING) {
+    // Start a new goal
+    const goal = input.value;
+    return {
+      state,
+      variables: {
+        goal_id: goal.goal_id,
+        newGoal: null,
+      },
+      outputs: {
+        args: goal.goal
+      },
+      result: null,
+    };
+  } else if (state === State.DONE) {
+    if (prevState === State.RUNNING || prevState === State.PREEMPTING) {
+      // Stop the current goal and start the queued new goal
+      const newGoal = prevVariables.newGoal;
+      return {
+        state: !!newGoal ? State.RUNNING : state,
+        variables: {
+          goal_id: !!newGoal ? newGoal.goal_id : null,
+          newGoal: null,
+        },
+        outputs: !!newGoal ? {
+          args: newGoal.goal,
+        } : null,
+        result: {
+          status: {
+            goal_id: prevVariables.goal_id,
+            status: prevState === State.RUNNING
+              ? Status.SUCCEEDED : Status.PREEMPTED,
+          },
+          result: null,
+        },
+      };
+    }
+  } else if (
+    (prevState === State.RUNNING || prevState === State.PREEMPTING)
+    && state === State.PREEMPTING
+  ) {
+    if (input.type === InputType.GOAL || input.type === InputType.CANCEL) {
+      // Start stopping the current goal and queue a new goal if received one
+      return {
+        state,
+        variables: {
+          ...prevVariables,
+          newGoal: input.type === InputType.GOAL ? input.value as Goal : null,
+        },
+        outputs: {
+          args: null,
+        },
+        result: null,
+      }
+    }
+    if (input.type === InputType.START) {
+      return {
+        state: state,
+        variables: prevVariables,
+        outputs: {
+          args: null,
+        },
+        result: null,
+      };
+    }
+  }
+
+  return {
+    state: prevState,
+    variables: prevVariables,
+    outputs: null,
+    result: null,
+  };
+}
+
+function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
+  const initReducer$ = xs.of(
+    function initReducer(prev) {
+      return {
+        state: State.DONE,
+        variables: {
+          goal_id: null,
+          newGoal: null,
+        },
+        outputs: null,
+        result: null,
+      }
+    }
+  );
+
+  const inputReducer$ = input$
+    .map(input => function inputReducer(prev) {
+      return transition(prev.state, prev.variables, input);
+    });
+
+  return xs.merge(initReducer$, inputReducer$);
+}
+
+export function SpeechSynthesisAction2(sources: Sources2): Sinks2 {
+  const input$ = input2(
+    xs.fromObservable(sources.goal),
+    xs.fromObservable(sources.cancel),
+    xs.fromObservable(sources.SpeechSynthesis.events('start')),
+    xs.fromObservable(sources.SpeechSynthesis.events('end')),
+  );
 
   const state$ = transitionReducer(input$)
     .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
@@ -271,7 +436,14 @@ export function SpeechSynthesisAction2(sources: Sources): Sinks {
   const result$ = state$.map(state => state.result).filter(result => !!result);
 
   return {
-    output: adapt(outputs$.map(outputs => outputs.args)),
-    result: adapt(result$),
+    status: xs.never(),
+    result: result$,
+    SpeechSynthesis: outputs$.map(o => o.args),
   };
+
+  // return {
+  //   status: xs.never(),
+  //   result: xs.never(),
+  //   SpeechSynthesis: xs.never(),
+  // };
 }

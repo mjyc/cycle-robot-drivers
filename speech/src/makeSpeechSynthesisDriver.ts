@@ -14,7 +14,7 @@ class UtteranceSource implements EventSource {
   }
 }
 
-type UtteranceArg = {
+export type UtteranceArg = {
   lang?: string,
   pitch?: number,
   rate?: number,

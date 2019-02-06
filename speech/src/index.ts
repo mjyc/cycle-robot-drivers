@@ -3,6 +3,7 @@ export {
   Sources as SpeechSynthesisActionSources,
   Sinks as SpeechSynthesisActionSinks,
   SpeechSynthesisAction,
+  SpeechSynthesisAction2,
 } from './SpeechSynthesisAction';
 export {makeSpeechRecognitionDriver} from './makeSpeechRecognitionDriver';
 export {
