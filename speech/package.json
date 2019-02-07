@@ -10,9 +10,9 @@
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "@cycle-robot-drivers/action": "~0.0.0",
-    "@cycle/run": "5.1.0",
-    "xstream": "11.7.0"
+    "@cycle-robot-drivers/action": "file:../action",
+    "@cycle/run": "5.2.0",
+    "xstream": "11.10.0"
   },
   "devDependencies": {
     "@cycle/time": "^0.15.0",

@@ -2,7 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, Status, Result, ActionSinks, EventSource, initGoal,
+  GoalID, Goal, Status, Result, EventSource, initGoal,
 } from '@cycle-robot-drivers/action';
 
 
@@ -51,9 +51,9 @@ export interface Sources {
   SpeechRecognition: EventSource,
 }
 
-export interface Sinks extends ActionSinks {
-  output: any,
-};
+// export interface Sinks extends ActionSinks {
+//   output: any,
+// };
 
 
 function input(
@@ -242,22 +242,22 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 /**
  * Web Speech API's [SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
  * action component.
- * 
+ *
  * @param sources
- * 
+ *
  *   * goal: a stream of `null` (as "cancel") or `SpeechRecognition`
  *     properties (as "goal").
  *   * SpeechSynthesis: `EventSource` for `start`, `end`, `error`, `result`
  *     events.
- * 
+ *
  * @return sinks
- * 
+ *
  *   * output: a stream for the SpeechRecognition driver input.
  *   * result: a stream of action results. `result.result` is a transcript from
  *     the recognition; it will be `''` for non-speech inputs.
- * 
+ *
  */
-export function SpeechRecognitionAction(sources: Sources): Sinks {
+export function SpeechRecognitionAction(sources: Sources): any {
   const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(sources.SpeechRecognition.events('start')),

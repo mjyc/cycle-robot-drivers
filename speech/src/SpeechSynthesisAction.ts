@@ -3,7 +3,7 @@ import dropRepeats from 'xstream/extra/dropRepeats';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, Status, GoalStatus, Result, ActionSinks, EventSource, initGoal,
+  GoalID, Goal, Status, GoalStatus, Result, ActionSources, ActionSinks, EventSource, initGoal,
 } from '@cycle-robot-drivers/action';
 import {UtteranceArg} from './makeSpeechSynthesisDriver';
 
@@ -53,13 +53,6 @@ export interface Sinks extends ActionSinks {
   output: any,
 };
 
-//------------------------------------------------------------------------------
-export interface ActionSources {
-  state: any,
-  goal: Stream<Goal>,
-  cancel: Stream<GoalID>,
-}
-
 export interface ActionSinks2 {
   state: any,
   feedback?: Stream<any>,
@@ -99,7 +92,7 @@ function input2(
   );
 }
 
-const transitionTable2 = {
+const transitionTable = {
   [State.DONE]: {
     [InputType.GOAL]: State.RUNNING,
   },
@@ -121,10 +114,10 @@ type ReducerState2 = {
   result: Result,
 };
 
-function transition2(
+function transition(
   prevState: State, prevVariables: Variables, input: Input
 ): ReducerState2 {
-  const states = transitionTable2[prevState];
+  const states = transitionTable[prevState];
   if (!states) {
     throw new Error(`Invalid prevState="${prevState}"`);
   }
@@ -228,13 +221,13 @@ function transitionReducer2(input$: Stream<Input>): Stream<Reducer> {
 
   const inputReducer$ = input$
     .map(input => function inputReducer(prev) {
-      return transition2(prev.state, prev.variables, input);
+      return transition(prev.state, prev.variables, input);
     });
 
   return xs.merge(initReducer$, inputReducer$);
 }
 
-export function SpeechSynthesisAction2(sources: Sources2): Sinks2 {
+export function SpeechSynthesisAction(sources: Sources2): Sinks2 {
   // const outputs = output(sources.state.stream);
 
   const input$ = input2(

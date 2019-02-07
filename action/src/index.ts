@@ -4,6 +4,7 @@ export {
   Status,
   GoalStatus,
   Result,
+  ActionSources,
   ActionSinks,
   EventSource,
 } from './types';
