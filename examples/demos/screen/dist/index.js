@@ -8,6 +8,7 @@ exports.generateGoalID = utils_1.generateGoalID;
 exports.initGoal = utils_1.initGoal;
 exports.isEqual = utils_1.isEqual;
 exports.isEqualGoal = utils_1.isEqualGoal;
+exports.isEqualGoalStatus = utils_1.isEqualGoalStatus;
 exports.isEqualResult = utils_1.isEqualResult;
 exports.powerup = utils_1.powerup;
 
@@ -21,7 +22,6 @@ var Status;
     Status["SUCCEEDED"] = "SUCCEEDED";
     Status["ABORTED"] = "ABORTED";
 })(Status = exports.Status || (exports.Status = {}));
-;
 
 },{}],3:[function(require,module,exports){
 "use strict";
@@ -70,12 +70,17 @@ function isEqualGoal(first, second) {
     return isEqual(first.goal_id, second.goal_id);
 }
 exports.isEqualGoal = isEqualGoal;
+function isEqualGoalStatus(first, second) {
+    return (isEqual(first.goal_id, second.goal_id)
+        && first.status === second.status);
+}
+exports.isEqualGoalStatus = isEqualGoalStatus;
 function isEqualResult(first, second) {
     if (!first || !second) {
         return false;
     }
-    return (isEqual(first.status.goal_id, second.status.goal_id)
-        && first.status.status === second.status.status);
+    // doesn't compare .result yet
+    return isEqualGoalStatus(first.status, second.status);
 }
 exports.isEqualResult = isEqualResult;
 function powerup(main, connect) {
@@ -2747,6 +2752,10 @@ module.exports = function (arg /*, …args*/) {
 	});
 	return set;
 };
+TAG_NAMES.forEach(function (n) {
+    exported[n] = createTagFunction(n);
+});
+exports.default = exported;
 
 },{}],61:[function(require,module,exports){
 "use strict";
@@ -2757,6 +2766,284 @@ module.exports = require("./is-implemented")()
 
 },{"./is-implemented":62,"./shim":63}],62:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var thunk_1 = require("./thunk");
+exports.thunk = thunk_1.thunk;
+var MainDOMSource_1 = require("./MainDOMSource");
+exports.MainDOMSource = MainDOMSource_1.MainDOMSource;
+/**
+ * A factory for the DOM driver function.
+ *
+ * Takes a `container` to define the target on the existing DOM which this
+ * driver will operate on, and an `options` object as the second argument. The
+ * input to this driver is a stream of virtual DOM objects, or in other words,
+ * Snabbdom "VNode" objects. The output of this driver is a "DOMSource": a
+ * collection of Observables queried with the methods `select()` and `events()`.
+ *
+ * **`DOMSource.select(selector)`** returns a new DOMSource with scope
+ * restricted to the element(s) that matches the CSS `selector` given. To select
+ * the page's `document`, use `.select('document')`. To select the container
+ * element for this app, use `.select(':root')`.
+ *
+ * **`DOMSource.events(eventType, options)`** returns a stream of events of
+ * `eventType` happening on the elements that match the current DOMSource. The
+ * event object contains the `ownerTarget` property that behaves exactly like
+ * `currentTarget`. The reason for this is that some browsers doesn't allow
+ * `currentTarget` property to be mutated, hence a new property is created. The
+ * returned stream is an *xstream* Stream if you use `@cycle/xstream-run` to run
+ * your app with this driver, or it is an RxJS Observable if you use
+ * `@cycle/rxjs-run`, and so forth.
+ *
+ * **options for DOMSource.events**
+ *
+ * The `options` parameter on `DOMSource.events(eventType, options)` is an
+ * (optional) object with two optional fields: `useCapture` and
+ * `preventDefault`.
+ *
+ * `useCapture` is by default `false`, except it is `true` for event types that
+ * do not bubble. Read more here
+ * https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+ * about the `useCapture` and its purpose.
+ *
+ * `preventDefault` is by default `false`, and indicates to the driver whether
+ * `event.preventDefault()` should be invoked. This option can be configured in
+ * three ways:
+ *
+ * - `{preventDefault: boolean}` to invoke preventDefault if `true`, and not
+ * invoke otherwise.
+ * - `{preventDefault: (ev: Event) => boolean}` for conditional invocation.
+ * - `{preventDefault: NestedObject}` uses an object to be recursively compared
+ * to the `Event` object. `preventDefault` is invoked when all properties on the
+ * nested object match with the properties on the event object.
+ *
+ * Here are some examples:
+ * ```typescript
+ * // always prevent default
+ * DOMSource.select('input').events('keydown', {
+ *   preventDefault: true
+ * })
+ *
+ * // prevent default only when `ENTER` is pressed
+ * DOMSource.select('input').events('keydown', {
+ *   preventDefault: e => e.keyCode === 13
+ * })
+ *
+ * // prevent defualt when `ENTER` is pressed AND target.value is 'HELLO'
+ * DOMSource.select('input').events('keydown', {
+ *   preventDefault: { keyCode: 13, ownerTarget: { value: 'HELLO' } }
+ * });
+ * ```
+ *
+ * **`DOMSource.elements()`** returns a stream of arrays containing the DOM
+ * elements that match the selectors in the DOMSource (e.g. from previous
+ * `select(x)` calls).
+ *
+ * **`DOMSource.element()`** returns a stream of DOM elements. Notice that this
+ * is the singular version of `.elements()`, so the stream will emit an element,
+ * not an array. If there is no element that matches the selected DOMSource,
+ * then the returned stream will not emit anything.
+ *
+ * @param {(String|HTMLElement)} container the DOM selector for the element
+ * (or the element itself) to contain the rendering of the VTrees.
+ * @param {DOMDriverOptions} options an object with two optional properties:
+ *
+ *   - `modules: array` overrides `@cycle/dom`'s default Snabbdom modules as
+ *     as defined in [`src/modules.ts`](./src/modules.ts).
+ * @return {Function} the DOM driver function. The function expects a stream of
+ * VNode as input, and outputs the DOMSource object.
+ * @function makeDOMDriver
+ */
+var makeDOMDriver_1 = require("./makeDOMDriver");
+exports.makeDOMDriver = makeDOMDriver_1.makeDOMDriver;
+/**
+ * A factory function to create mocked DOMSource objects, for testing purposes.
+ *
+ * Takes a `mockConfig` object as argument, and returns
+ * a DOMSource that can be given to any Cycle.js app that expects a DOMSource in
+ * the sources, for testing.
+ *
+ * The `mockConfig` parameter is an object specifying selectors, eventTypes and
+ * their streams. Example:
+ *
+ * ```js
+ * const domSource = mockDOMSource({
+ *   '.foo': {
+ *     'click': xs.of({target: {}}),
+ *     'mouseover': xs.of({target: {}}),
+ *   },
+ *   '.bar': {
+ *     'scroll': xs.of({target: {}}),
+ *     elements: xs.of({tagName: 'div'}),
+ *   }
+ * });
+ *
+ * // Usage
+ * const click$ = domSource.select('.foo').events('click');
+ * const element$ = domSource.select('.bar').elements();
+ * ```
+ *
+ * The mocked DOM Source supports isolation. It has the functions `isolateSink`
+ * and `isolateSource` attached to it, and performs simple isolation using
+ * classNames. *isolateSink* with scope `foo` will append the class `___foo` to
+ * the stream of virtual DOM nodes, and *isolateSource* with scope `foo` will
+ * perform a conventional `mockedDOMSource.select('.__foo')` call.
+ *
+ * @param {Object} mockConfig an object where keys are selector strings
+ * and values are objects. Those nested objects have `eventType` strings as keys
+ * and values are streams you created.
+ * @return {Object} fake DOM source object, with an API containing `select()`
+ * and `events()` and `elements()` which can be used just like the DOM Driver's
+ * DOMSource.
+ *
+ * @function mockDOMSource
+ */
+var mockDOMSource_1 = require("./mockDOMSource");
+exports.mockDOMSource = mockDOMSource_1.mockDOMSource;
+exports.MockedDOMSource = mockDOMSource_1.MockedDOMSource;
+/**
+ * The hyperscript function `h()` is a function to create virtual DOM objects,
+ * also known as VNodes. Call
+ *
+ * ```js
+ * h('div.myClass', {style: {color: 'red'}}, [])
+ * ```
+ *
+ * to create a VNode that represents a `DIV` element with className `myClass`,
+ * styled with red color, and no children because the `[]` array was passed. The
+ * API is `h(tagOrSelector, optionalData, optionalChildrenOrText)`.
+ *
+ * However, usually you should use "hyperscript helpers", which are shortcut
+ * functions based on hyperscript. There is one hyperscript helper function for
+ * each DOM tagName, such as `h1()`, `h2()`, `div()`, `span()`, `label()`,
+ * `input()`. For instance, the previous example could have been written
+ * as:
+ *
+ * ```js
+ * div('.myClass', {style: {color: 'red'}}, [])
+ * ```
+ *
+ * There are also SVG helper functions, which apply the appropriate SVG
+ * namespace to the resulting elements. `svg()` function creates the top-most
+ * SVG element, and `svg.g`, `svg.polygon`, `svg.circle`, `svg.path` are for
+ * SVG-specific child elements. Example:
+ *
+ * ```js
+ * svg({attrs: {width: 150, height: 150}}, [
+ *   svg.polygon({
+ *     attrs: {
+ *       class: 'triangle',
+ *       points: '20 0 20 150 150 20'
+ *     }
+ *   })
+ * ])
+ * ```
+ *
+ * @function h
+ */
+var h_1 = require("snabbdom/h");
+exports.h = h_1.h;
+var hyperscript_helpers_1 = require("./hyperscript-helpers");
+exports.svg = hyperscript_helpers_1.default.svg;
+exports.a = hyperscript_helpers_1.default.a;
+exports.abbr = hyperscript_helpers_1.default.abbr;
+exports.address = hyperscript_helpers_1.default.address;
+exports.area = hyperscript_helpers_1.default.area;
+exports.article = hyperscript_helpers_1.default.article;
+exports.aside = hyperscript_helpers_1.default.aside;
+exports.audio = hyperscript_helpers_1.default.audio;
+exports.b = hyperscript_helpers_1.default.b;
+exports.base = hyperscript_helpers_1.default.base;
+exports.bdi = hyperscript_helpers_1.default.bdi;
+exports.bdo = hyperscript_helpers_1.default.bdo;
+exports.blockquote = hyperscript_helpers_1.default.blockquote;
+exports.body = hyperscript_helpers_1.default.body;
+exports.br = hyperscript_helpers_1.default.br;
+exports.button = hyperscript_helpers_1.default.button;
+exports.canvas = hyperscript_helpers_1.default.canvas;
+exports.caption = hyperscript_helpers_1.default.caption;
+exports.cite = hyperscript_helpers_1.default.cite;
+exports.code = hyperscript_helpers_1.default.code;
+exports.col = hyperscript_helpers_1.default.col;
+exports.colgroup = hyperscript_helpers_1.default.colgroup;
+exports.dd = hyperscript_helpers_1.default.dd;
+exports.del = hyperscript_helpers_1.default.del;
+exports.dfn = hyperscript_helpers_1.default.dfn;
+exports.dir = hyperscript_helpers_1.default.dir;
+exports.div = hyperscript_helpers_1.default.div;
+exports.dl = hyperscript_helpers_1.default.dl;
+exports.dt = hyperscript_helpers_1.default.dt;
+exports.em = hyperscript_helpers_1.default.em;
+exports.embed = hyperscript_helpers_1.default.embed;
+exports.fieldset = hyperscript_helpers_1.default.fieldset;
+exports.figcaption = hyperscript_helpers_1.default.figcaption;
+exports.figure = hyperscript_helpers_1.default.figure;
+exports.footer = hyperscript_helpers_1.default.footer;
+exports.form = hyperscript_helpers_1.default.form;
+exports.h1 = hyperscript_helpers_1.default.h1;
+exports.h2 = hyperscript_helpers_1.default.h2;
+exports.h3 = hyperscript_helpers_1.default.h3;
+exports.h4 = hyperscript_helpers_1.default.h4;
+exports.h5 = hyperscript_helpers_1.default.h5;
+exports.h6 = hyperscript_helpers_1.default.h6;
+exports.head = hyperscript_helpers_1.default.head;
+exports.header = hyperscript_helpers_1.default.header;
+exports.hgroup = hyperscript_helpers_1.default.hgroup;
+exports.hr = hyperscript_helpers_1.default.hr;
+exports.html = hyperscript_helpers_1.default.html;
+exports.i = hyperscript_helpers_1.default.i;
+exports.iframe = hyperscript_helpers_1.default.iframe;
+exports.img = hyperscript_helpers_1.default.img;
+exports.input = hyperscript_helpers_1.default.input;
+exports.ins = hyperscript_helpers_1.default.ins;
+exports.kbd = hyperscript_helpers_1.default.kbd;
+exports.keygen = hyperscript_helpers_1.default.keygen;
+exports.label = hyperscript_helpers_1.default.label;
+exports.legend = hyperscript_helpers_1.default.legend;
+exports.li = hyperscript_helpers_1.default.li;
+exports.link = hyperscript_helpers_1.default.link;
+exports.main = hyperscript_helpers_1.default.main;
+exports.map = hyperscript_helpers_1.default.map;
+exports.mark = hyperscript_helpers_1.default.mark;
+exports.menu = hyperscript_helpers_1.default.menu;
+exports.meta = hyperscript_helpers_1.default.meta;
+exports.nav = hyperscript_helpers_1.default.nav;
+exports.noscript = hyperscript_helpers_1.default.noscript;
+exports.object = hyperscript_helpers_1.default.object;
+exports.ol = hyperscript_helpers_1.default.ol;
+exports.optgroup = hyperscript_helpers_1.default.optgroup;
+exports.option = hyperscript_helpers_1.default.option;
+exports.p = hyperscript_helpers_1.default.p;
+exports.param = hyperscript_helpers_1.default.param;
+exports.pre = hyperscript_helpers_1.default.pre;
+exports.progress = hyperscript_helpers_1.default.progress;
+exports.q = hyperscript_helpers_1.default.q;
+exports.rp = hyperscript_helpers_1.default.rp;
+exports.rt = hyperscript_helpers_1.default.rt;
+exports.ruby = hyperscript_helpers_1.default.ruby;
+exports.s = hyperscript_helpers_1.default.s;
+exports.samp = hyperscript_helpers_1.default.samp;
+exports.script = hyperscript_helpers_1.default.script;
+exports.section = hyperscript_helpers_1.default.section;
+exports.select = hyperscript_helpers_1.default.select;
+exports.small = hyperscript_helpers_1.default.small;
+exports.source = hyperscript_helpers_1.default.source;
+exports.span = hyperscript_helpers_1.default.span;
+exports.strong = hyperscript_helpers_1.default.strong;
+exports.style = hyperscript_helpers_1.default.style;
+exports.sub = hyperscript_helpers_1.default.sub;
+exports.sup = hyperscript_helpers_1.default.sup;
+exports.table = hyperscript_helpers_1.default.table;
+exports.tbody = hyperscript_helpers_1.default.tbody;
+exports.td = hyperscript_helpers_1.default.td;
+exports.textarea = hyperscript_helpers_1.default.textarea;
+exports.tfoot = hyperscript_helpers_1.default.tfoot;
+exports.th = hyperscript_helpers_1.default.th;
+exports.thead = hyperscript_helpers_1.default.thead;
+exports.title = hyperscript_helpers_1.default.title;
+exports.tr = hyperscript_helpers_1.default.tr;
+exports.u = hyperscript_helpers_1.default.u;
+exports.ul = hyperscript_helpers_1.default.ul;
+exports.video = hyperscript_helpers_1.default.video;
 
 var create = Object.create, getPrototypeOf = Object.getPrototypeOf, plainObject = {};
 
@@ -2773,24 +3060,46 @@ module.exports = function (/* CustomCreate*/) {
 // https://gist.github.com/WebReflection/5593554
 
 "use strict";
-
-var isObject        = require("../is-object")
-  , value           = require("../valid-value")
-  , objIsPrototypeOf = Object.prototype.isPrototypeOf
-  , defineProperty  = Object.defineProperty
-  , nullDesc        = {
-	configurable: true,
-	enumerable: false,
-	writable: true,
-	value: undefined
-}
-  , validate;
-
-validate = function (obj, prototype) {
-	value(obj);
-	if (prototype === null || isObject(prototype)) return obj;
-	throw new TypeError("Prototype must be null or an object");
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+var utils_1 = require("./utils");
+function makeIsolateSink(namespace) {
+    return function (sink, scope) {
+        if (scope === ':root') {
+            return sink;
+        }
+        return sink.map(function (node) {
+            if (!node) {
+                return node;
+            }
+            var scopeObj = getScopeObj(scope);
+            var newNode = __assign({}, node, { data: __assign({}, node.data, { isolate: !node.data || !Array.isArray(node.data.isolate)
+                        ? namespace.concat([scopeObj])
+                        : node.data.isolate }) });
+            return __assign({}, newNode, { key: newNode.key !== undefined
+                    ? newNode.key
+                    : JSON.stringify(newNode.data.isolate) });
+        });
+    };
+}
+exports.makeIsolateSink = makeIsolateSink;
+function getScopeObj(scope) {
+    return {
+        type: utils_1.isClassOrId(scope) ? 'sibling' : 'total',
+        scope: scope,
+    };
+}
+exports.getScopeObj = getScopeObj;
 
 module.exports = (function (status) {
 	var fn, set;
@@ -2856,6 +3165,142 @@ require("../create");
 
 },{"../create":50,"../is-object":53,"../valid-value":65}],64:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var snabbdom_1 = require("snabbdom");
+var xstream_1 = require("xstream");
+var concat_1 = require("xstream/extra/concat");
+var sampleCombine_1 = require("xstream/extra/sampleCombine");
+var MainDOMSource_1 = require("./MainDOMSource");
+var tovnode_1 = require("snabbdom/tovnode");
+var VNodeWrapper_1 = require("./VNodeWrapper");
+var utils_1 = require("./utils");
+var modules_1 = require("./modules");
+var IsolateModule_1 = require("./IsolateModule");
+var EventDelegator_1 = require("./EventDelegator");
+function makeDOMDriverInputGuard(modules) {
+    if (!Array.isArray(modules)) {
+        throw new Error("Optional modules option must be an array for snabbdom modules");
+    }
+}
+function domDriverInputGuard(view$) {
+    if (!view$ ||
+        typeof view$.addListener !== "function" ||
+        typeof view$.fold !== "function") {
+        throw new Error("The DOM driver function expects as input a Stream of " +
+            "virtual DOM elements");
+    }
+}
+function dropCompletion(input) {
+    return xstream_1.default.merge(input, xstream_1.default.never());
+}
+function unwrapElementFromVNode(vnode) {
+    return vnode.elm;
+}
+function reportSnabbdomError(err) {
+    (console.error || console.log)(err);
+}
+function makeDOMReady$() {
+    return xstream_1.default.create({
+        start: function (lis) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('readystatechange', function () {
+                    var state = document.readyState;
+                    if (state === 'interactive' || state === 'complete') {
+                        lis.next(null);
+                        lis.complete();
+                    }
+                });
+            }
+            else {
+                lis.next(null);
+                lis.complete();
+            }
+        },
+        stop: function () { },
+    });
+}
+function addRootScope(vnode) {
+    vnode.data = vnode.data || {};
+    vnode.data.isolate = [];
+    return vnode;
+}
+function makeDOMDriver(container, options) {
+    if (!options) {
+        options = {};
+    }
+    utils_1.checkValidContainer(container);
+    var modules = options.modules || modules_1.default;
+    makeDOMDriverInputGuard(modules);
+    var isolateModule = new IsolateModule_1.IsolateModule();
+    var patch = snabbdom_1.init([isolateModule.createModule()].concat(modules));
+    var domReady$ = makeDOMReady$();
+    var vnodeWrapper;
+    var mutationObserver;
+    var mutationConfirmed$ = xstream_1.default.create({
+        start: function (listener) {
+            mutationObserver = new MutationObserver(function () { return listener.next(null); });
+        },
+        stop: function () {
+            mutationObserver.disconnect();
+        },
+    });
+    function DOMDriver(vnode$, name) {
+        if (name === void 0) { name = 'DOM'; }
+        domDriverInputGuard(vnode$);
+        var sanitation$ = xstream_1.default.create();
+        var firstRoot$ = domReady$.map(function () {
+            var firstRoot = utils_1.getValidNode(container) || document.body;
+            vnodeWrapper = new VNodeWrapper_1.VNodeWrapper(firstRoot);
+            return firstRoot;
+        });
+        // We need to subscribe to the sink (i.e. vnode$) synchronously inside this
+        // driver, and not later in the map().flatten() because this sink is in
+        // reality a SinkProxy from @cycle/run, and we don't want to miss the first
+        // emission when the main() is connected to the drivers.
+        // Read more in issue #739.
+        var rememberedVNode$ = vnode$.remember();
+        rememberedVNode$.addListener({});
+        // The mutation observer internal to mutationConfirmed$ should
+        // exist before elementAfterPatch$ calls mutationObserver.observe()
+        mutationConfirmed$.addListener({});
+        var elementAfterPatch$ = firstRoot$
+            .map(function (firstRoot) {
+            return xstream_1.default
+                .merge(rememberedVNode$.endWhen(sanitation$), sanitation$)
+                .map(function (vnode) { return vnodeWrapper.call(vnode); })
+                .startWith(addRootScope(tovnode_1.toVNode(firstRoot)))
+                .fold(patch, tovnode_1.toVNode(firstRoot))
+                .drop(1)
+                .map(unwrapElementFromVNode)
+                .startWith(firstRoot)
+                .map(function (el) {
+                mutationObserver.observe(el, {
+                    childList: true,
+                    attributes: true,
+                    characterData: true,
+                    subtree: true,
+                    attributeOldValue: true,
+                    characterDataOldValue: true,
+                });
+                return el;
+            })
+                .compose(dropCompletion);
+        } // don't complete this stream
+        )
+            .flatten();
+        var rootElement$ = concat_1.default(domReady$, mutationConfirmed$)
+            .endWhen(sanitation$)
+            .compose(sampleCombine_1.default(elementAfterPatch$))
+            .map(function (arr) { return arr[1]; })
+            .remember();
+        // Start the snabbdom patching, over time
+        rootElement$.addListener({ error: reportSnabbdomError });
+        var delegator = new EventDelegator_1.EventDelegator(rootElement$, isolateModule);
+        return new MainDOMSource_1.MainDOMSource(rootElement$, sanitation$, [], isolateModule, delegator, name);
+    }
+    return DOMDriver;
+}
+exports.makeDOMDriver = makeDOMDriver;
 
 module.exports = function (fn) {
 	if (typeof fn !== "function") throw new TypeError(fn + " is not a function");
@@ -2864,6 +3309,66 @@ module.exports = function (fn) {
 
 },{}],65:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var xstream_1 = require("xstream");
+var adapt_1 = require("@cycle/run/lib/adapt");
+var SCOPE_PREFIX = '___';
+var MockedDOMSource = /** @class */ (function () {
+    function MockedDOMSource(_mockConfig) {
+        this._mockConfig = _mockConfig;
+        if (_mockConfig.elements) {
+            this._elements = _mockConfig.elements;
+        }
+        else {
+            this._elements = adapt_1.adapt(xstream_1.default.empty());
+        }
+    }
+    MockedDOMSource.prototype.elements = function () {
+        var out = this
+            ._elements;
+        out._isCycleSource = 'MockedDOM';
+        return out;
+    };
+    MockedDOMSource.prototype.element = function () {
+        var output$ = this.elements()
+            .filter(function (arr) { return arr.length > 0; })
+            .map(function (arr) { return arr[0]; })
+            .remember();
+        var out = adapt_1.adapt(output$);
+        out._isCycleSource = 'MockedDOM';
+        return out;
+    };
+    MockedDOMSource.prototype.events = function (eventType, options, bubbles) {
+        var streamForEventType = this._mockConfig[eventType];
+        var out = adapt_1.adapt(streamForEventType || xstream_1.default.empty());
+        out._isCycleSource = 'MockedDOM';
+        return out;
+    };
+    MockedDOMSource.prototype.select = function (selector) {
+        var mockConfigForSelector = this._mockConfig[selector] || {};
+        return new MockedDOMSource(mockConfigForSelector);
+    };
+    MockedDOMSource.prototype.isolateSource = function (source, scope) {
+        return source.select('.' + SCOPE_PREFIX + scope);
+    };
+    MockedDOMSource.prototype.isolateSink = function (sink, scope) {
+        return adapt_1.adapt(xstream_1.default.fromObservable(sink).map(function (vnode) {
+            if (vnode.sel && vnode.sel.indexOf(SCOPE_PREFIX + scope) !== -1) {
+                return vnode;
+            }
+            else {
+                vnode.sel += "." + SCOPE_PREFIX + scope;
+                return vnode;
+            }
+        }));
+    };
+    return MockedDOMSource;
+}());
+exports.MockedDOMSource = MockedDOMSource;
+function mockDOMSource(mockConfig) {
+    return new MockedDOMSource(mockConfig);
+}
+exports.mockDOMSource = mockDOMSource;
 
 var isValue = require("./is-value");
 
@@ -2874,6 +3379,25 @@ module.exports = function (value) {
 
 },{"./is-value":54}],66:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var class_1 = require("snabbdom/modules/class");
+exports.ClassModule = class_1.default;
+var props_1 = require("snabbdom/modules/props");
+exports.PropsModule = props_1.default;
+var attributes_1 = require("snabbdom/modules/attributes");
+exports.AttrsModule = attributes_1.default;
+var style_1 = require("snabbdom/modules/style");
+exports.StyleModule = style_1.default;
+var dataset_1 = require("snabbdom/modules/dataset");
+exports.DatasetModule = dataset_1.default;
+var modules = [
+    style_1.default,
+    class_1.default,
+    props_1.default,
+    attributes_1.default,
+    dataset_1.default,
+];
+exports.default = modules;
 
 module.exports = require("./is-implemented")()
 	? String.prototype.contains
@@ -2881,6 +3405,53 @@ module.exports = require("./is-implemented")()
 
 },{"./is-implemented":67,"./shim":68}],67:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var h_1 = require("snabbdom/h");
+function copyToThunk(vnode, thunkVNode) {
+    thunkVNode.elm = vnode.elm;
+    vnode.data.fn = thunkVNode.data.fn;
+    vnode.data.args = thunkVNode.data.args;
+    vnode.data.isolate = thunkVNode.data.isolate;
+    thunkVNode.data = vnode.data;
+    thunkVNode.children = vnode.children;
+    thunkVNode.text = vnode.text;
+    thunkVNode.elm = vnode.elm;
+}
+function init(thunkVNode) {
+    var cur = thunkVNode.data;
+    var vnode = cur.fn.apply(undefined, cur.args);
+    copyToThunk(vnode, thunkVNode);
+}
+function prepatch(oldVnode, thunkVNode) {
+    var old = oldVnode.data, cur = thunkVNode.data;
+    var i;
+    var oldArgs = old.args, args = cur.args;
+    if (old.fn !== cur.fn || oldArgs.length !== args.length) {
+        copyToThunk(cur.fn.apply(undefined, args), thunkVNode);
+    }
+    for (i = 0; i < args.length; ++i) {
+        if (oldArgs[i] !== args[i]) {
+            copyToThunk(cur.fn.apply(undefined, args), thunkVNode);
+            return;
+        }
+    }
+    copyToThunk(oldVnode, thunkVNode);
+}
+function thunk(sel, key, fn, args) {
+    if (args === undefined) {
+        args = fn;
+        fn = key;
+        key = undefined;
+    }
+    return h_1.h(sel, {
+        key: key,
+        hook: { init: init, prepatch: prepatch },
+        fn: fn,
+        args: args,
+    });
+}
+exports.thunk = thunk;
+exports.default = thunk;
 
 var str = "razdwatrzy";
 
@@ -2891,6 +3462,79 @@ module.exports = function () {
 
 },{}],68:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isValidNode(obj) {
+    var ELEM_TYPE = 1;
+    var FRAG_TYPE = 11;
+    return typeof HTMLElement === 'object'
+        ? obj instanceof HTMLElement || obj instanceof DocumentFragment
+        : obj &&
+            typeof obj === 'object' &&
+            obj !== null &&
+            (obj.nodeType === ELEM_TYPE || obj.nodeType === FRAG_TYPE) &&
+            typeof obj.nodeName === 'string';
+}
+function isClassOrId(str) {
+    return str.length > 1 && (str[0] === '.' || str[0] === '#');
+}
+exports.isClassOrId = isClassOrId;
+function isDocFrag(el) {
+    return el.nodeType === 11;
+}
+exports.isDocFrag = isDocFrag;
+function checkValidContainer(container) {
+    if (typeof container !== 'string' && !isValidNode(container)) {
+        throw new Error('Given container is not a DOM element neither a selector string.');
+    }
+}
+exports.checkValidContainer = checkValidContainer;
+function getValidNode(selectors) {
+    var domElement = typeof selectors === 'string'
+        ? document.querySelector(selectors)
+        : selectors;
+    if (typeof selectors === 'string' && domElement === null) {
+        throw new Error("Cannot render into unknown element `" + selectors + "`");
+    }
+    return domElement;
+}
+exports.getValidNode = getValidNode;
+function getSelectors(namespace) {
+    var res = '';
+    for (var i = namespace.length - 1; i >= 0; i--) {
+        if (namespace[i].type !== 'selector') {
+            break;
+        }
+        res = namespace[i].scope + ' ' + res;
+    }
+    return res.trim();
+}
+exports.getSelectors = getSelectors;
+function isEqualNamespace(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
+        return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+        if (a[i].type !== b[i].type || a[i].scope !== b[i].scope) {
+            return false;
+        }
+    }
+    return true;
+}
+exports.isEqualNamespace = isEqualNamespace;
+function makeInsert(map) {
+    return function (type, elm, value) {
+        if (map.has(type)) {
+            var innerMap = map.get(type);
+            innerMap.set(elm, value);
+        }
+        else {
+            var innerMap = new Map();
+            innerMap.set(elm, value);
+            map.set(type, innerMap);
+        }
+    };
+}
+exports.makeInsert = makeInsert;
 
 var indexOf = String.prototype.indexOf;
 
@@ -2900,6 +3544,172 @@ module.exports = function (searchString/*, position*/) {
 
 },{}],69:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var xstream_1 = require("xstream");
+var adapt_1 = require("@cycle/run/lib/adapt");
+function checkIsolateArgs(dataflowComponent, scope) {
+    if (typeof dataflowComponent !== "function") {
+        throw new Error("First argument given to isolate() must be a " +
+            "'dataflowComponent' function");
+    }
+    if (scope === null) {
+        throw new Error("Second argument given to isolate() must not be null");
+    }
+}
+function normalizeScopes(sources, scopes, randomScope) {
+    var perChannel = {};
+    Object.keys(sources).forEach(function (channel) {
+        if (typeof scopes === 'string') {
+            perChannel[channel] = scopes;
+            return;
+        }
+        var candidate = scopes[channel];
+        if (typeof candidate !== 'undefined') {
+            perChannel[channel] = candidate;
+            return;
+        }
+        var wildcard = scopes['*'];
+        if (typeof wildcard !== 'undefined') {
+            perChannel[channel] = wildcard;
+            return;
+        }
+        perChannel[channel] = randomScope;
+    });
+    return perChannel;
+}
+function isolateAllSources(outerSources, scopes) {
+    var innerSources = {};
+    for (var channel in outerSources) {
+        var outerSource = outerSources[channel];
+        if (outerSources.hasOwnProperty(channel) &&
+            outerSource &&
+            scopes[channel] !== null &&
+            typeof outerSource.isolateSource === 'function') {
+            innerSources[channel] = outerSource.isolateSource(outerSource, scopes[channel]);
+        }
+        else if (outerSources.hasOwnProperty(channel)) {
+            innerSources[channel] = outerSources[channel];
+        }
+    }
+    return innerSources;
+}
+function isolateAllSinks(sources, innerSinks, scopes) {
+    var outerSinks = {};
+    for (var channel in innerSinks) {
+        var source = sources[channel];
+        var innerSink = innerSinks[channel];
+        if (innerSinks.hasOwnProperty(channel) &&
+            source &&
+            scopes[channel] !== null &&
+            typeof source.isolateSink === 'function') {
+            outerSinks[channel] = adapt_1.adapt(source.isolateSink(xstream_1.default.fromObservable(innerSink), scopes[channel]));
+        }
+        else if (innerSinks.hasOwnProperty(channel)) {
+            outerSinks[channel] = innerSinks[channel];
+        }
+    }
+    return outerSinks;
+}
+var counter = 0;
+function newScope() {
+    return "cycle" + ++counter;
+}
+/**
+ * Takes a `component` function and a `scope`, and returns an isolated version
+ * of the `component` function.
+ *
+ * When the isolated component is invoked, each source provided to it is
+ * isolated to the given `scope` using `source.isolateSource(source, scope)`,
+ * if possible. Likewise, the sinks returned from the isolated component are
+ * isolated to the given `scope` using `source.isolateSink(sink, scope)`.
+ *
+ * The `scope` can be a string or an object. If it is anything else than those
+ * two types, it will be converted to a string. If `scope` is an object, it
+ * represents "scopes per channel", allowing you to specify a different scope
+ * for each key of sources/sinks. For instance
+ *
+ * ```js
+ * const childSinks = isolate(Child, {DOM: 'foo', HTTP: 'bar'})(sources);
+ * ```
+ *
+ * You can also use a wildcard `'*'` to use as a default for source/sinks
+ * channels that did not receive a specific scope:
+ *
+ * ```js
+ * // Uses 'bar' as the isolation scope for HTTP and other channels
+ * const childSinks = isolate(Child, {DOM: 'foo', '*': 'bar'})(sources);
+ * ```
+ *
+ * If a channel's value is null, then that channel's sources and sinks won't be
+ * isolated. If the wildcard is null and some channels are unspecified, those
+ * channels won't be isolated. If you don't have a wildcard and some channels
+ * are unspecified, then `isolate` will generate a random scope.
+ *
+ * ```js
+ * // Does not isolate HTTP requests
+ * const childSinks = isolate(Child, {DOM: 'foo', HTTP: null})(sources);
+ * ```
+ *
+ * If the `scope` argument is not provided at all, a new scope will be
+ * automatically created. This means that while **`isolate(component, scope)` is
+ * pure** (referentially transparent), **`isolate(component)` is impure** (not
+ * referentially transparent). Two calls to `isolate(Foo, bar)` will generate
+ * the same component. But, two calls to `isolate(Foo)` will generate two
+ * distinct components.
+ *
+ * ```js
+ * // Uses some arbitrary string as the isolation scope for HTTP and other channels
+ * const childSinks = isolate(Child, {DOM: 'foo'})(sources);
+ * ```
+ *
+ * Note that both `isolateSource()` and `isolateSink()` are static members of
+ * `source`. The reason for this is that drivers produce `source` while the
+ * application produces `sink`, and it's the driver's responsibility to
+ * implement `isolateSource()` and `isolateSink()`.
+ *
+ * _Note for Typescript users:_ `isolate` is not currently type-transparent and
+ * will explicitly convert generic type arguments to `any`. To preserve types in
+ * your components, you can use a type assertion:
+ *
+ * ```ts
+ * // if Child is typed `Component<Sources, Sinks>`
+ * const isolatedChild = isolate( Child ) as Component<Sources, Sinks>;
+ * ```
+ *
+ * @param {Function} component a function that takes `sources` as input
+ * and outputs a collection of `sinks`.
+ * @param {String} scope an optional string that is used to isolate each
+ * `sources` and `sinks` when the returned scoped component is invoked.
+ * @return {Function} the scoped component function that, as the original
+ * `component` function, takes `sources` and returns `sinks`.
+ * @function isolate
+ */
+function isolate(component, scope) {
+    if (scope === void 0) { scope = newScope(); }
+    checkIsolateArgs(component, scope);
+    var randomScope = typeof scope === 'object' ? newScope() : '';
+    var scopes = typeof scope === 'string' || typeof scope === 'object'
+        ? scope
+        : scope.toString();
+    return function wrappedComponent(outerSources) {
+        var rest = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            rest[_i - 1] = arguments[_i];
+        }
+        var scopesPerChannel = normalizeScopes(outerSources, scopes, randomScope);
+        var innerSources = isolateAllSources(outerSources, scopesPerChannel);
+        var innerSinks = component.apply(void 0, [innerSources].concat(rest));
+        var outerSinks = isolateAllSinks(outerSources, innerSinks, scopesPerChannel);
+        return outerSinks;
+    };
+}
+isolate.reset = function () { return (counter = 0); };
+exports.default = isolate;
+function toIsolated(scope) {
+    if (scope === void 0) { scope = newScope(); }
+    return function (component) { return isolate(component, scope); };
+}
+exports.toIsolated = toIsolated;
 
 var objToString = Object.prototype.toString, id = objToString.call("");
 
@@ -2915,89 +3725,217 @@ module.exports = function (value) {
 
 },{}],70:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function getGlobal() {
+    var globalObj;
+    if (typeof window !== 'undefined') {
+        globalObj = window;
+    }
+    else if (typeof global !== 'undefined') {
+        globalObj = global;
+    }
+    else {
+        globalObj = this;
+    }
+    globalObj.Cyclejs = globalObj.Cyclejs || {};
+    globalObj = globalObj.Cyclejs;
+    globalObj.adaptStream = globalObj.adaptStream || (function (x) { return x; });
+    return globalObj;
+}
+function setAdapt(f) {
+    getGlobal().adaptStream = f;
+}
+exports.setAdapt = setAdapt;
+function adapt(stream) {
+    return getGlobal().adaptStream(stream);
+}
+exports.adapt = adapt;
 
-var setPrototypeOf = require("es5-ext/object/set-prototype-of")
-  , contains       = require("es5-ext/string/#/contains")
-  , d              = require("d")
-  , Symbol         = require("es6-symbol")
-  , Iterator       = require("./");
-
-var defineProperty = Object.defineProperty, ArrayIterator;
-
-ArrayIterator = module.exports = function (arr, kind) {
-	if (!(this instanceof ArrayIterator)) throw new TypeError("Constructor requires 'new'");
-	Iterator.call(this, arr);
-	if (!kind) kind = "value";
-	else if (contains.call(kind, "key+value")) kind = "key+value";
-	else if (contains.call(kind, "key")) kind = "key";
-	else kind = "value";
-	defineProperty(this, "__kind__", d("", kind));
-};
-if (setPrototypeOf) setPrototypeOf(ArrayIterator, Iterator);
-
-// Internal %ArrayIteratorPrototype% doesn't expose its constructor
-delete ArrayIterator.prototype.constructor;
-
-ArrayIterator.prototype = Object.create(Iterator.prototype, {
-	_resolve: d(function (i) {
-		if (this.__kind__ === "value") return this.__list__[i];
-		if (this.__kind__ === "key+value") return [i, this.__list__[i]];
-		return i;
-	})
-});
-defineProperty(ArrayIterator.prototype, Symbol.toStringTag, d("c", "Array Iterator"));
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
 },{"./":73,"d":27,"es5-ext/object/set-prototype-of":61,"es5-ext/string/#/contains":66,"es6-symbol":83}],71:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function getGlobal() {
+    var globalObj;
+    if (typeof window !== 'undefined') {
+        globalObj = window;
+    }
+    else if (typeof global !== 'undefined') {
+        globalObj = global;
+    }
+    else {
+        globalObj = this;
+    }
+    globalObj.Cyclejs = globalObj.Cyclejs || {};
+    globalObj = globalObj.Cyclejs;
+    globalObj.adaptStream = globalObj.adaptStream || (function (x) { return x; });
+    return globalObj;
+}
+function setAdapt(f) {
+    getGlobal().adaptStream = f;
+}
+exports.setAdapt = setAdapt;
+function adapt(stream) {
+    return getGlobal().adaptStream(stream);
+}
+exports.adapt = adapt;
 
-var isArguments = require("es5-ext/function/is-arguments")
-  , callable    = require("es5-ext/object/valid-callable")
-  , isString    = require("es5-ext/string/is-string")
-  , get         = require("./get");
-
-var isArray = Array.isArray, call = Function.prototype.call, some = Array.prototype.some;
-
-module.exports = function (iterable, cb /*, thisArg*/) {
-	var mode, thisArg = arguments[2], result, doBreak, broken, i, length, char, code;
-	if (isArray(iterable) || isArguments(iterable)) mode = "array";
-	else if (isString(iterable)) mode = "string";
-	else iterable = get(iterable);
-
-	callable(cb);
-	doBreak = function () {
-		broken = true;
-	};
-	if (mode === "array") {
-		some.call(iterable, function (value) {
-			call.call(cb, thisArg, value, doBreak);
-			return broken;
-		});
-		return;
-	}
-	if (mode === "string") {
-		length = iterable.length;
-		for (i = 0; i < length; ++i) {
-			char = iterable[i];
-			if (i + 1 < length) {
-				code = char.charCodeAt(0);
-				if (code >= 0xd800 && code <= 0xdbff) char += iterable[++i];
-			}
-			call.call(cb, thisArg, char, doBreak);
-			if (broken) break;
-		}
-		return;
-	}
-	result = iterable.next();
-
-	while (!result.done) {
-		call.call(cb, thisArg, result.value, doBreak);
-		if (broken) return;
-		result = iterable.next();
-	}
-};
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
 },{"./get":72,"es5-ext/function/is-arguments":33,"es5-ext/object/valid-callable":64,"es5-ext/string/is-string":69}],72:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var internals_1 = require("./internals");
+/**
+ * A function that prepares the Cycle application to be executed. Takes a `main`
+ * function and prepares to circularly connects it to the given collection of
+ * driver functions. As an output, `setup()` returns an object with three
+ * properties: `sources`, `sinks` and `run`. Only when `run()` is called will
+ * the application actually execute. Refer to the documentation of `run()` for
+ * more details.
+ *
+ * **Example:**
+ * ```js
+ * import {setup} from '@cycle/run';
+ * const {sources, sinks, run} = setup(main, drivers);
+ * // ...
+ * const dispose = run(); // Executes the application
+ * // ...
+ * dispose();
+ * ```
+ *
+ * @param {Function} main a function that takes `sources` as input and outputs
+ * `sinks`.
+ * @param {Object} drivers an object where keys are driver names and values
+ * are driver functions.
+ * @return {Object} an object with three properties: `sources`, `sinks` and
+ * `run`. `sources` is the collection of driver sources, `sinks` is the
+ * collection of driver sinks, these can be used for debugging or testing. `run`
+ * is the function that once called will execute the application.
+ * @function setup
+ */
+function setup(main, drivers) {
+    if (typeof main !== "function") {
+        throw new Error("First argument given to Cycle must be the 'main' " + "function.");
+    }
+    if (typeof drivers !== "object" || drivers === null) {
+        throw new Error("Second argument given to Cycle must be an object " +
+            "with driver functions as properties.");
+    }
+    if (internals_1.isObjectEmpty(drivers)) {
+        throw new Error("Second argument given to Cycle must be an object " +
+            "with at least one driver function declared as a property.");
+    }
+    var engine = setupReusable(drivers);
+    var sinks = main(engine.sources);
+    if (typeof window !== 'undefined') {
+        window.Cyclejs = window.Cyclejs || {};
+        window.Cyclejs.sinks = sinks;
+    }
+    function _run() {
+        var disposeRun = engine.run(sinks);
+        return function dispose() {
+            disposeRun();
+            engine.dispose();
+        };
+    }
+    return { sinks: sinks, sources: engine.sources, run: _run };
+}
+exports.setup = setup;
+/**
+ * A partially-applied variant of setup() which accepts only the drivers, and
+ * allows many `main` functions to execute and reuse this same set of drivers.
+ *
+ * Takes an object with driver functions as input, and outputs an object which
+ * contains the generated sources (from those drivers) and a `run` function
+ * (which in turn expects sinks as argument). This `run` function can be called
+ * multiple times with different arguments, and it will reuse the drivers that
+ * were passed to `setupReusable`.
+ *
+ * **Example:**
+ * ```js
+ * import {setupReusable} from '@cycle/run';
+ * const {sources, run, dispose} = setupReusable(drivers);
+ * // ...
+ * const sinks = main(sources);
+ * const disposeRun = run(sinks);
+ * // ...
+ * disposeRun();
+ * // ...
+ * dispose(); // ends the reusability of drivers
+ * ```
+ *
+ * @param {Object} drivers an object where keys are driver names and values
+ * are driver functions.
+ * @return {Object} an object with three properties: `sources`, `run` and
+ * `dispose`. `sources` is the collection of driver sources, `run` is the
+ * function that once called with 'sinks' as argument, will execute the
+ * application, tying together sources with sinks. `dispose` terminates the
+ * reusable resources used by the drivers. Note also that `run` returns a
+ * dispose function which terminates resources that are specific (not reusable)
+ * to that run.
+ * @function setupReusable
+ */
+function setupReusable(drivers) {
+    if (typeof drivers !== "object" || drivers === null) {
+        throw new Error("Argument given to setupReusable must be an object " +
+            "with driver functions as properties.");
+    }
+    if (internals_1.isObjectEmpty(drivers)) {
+        throw new Error("Argument given to setupReusable must be an object " +
+            "with at least one driver function declared as a property.");
+    }
+    var sinkProxies = internals_1.makeSinkProxies(drivers);
+    var rawSources = internals_1.callDrivers(drivers, sinkProxies);
+    var sources = internals_1.adaptSources(rawSources);
+    function _run(sinks) {
+        return internals_1.replicateMany(sinks, sinkProxies);
+    }
+    function disposeEngine() {
+        internals_1.disposeSources(sources);
+        internals_1.disposeSinkProxies(sinkProxies);
+    }
+    return { sources: sources, run: _run, dispose: disposeEngine };
+}
+exports.setupReusable = setupReusable;
+/**
+ * Takes a `main` function and circularly connects it to the given collection
+ * of driver functions.
+ *
+ * **Example:**
+ * ```js
+ * import run from '@cycle/run';
+ * const dispose = run(main, drivers);
+ * // ...
+ * dispose();
+ * ```
+ *
+ * The `main` function expects a collection of "source" streams (returned from
+ * drivers) as input, and should return a collection of "sink" streams (to be
+ * given to drivers). A "collection of streams" is a JavaScript object where
+ * keys match the driver names registered by the `drivers` object, and values
+ * are the streams. Refer to the documentation of each driver to see more
+ * details on what types of sources it outputs and sinks it receives.
+ *
+ * @param {Function} main a function that takes `sources` as input and outputs
+ * `sinks`.
+ * @param {Object} drivers an object where keys are driver names and values
+ * are driver functions.
+ * @return {Function} a dispose function, used to terminate the execution of the
+ * Cycle.js program, cleaning up resources used.
+ * @function run
+ */
+function run(main, drivers) {
+    var program = setup(main, drivers);
+    if (typeof window !== 'undefined' &&
+        window.CyclejsDevTool_startGraphSerializer) {
+        window.CyclejsDevTool_startGraphSerializer(program.sinks);
+    }
+    return program.run();
+}
+exports.run = run;
+exports.default = run;
 
 var isArguments    = require("es5-ext/function/is-arguments")
   , isString       = require("es5-ext/string/is-string")
@@ -3015,6 +3953,106 @@ module.exports = function (obj) {
 
 },{"./array":70,"./string":75,"./valid-iterable":76,"es5-ext/function/is-arguments":33,"es5-ext/string/is-string":69,"es6-symbol":83}],73:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var xstream_1 = require("xstream");
+var quicktask_1 = require("quicktask");
+var adapt_1 = require("./adapt");
+var scheduleMicrotask = quicktask_1.default();
+function makeSinkProxies(drivers) {
+    var sinkProxies = {};
+    for (var name_1 in drivers) {
+        if (drivers.hasOwnProperty(name_1)) {
+            sinkProxies[name_1] = xstream_1.default.create();
+        }
+    }
+    return sinkProxies;
+}
+exports.makeSinkProxies = makeSinkProxies;
+function callDrivers(drivers, sinkProxies) {
+    var sources = {};
+    for (var name_2 in drivers) {
+        if (drivers.hasOwnProperty(name_2)) {
+            sources[name_2] = drivers[name_2](sinkProxies[name_2], name_2);
+            if (sources[name_2] && typeof sources[name_2] === 'object') {
+                sources[name_2]._isCycleSource = name_2;
+            }
+        }
+    }
+    return sources;
+}
+exports.callDrivers = callDrivers;
+// NOTE: this will mutate `sources`.
+function adaptSources(sources) {
+    for (var name_3 in sources) {
+        if (sources.hasOwnProperty(name_3) &&
+            sources[name_3] &&
+            typeof sources[name_3].shamefullySendNext ===
+                'function') {
+            sources[name_3] = adapt_1.adapt(sources[name_3]);
+        }
+    }
+    return sources;
+}
+exports.adaptSources = adaptSources;
+function replicateMany(sinks, sinkProxies) {
+    var sinkNames = Object.keys(sinks).filter(function (name) { return !!sinkProxies[name]; });
+    var buffers = {};
+    var replicators = {};
+    sinkNames.forEach(function (name) {
+        buffers[name] = { _n: [], _e: [] };
+        replicators[name] = {
+            next: function (x) { return buffers[name]._n.push(x); },
+            error: function (err) { return buffers[name]._e.push(err); },
+            complete: function () { },
+        };
+    });
+    var subscriptions = sinkNames.map(function (name) {
+        return xstream_1.default.fromObservable(sinks[name]).subscribe(replicators[name]);
+    });
+    sinkNames.forEach(function (name) {
+        var listener = sinkProxies[name];
+        var next = function (x) {
+            scheduleMicrotask(function () { return listener._n(x); });
+        };
+        var error = function (err) {
+            scheduleMicrotask(function () {
+                (console.error || console.log)(err);
+                listener._e(err);
+            });
+        };
+        buffers[name]._n.forEach(next);
+        buffers[name]._e.forEach(error);
+        replicators[name].next = next;
+        replicators[name].error = error;
+        // because sink.subscribe(replicator) had mutated replicator to add
+        // _n, _e, _c, we must also update these:
+        replicators[name]._n = next;
+        replicators[name]._e = error;
+    });
+    buffers = null; // free up for GC
+    return function disposeReplication() {
+        subscriptions.forEach(function (s) { return s.unsubscribe(); });
+    };
+}
+exports.replicateMany = replicateMany;
+function disposeSinkProxies(sinkProxies) {
+    Object.keys(sinkProxies).forEach(function (name) { return sinkProxies[name]._c(); });
+}
+exports.disposeSinkProxies = disposeSinkProxies;
+function disposeSources(sources) {
+    for (var k in sources) {
+        if (sources.hasOwnProperty(k) &&
+            sources[k] &&
+            sources[k].dispose) {
+            sources[k].dispose();
+        }
+    }
+}
+exports.disposeSources = disposeSources;
+function isObjectEmpty(obj) {
+    return Object.keys(obj).length === 0;
+}
+exports.isObjectEmpty = isObjectEmpty;
 
 var clear    = require("es5-ext/array/#/clear")
   , assign   = require("es5-ext/object/assign")
@@ -3123,20 +4161,16 @@ defineProperty(
 
 },{"d":27,"d/auto-bind":26,"es5-ext/array/#/clear":28,"es5-ext/object/assign":46,"es5-ext/object/valid-callable":64,"es5-ext/object/valid-value":65,"es6-symbol":83}],74:[function(require,module,exports){
 "use strict";
-
-var isArguments = require("es5-ext/function/is-arguments")
-  , isValue     = require("es5-ext/object/is-value")
-  , isString    = require("es5-ext/string/is-string");
-
-var iteratorSymbol = require("es6-symbol").iterator
-  , isArray        = Array.isArray;
-
-module.exports = function (value) {
-	if (!isValue(value)) return false;
-	if (isArray(value)) return true;
-	if (isString(value)) return true;
-	if (isArguments(value)) return true;
-	return typeof value[iteratorSymbol] === "function";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
 
 },{"es5-ext/function/is-arguments":33,"es5-ext/object/is-value":54,"es5-ext/string/is-string":69,"es6-symbol":83}],75:[function(require,module,exports){
@@ -3158,36 +4192,75 @@ StringIterator = module.exports = function (str) {
 	Iterator.call(this, str);
 	defineProperty(this, "__length__", d("", str.length));
 };
-if (setPrototypeOf) setPrototypeOf(StringIterator, Iterator);
-
-// Internal %ArrayIteratorPrototype% doesn't expose its constructor
-delete StringIterator.prototype.constructor;
-
-StringIterator.prototype = Object.create(Iterator.prototype, {
-	_next: d(function () {
-		if (!this.__list__) return undefined;
-		if (this.__nextIndex__ < this.__length__) return this.__nextIndex__++;
-		this._unBind();
-		return undefined;
-	}),
-	_resolve: d(function (i) {
-		var char = this.__list__[i], code;
-		if (this.__nextIndex__ === this.__length__) return char;
-		code = char.charCodeAt(0);
-		if (code >= 0xd800 && code <= 0xdbff) return char + this.__list__[this.__nextIndex__++];
-		return char;
-	})
-});
-defineProperty(StringIterator.prototype, Symbol.toStringTag, d("c", "String Iterator"));
+function makeCollection(opts) {
+    return function collectionComponent(sources) {
+        var name = opts.channel || 'state';
+        var itemKey = opts.itemKey;
+        var itemScope = opts.itemScope || defaultItemScope;
+        var itemComp = opts.item;
+        var state$ = xstream_1.default.fromObservable(sources[name].stream);
+        var instances$ = state$.fold(function (acc, nextState) {
+            var _a, _b, _c, _d;
+            var dict = acc.dict;
+            if (Array.isArray(nextState)) {
+                var nextInstArray = Array(nextState.length);
+                var nextKeys_1 = new Set();
+                // add
+                for (var i = 0, n = nextState.length; i < n; ++i) {
+                    var key = "" + (itemKey ? itemKey(nextState[i], i) : i);
+                    nextKeys_1.add(key);
+                    if (!dict.has(key)) {
+                        var stateScope = itemKey ? instanceLens(itemKey, key) : "" + i;
+                        var otherScopes = itemScope(key);
+                        var scopes = typeof otherScopes === 'string'
+                            ? (_a = { '*': otherScopes }, _a[name] = stateScope, _a) : __assign({}, otherScopes, (_b = {}, _b[name] = stateScope, _b));
+                        var sinks = isolate_1.default(itemComp, scopes)(sources);
+                        dict.set(key, sinks);
+                        nextInstArray[i] = sinks;
+                    }
+                    else {
+                        nextInstArray[i] = dict.get(key);
+                    }
+                    nextInstArray[i]._key = key;
+                }
+                // remove
+                dict.forEach(function (_, key) {
+                    if (!nextKeys_1.has(key)) {
+                        dict.delete(key);
+                    }
+                });
+                nextKeys_1.clear();
+                return { dict: dict, arr: nextInstArray };
+            }
+            else {
+                dict.clear();
+                var key = "" + (itemKey ? itemKey(nextState, 0) : 'this');
+                var stateScope = identityLens;
+                var otherScopes = itemScope(key);
+                var scopes = typeof otherScopes === 'string'
+                    ? (_c = { '*': otherScopes }, _c[name] = stateScope, _c) : __assign({}, otherScopes, (_d = {}, _d[name] = stateScope, _d));
+                var sinks = isolate_1.default(itemComp, scopes)(sources);
+                dict.set(key, sinks);
+                return { dict: dict, arr: [sinks] };
+            }
+        }, { dict: new Map(), arr: [] });
+        return opts.collectSinks(new Instances(instances$));
+    };
+}
+exports.makeCollection = makeCollection;
 
 },{"./":73,"d":27,"es5-ext/object/set-prototype-of":61,"es6-symbol":83}],76:[function(require,module,exports){
 "use strict";
-
-var isIterable = require("./is-iterable");
-
-module.exports = function (value) {
-	if (!isIterable(value)) throw new TypeError(value + " is not iterable");
-	return value;
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
 };
 
 },{"./is-iterable":74}],77:[function(require,module,exports){
@@ -3243,6 +4316,7 @@ module.exports = (function () {
 	if (typeof Map === 'undefined') return false;
 	return (Object.prototype.toString.call(new Map()) === '[object Map]');
 }());
+exports.StateSource = StateSource;
 
 },{}],80:[function(require,module,exports){
 'use strict';
@@ -3444,35 +4518,145 @@ var d              = require('d')
   , NativeSymbol, SymbolPolyfill, HiddenSymbol, globalSymbols = create(null)
   , isNativeSafe;
 
-if (typeof Symbol === 'function') {
-	NativeSymbol = Symbol;
-	try {
-		String(NativeSymbol());
-		isNativeSafe = true;
-	} catch (ignore) {}
-}
-
-var generateName = (function () {
-	var created = create(null);
-	return function (desc) {
-		var postfix = 0, name, ie11BugWorkaround;
-		while (created[desc + (postfix || '')]) ++postfix;
-		desc += (postfix || '');
-		created[desc] = true;
-		name = '@@' + desc;
-		defineProperty(objPrototype, name, d.gs(null, function (value) {
-			// For IE11 issue see:
-			// https://connect.microsoft.com/IE/feedbackdetail/view/1928508/
-			//    ie11-broken-getters-on-dom-objects
-			// https://github.com/medikoo/es6-symbol/issues/12
-			if (ie11BugWorkaround) return;
-			ie11BugWorkaround = true;
-			defineProperty(this, name, d(value));
-			ie11BugWorkaround = false;
-		}));
-		return name;
-	};
+},{"./Collection":29,"./StateSource":30,"./withState":34}],32:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var xstream_1 = require("xstream");
+var PickCombineListener = /** @class */ (function () {
+    function PickCombineListener(key, out, p, ins) {
+        this.key = key;
+        this.out = out;
+        this.p = p;
+        this.val = xstream_1.NO;
+        this.ins = ins;
+    }
+    PickCombineListener.prototype._n = function (t) {
+        var p = this.p, out = this.out;
+        this.val = t;
+        if (out === null) {
+            return;
+        }
+        this.p.up();
+    };
+    PickCombineListener.prototype._e = function (err) {
+        var out = this.out;
+        if (out === null) {
+            return;
+        }
+        out._e(err);
+    };
+    PickCombineListener.prototype._c = function () { };
+    return PickCombineListener;
 }());
+var PickCombine = /** @class */ (function () {
+    function PickCombine(sel, ins) {
+        this.type = 'combine';
+        this.ins = ins;
+        this.sel = sel;
+        this.out = null;
+        this.ils = new Map();
+        this.inst = null;
+    }
+    PickCombine.prototype._start = function (out) {
+        this.out = out;
+        this.ins._add(this);
+    };
+    PickCombine.prototype._stop = function () {
+        this.ins._remove(this);
+        var ils = this.ils;
+        ils.forEach(function (il) {
+            il.ins._remove(il);
+            il.ins = null;
+            il.out = null;
+            il.val = null;
+        });
+        ils.clear();
+        this.out = null;
+        this.ils = new Map();
+        this.inst = null;
+    };
+    PickCombine.prototype.up = function () {
+        var arr = this.inst.arr;
+        var n = arr.length;
+        var ils = this.ils;
+        var outArr = Array(n);
+        for (var i = 0; i < n; ++i) {
+            var sinks = arr[i];
+            var key = sinks._key;
+            if (!ils.has(key)) {
+                return;
+            }
+            var val = ils.get(key).val;
+            if (val === xstream_1.NO) {
+                return;
+            }
+            outArr[i] = val;
+        }
+        this.out._n(outArr);
+    };
+    PickCombine.prototype._n = function (inst) {
+        this.inst = inst;
+        var arrSinks = inst.arr;
+        var ils = this.ils;
+        var out = this.out;
+        var sel = this.sel;
+        var dict = inst.dict;
+        var n = arrSinks.length;
+        // remove
+        var removed = false;
+        ils.forEach(function (il, key) {
+            if (!dict.has(key)) {
+                il.ins._remove(il);
+                il.ins = null;
+                il.out = null;
+                il.val = null;
+                ils.delete(key);
+                removed = true;
+            }
+        });
+        if (n === 0) {
+            out._n([]);
+            return;
+        }
+        // add
+        for (var i = 0; i < n; ++i) {
+            var sinks = arrSinks[i];
+            var key = sinks._key;
+            if (!sinks[sel]) {
+                throw new Error('pickCombine found an undefined child sink stream');
+            }
+            var sink = xstream_1.default.fromObservable(sinks[sel]);
+            if (!ils.has(key)) {
+                ils.set(key, new PickCombineListener(key, out, this, sink));
+                sink._add(ils.get(key));
+            }
+        }
+        if (removed) {
+            this.up();
+        }
+    };
+    PickCombine.prototype._e = function (e) {
+        var out = this.out;
+        if (out === null) {
+            return;
+        }
+        out._e(e);
+    };
+    PickCombine.prototype._c = function () {
+        var out = this.out;
+        if (out === null) {
+            return;
+        }
+        out._c();
+    };
+    return PickCombine;
+}());
+function pickCombine(selector) {
+    return function pickCombineOperator(inst$) {
+        return new xstream_1.Stream(new PickCombine(selector, inst$));
+    };
+}
+exports.pickCombine = pickCombine;
 
 // Internal constructor (not one exposed) for creating Symbol instances.
 // This one is used to ensure that `someSymbol instanceof Symbol` always return false

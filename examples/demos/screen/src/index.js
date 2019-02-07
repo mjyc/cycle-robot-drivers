@@ -1,78 +1,59 @@
 import xs from 'xstream';
-import delay from 'xstream/extra/delay';
-import {div, makeDOMDriver} from '@cycle/dom';
+import sampleCombine from 'xstream/extra/sampleCombine';
+import isolate from '@cycle/isolate';
 import {run} from '@cycle/run';
-import {powerup} from '@cycle-robot-drivers/action';
+import {withState} from '@cycle/state';
+import {div, label, input, br, button, makeDOMDriver} from '@cycle/dom';
+import {Status} from '@cycle-robot-drivers/action';
 import {
   makeTabletFaceDriver,
-  FacialExpressionAction,
-  IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
 
-
 function main(sources) {
-  sources.proxies = {  // will be connected to "targets"
-    FacialExpressionAction: xs.create(),
-    TwoSpeechbubblesAction: xs.create(),
-  };
-  // create action components
-  sources.TwoSpeechbubblesAction = TwoSpeechbubblesAction({
-    goal: sources.proxies.TwoSpeechbubblesAction,
-    DOM: sources.DOM,
-  });
-  sources.FacialExpressionAction = FacialExpressionAction({
-    goal: sources.proxies.FacialExpressionAction,
-    TabletFace: sources.TabletFace,
-  });
+  sources.state.stream.addListener({next: s => console.log('reducer state', s)});
+
+  // // speech synthesis
+  // const say$ = sources.DOM.select('.say').events('click');
+  // const inputText$ = sources.DOM
+  //   .select('.inputtext').events('input')
+  //   .map(ev => ev.target.value)
+  //   .startWith('');
+  // const synthGoal$ = say$.compose(sampleCombine(inputText$))
+  //   .filter(([_, text]) => !!text)
+  //   .map(([_, text]) => ({goal_id: `${new Date().getTime()}`, goal: text}));
+  // const speechSynthesisAction = isolate(SpeechSynthesisAction)({
+  //   state: sources.state,
+  //   goal: synthGoal$,
+  //   cancel: xs.never(),
+  //   SpeechSynthesis: sources.SpeechSynthesis,
+  // });
+  // speechSynthesisAction.status.addListener({next: s =>
+  //   console.log('SpeechSynthesisAction status', s)});
+
+  // // speech recognition
+  // const recogGoal$ = sources.DOM.select('#listen').events('click')
+  //   .mapTo({goal_id: `${new Date().getTime()}`, goal: {}});
+  // const speechRecognitionAction = isolate(SpeechRecognitionAction)({
+  //   state: sources.state,
+  //   goal: recogGoal$,
+  //   cancel: xs.never(),
+  //   SpeechRecognition: sources.SpeechRecognition,
+  // });
+  // speechRecognitionAction.status.addListener({next: s =>
+  //   console.log('SpeechRecognitionAction status', s)});
 
 
-  // main logic
-  const speechbubbles$ = xs.merge(
-    xs.of('Hello there!').compose(delay(1000)),
-    xs.of({
-      message: 'How are you?',
-      choices: ['Good', 'Bad']
-    }).compose(delay(2000)),
-    sources.TwoSpeechbubblesAction.result
-      .filter(result => !!result.result)
-      .map(result => {
-        if (result.result === 'Good') {
-          return 'Great!';
-        } else if (result.result === 'Bad') {
-          return 'Sorry to hear that...';
-        }
-      }),
-  );
+  // UI
+  const vdom$ = xs.of(div('hello there!'));
 
-  const expression$ = sources.TwoSpeechbubblesAction.result
-    .filter(result => !!result.result)
-    .map((result) => {
-      if (result.result === 'Good') {
-        return 'happy';
-      } else if (result.result === 'Bad') {
-        return 'sad';
-      }
-    });
-
-  const vdom$ = xs.combine(
-    sources.TwoSpeechbubblesAction.DOM,
-    sources.TabletFace.DOM,
-  ).map(([speechbubbles, face]) => div({
-    style: {position: 'relative'}
-  }, [speechbubbles, face]));
-  
-
+  const reducer = xs.never();
   return {
     DOM: vdom$,
-    TabletFace: sources.FacialExpressionAction.output,
-    targets: {  // will be imitating "proxies"
-      TwoSpeechbubblesAction: speechbubbles$,
-      FacialExpressionAction: expression$,
-    },
-  }
+    state: reducer,
+  };
 }
 
-run(powerup(main, (proxy, target) => proxy.imitate(target)), {
+run(withState(main), {
   DOM: makeDOMDriver('#app'),
   TabletFace: makeTabletFaceDriver(),
 });
