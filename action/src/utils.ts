@@ -1,10 +1,27 @@
-import {GoalID, Goal, GoalStatus, Result} from './types'
+import {GoalID, Goal, Status, GoalStatus, Result} from './types'
 
 export function generateGoalID(): GoalID {
   const now = new Date();
   return {
     stamp: now,
     id: `${Math.random().toString(36).substring(2)}-${now.getTime()}`,
+  };
+}
+
+export function generateGoalStatus(options?): GoalStatus {
+  if (!options) options = {};
+  return {
+    goal_id: generateGoalID(),
+    status: typeof options.status !== 'undefined'
+      ? options.status : Status.SUCCEEDED,
+  };
+}
+
+export function generateResult(options?): Result{
+  if (!options) options = {};
+  return {
+    status: generateGoalStatus(options.status),
+    result: typeof options.result !== 'undefined' ? options.result : null,
   };
 }
 
