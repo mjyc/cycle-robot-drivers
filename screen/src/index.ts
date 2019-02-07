@@ -15,11 +15,10 @@ export {
   SpeechbubbleAction,
   IsolatedSpeechbubbleAction,
 } from './SpeechbubbleAction';
-export {
-  Sources as TwoSpeechbubblesActionSources,
-  Sinks as TwoSpeechbubblesActionSinks,
-  TwoSpeechbubblesType,
-  makeTwoSpeechbubblesAction,
-  TwoSpeechbubblesAction,
-  IsolatedTwoSpeechbubblesAction,
-} from './TwoSpeechbubblesAction';
+// export {
+//   Sources as TwoSpeechbubblesActionSources,
+//   Sinks as TwoSpeechbubblesActionSinks,
+//   TwoSpeechbubblesType,
+//   TwoSpeechbubblesAction,
+//   IsolatedTwoSpeechbubblesAction,
+// } from './TwoSpeechbubblesAction';

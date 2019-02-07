@@ -1,10 +1,12 @@
 import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
 import {Stream} from 'xstream';
-import {adapt} from '@cycle/run/lib/adapt';
+import {span, button, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
-import {span, button, DOMSource, style} from '@cycle/dom';
 import {
-  GoalID, Goal, Status, Result, ActionSinks, initGoal,
+  GoalID, Goal, Status, GoalStatus, Result,
+  ActionSources, ActionSinks,
+  isEqualGoalStatus
 } from '@cycle-robot-drivers/action';
 
 
@@ -20,19 +22,17 @@ type Variables = {
 };
 
 type Outputs = {
-  DOM: {
-    goal: any,
-  },
+  DOM: VNode,
   result: Result,
 };
 
-type Machine = {
+type ReducerState = {
   state: State,
   variables: Variables,
   outputs: Outputs,
 };
 
-type Reducer = (machine?: Machine) => Machine | undefined;
+type Reducer = (prev?: ReducerState) => ReducerState | undefined;
 
 enum InputType {
   GOAL = 'GOAL',
@@ -42,17 +42,8 @@ enum InputType {
 
 type Input = {
   type: InputType,
-  value: Goal,
+  value: Goal | string,
 };
-
-export interface Sources {
-  goal: any,
-  DOM: DOMSource,
-}
-
-export interface Sinks extends ActionSinks {
-  DOM: any,
-}
 
 export enum SpeechbubbleType {
   MESSAGE = 'MESSAGE',
@@ -60,33 +51,28 @@ export enum SpeechbubbleType {
 }
 
 
-function input(goal$: Stream<any>, clickEvent$: Stream<any>): Stream<Input> {
+function input(
+  goal$: Stream<Goal>,
+  cancel$: Stream<GoalID>,
+  clickEvent$: Stream<any>,
+): Stream<Input> {
   return xs.merge(
-    goal$.filter(goal => typeof goal !== 'undefined').map(goal => {
-      if (goal === null) {
-        return {
-          type: InputType.CANCEL,
-          value: null,  // means "cancel"
-        };
-      } else {
-        const value = !!(goal as any).goal_id ? goal : initGoal(goal);
-        return {
-          type: InputType.GOAL,
-          value: typeof value.goal === 'string'
-            ? {
-              goal_id: value.goal_id,
-              goal: {type: SpeechbubbleType.MESSAGE, value: value.goal},
-            } : Array.isArray(value.goal)
-              ? {
-                goal_id: value.goal_id,
-                goal: {type: SpeechbubbleType.CHOICE, value: value.goal},
-              } : value.goal,  // {type: string, value: string | [string]}
-        };
-      }
-    }),
+    goal$.map(goal => ({
+      type: InputType.GOAL,
+      value: typeof goal.goal === 'string'
+        ? {
+          goal_id: goal.goal_id,
+          goal: {type: SpeechbubbleType.MESSAGE, value: goal.goal},
+        } : Array.isArray(goal.goal)
+          ? {
+            goal_id: goal.goal_id,
+            goal: {type: SpeechbubbleType.CHOICE, value: goal.goal},
+          } : goal.goal,  // {type: string, value: string | [string]}
+      })),
+    cancel$.mapTo({type: InputType.CANCEL, value: null}),
     clickEvent$.map(event => ({
       type: InputType.CLICK,
-      value: (event.target as HTMLButtonElement).textContent as any
+      value: (event.target as HTMLButtonElement).textContent
     })),
   );
 }
@@ -135,16 +121,14 @@ function createTransition(options: {
           newGoal: null,
         },
         outputs: {
-          DOM: {
-            goal: inputValue.goal.type === SpeechbubbleType.MESSAGE
-              ? span({style: styles.message}, inputValue.goal.value)
-              : inputValue.goal.type === SpeechbubbleType.CHOICE
-                ? span(
-                  inputValue.goal.value.map(text => button(
-                    '.choice', {style: styles.button}, text,
-                  ))
-                ) : ''
-          },
+          DOM: inputValue.goal.type === SpeechbubbleType.MESSAGE
+            ? span({style: styles.message}, inputValue.goal.value)
+            : inputValue.goal.type === SpeechbubbleType.CHOICE
+              ? span(
+                inputValue.goal.value.map(text => button(
+                  '.choice', {style: styles.button}, text,
+                ))
+              ) : '',
         },
       }),
     },
@@ -157,15 +141,13 @@ function createTransition(options: {
           newGoal: null,
         },
         outputs: {
-          DOM: {
-            goal: inputValue.goal.type === SpeechbubbleType.MESSAGE
-              ? span({style: styles.message}, inputValue.goal.value)
-              : inputValue.goal.type === SpeechbubbleType.CHOICE
-                ? span(
-                  inputValue.goal.value.map(text => button(
-                    '.choice', {style: styles.button}, text))
-                ) : ''
-          },
+          DOM: inputValue.goal.type === SpeechbubbleType.MESSAGE
+            ? span({style: styles.message}, inputValue.goal.value)
+            : inputValue.goal.type === SpeechbubbleType.CHOICE
+              ? span(
+                inputValue.goal.value.map(text => button(
+                  '.choice', {style: styles.button}, text))
+              ) : '',
           result: {
             status: {
               goal_id: variables.goal_id,
@@ -183,9 +165,7 @@ function createTransition(options: {
           newGoal: null,
         },
         outputs: {
-          DOM: {
-            goal: '',
-          },
+          DOM: '',
           result: {
             status: {
               goal_id: variables.goal_id,
@@ -205,9 +185,7 @@ function createTransition(options: {
             newGoal: null,
           },
           outputs: {
-            DOM: {
-              goal: '',
-            },
+            DOM: '',
             result: {
               status: {
                 goal_id: variables.goal_id,
@@ -216,7 +194,7 @@ function createTransition(options: {
               result: inputValue,
             }
           },
-        } : null,  // use prev machine
+        } : null,  // use prev
     }
   };
 
@@ -232,7 +210,7 @@ function createTransition(options: {
 
 function transitionReducer(input$: Stream<Input>, options = {}): Stream<Reducer> {
   const initReducer$: Stream<Reducer> = xs.of(
-    function initReducer(machine: Machine): Machine {
+    function initReducer(prev: ReducerState): ReducerState {
       return {
         state: State.DONE,
         variables: {
@@ -247,51 +225,67 @@ function transitionReducer(input$: Stream<Input>, options = {}): Stream<Reducer>
 
   const transition = createTransition(options);
   const inputReducer$: Stream<Reducer> = input$
-    .map(input => function inputReducer(machine: Machine): Machine {
-      return transition(machine.state, machine.variables, input);
+    .map(input => function inputReducer(prev: ReducerState): ReducerState {
+      return transition(prev.state, prev.variables, input);
     });
 
   return xs.merge(initReducer$, inputReducer$);
 }
 
-function output(machine$) {
-  const outputs$ = machine$
-    .filter(machine => !!machine.outputs)
-    .map(machine => machine.outputs);
-
-  return {
-    DOM: adapt(outputs$
-      .filter(outputs => !!outputs.DOM)
-      .map(outputs => outputs.DOM.goal).startWith('')
-    ),
-    result: adapt(outputs$
-      .filter(outputs => !!outputs.result)
-      .map(outputs => outputs.result)
-    ),
+function status(reducerState$): Stream<GoalStatus> {
+  const active$: Stream<GoalStatus> = reducerState$
+    .filter(rs => rs.state === State.RUNNING)
+    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
+  const done$: Stream<GoalStatus> = reducerState$
+    .filter(rs => !!rs.result)
+    .map(rs => rs.result.status);
+  const initGoalStatus: GoalStatus = {
+    goal_id: null,
+    status: Status.SUCCEEDED,
   };
+  return xs.merge(active$, done$)
+    .compose(dropRepeats(isEqualGoalStatus))
+    .startWith(initGoalStatus);
 }
 
+function output(reducerState$) {
+  const outputs$ = reducerState$
+    .filter(rs => !!rs.outputs)
+    .map(rs => rs.outputs);
+  return {
+    result: outputs$
+      .filter(o => !!o.result)
+      .map(o => o.result),
+    DOM: outputs$
+      .map(o => o.DOM)
+      .startWith('')
+  };
+};
+
+
+export interface Sources  extends ActionSources {
+  DOM: DOMSource,
+}
+
+export interface Sinks extends ActionSinks {
+  DOM: Stream<VNode>,
+}
 
 export function makeSpeechbubbleAction(options = {}) {
   return function SpeechbubbleAction(sources: Sources): Sinks {
     const input$ = input(
-      xs.fromObservable(sources.goal),
-      xs.fromObservable(
-        // IMPORTANT!! This makes the click stream always exist.
-        sources.DOM.select('.choice').elements()
-          .map(b => sources.DOM.select('.choice').events('click', {
-            preventDefault: true
-          }))
-          .flatten()
-      ),
+      sources.goal,
+      sources.cancel,
+      sources.DOM.select('.choice').events('click'),
     );
-
-    const machine$ = transitionReducer(input$, options)
-      .fold((state: Machine, reducer: Reducer) => reducer(state), null)
-      .drop(1);  // drop "null";
-
-    const sinks = output(machine$);
-    return sinks;
+    const reducer = transitionReducer(input$);;
+    const status$ = status(sources.state.stream);
+    const outputs = output(sources.state.stream);
+    return {
+      state: reducer,
+      status: status$,
+      ...outputs
+    };
   }
 }
 
@@ -300,16 +294,19 @@ export function makeSpeechbubbleAction(options = {}) {
  *
  * @param sources
  *
- *   * goal: a stream of `null` (as "cancel"),
- *     `{type: 'MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
- *     "message"), or `{type: 'CHOICE', value: ['Hello', 'World']}`
+ *   * goal: a stream of `{type: 'MESSAGE', value: 'Hello world'}`
+ *     or `'Hello world'` (as "message"),
+ *     or `{type: 'CHOICE', value: ['Hello', 'World']}`
  *     or `['Hello', 'World']` (as "multiple choice").
+ *   * cancel: a stream of `GoalID`
  *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
  *
  * @return sinks
  *
- *   * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
- *   * result: a stream of action results.
+ *   * state: a reducer stream.
+ *   * status: a stream of action status.
+ *   * result: a stream of action results. `result.result` is always `null`.
+ *   * DOM: a stream of virtual DOM objects, i.e, [Snabbdom "VNode" objects](https://github.com/snabbdom/snabbdom).
  *
  */
 export let SpeechbubbleAction = makeSpeechbubbleAction();

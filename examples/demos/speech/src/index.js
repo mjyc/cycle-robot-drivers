@@ -26,9 +26,9 @@ function main(sources) {
     .map(([_, text]) => ({goal_id: `${new Date().getTime()}`, goal: text}));
   const speechSynthesisAction = isolate(SpeechSynthesisAction)({
     state: sources.state,
+    SpeechSynthesis: sources.SpeechSynthesis,
     goal: synthGoal$,
     cancel: xs.never(),
-    SpeechSynthesis: sources.SpeechSynthesis,
   });
   speechSynthesisAction.status.addListener({next: s =>
     console.log('SpeechSynthesisAction status', s)});

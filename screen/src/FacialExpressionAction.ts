@@ -1,4 +1,4 @@
-import xs from 'xstream';
+import xs, {Stream} from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {adapt} from '@cycle/run/lib/adapt';
 import {
@@ -11,26 +11,28 @@ export interface Sources {
   TabletFace: any
 }
 
-export interface Sinks extends ActionSinks {
-  output: any,
+export interface Sinks {
+  output: Stream<any>,
+  status: Stream<any>,
+  result: Stream<any>,
 };
 
 /**
  * FacialExpression action component.
- * 
+ *
  * @param sources
- * 
+ *
  *   * goal: a stream of `null` (as "cancel") or a string '`happy'`, '`sad'`,
  *     '`angry'`, '`focused'`, or '`confused'` (as the TabletFace driver's
  *     `EXPRESS` type command value).
  *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
- * 
+ *
  * @return sinks
- * 
+ *
  *   * output: a stream for the TabletFace driver.
  *   * status: depreciated.
  *   * result: a stream of action results. `result.result` is always `null`.
- * 
+ *
  */
 export function FacialExpressionAction(sources: Sources): Sinks {
   // Create action stream
