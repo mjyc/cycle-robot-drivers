@@ -1,5 +1,6 @@
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
+import isolate from '@cycle/isolate';
 import {run} from '@cycle/run';
 import {withState} from '@cycle/state';
 import {div, label, input, br, button, makeDOMDriver, source} from '@cycle/dom';
@@ -12,6 +13,8 @@ import {
 import {Status} from '../../../../action/lib/cjs';
 
 function main(sources) {
+  sources.state.stream.addListener({next: s => console.log('reducer state', s)});
+
   const say$ = sources.DOM.select('.say').events('click');
   const inputText$ = sources.DOM
     .select('.inputtext').events('input')
@@ -20,7 +23,7 @@ function main(sources) {
   const synthGoal$ = say$.compose(sampleCombine(inputText$))
     .filter(([_, text]) => !!text)
     .map(([_, text]) => ({goal_id: `${new Date().getTime()}`, goal: text}));
-  const speechSynthesisAction = SpeechSynthesisAction({
+  const speechSynthesisAction = isolate(SpeechSynthesisAction)({
     state: sources.state,
     goal: synthGoal$,
     cancel: xs.never(),
@@ -31,7 +34,7 @@ function main(sources) {
 
   const recogGoal$ = sources.DOM.select('#listen').events('click')
     .mapTo({goal_id: `${new Date().getTime()}`, goal: {}});
-  const speechRecognitionAction = SpeechRecognitionAction({
+  const speechRecognitionAction = isolate(SpeechRecognitionAction)({
     state: sources.state,
     goal: recogGoal$,
     cancel: xs.never(),
