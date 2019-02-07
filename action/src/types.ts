@@ -1,3 +1,6 @@
+import Stream from 'xstream';
+import {StateSource} from '@cycle/state';
+
 export type GoalID = {
   stamp: Date,
   id: string,
@@ -26,11 +29,18 @@ export type Result = {
 };
 
 
+export interface ActionSources {
+  state: StateSource<any>,  // Stream<any>
+  goal: Stream<Goal>,
+  cancel: Stream<GoalID>,
+}
+
 export interface ActionSinks {
-  feedback?: any,
-  status?: any,  // NOTE: plan to remove after refactoring AudioPlayerAction and FacialExpressionAction
-  result: any,
-};
+  state: Stream<any>,
+  feedback?: Stream<any>,
+  status: Stream<GoalStatus>,
+  result: Stream<Result>,
+}
 
 
 export interface EventSource {
