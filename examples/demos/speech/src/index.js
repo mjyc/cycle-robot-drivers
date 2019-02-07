@@ -1,6 +1,7 @@
 import xs from 'xstream';
 import {run} from '@cycle/run';
-import {div, label, input, br, h1, button, makeDOMDriver} from '@cycle/dom';
+import {withState} from '@cycle/state';
+import {div, label, input, br, button, makeDOMDriver} from '@cycle/dom';
 import {
   makeSpeechSynthesisDriver,
   SpeechSynthesisAction2,
@@ -25,18 +26,22 @@ function main(sources) {
   const click$ = sources.DOM.select('.say').events('click');
 
   const speechSynthesisAction = SpeechSynthesisAction2({
+    state: sources.state,
     goal: click$.mapTo({goal_id: 'test', goal: 'Hello'}), //xs.never(),
     cancel: xs.never(),
     SpeechSynthesis: sources.SpeechSynthesis,
   });
 
+  sources.state.stream.addListener({next: s => console.log(s)});
+
   return {
     DOM: vdom$,
     SpeechSynthesis: speechSynthesisAction.SpeechSynthesis,
+    state: speechSynthesisAction.state,
   };
 }
 
-run(main, {
+run(withState(main), {
   DOM: makeDOMDriver('#app'),
   SpeechSynthesis: makeSpeechSynthesisDriver(),
   SpeechRecognition: makeSpeechRecognitionDriver(),
