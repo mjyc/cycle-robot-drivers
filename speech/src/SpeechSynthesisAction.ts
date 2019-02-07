@@ -1,9 +1,11 @@
 import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {Stream} from 'xstream';
-import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, Status, GoalStatus, Result, ActionSources, ActionSinks, EventSource, initGoal,
+  GoalID, Goal, Status, GoalStatus, Result,
+  ActionSources, ActionSinks,
+  EventSource,
+  initGoal, isEqualGoalStatus
 } from '@cycle-robot-drivers/action';
 import {UtteranceArg} from './makeSpeechSynthesisDriver';
 
@@ -20,7 +22,7 @@ type Variables = {
 };
 
 type Outputs = {
-  args: any,
+  SpeechSynthesis: UtteranceArg,
 };
 
 type ReducerState = {
@@ -44,32 +46,7 @@ type Input = {
   value: Goal,
 };
 
-export interface Sources {
-  goal: any,
-  SpeechSynthesis: EventSource,
-}
-
-export interface Sinks extends ActionSinks {
-  output: any,
-};
-
-export interface ActionSinks2 {
-  state: any,
-  feedback?: Stream<any>,
-  status: Stream<GoalStatus>,
-  result: Stream<Result>,
-}
-
-//------------------------------------------------------------------------------
-export interface Sources2 extends ActionSources {
-  SpeechSynthesis: EventSource,
-}
-
-export interface Sinks2 extends ActionSinks2 {
-  SpeechSynthesis: Stream<UtteranceArg>,
-};
-
-function input2(
+function input(
   goal$: Stream<Goal>,
   cancel$: Stream<GoalID>,
   startEvent$: Stream<any>,
@@ -107,16 +84,9 @@ const transitionTable = {
   }
 };
 
-type ReducerState2 = {
-  state: State,
-  variables: Variables,
-  outputs: any,
-  result: Result,
-};
-
 function transition(
   prevState: State, prevVariables: Variables, input: Input
-): ReducerState2 {
+): ReducerState {
   const states = transitionTable[prevState];
   if (!states) {
     throw new Error(`Invalid prevState="${prevState}"`);
@@ -189,7 +159,7 @@ function transition(
         state: state,
         variables: prevVariables,
         outputs: {
-          args: null,
+          SpeechSynthesis: null,
         },
         result: null,
       };
@@ -204,7 +174,7 @@ function transition(
   };
 }
 
-function transitionReducer2(input$: Stream<Input>): Stream<Reducer> {
+function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   const initReducer$ = xs.of(
     function initReducer(prev) {
       return {
@@ -227,24 +197,56 @@ function transitionReducer2(input$: Stream<Input>): Stream<Reducer> {
   return xs.merge(initReducer$, inputReducer$);
 }
 
-export function SpeechSynthesisAction(sources: Sources2): Sinks2 {
-  // const outputs = output(sources.state.stream);
+export interface Sources extends ActionSources {
+  SpeechSynthesis: EventSource,
+}
 
-  const input$ = input2(
+export interface Sinks extends ActionSinks {
+  SpeechSynthesis: Stream<UtteranceArg>,
+};
+
+function status(reducerState$): Stream<GoalStatus> {
+  const active$: Stream<GoalStatus> = reducerState$
+    .filter(rs => rs.state === State.RUNNING)
+    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
+  const done$: Stream<GoalStatus> = reducerState$
+    .filter(rs => !!rs.result)
+    .map(rs => rs.result.status);
+  const initGoalStatus: GoalStatus = {
+    goal_id: null,
+    status: Status.SUCCEEDED,
+  };
+  return xs.merge(active$, done$)
+    .compose(dropRepeats(isEqualGoalStatus))
+    .startWith(initGoalStatus);
+}
+
+function output(reducerState$) {
+  const outputs$ = reducerState$
+    .filter(rs => !!rs.outputs)
+    .map(rs => rs.outputs);
+  return {
+    SpeechSynthesis: outputs$
+      .map(o => o.SpeechSynthesis)
+  };
+};
+
+export function SpeechSynthesisAction(sources: Sources): Sinks {
+  const input$ = input(
     xs.fromObservable(sources.goal),
     xs.fromObservable(sources.cancel),
     xs.fromObservable(sources.SpeechSynthesis.events('start')),
     xs.fromObservable(sources.SpeechSynthesis.events('end')),
   );
+  const reducer = transitionReducer(input$);
 
-  const reducer = transitionReducer2(input$);
-
+  const result$ = sources.state.stream.map(rs => rs.result).filter(rs => !!rs);
+  const status$ = status(sources.state.stream);
+  const outputs = output(sources.state.stream);
   return {
     state: reducer,
-    status: xs.never(),
-    result: sources.state.stream.map(rs => rs.result),
-    SpeechSynthesis: sources.state.stream.debug()  // TODO: create more abstract function
-      .filter(rs => !!rs.outputs)
-      .map(rs => rs.outputs.SpeechSynthesis),
+    status: status$,
+    result: result$,
+    ...outputs
   };
 }
