@@ -5,7 +5,7 @@ import {
   GoalID, Goal, Status, GoalStatus, Result,
   ActionSources, ActionSinks,
   EventSource,
-  initGoal, isEqualGoalStatus
+  isEqualGoalStatus
 } from '@cycle-robot-drivers/action';
 import {UtteranceArg} from './makeSpeechSynthesisDriver';
 
