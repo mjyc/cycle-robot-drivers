@@ -5,15 +5,15 @@ import {
   GoalID, Goal, Status, GoalStatus, Result,
   ActionSources, ActionSinks,
   EventSource,
-  isEqualGoalStatus
+  generateGoalStatus, isEqualGoalStatus
 } from '@cycle-robot-drivers/action';
 import {UtteranceArg} from './makeSpeechSynthesisDriver';
 
 
 enum State {
-  RUNNING = 'RUNNING',
-  DONE = 'DONE',
-  PREEMPTING = 'PREEMPTING',
+  RUN = 'RUN',
+  WAIT = 'WAIT',
+  PREEMPT = 'PREEMPT',
 }
 
 type Variables = {
@@ -23,13 +23,13 @@ type Variables = {
 
 type Outputs = {
   SpeechSynthesis: UtteranceArg,
+  result: Result,
 };
 
 type ReducerState = {
   state: State,
   variables: Variables,
   outputs: Outputs,
-  result: Result,
 };
 
 type Reducer = (prev?: ReducerState) => ReducerState | undefined;
@@ -70,17 +70,17 @@ function input(
 }
 
 const transitionTable = {
-  [State.DONE]: {
-    [InputType.GOAL]: State.RUNNING,
+  [State.WAIT]: {
+    [InputType.GOAL]: State.RUN,
   },
-  [State.RUNNING]: {
-    [InputType.GOAL]: State.PREEMPTING,
-    [InputType.CANCEL]: State.PREEMPTING,
-    [InputType.START]: State.RUNNING,
-    [InputType.END]: State.DONE,
+  [State.RUN]: {
+    [InputType.GOAL]: State.PREEMPT,
+    [InputType.CANCEL]: State.PREEMPT,
+    [InputType.START]: State.RUN,
+    [InputType.END]: State.WAIT,
   },
-  [State.PREEMPTING]: {
-    [InputType.END]: State.DONE,
+  [State.PREEMPT]: {
+    [InputType.END]: State.WAIT,
   }
 };
 
@@ -99,7 +99,7 @@ function transition(
     state = prevState;
   }
 
-  if (prevState === State.DONE && state === State.RUNNING) {
+  if (prevState === State.WAIT && state === State.RUN) {
     // Start a new goal
     const goal = input.value;
     return {
@@ -109,36 +109,36 @@ function transition(
         newGoal: null,
       },
       outputs: {
-        SpeechSynthesis: goal.goal
+        SpeechSynthesis: goal.goal,
+        result: null,
       },
-      result: null,
     };
-  } else if (state === State.DONE) {
-    if (prevState === State.RUNNING || prevState === State.PREEMPTING) {
+  } else if (state === State.WAIT) {
+    if (prevState === State.RUN || prevState === State.PREEMPT) {
       // Stop the current goal and start the queued new goal
       const newGoal = prevVariables.newGoal;
       return {
-        state: !!newGoal ? State.RUNNING : state,
+        state: !!newGoal ? State.RUN : state,
         variables: {
           goal_id: !!newGoal ? newGoal.goal_id : null,
           newGoal: null,
         },
-        outputs: !!newGoal ? {
-          SpeechSynthesis: newGoal.goal,
-        } : null,
-        result: {
-          status: {
-            goal_id: prevVariables.goal_id,
-            status: prevState === State.RUNNING
-              ? Status.SUCCEEDED : Status.PREEMPTED,
+        outputs: {
+          SpeechSynthesis: !!newGoal ? newGoal.goal : undefined,
+          result: {
+            status: {
+              goal_id: prevVariables.goal_id,
+              status: prevState === State.RUN
+                ? Status.SUCCEEDED : Status.PREEMPTED,
+            },
+            result: null,
           },
-          result: null,
         },
       };
     }
   } else if (
-    (prevState === State.RUNNING || prevState === State.PREEMPTING)
-    && state === State.PREEMPTING
+    (prevState === State.RUN || prevState === State.PREEMPT)
+    && state === State.PREEMPT
   ) {
     if (input.type === InputType.GOAL || input.type === InputType.CANCEL) {
       // Start stopping the current goal and queue a new goal if received one
@@ -150,8 +150,8 @@ function transition(
         },
         outputs: {
           SpeechSynthesis: null,
-        },
-        result: null,
+          result: null,
+        }
       }
     }
     if (input.type === InputType.START) {
@@ -160,8 +160,8 @@ function transition(
         variables: prevVariables,
         outputs: {
           SpeechSynthesis: null,
+          result: null,
         },
-        result: null,
       };
     }
   }
@@ -170,7 +170,6 @@ function transition(
     state: prevState,
     variables: prevVariables,
     outputs: null,
-    result: null,
   };
 }
 
@@ -178,13 +177,12 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   const initReducer$ = xs.of(
     function initReducer(prev) {
       return {
-        state: State.DONE,
+        state: State.WAIT,
         variables: {
           goal_id: null,
           newGoal: null,
         },
         outputs: null,
-        result: null,
       }
     }
   );
@@ -199,15 +197,12 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 
 function status(reducerState$): Stream<GoalStatus> {
   const active$: Stream<GoalStatus> = reducerState$
-    .filter(rs => rs.state === State.RUNNING)
+    .filter(rs => rs.state === State.RUN)
     .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
   const done$: Stream<GoalStatus> = reducerState$
-    .filter(rs => !!rs.result)
-    .map(rs => rs.result.status);
-  const initGoalStatus: GoalStatus = {
-    goal_id: null,
-    status: Status.SUCCEEDED,
-  };
+    .filter(rs => !!rs.outputs && !!rs.outputs.result)
+    .map(rs => rs.outputs.result.status);
+  const initGoalStatus = generateGoalStatus({status: Status.SUCCEEDED});
   return xs.merge(active$, done$)
     .compose(dropRepeats(isEqualGoalStatus))
     .startWith(initGoalStatus);
@@ -218,8 +213,11 @@ function output(reducerState$) {
     .filter(rs => !!rs.outputs)
     .map(rs => rs.outputs);
   return {
+    result: outputs$
+      .filter(o => !!o.result)
+      .map(o => o.result),
     SpeechSynthesis: outputs$
-      .map(o => o.SpeechSynthesis)
+      .map(o => o.SpeechSynthesis),
   };
 };
 
@@ -259,13 +257,11 @@ export function SpeechSynthesisAction(sources: Sources): Sinks {
   );
   const reducer = transitionReducer(input$);
 
-  const result$ = sources.state.stream.map(rs => rs.result).filter(rs => !!rs);
   const status$ = status(sources.state.stream);
   const outputs = output(sources.state.stream);
   return {
     state: reducer,
     status: status$,
-    result: result$,
     ...outputs
   };
 }
