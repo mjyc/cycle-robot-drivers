@@ -14,6 +14,7 @@ export {
   initGoal,
   isEqual,
   isEqualGoal,
+  isEqualGoalStatus,
   isEqualResult,
   powerup,
 } from './utils';

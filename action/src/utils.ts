@@ -1,4 +1,4 @@
-import {GoalID, Goal, Result} from './types'
+import {GoalID, Goal, GoalStatus, Result} from './types'
 
 export function generateGoalID(): GoalID {
   const now = new Date();
@@ -36,14 +36,19 @@ export function isEqualGoal(first: Goal, second: Goal) {
   return isEqual(first.goal_id, second.goal_id);
 }
 
+export function isEqualGoalStatus(first: GoalStatus, second: GoalStatus) {
+  return (
+    isEqual(first.goal_id, second.goal_id)
+    && first.status === second.status
+  );
+}
+
 export function isEqualResult(first: Result, second: Result) {
   if (!first || !second) {
     return false;
   }
-  return (
-    isEqual(first.status.goal_id, second.status.goal_id)
-    && first.status.status === second.status.status
-  );
+  // doesn't compare .result yet
+  return isEqualGoalStatus(first.status, second.status);
 }
 
 export function powerup(
