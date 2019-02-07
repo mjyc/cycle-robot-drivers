@@ -3,18 +3,19 @@ import sampleCombine from 'xstream/extra/sampleCombine';
 import isolate from '@cycle/isolate';
 import {run} from '@cycle/run';
 import {withState} from '@cycle/state';
-import {div, label, input, br, button, makeDOMDriver, source} from '@cycle/dom';
+import {div, label, input, br, button, makeDOMDriver} from '@cycle/dom';
+import {Status} from '@cycle-robot-drivers/action';
 import {
   makeSpeechSynthesisDriver,
   SpeechSynthesisAction,
   makeSpeechRecognitionDriver,
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
-import {Status} from '../../../../action/lib/cjs';
 
 function main(sources) {
   sources.state.stream.addListener({next: s => console.log('reducer state', s)});
 
+  // speech synthesis
   const say$ = sources.DOM.select('.say').events('click');
   const inputText$ = sources.DOM
     .select('.inputtext').events('input')
@@ -32,6 +33,7 @@ function main(sources) {
   speechSynthesisAction.status.addListener({next: s =>
     console.log('SpeechSynthesisAction status', s)});
 
+  // speech recognition
   const recogGoal$ = sources.DOM.select('#listen').events('click')
     .mapTo({goal_id: `${new Date().getTime()}`, goal: {}});
   const speechRecognitionAction = isolate(SpeechRecognitionAction)({
@@ -44,6 +46,7 @@ function main(sources) {
     console.log('SpeechRecognitionAction status', s)});
 
 
+  // UI
   const vdom$ = speechRecognitionAction.result
     .filter(r => r.status.status === Status.SUCCEEDED)
     .startWith({result: ''})
