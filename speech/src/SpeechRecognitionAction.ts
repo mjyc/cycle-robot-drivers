@@ -266,13 +266,14 @@ export interface Sinks extends ActionSinks {
  *
  * @param sources
  *
- *   * goal: a stream of `null` (as "cancel") or `SpeechRecognition`
- *     properties (as "goal").
+ *   * goal: a stream `SpeechRecognition` properties.
+ *   * cancel: a stream of `GoalID`.
  *   * SpeechSynthesis: `EventSource` for `start`, `end`, `error`, `result`
  *     events.
  *
  * @return sinks
  *
+ *   * state: a reducer stream.
  *   * output: a stream for the SpeechRecognition driver input.
  *   * result: a stream of action results. `result.result` is a transcript from
  *     the recognition; it will be `''` for non-speech inputs.

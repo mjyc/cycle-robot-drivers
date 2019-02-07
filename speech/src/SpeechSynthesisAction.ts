@@ -231,6 +231,25 @@ function output(reducerState$) {
   };
 };
 
+/**
+ * Web Speech API's [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
+ * action component.
+ *
+ * @param sources
+ *
+ *   * goal: a stream of `SpeechSynthesisUtterance` properties.
+ *   * cancel: a stream of `GoalID`.
+ *   * SpeechSynthesis: `EventSource` for `start` and `end` events.
+ *
+ * @return sinks
+ *
+ *   * state: a reducer stream.
+ *   * status: a stream of action status.
+ *   * result: a stream of action results. `result.result` is always `null`.
+ *   * SpeechSynthesis: a stream for the SpeechSynthesis driver input.
+ *
+ */
+
 export function SpeechSynthesisAction(sources: Sources): Sinks {
   const input$ = input(
     xs.fromObservable(sources.goal),
