@@ -7,6 +7,6 @@ export {
 export {makeSpeechRecognitionDriver} from './makeSpeechRecognitionDriver';
 export {
   Sources as SpeechRecognitionActionSources,
-  // Sinks as SpeechRecognitionActionSinks,
+  Sinks as SpeechRecognitionActionSinks,
   SpeechRecognitionAction,
 } from './SpeechRecognitionAction';

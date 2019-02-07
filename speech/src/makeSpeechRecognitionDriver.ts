@@ -1,4 +1,3 @@
-import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
@@ -34,7 +33,7 @@ export type SpeechRecognitionArg = {
  *     events from [`SpeechRecognition`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Event_handlers).
  */
 export function makeSpeechRecognitionDriver(): Driver<
-  Stream<SpeechRecognitionArg>,
+  any,
   EventSource
 > {
   const recognition: SpeechRecognition = new webkitSpeechRecognition();

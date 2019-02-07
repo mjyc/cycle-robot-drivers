@@ -13,7 +13,7 @@ import {
 } from '@cycle-robot-drivers/speech';
 
 function main(sources) {
-  sources.state.stream.addListener({next: s => console.log('reducer state', s)});
+  sources.state.stream.addListener({next: s => console.debug('reducer state', s)});
 
   // speech synthesis
   const say$ = sources.DOM.select('.say').events('click');
@@ -62,7 +62,7 @@ function main(sources) {
   return {
     DOM: vdom$,
     SpeechSynthesis: speechSynthesisAction.SpeechSynthesis,
-    SpeechRecognition: speechRecognitionAction.SpeechRecognition.debug(),
+    SpeechRecognition: speechRecognitionAction.SpeechRecognition,
     state: reducer,
   };
 }

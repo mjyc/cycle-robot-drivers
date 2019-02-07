@@ -197,14 +197,6 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   return xs.merge(initReducer$, inputReducer$);
 }
 
-export interface Sources extends ActionSources {
-  SpeechSynthesis: EventSource,
-}
-
-export interface Sinks extends ActionSinks {
-  SpeechSynthesis: Stream<UtteranceArg>,
-};
-
 function status(reducerState$): Stream<GoalStatus> {
   const active$: Stream<GoalStatus> = reducerState$
     .filter(rs => rs.state === State.RUNNING)
@@ -231,6 +223,14 @@ function output(reducerState$) {
   };
 };
 
+export interface Sources extends ActionSources {
+  SpeechSynthesis: EventSource,
+}
+
+export interface Sinks extends ActionSinks {
+  SpeechSynthesis: Stream<UtteranceArg>,
+}
+
 /**
  * Web Speech API's [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
  * action component.
@@ -252,10 +252,10 @@ function output(reducerState$) {
 
 export function SpeechSynthesisAction(sources: Sources): Sinks {
   const input$ = input(
-    xs.fromObservable(sources.goal),
-    xs.fromObservable(sources.cancel),
-    xs.fromObservable(sources.SpeechSynthesis.events('start')),
-    xs.fromObservable(sources.SpeechSynthesis.events('end')),
+    sources.goal,
+    sources.cancel,
+    sources.SpeechSynthesis.events('start'),
+    sources.SpeechSynthesis.events('end'),
   );
   const reducer = transitionReducer(input$);
 

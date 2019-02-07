@@ -1,4 +1,3 @@
-import {Stream} from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
@@ -34,7 +33,7 @@ export type UtteranceArg = {
  *     events from [`SpeechSynthesisUtterance`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance#Event_handlers).
  */
 export function makeSpeechSynthesisDriver(): Driver<
-  Stream<UtteranceArg>,
+  any,
   EventSource
 > {
   const synthesis: SpeechSynthesis = window.speechSynthesis;

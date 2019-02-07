@@ -258,7 +258,7 @@ export interface Sources extends ActionSources {
 
 export interface Sinks extends ActionSinks {
   SpeechRecognition: Stream<SpeechRecognitionArg>,
-};
+}
 
 /**
  * Web Speech API's [SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
