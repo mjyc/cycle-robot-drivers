@@ -4,10 +4,10 @@ import dropRepeats from 'xstream/extra/dropRepeats';
 import pairwise from 'xstream/extra/pairwise';
 import isolate from '@cycle/isolate';
 import {
-  SpeakWithScreenAction, selectActionResult
+  FlowchartAction, SpeakWithScreenAction, selectActionResult
 } from '@cycle-robot-drivers/actionbank';
 import {Status, isEqualGoal, initGoal} from '@cycle-robot-drivers/action';
-import {FlowchartAction} from './FlowchartAction';
+// import {FlowchartAction} from './FlowchartAction';
 
 // FSM types
 export enum S {
