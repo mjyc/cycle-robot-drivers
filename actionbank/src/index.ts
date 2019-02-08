@@ -16,3 +16,8 @@ export {
   Sinks as QAWithScreenActionSinks,
   QAWithScreenAction,
 } from './QAWithScreenAction';
+export {
+  Sources as FlowchartActionSources,
+  Sinks as FlowchartActionSinks,
+  FlowchartAction,
+} from './FlowchartAction';
