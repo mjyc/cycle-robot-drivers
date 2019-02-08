@@ -1,7 +1,7 @@
 import xs from 'xstream';
 import isolate from '@cycle/isolate';
 import {Result, isEqual, Status} from '@cycle-robot-drivers/action';
-import {FlowchartAction} from './FlowchartAction';
+import {FlowchartAction} from '@cycle-robot-drivers/actionbank';
 
 export default function Robot(sources) {
   // sources.state.stream.addListener({next: s => console.log(s)})
