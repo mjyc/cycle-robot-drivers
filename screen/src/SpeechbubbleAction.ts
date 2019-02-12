@@ -2,7 +2,7 @@ import xs from 'xstream';
 import {Stream} from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import isolate from '@cycle/isolate';
-import {span, button, DOMSource} from '@cycle/dom';
+import {span, button, DOMSource, style} from '@cycle/dom';
 import {
   GoalID, Goal, Status, Result, ActionSinks, initGoal,
 } from '@cycle-robot-drivers/action';
@@ -91,12 +91,28 @@ function input(goal$: Stream<any>, clickEvent$: Stream<any>): Stream<Input> {
   );
 }
 
-function createTransition() {
+function createTransition(options: {
+  styles?: {
+    message?: object,
+    button?: object,
+  },
+} = {}) {
+  if (!options.styles) {
+    options.styles = {};
+  }
+  if (!options.styles.message) {
+    options.styles.message = {};
+  }
+  if (!options.styles.button) {
+    options.styles.button = {};
+  }
+
   const styles = {
     message: {
       fontFamily: 'helvetica',
       fontSize: '12.5vmin',
       fontWeight: 'lighter',
+      ...options.styles.message,
     },
     button: {
       margin: '0 0.25em 0.25em 0.25em',
@@ -106,7 +122,9 @@ function createTransition() {
       fontFamily: 'helvetica',
       fontSize: '10vmin',
       fontWeight: 'lighter',
+      ...options.styles.button,
     },
+    ...options.styles,
   }
   const transitionTable = {
     [State.DONE]: {
@@ -213,7 +231,7 @@ function createTransition() {
   }
 }
 
-function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
+function transitionReducer(input$: Stream<Input>, options = {}): Stream<Reducer> {
   const initReducer$: Stream<Reducer> = xs.of(
     function initReducer(machine: Machine): Machine {
       return {
@@ -228,7 +246,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
     }
   );
 
-  const transition = createTransition();
+  const transition = createTransition(options);
   const inputReducer$: Stream<Reducer> = input$
     .map(input => function inputReducer(machine: Machine): Machine {
       return transition(machine.state, machine.variables, input);
@@ -255,6 +273,29 @@ function output(machine$) {
 }
 
 
+export function makeSpeechbubbleAction(options = {}) {
+  return function SpeechbubbleAction(sources: Sources): Sinks {
+    const input$ = input(
+      xs.fromObservable(sources.goal),
+      xs.fromObservable(
+        // IMPORTANT!! This makes the click stream always exist.
+        sources.DOM.select('.choice').elements()
+          .map(b => sources.DOM.select('.choice').events('click', {
+            preventDefault: true
+          }))
+          .flatten()
+      ),
+    );
+
+    const machine$ = transitionReducer(input$, options)
+      .fold((state: Machine, reducer: Reducer) => reducer(state), null)
+      .drop(1);  // drop "null";
+
+    const sinks = output(machine$);
+    return sinks;
+  }
+}
+
 /**
  * Speechbubble action component.
  *
@@ -272,26 +313,7 @@ function output(machine$) {
  *   * result: a stream of action results.
  *
  */
-export function SpeechbubbleAction(sources: Sources): Sinks {
-  const input$ = input(
-    xs.fromObservable(sources.goal),
-    xs.fromObservable(
-      // IMPORTANT!! This makes the click stream always exist.
-      sources.DOM.select('.choice').elements()
-        .map(b => sources.DOM.select('.choice').events('click', {
-          preventDefault: true
-        }))
-        .flatten()
-    ),
-  );
-
-  const machine$ = transitionReducer(input$)
-    .fold((state: Machine, reducer: Reducer) => reducer(state), null)
-    .drop(1);  // drop "null";
-
-  const sinks = output(machine$);
-  return sinks;
-}
+export let SpeechbubbleAction = makeSpeechbubbleAction();
 
 export function IsolatedSpeechbubbleAction(sources) {
   return isolate(SpeechbubbleAction)(sources);

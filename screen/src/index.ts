@@ -11,6 +11,7 @@ export {
   Sources as SpeechbubbleActionSources,
   Sinks as SpeechbubbleActionSinks,
   SpeechbubbleType,
+  makeSpeechbubbleAction,
   SpeechbubbleAction,
   IsolatedSpeechbubbleAction,
 } from './SpeechbubbleAction';

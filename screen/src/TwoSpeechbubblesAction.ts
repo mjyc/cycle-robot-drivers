@@ -6,7 +6,7 @@ import {div, span, DOMSource} from '@cycle/dom';
 import {
   GoalID, Goal, Status, Result, ActionSinks, initGoal, isEqual,
 } from '@cycle-robot-drivers/action';
-import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction';
+import {makeSpeechbubbleAction} from './SpeechbubbleAction';
 
 
 enum State {
@@ -255,6 +255,114 @@ function output(machine$) {
 }
 
 
+export function makeTwoSpeechbubblesAction(options: {
+  styles?: {
+    outer?: any,
+    bubble?: any,
+    robotSpeechbubble?: any,
+    humanSpeechbubble?: any,
+  }
+} = {}) {
+  if (!options.styles) {
+    options.styles = {};
+  }
+  if (!options.styles.outer) {
+    options.styles.outer = {};
+  }
+  if (!options.styles.bubble) {
+    options.styles.bubble = {};
+  }
+
+  const styles = {
+    outer: {
+      position: 'absolute',
+      width: '96vw',
+      zIndex: 3,  // eyelid has zIndex of 2
+      margin: '2vw',
+      backgroundColor: 'white',
+      border: '0.2vmin solid lightgray',
+      borderRadius: '3vmin 3vmin 3vmin 3vmin',
+      ...options.styles.outer,
+    },
+    bubble: {
+      margin: 0,
+      padding: '1em',
+      maxWidth: '100%',
+      textAlign: 'center',
+      ...options.styles.bubble,
+    },
+    ...options.styles,
+  }
+
+  return function TwoSpeechbubblesAction(sources: Sources): Sinks {
+    // create proxies
+    const humanSpeechbubbleResult = xs.create();
+
+    const input$ = input(
+      xs.fromObservable(sources.goal),
+      humanSpeechbubbleResult,
+    );
+
+    const machine$ = transitionReducer(input$)
+      .fold((state: Machine, reducer: Reducer) => reducer(state), null)
+      .drop(1);  // drop "null";
+
+    const {
+      RobotSpeechbubble,
+      HumanSpeechbubble,
+      result,
+    } = output(machine$);
+
+    // create sub-components
+    const RobotSpeechbubbleAction = isolate(
+      makeSpeechbubbleAction(options.styles.robotSpeechbubble)
+    );
+    const robotSpeechbubble = RobotSpeechbubbleAction({
+      goal: RobotSpeechbubble,
+      DOM: sources.DOM,
+    });
+    const HumanSpeechbubbleAction = isolate(
+      makeSpeechbubbleAction(options.styles.humanSpeechbubble)
+    );
+    const humanSpeechbubble = HumanSpeechbubbleAction({
+      goal: HumanSpeechbubble,
+      DOM: sources.DOM,
+    });
+    // IMPORTANT!! Attach listeners to the DOM streams BEFORE connecting the
+    //   proxies to have NO QUEUE in the DOM streams.
+    robotSpeechbubble.DOM.addListener({next: value => {}});
+    humanSpeechbubble.DOM.addListener({next: value => {}});
+    // connect proxies
+    humanSpeechbubbleResult.imitate(humanSpeechbubble.result);
+
+    const vdom$ = xs.combine(robotSpeechbubble.DOM, humanSpeechbubble.DOM)
+      .map(([robotVTree, humanVTree]) => {
+        if (robotVTree === "" &&  humanVTree === "") {
+          return "";
+        } else if (robotVTree !== "" &&  humanVTree === "") {
+          return div({style: styles.outer},
+            div({style: styles.bubble}, span(robotVTree))
+          );
+        } else  if (robotVTree !== "" &&  humanVTree === "") {
+          return div({style: styles.outer},
+            div({style: styles.bubble}, span(humanVTree))
+          );
+        } else {
+          return div({style: styles.outer}, [
+            div({style: styles.bubble}, [span(robotVTree)]),
+            div({style: styles.bubble}, [span(humanVTree)]),
+          ]);
+        }
+      });
+
+
+    return {
+      DOM: vdom$,
+      result,
+    };
+  }
+}
+
 /**
  * TwoSpeechbubbles, Robot and Human, action component.
  *
@@ -272,85 +380,7 @@ function output(machine$) {
  *   * result: a stream of action results.
  *
  */
-
-export function TwoSpeechbubblesAction(sources: Sources): Sinks {
-  // create proxies
-  const humanSpeechbubbleResult = xs.create();
-
-  const input$ = input(
-    xs.fromObservable(sources.goal),
-    humanSpeechbubbleResult,
-  );
-
-  const machine$ = transitionReducer(input$)
-    .fold((state: Machine, reducer: Reducer) => reducer(state), null)
-    .drop(1);  // drop "null";
-
-  const {
-    RobotSpeechbubble,
-    HumanSpeechbubble,
-    result,
-  } = output(machine$);
-
-  // create sub-components
-  const robotSpeechbubble = IsolatedSpeechbubbleAction({
-    goal: RobotSpeechbubble,
-    DOM: sources.DOM,
-  });
-  const humanSpeechbubble = IsolatedSpeechbubbleAction({
-    goal: HumanSpeechbubble,
-    DOM: sources.DOM,
-  });
-  // IMPORTANT!! Attach listeners to the DOM streams BEFORE connecting the
-  //   proxies to have NO QUEUE in the DOM streams.
-  robotSpeechbubble.DOM.addListener({next: value => {}});
-  humanSpeechbubble.DOM.addListener({next: value => {}});
-  // connect proxies
-  humanSpeechbubbleResult.imitate(humanSpeechbubble.result);
-
-  const styles = {
-    outer: {
-      position: 'absolute',
-      width: '96vw',
-      zIndex: 3,  // eyelid has zIndex of 2
-      margin: '2vw',
-      backgroundColor: 'white',
-      border: '0.2vmin solid lightgray',
-      borderRadius: '3vmin 3vmin 3vmin 3vmin',
-    },
-    bubble: {
-      margin: 0,
-      padding: '1em',
-      maxWidth: '100%',
-      textAlign: 'center',
-    },
-  };
-  const vdom$ = xs.combine(robotSpeechbubble.DOM, humanSpeechbubble.DOM)
-    .map(([robotVTree, humanVTree]) => {
-      if (robotVTree === "" &&  humanVTree === "") {
-        return "";
-      } else if (robotVTree !== "" &&  humanVTree === "") {
-        return div({style: styles.outer},
-          div({style: styles.bubble}, span(robotVTree))
-        );
-      } else  if (robotVTree !== "" &&  humanVTree === "") {
-        return div({style: styles.outer},
-          div({style: styles.bubble}, span(humanVTree))
-        );
-      } else {
-        return div({style: styles.outer}, [
-          div({style: styles.bubble}, [span(robotVTree)]),
-          div({style: styles.bubble}, [span(humanVTree)]),
-        ]);
-      }
-    });
-
-
-  return {
-    DOM: vdom$,
-    result,
-  };
-}
+export let TwoSpeechbubblesAction = makeTwoSpeechbubblesAction();
 
 export function IsolatedTwoSpeechbubblesAction(sources) {
   return isolate(TwoSpeechbubblesAction)(sources);
