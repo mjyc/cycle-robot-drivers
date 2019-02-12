@@ -7,7 +7,7 @@ import {run} from '@cycle/run';
 import {Result, isEqualResult} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
-  IsolatedTwoSpeechbubblesAction as TwoSpeechbubblesAction,
+  makeTwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
 import {AudioPlayerAction} from '@cycle-robot-drivers/sound';
 import {
@@ -29,7 +29,8 @@ const selectActionResult = (actionName: string) =>
 export function withRobotActions(
   main,
   options?: {
-    hidePoseViz?: boolean
+    hidePoseViz?: boolean,
+    speechbubbles?: object,
   }
 ) {
   if (!main) {
@@ -64,6 +65,9 @@ export function withRobotActions(
     });
 
     // Define actions
+    const TwoSpeechbubblesAction = makeTwoSpeechbubblesAction(
+      !!options.speechbubbles ? options.speechbubbles : {}
+    );
     const facialExpressionAction: any = FacialExpressionAction({
       goal: mainSinks.FacialExpressionAction || xs.never(),
       TabletFace: sources.TabletFace,
@@ -86,6 +90,7 @@ export function withRobotActions(
     });
 
     // Define reducers
+    makeTwoSpeechbubblesAction()
     const parentReducer$: any = xs.merge(
       facialExpressionAction.result.map(result =>
         prev => ({...prev, FacialExpressionAction: {outputs: {result}}})),
@@ -113,7 +118,7 @@ export function withRobotActions(
             ? 'none' : 'block';
           return div({
             style: {position: 'relative'}
-          }, [speechbubbles, face, poseDetectionViz]);
+          }, [speechbubbles, face, poseDetectionViz] as any);
         });
     const tablet$ = !!mainSinks.TabletFace
       ? mainSinks.TabletFace : facialExpressionAction.output;

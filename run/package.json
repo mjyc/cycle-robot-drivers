@@ -10,14 +10,14 @@
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "@cycle-robot-drivers/action": "~0.0.0",
-    "@cycle-robot-drivers/screen": "~0.0.0",
-    "@cycle-robot-drivers/sound": "~0.0.0",
-    "@cycle-robot-drivers/speech": "~0.0.0",
-    "@cycle/dom": "22.0.0",
-    "@cycle/run": "5.1.0",
-    "@cycle/state": "1.1.0",
-    "cycle-posenet-driver": "~0.0.0",
+    "@cycle-robot-drivers/action": "^0.x.x",
+    "@cycle-robot-drivers/screen": "^0.x.x",
+    "@cycle-robot-drivers/sound": "^0.x.x",
+    "@cycle-robot-drivers/speech": "^0.x.x",
+    "@cycle/dom": "22.3.0",
+    "@cycle/run": "5.2.0",
+    "@cycle/state": "1.2.0",
+    "cycle-posenet-driver": "^0.x.x",
     "xstream": "11.7.0"
   },
   "scripts": {
