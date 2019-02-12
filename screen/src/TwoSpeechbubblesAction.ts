@@ -274,6 +274,7 @@ export function makeTwoSpeechbubblesAction(options: {
   }
 
   const styles = {
+    ...options.styles,
     outer: {
       position: 'absolute',
       width: '96vw',
@@ -291,7 +292,6 @@ export function makeTwoSpeechbubblesAction(options: {
       textAlign: 'center',
       ...options.styles.bubble,
     },
-    ...options.styles,
   }
 
   return function TwoSpeechbubblesAction(sources: Sources): Sinks {

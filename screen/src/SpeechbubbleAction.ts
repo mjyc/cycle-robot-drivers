@@ -108,6 +108,7 @@ function createTransition(options: {
   }
 
   const styles = {
+    ...options.styles,
     message: {
       fontFamily: 'helvetica',
       fontSize: '12.5vmin',
@@ -124,7 +125,6 @@ function createTransition(options: {
       fontWeight: 'lighter',
       ...options.styles.button,
     },
-    ...options.styles,
   }
   const transitionTable = {
     [State.DONE]: {
