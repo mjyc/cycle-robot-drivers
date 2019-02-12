@@ -90,7 +90,6 @@ export function withRobotActions(
     });
 
     // Define reducers
-    makeTwoSpeechbubblesAction()
     const parentReducer$: any = xs.merge(
       facialExpressionAction.result.map(result =>
         prev => ({...prev, FacialExpressionAction: {outputs: {result}}})),
@@ -121,7 +120,14 @@ export function withRobotActions(
           }, [speechbubbles, face, poseDetectionViz] as any);
         });
     const tablet$ = !!mainSinks.TabletFace
-      ? mainSinks.TabletFace : facialExpressionAction.output;
+      ? mainSinks.TabletFace
+      : xs.merge(
+        sources.TabletFace.load.mapTo({
+          type: 'START_BLINKING',
+          value: {maxInterval: 10000}
+        }),
+        facialExpressionAction.output,
+      );
     const audio$ = !!mainSinks.AudioPlayer
       ? mainSinks.AudioPlayer : audioPlayerAction.output;
     const synth$ = !!mainSinks.SpeechSynthesis
