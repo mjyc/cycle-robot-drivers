@@ -35,8 +35,6 @@ FacialExpression action component.
 
 <!-- Start src/SpeechbubbleAction.ts -->
 
-### SpeechbubbleAction(sources)
-
 Speechbubble action component.
 
 #### Params:
@@ -57,8 +55,6 @@ Speechbubble action component.
 <!-- End src/SpeechbubbleAction.ts -->
 
 <!-- Start src/TwoSpeechbubblesAction.ts -->
-
-### TwoSpeechbubblesAction(sources)
 
 TwoSpeechbubbles, Robot and Human, action component.
 
