@@ -19,6 +19,7 @@ export {
   Sources as TwoSpeechbubblesActionSources,
   Sinks as TwoSpeechbubblesActionSinks,
   TwoSpeechbubblesType,
+  makeTwoSpeechbubblesAction,
   TwoSpeechbubblesAction,
   IsolatedTwoSpeechbubblesAction,
 } from './TwoSpeechbubblesAction';
