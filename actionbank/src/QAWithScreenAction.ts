@@ -30,7 +30,7 @@ export interface Sinks extends Omit<QuestionAnswerActionSinks, 'state'> {
 }
 
 export function QAWithScreenAction(sources: Sources): Sinks {
-  // sources.state.stream.addListener({next: v => console.log('reducerState$', v)})
+  // sources.state.stream.addListener({next: v => console.debug('reducerState$', v)})
 
   const reducerState$ = sources.state.stream;
   const questionAnswerResult$ = reducerState$
@@ -58,14 +58,14 @@ export function QAWithScreenAction(sources: Sources): Sinks {
     QuestionAnswerAction: {result: questionAnswerResult$},
     state: sources.state,
   });
-  // raceSinks.result.addListener({next: v => console.log('raceSinks.result', v)});
+  // raceSinks.result.addListener({next: v => console.debug('raceSinks.result', v)});
   const qaSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
     goal: raceSinks.QuestionAnswerAction,
     SpeechSynthesisAction: sources.SpeechSynthesisAction,
     SpeechRecognitionAction: sources.SpeechRecognitionAction,
     state: sources.state,
   });
-  // qaSinks.result.addListener({next: v => console.log('qaSinks.result', v)});
+  // qaSinks.result.addListener({next: v => console.debug('qaSinks.result', v)});
 
   const reducer$: any = xs.merge(raceSinks.state, qaSinks.state);
 

@@ -289,7 +289,7 @@ function output(reducerState$: Stream<State>) {
 }
 
 export function FlowchartAction(sources: Sources): Sinks {
-  sources.state.stream.addListener({next: v => console.log('state$', v)})
+  // sources.state.stream.addListener({next: v => console.debug('reducerState$', v)})
 
   const qaGoalProxy$ = xs.create();
   const qaSinks = isolate(QAWithScreenAction, 'QuestionAnswerAction')({

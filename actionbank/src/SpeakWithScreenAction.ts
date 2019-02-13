@@ -26,7 +26,7 @@ export interface Sinks {
 }
 
 export function SpeakWithScreenAction(sources: Sources): Sinks {
-  sources.state.stream.addListener({next: v => console.log('reducerState$', v)})
+  // sources.state.stream.addListener({next: v => console.debug('reducerState$', v)})
 
   const goal$ = sources.goal
     .filter(g => typeof g !== 'undefined')
@@ -47,7 +47,7 @@ export function SpeakWithScreenAction(sources: Sources): Sinks {
     SpeechSynthesisAction: sources.SpeechSynthesisAction,
     state: sources.state,
   });
-  // raceSinks.result.addListener({next: v => console.log('raceSinks.result', v)});
+  // raceSinks.result.addListener({next: v => console.debug('raceSinks.result', v)});
 
   const reducer$: any = raceSinks.state;
 
