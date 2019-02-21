@@ -270,36 +270,43 @@ type Command = {
  *
  * @param options possible key includes
  *
- *   * styles {object} A group of optional face style parameters:
- *     * faceColor {string} (default: 'whitesmoke')
- *     * faceHeight {string} (default: '100vh')
- *     * faceWidth {string} (default: '100vw')
- *     * eyeColor {string} (default: 'black')
- *     * eyeSize {string} (default: '33.33vmin')
- *     * eyelidColor {string} (default: 'whitesmoke')
+ *   * styles {object} A group of optional style parameters
  *
  * @return {Driver} the TabletFace Cycle.js driver function. It takes a stream
  *   of `Command` and returns `DOM`, animationFinish`, and `load` streams.
  */
-export function makeTabletFaceDriver({
-  styles: {
-    faceColor = 'whitesmoke',
-    faceHeight = '100vh',
-    faceWidth = '100vw',
-    eyeColor = 'black',
-    eyeSize = '33.33vmin',
-    eyelidColor = 'whitesmoke',
-  } = {},
-}: {
-  styles?: {
-    faceColor?: string,
-    faceHeight?: string,
-    faceWidth?: string,
-    eyeColor?: string,
-    eyeSize?: string,
-    eyelidColor?: string,
-  },
-} = {}) {
+export function makeTabletFaceDriver(options) {
+  if (!options.styles) {
+    options.styles = {};
+  }
+  const faceColor = options.styles.faceColor || 'whitesmoke';
+  const faceHeight = options.styles.faceHeight || '100vh'
+  const faceWidth = options.styles.faceWidth || '100vw'
+  const eyeColor = options.styles.eyeColor || 'black'
+  const eyeSize = options.styles.eyeSize || '33.33vmin'
+  const eyelidColor = options.styles.eyelidColor || 'whitesmoke'
+  if (!options.styles.face) {
+    options.styles.face = {};
+  }
+  if (!options.styles.eye) {
+    options.styles.eye = {};
+  }
+  if (!options.styles.left) {
+    options.styles.left = {};
+  }
+  if (!options.styles.right) {
+    options.styles.right = {};
+  }
+  if (!options.styles.eyelid) {
+    options.styles.eyelid = {};
+  }
+  if (!options.styles.upper) {
+    options.styles.upper = {};
+  }
+  if (!options.styles.lower) {
+    options.styles.lower = {};
+  }
+
   const styles = {
     face: {
       backgroundColor: faceColor,
@@ -307,7 +314,8 @@ export function makeTabletFaceDriver({
       width: faceWidth,
       position: 'relative',
       overflow: 'hidden',
-      zIndex: 0,  // speechbubbles and eyes have zIndex === 1
+      zIndex: 0,  // speechbubbles and eyes have zIndex === 1,
+      ...options.styles.face,
     },
     eye: {
       backgroundColor: eyeColor,
@@ -317,12 +325,15 @@ export function makeTabletFaceDriver({
       bottom: `calc(${eyeSize} / 3)`,
       zIndex: 1,
       position: 'absolute',
+      ...options.styles.eye,
     },
     left: {
       left: `calc(${eyeSize} / 3)`,
+      ...options.styles.left,
     },
     right: {
       right: `calc(${eyeSize} / 3)`,
+      ...options.styles.right,
     },
     eyelid: {
       backgroundColor: eyelidColor,
@@ -330,15 +341,18 @@ export function makeTabletFaceDriver({
       width: `calc(${eyeSize} * 1.75)`,
       zIndex: 2,
       position: 'absolute',
+      ...options.styles.eyelid,
     },
     upper: {
       bottom: `calc(${eyeSize} * 1)`,
       left: `calc(${eyeSize} * -0.375)`,
+      ...options.styles.upper,
     },
     lower: {
       borderRadius: '100%',
       bottom: `calc(${eyeSize} * -1)`,
       left: `calc(${eyeSize} * -0.375)`,
+      ...options.styles.lower,
     },
   };
   const eyes = new EyeController({}, eyeSize);

@@ -108,7 +108,6 @@ function createTransition(options: {
   }
 
   const styles = {
-    ...options.styles,
     message: {
       fontFamily: 'helvetica',
       fontSize: '12.5vmin',
