@@ -19,17 +19,17 @@ FacialExpression action component.
 #### Params:
 
 * *sources* 
-  * goal: a stream of `null` (as "cancel") or a string '`happy'`, '`sad'`,
-    '`angry'`, '`focused'`, or '`confused'` (as the TabletFace driver's
-    `EXPRESS` type command value).
-  * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
+  * goal: a stream of `TabletFaceCommand`s.
+  * cancel: a stream of `GoalID`.
+  * TabletFace: `TabletFace` source.
 
 #### Return:
 
 * sinks 
-  * output: a stream for the TabletFace driver.
-  * status: depreciated.
-  * result: a stream of action results. `result.result` is always `null`.
+  * state: a reducer stream.
+  * status: a stream of action status.
+  * result: a stream of action results.
+  * TabletFace: a stream for `TabletFace` driver input.
 
 <!-- End src/FacialExpressionAction.ts -->
 
@@ -40,17 +40,20 @@ Speechbubble action component.
 #### Params:
 
 * *sources* 
-  * goal: a stream of `null` (as "cancel"),
-    `{type: 'MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
-    "message"), or `{type: 'CHOICE', value: ['Hello', 'World']}`
+  * goal: a stream of `{type: 'MESSAGE', value: 'Hello world'}`
+    or `'Hello world'` (as "message"),
+    or `{type: 'CHOICE', value: ['Hello', 'World']}`
     or `['Hello', 'World']` (as "multiple choice").
+  * cancel: a stream of `GoalID`
   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
 
 #### Return:
 
 * sinks 
-  * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
-  * result: a stream of action results.
+  * state: a reducer stream.
+  * status: a stream of action status.
+  * result: a stream of action results. `result.result` is always `null`.
+  * DOM: a stream of virtual DOM objects, i.e, [Snabbdom "VNode" objects](https://github.com/snabbdom/snabbdom).
 
 <!-- End src/SpeechbubbleAction.ts -->
 

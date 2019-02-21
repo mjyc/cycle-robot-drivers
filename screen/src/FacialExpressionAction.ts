@@ -206,16 +206,16 @@ export interface Sinks extends ActionSinks {
  *
  * @param sources
  *
- *   * goal: a stream of `null` (as "cancel") or a string '`happy'`, '`sad'`,
- *     '`angry'`, '`focused'`, or '`confused'` (as the TabletFace driver's
- *     `EXPRESS` type command value).
- *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
+ *   * goal: a stream of `TabletFaceCommand`s.
+ *   * cancel: a stream of `GoalID`.
+ *   * TabletFace: `TabletFace` source.
  *
  * @return sinks
  *
- *   * output: a stream for the TabletFace driver.
- *   * status: depreciated.
- *   * result: a stream of action results. `result.result` is always `null`.
+ *   * state: a reducer stream.
+ *   * status: a stream of action status.
+ *   * result: a stream of action results.
+ *   * TabletFace: a stream for `TabletFace` driver input.
  *
  */
 export function FacialExpressionAction(sources: Sources): Sinks {
