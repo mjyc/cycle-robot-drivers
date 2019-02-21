@@ -313,4 +313,18 @@ export let SpeechbubbleAction = makeSpeechbubbleAction();
 
 export function IsolatedSpeechbubbleAction(sources) {
   return isolate(SpeechbubbleAction)(sources);
+export function SpeechbubbleAction(sources: Sources): Sinks {
+  const input$ = input(
+    sources.goal,
+    sources.cancel || xs.never(),
+    sources.DOM.select('.choice').events('click'),
+  );
+  const reducer = transitionReducer(input$);;
+  const status$ = status(sources.state.stream);
+  const outputs = output(sources.state.stream);
+  return {
+    state: reducer,
+    status: status$,
+    ...outputs
+  };
 }

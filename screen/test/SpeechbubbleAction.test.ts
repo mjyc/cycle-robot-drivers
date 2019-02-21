@@ -1,11 +1,12 @@
 import xs from 'xstream'
 import {mockDOMSource} from '@cycle/dom';
 import {mockTimeSource} from '@cycle/time';
+import {withState} from '@cycle/state';
 import {
   GoalID, GoalStatus, Status,
   generateGoalID,
 } from '@cycle-robot-drivers/action'
-import {SpeechbubbleAction} from '../src/SpeechbubbleAction';
+import {SpeechbubbleAction as Action} from '../src/SpeechbubbleAction';
 
 
 console.debug = jest.fn();  // hide debug outputs
@@ -37,9 +38,9 @@ describe('SpeechbubbleAction', () => {
   it('walks through "happy path"', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
+    // Create test input streams
     const goalMark$ =           Time.diagram(`-x-|`);
-    const expectedResultMark$ = Time.diagram(`---|`);
+    const expectedResultMark$ = Time.diagram(``);
 
     // Create the action to test
     const goal = 'Hello world';
@@ -48,7 +49,9 @@ describe('SpeechbubbleAction', () => {
       goal_id,
       goal,
     });
-    const actionComponent = SpeechbubbleAction({
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
       DOM: mockDOMSource({}),
     });
@@ -61,7 +64,7 @@ describe('SpeechbubbleAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(actionComponent.result, expectedResult$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -69,17 +72,23 @@ describe('SpeechbubbleAction', () => {
   it('cancels a running goal on cancel', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
-    const goalMark$ =           Time.diagram(`-0-1-|`);
-    const expectedResultMark$ = Time.diagram(`---p-|`);
+    // Create test input streams
+    const goalMark$ =           Time.diagram(`-x---|`);
+    const cancel$ =             Time.diagram(`---x-|`);
+    const expectedResultMark$ = Time.diagram(`---p`);
 
     // Create the action to test
     const goal = 'Hello world';
     const goal_id = generateGoalID();
-    const goals = [{goal, goal_id}, null];
-    const goal$ = goalMark$.map(i => goals[i]);
-    const actionComponent = SpeechbubbleAction({
+    const goal$ = goalMark$.mapTo({
+      goal_id,
+      goal,
+    });
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
+      cancel: cancel$,
       DOM: mockDOMSource({}),
     });
 
@@ -91,7 +100,7 @@ describe('SpeechbubbleAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(actionComponent.result, expectedResult$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -99,19 +108,21 @@ describe('SpeechbubbleAction', () => {
   it('does nothing on initial cancel', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
-    const goalMark$ =       Time.diagram(`-x-|`);
-    const expectedResult$ = Time.diagram(`---|`);
+    // Create test input streams
+    const cancel$ =         Time.diagram(`-x-|`);
+    const expectedResult$ = Time.diagram(``);
 
     // Create the action to test
-    const goal$ = goalMark$.mapTo(null);
-    const speechSynthesisAction = SpeechbubbleAction({
-      goal: goal$,
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
+      goal: xs.never(),
+      cancel: cancel$,
       DOM: mockDOMSource({}),
     });
 
     // Run test
-    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -119,22 +130,27 @@ describe('SpeechbubbleAction', () => {
   it('does nothing on cancel after preempted', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
-    const goalMark$ =           Time.diagram(`-0-1-1-|`);
-    const expectedResultMark$ = Time.diagram(`---p---|`);
+    // Create test input streams
+    const goalMark$ =           Time.diagram(`-x-----|`);
+    const cancel$ =             Time.diagram(`---x-x-|`);
+    const expectedResultMark$ = Time.diagram(`---p`);
 
     // Create the action to test
     const goal = 'Hello world';
     const goal_id = generateGoalID();
-    const goals = [{goal, goal_id}, null];
-    const goal$ = goalMark$.map(i => goals[i]);
-    const speechSynthesisAction = SpeechbubbleAction({
+    const goal$ = goalMark$.mapTo({
+      goal_id,
+      goal,
+    });
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
+      cancel: cancel$,
       DOM: mockDOMSource({}),
     });
 
     // Prepare expected values
-    const values = [goal, null];
     const toStatus = createToStatus(goal_id);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
@@ -142,7 +158,7 @@ describe('SpeechbubbleAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -150,12 +166,12 @@ describe('SpeechbubbleAction', () => {
   it('cancels the first goal on receiving a second goal', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
+    // Create test input streams
     const goalMark$ =          Time.diagram(`-0--1-|`);
     const expecteds = [{
       result:                  Time.diagram(`----p-|`),
     }, {
-      result:                  Time.diagram(`------|`),
+      result:                  Time.diagram(``),
     }];
 
     // Create the action to test
@@ -165,7 +181,9 @@ describe('SpeechbubbleAction', () => {
       goal_id: goal_ids[i],
       goal: goals[i],
     }));
-    const speechSynthesisAction = SpeechbubbleAction({
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
       DOM: mockDOMSource({}),
     });
@@ -181,7 +199,7 @@ describe('SpeechbubbleAction', () => {
     const expectedResult$ = xs.merge(expecteds[0].result, expecteds[1].result);
 
     // Run test
-    Time.assertEqual(speechSynthesisAction.result, expectedResult$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
