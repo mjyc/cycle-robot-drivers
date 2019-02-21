@@ -402,6 +402,7 @@ export function makeTabletFaceDriver(options: {
         if (!command) {
           Object.keys(animations).map((key) => {
             animations[key].cancel();
+            animations[key].onfinish();
           });
           return;
         }

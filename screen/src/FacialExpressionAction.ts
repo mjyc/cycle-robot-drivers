@@ -10,11 +10,11 @@ import {TabletFaceCommand} from './makeTabletFaceDriver';
 enum State {
   WAIT = 'WAIT',
   RUN = 'RUN',
+  PREEMPT = 'PREEMPT',
 }
 
 type Variables = {
   goal_id: GoalID,
-  goal: Goal,
   newGoal: Goal,
 };
 
@@ -71,14 +71,13 @@ function input(
 
 function transition(prev: ReducerState, input: Input): ReducerState {
   if (prev.state === State.WAIT) {
-    if (input.type === 'GOAL') {
+    if (input.type === InputType.GOAL) {
       const goal = (input.value as Goal);
       return {
         ...prev,
         state: State.RUN,
         variables: {
           goal_id: goal.goal_id,
-          goal: goal.goal,
           newGoal: null,
         },
         outputs: {
@@ -87,39 +86,56 @@ function transition(prev: ReducerState, input: Input): ReducerState {
       };
     }
   } else if (prev.state === State.RUN) {
-    if (input.type === 'GOAL') {
-      const goal = (input.value as Goal);
+    if (input.type === InputType.GOAL || input.type === InputType.CANCEL) {
       return {
         ...prev,
-        state: State.RUN,
+        state: State.PREEMPT,
         variables: {
-          goal_id: goal.goal_id,
-          goal: goal.goal,
+          ...prev.variables,
+          newGoal: input.type === InputType.GOAL ? (input.value as Goal) : null,
+        },
+        outputs: {
+          TabletFace: null,
+        },
+      };
+    } else if (input.type === InputType.END) {
+      const newGoal = prev.variables.newGoal;
+      return {
+        ...prev,
+        state: State.WAIT,
+        variables: {
+          goal_id: null,
           newGoal: null,
         },
         outputs: {
-          TabletFace: goal.goal,
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.SUCCEEDED,
+            },
+            result: input.value,
+          },
+        },
+      };
+    }
+  } else if (prev.state === State.PREEMPT) {
+    if (input.type === InputType.END) {
+      const newGoal = prev.variables.newGoal;
+      return {
+        ...prev,
+        state: !!newGoal ? State.RUN : State.WAIT,
+        variables: {
+          goal_id: !!newGoal ? newGoal.goal_id : null,
+          newGoal: null,
+        },
+        outputs: {
+          TabletFace: !!newGoal ? newGoal.goal : undefined,
           result: {
             status: {
               goal_id: prev.variables.goal_id,
               status: Status.PREEMPTED,
             },
-            result: null,
-          }
-        },
-      };
-    } else if (input.type === 'END' || input.type === 'CANCEL') {
-      return {
-        ...prev,
-        state: State.WAIT,
-        variables: null,
-        outputs: {
-          result: {
-            status: {
-              goal_id: prev.variables.goal_id,
-              status: input.type === 'END' ? Status.SUCCEEDED : Status.PREEMPTED,
-            },
-            result: input.type === 'END' ? input.value : null,
+            result: input.value,
           },
         },
       };
@@ -135,7 +151,6 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
         state: State.WAIT,
         variables: {
           goal_id: null,
-          goal: null,
           newGoal: null,
         },
         outputs: null,
@@ -172,7 +187,7 @@ function output(reducerState$) {
     result: outputs$
       .filter(o => !!o.result)
       .map(o => o.result),
-      TabletFace: outputs$
+    TabletFace: outputs$
       .filter(o => typeof o.TabletFace !== 'undefined')
       .map(o => o.TabletFace),
   };
