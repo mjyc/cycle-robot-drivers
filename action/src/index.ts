@@ -14,7 +14,7 @@ export {
   generateGoalStatus,
   generateResult,
   initGoal,
-  isEqual,
+  isEqualGoalID,
   isEqualGoal,
   isEqualGoalStatus,
   isEqualResult,

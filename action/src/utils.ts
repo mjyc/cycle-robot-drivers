@@ -36,7 +36,7 @@ export function initGoal(
   };
 }
 
-export function isEqual(first: GoalID, second: GoalID) {
+export function isEqualGoalID(first: GoalID, second: GoalID) {
   if (!first || !second) {
     return false;
   }
@@ -50,12 +50,12 @@ export function isEqualGoal(first: Goal, second: Goal) {
   if (!first || !second) {
     return false;
   }
-  return isEqual(first.goal_id, second.goal_id);
+  return isEqualGoalID(first.goal_id, second.goal_id);
 }
 
 export function isEqualGoalStatus(first: GoalStatus, second: GoalStatus) {
   return (
-    isEqual(first.goal_id, second.goal_id)
+    isEqualGoalID(first.goal_id, second.goal_id)
     && first.status === second.status
   );
 }
