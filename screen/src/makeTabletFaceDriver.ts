@@ -275,7 +275,23 @@ type Command = {
  * @return {Driver} the TabletFace Cycle.js driver function. It takes a stream
  *   of `Command` and returns `DOM`, animationFinish`, and `load` streams.
  */
-export function makeTabletFaceDriver(options) {
+export function makeTabletFaceDriver(options: {
+  styles?: {
+    faceColor?: string,
+    faceHeight?: string,
+    faceWidth?: string,
+    eyeColor?: string,
+    eyeSize?: string,
+    eyelidColor?: string,
+    face?: object,
+    eye?: object,
+    left?: object,
+    right?: object,
+    eyelid?: object,
+    upper?: object,
+    lower?: object,
+  },
+} = {}) {
   if (!options.styles) {
     options.styles = {};
   }

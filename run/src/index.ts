@@ -190,6 +190,9 @@ export function runRobotProgram(
 
   return run(
     withState(withRobotActions(main, options) as any),
-    initializeDrivers(drivers),
+    {
+      ...initializeDrivers(),
+      ...drivers,
+    },
   );
 };

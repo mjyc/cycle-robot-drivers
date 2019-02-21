@@ -8,38 +8,24 @@ makeSpeechRecognitionDriver,
 } from '@cycle-robot-drivers/speech';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
-export function initializeDrivers(drivers?: {
-  DOM?: Driver<any, any>,
+export function initializeDrivers(): {
+  DOM: Driver<any, any>,
   TabletFace: Driver<any, any>,
-  AudioPlayer?: Driver<any, any>,
-  SpeechSynthesis?: Driver<any, any>,
-  SpeechRecognition?: Driver<any, any>,
-  PoseDetection?: Driver<any, any>,
-}) {
-  if (!drivers) {
-    (drivers as any) = {};
-  }
-  if (!drivers.DOM) {
-    if (document.body.getElementsByTagName('div').length === 0) {
-      throw 'Cannot find a child of body with div tag; please create the DOM driver yourself';
-    }
-    drivers.DOM = makeDOMDriver(document.body.getElementsByTagName('div')[0]);
-  }
-  if (!drivers.TabletFace) {
-    drivers.TabletFace = makeTabletFaceDriver();
-  }
-  if (!drivers.AudioPlayer) {
-    drivers.AudioPlayer = makeAudioPlayerDriver();
-  }
-  if (!drivers.SpeechSynthesis) {
-    drivers.SpeechSynthesis = makeSpeechSynthesisDriver();
-  }
-  if (!drivers.SpeechRecognition) {
-    drivers.SpeechRecognition = makeSpeechRecognitionDriver();
-  }
-  if (!drivers.PoseDetection) {
-    drivers.PoseDetection = makePoseDetectionDriver();
-  }
+  AudioPlayer: Driver<any, any>,
+  SpeechSynthesis: Driver<any, any>,
+  SpeechRecognition: Driver<any, any>,
+  PoseDetection: Driver<any, any>,
+} {
+  if (document.body.getElementsByTagName('div').length === 0) {
+    throw 'Cannot find a child of body with div tag; please create the DOM driver yourself';
+  };
 
-  return drivers;
+  return {
+    DOM: makeDOMDriver(document.body.getElementsByTagName('div')[0]),
+    TabletFace: makeTabletFaceDriver(),
+    AudioPlayer: makeAudioPlayerDriver(),
+    SpeechSynthesis: makeSpeechSynthesisDriver(),
+    SpeechRecognition: makeSpeechRecognitionDriver(),
+    PoseDetection: makePoseDetectionDriver(),
+  };
 }

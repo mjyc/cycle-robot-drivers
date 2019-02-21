@@ -11,7 +11,7 @@
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
     "@cycle-robot-drivers/action": "^0.x.x",
-    "@cycle-robot-drivers/screen": "^0.x.x",
+    "@cycle-robot-drivers/screen": "0.0.32",
     "@cycle-robot-drivers/sound": "^0.x.x",
     "@cycle-robot-drivers/speech": "^0.x.x",
     "@cycle/dom": "22.3.0",
