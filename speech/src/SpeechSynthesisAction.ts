@@ -217,6 +217,7 @@ function output(reducerState$) {
       .filter(o => !!o.result)
       .map(o => o.result),
     SpeechSynthesis: outputs$
+      .filter(o => typeof o.SpeechSynthesis !== 'undefined')
       .map(o => o.SpeechSynthesis),
   };
 };
