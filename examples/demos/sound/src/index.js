@@ -21,6 +21,8 @@ function main(sources) {
     goal: goal$,
     AudioPlayer: sources.AudioPlayer,
   });
+  audioPlayerAction.status.addListener({next: s =>
+    console.log('AudioPlayerAction status', s)});
 
   const $vdom = xs.of(div([button('Play Sound')]));
 
