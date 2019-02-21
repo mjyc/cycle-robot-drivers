@@ -1,6 +1,5 @@
-import Snabbdom from 'snabbdom-pragma';
 import xs from 'xstream';
-import {Stream} from 'xstream';
+import {div, canvas, video} from '@cycle/dom';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 import dat from 'dat.gui';
@@ -153,7 +152,7 @@ export function makePoseDetectionDriver({
   const videoClass = `posenet-video`;
   const canvasClass = `posenet-canvas`;
 
-  return function(params$: Stream<PoseNetParameters>): any {
+  return function(params$): any {
     let params: PoseNetParameters = null;
     const initialParams = {
       algorithm: 'single-pose',
@@ -182,7 +181,7 @@ export function makePoseDetectionDriver({
       fps: isMobile() ? 5 : 10,
       stopRequested: false,
     };
-    params$.fold((prev: PoseNetParameters, params: PoseNetParameters) => {
+    xs.fromObservable(params$).fold((prev: PoseNetParameters, params: PoseNetParameters) => {
       Object.keys(params).map(key => {
         if (typeof params[key] === 'object') {
           Object.assign(prev[key], params[key]);
@@ -342,16 +341,12 @@ export function makePoseDetectionDriver({
       },
     });
 
-    const vdom$ = xs.of((
-      <div className={divClass} style={{position: "relative"}}>
-        <video
-          className={videoClass}
-          style={{display: 'none'}}
-          autoPlay
-        />
-        <canvas className={canvasClass} />
-      </div>
-    ));
+    const vdom$ = xs.of(
+      div(`.${divClass}`, {style: {position: 'relative'}}, [
+        video(`.${videoClass}`, {style: {display: 'none'}, autoPlay: ''}),
+        canvas(`.${canvasClass}`),
+      ])
+    );
 
     return {
       DOM: adapt(vdom$),
