@@ -120,6 +120,12 @@ export type PoseNetParameters = {
   stopRequested: boolean,
 };
 
+export type PoseDetectionSource = {
+  DOM: any,
+  animationFinish: any,
+  load: any,
+};
+
 /**
  * [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet)
  * driver factory.
@@ -146,7 +152,7 @@ export function makePoseDetectionDriver({
   flipHorizontal?: boolean,
 } = {}): Driver<
   any,
-  {DOM: any, poses: any}
+  PoseDetectionSource
 > {
   const divClass = `posenet`;
   const videoClass = `posenet-video`;

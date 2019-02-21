@@ -5,7 +5,7 @@ import {
   ActionSources, ActionSinks,
   generateGoalStatus, isEqualGoalStatus,
 } from '@cycle-robot-drivers/action';
-import {TabletFaceCommand} from './makeTabletFaceDriver';
+import {TabletFaceCommand, TabletFaceSource} from './makeTabletFaceDriver';
 
 enum State {
   WAIT = 'WAIT',
@@ -194,7 +194,7 @@ function output(reducerState$) {
 };
 
 export interface Sources extends ActionSources {
-  TabletFace: any,
+  TabletFace: TabletFaceSource,
 }
 
 export interface Sinks extends ActionSinks {

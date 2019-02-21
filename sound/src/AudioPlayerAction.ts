@@ -100,7 +100,6 @@ function transition(prev: ReducerState, input: Input): ReducerState {
         },
       };
     } else if (input.type === InputType.ENDED) {
-      const newGoal = prev.variables.newGoal;
       return {
         ...prev,
         state: State.WAIT,

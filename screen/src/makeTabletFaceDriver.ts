@@ -1,6 +1,7 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import {div} from '@cycle/dom';
+import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
 
 
@@ -265,6 +266,12 @@ export type TabletFaceCommand = {
   value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
 
+export type TabletFaceSource = {
+  DOM: any,
+  animationFinish: any,
+  load: any,
+};
+
 /**
  * [TabletFace](https://github.com/mjyc/tablet-robot-face) driver factory.
  *
@@ -291,7 +298,10 @@ export function makeTabletFaceDriver(options: {
     upper?: object,
     lower?: object,
   },
-} = {}) {
+} = {}): Driver<
+  any,
+  TabletFaceSource
+> {
   if (!options.styles) {
     options.styles = {};
   }

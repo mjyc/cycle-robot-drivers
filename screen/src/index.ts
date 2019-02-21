@@ -1,6 +1,7 @@
 export {
   ExpressCommandType,
   makeTabletFaceDriver,
+  TabletFaceSource,
 } from './makeTabletFaceDriver';
 export {
   Sources as FacialExpressionActionSources,

@@ -54,7 +54,7 @@ export enum SpeechbubbleType {
 function input(
   goal$: Stream<Goal>,
   cancel$: Stream<GoalID>,
-  clickEvent$: Stream<any>,
+  clickEvent$: Stream<Event>,
 ): Stream<Input> {
   return xs.merge(
     goal$.map(goal => ({

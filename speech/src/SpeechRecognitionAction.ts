@@ -276,7 +276,7 @@ export interface Sinks extends ActionSinks {
  *     the recognition; it will be `''` for non-speech inputs.
  *
  */
-export function SpeechRecognitionAction(sources: Sources): any {
+export function SpeechRecognitionAction(sources: Sources): Sinks {
   const input$ = input(
     sources.goal,
     sources.cancel || xs.never(),

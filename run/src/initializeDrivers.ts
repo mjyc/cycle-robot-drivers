@@ -1,19 +1,24 @@
 import {Driver} from '@cycle/run';
-import {makeDOMDriver} from '@cycle/dom';
+import {makeDOMDriver, DOMSource} from '@cycle/dom';
+import {EventSource} from '@cycle-robot-drivers/action';
 import {makeTabletFaceDriver} from '@cycle-robot-drivers/screen';
+// import {makeTabletFaceDriver, TabletFaceSource} from '@cycle-robot-drivers/screen';
 import {makeAudioPlayerDriver} from '@cycle-robot-drivers/sound';
 import {
-makeSpeechSynthesisDriver,
-makeSpeechRecognitionDriver,
+  makeSpeechSynthesisDriver,
+  makeSpeechRecognitionDriver,
 } from '@cycle-robot-drivers/speech';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
+// import {makePoseDetectionDriver, PoseDetectionSource} from 'cycle-posenet-driver';
 
 export function initializeDrivers(): {
-  DOM: Driver<any, any>,
+  DOM: Driver<any, DOMSource>,
+  // TabletFace: Driver<any, TabletFaceSource>,
   TabletFace: Driver<any, any>,
-  AudioPlayer: Driver<any, any>,
-  SpeechSynthesis: Driver<any, any>,
-  SpeechRecognition: Driver<any, any>,
+  AudioPlayer: Driver<any, EventSource>,
+  SpeechSynthesis: Driver<any, EventSource>,
+  SpeechRecognition: Driver<any, EventSource>,
+  // PoseDetection: Driver<any, PoseDetectionSource>,
   PoseDetection: Driver<any, any>,
 } {
   if (document.body.getElementsByTagName('div').length === 0) {
