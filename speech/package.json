@@ -12,18 +12,18 @@
   "dependencies": {
     "@cycle-robot-drivers/action": "file:../action",
     "@cycle/run": "5.2.0",
-    "@cycle/state": "1.2.0",
     "xstream": "11.10.0"
   },
   "devDependencies": {
-    "@cycle/time": "^0.15.0",
-    "@types/node": "^10.5.7",
+    "@cycle/state": "^1.2.0",
+    "@cycle/time": "^0.19.0",
+    "@types/node": "^11.9.4",
     "@types/webspeechapi": "0.0.29"
   },
   "scripts": {
     "build:cjs": "../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outDir lib/cjs",
     "build:es6": "../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",
     "build:doc": "../node_modules/.bin/markdox ./src/* -o api.md && sed -i '1s/^.*$/\\n# API/' api.md && sed -i 's/^#.*/#&/' api.md && cat ../docs/readmes/${PWD##*/}.md api.md > README.md && rm api.md",
-    "test": "echo 'test is disabled temporarily'"
+    "test": "../node_modules/.bin/jest --config ../jest.config.common.js --rootDir ./"
   }
 }
