@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/sound",
-  "version": "0.0.8",
+  "version": "1.0.0",
   "description": "A Cycle.js driver for playing sounds using HTMLAudioElement",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -10,8 +10,8 @@
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
+    "@cycle-robot-drivers/action": "file:../action",
     "@cycle/run": "5.2.0",
-    "@cycle-robot-drivers/action": "~0.0.0",
     "xstream": "11.10.0"
   },
   "devDependencies": {
