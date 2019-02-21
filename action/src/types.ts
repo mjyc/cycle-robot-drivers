@@ -2,7 +2,7 @@ import Stream from 'xstream';
 import {StateSource} from '@cycle/state';
 
 export type GoalID = {
-  stamp: Date,
+  stamp: Date | number | string,
   id: string,
 };
 
