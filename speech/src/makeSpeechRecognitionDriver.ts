@@ -1,3 +1,4 @@
+import xs from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
@@ -39,7 +40,7 @@ export function makeSpeechRecognitionDriver(): Driver<
   const recognition: SpeechRecognition = new webkitSpeechRecognition();
 
   return function(sink$) {
-    sink$.addListener({
+    xs.fromObservable(sink$).addListener({
       next: (args) => {
         // array values are SpeechSynthesisUtterance properties that are not
         //   event handlers; see

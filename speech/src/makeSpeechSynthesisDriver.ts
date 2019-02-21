@@ -1,3 +1,4 @@
+import xs from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
@@ -40,7 +41,7 @@ export function makeSpeechSynthesisDriver(): Driver<
   const utterance: SpeechSynthesisUtterance = new SpeechSynthesisUtterance();
 
   return function(sink$) {
-    sink$.addListener({
+    xs.fromObservable(sink$).addListener({
       next: (args) => {
         // array values are SpeechSynthesisUtterance properties that are not
         //   event handlers; see
