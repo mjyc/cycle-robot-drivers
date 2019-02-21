@@ -71,7 +71,7 @@ function main(sources) {
   );
   return {
     DOM: vdom$,
-    TabletFace: facialExpressionAction.TabletFace.debug(),
+    TabletFace: facialExpressionAction.TabletFace,
     state: reducer,
   };
 }
