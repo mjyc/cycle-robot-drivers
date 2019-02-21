@@ -9,7 +9,6 @@ function main(sources) {
     PoseDetection: xs.create(),
   };
 
-
   // main logic
   const params$ = xs.of({
     algorithm: 'single-pose',
@@ -25,7 +24,6 @@ function main(sources) {
     }
   })
 
-  
   return {
     DOM: vdom$,
     PoseDetection: params$,
