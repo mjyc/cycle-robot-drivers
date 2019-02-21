@@ -263,7 +263,7 @@ function output(reducerState$) {
 };
 
 
-export interface Sources  extends ActionSources {
+export interface Sources extends ActionSources {
   DOM: DOMSource,
 }
 

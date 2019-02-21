@@ -1,14 +1,13 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
-import sampleCombine from 'xstream/extra/sampleCombine';
 import isolate from '@cycle/isolate';
 import {run} from '@cycle/run';
 import {withState} from '@cycle/state';
-import {div, label, input, br, button, makeDOMDriver} from '@cycle/dom';
-import {Status} from '@cycle-robot-drivers/action';
+import {div, makeDOMDriver} from '@cycle/dom';
 import {
   makeTabletFaceDriver,
   SpeechbubbleAction,
+  FacialExpressionAction,
 } from '@cycle-robot-drivers/screen';
 
 function main(sources) {
@@ -21,7 +20,6 @@ function main(sources) {
     xs.of({goal_id: `${new Date().getTime()}`, goal: ['Good', 'Bad']})
       .compose(delay(2000)),
     speechbubbleActionResult
-      .debug()
       .filter(result => !!result.result)
       .map(result => {
         if (result.result === 'Good') {
@@ -31,37 +29,44 @@ function main(sources) {
         }
       }),
   );
-
-  const speechbubbleAction = SpeechbubbleAction({
+  const speechbubbleAction = isolate(SpeechbubbleAction)({
     state: sources.state,
     DOM: sources.DOM,
     goal: speechbubbles$,
     cancel: xs.never(),
-  })
-  speechbubbleActionResult.imitate(speechbubbleAction.result.debug());
+  });
+  speechbubbleActionResult.imitate(speechbubbleAction.result);
 
-  // // speech recognition
-  // const recogGoal$ = sources.DOM.select('#listen').events('click')
-  //   .mapTo({goal_id: `${new Date().getTime()}`, goal: {}});
-  // const speechRecognitionAction = isolate(SpeechRecognitionAction)({
-  //   state: sources.state,
-  //   goal: recogGoal$,
-  //   cancel: xs.never(),
-  //   SpeechRecognition: sources.SpeechRecognition,
-  // });
-  // speechRecognitionAction.status.addListener({next: s =>
-  //   console.log('SpeechRecognitionAction status', s)});
+  const expression$ = speechbubbleActionResult
+    .filter(result => !!result.result)
+    .map((result) => {
+      if (result.result === 'Good') {
+        return {goal_id: `${new Date().getTime()}`, goal: 'happy'};
+      } else if (result.result === 'Bad') {
+        return {goal_id: `${new Date().getTime()}`, goal: 'sad'};
+      }
+    });
+  const facialExpressionAction = isolate(FacialExpressionAction)({
+    state: sources.state,
+    TabletFace: sources.TabletFace,
+    goal: expression$,
+    cancel: xs.never(),
+  });
 
 
   // UI
   const vdom$ = xs.combine(
     speechbubbleAction.DOM.startWith(''),
     sources.TabletFace.DOM.startWith(''),
-  ).map(vdoms => div(vdoms))
+  ).map(vdoms => div(vdoms));
 
-  const reducer = speechbubbleAction.state;
+  const reducer = xs.merge(
+    speechbubbleAction.state,
+    facialExpressionAction.state,
+  );
   return {
     DOM: vdom$,
+    TabletFace: facialExpressionAction.TabletFace.debug(),
     state: reducer,
   };
 }

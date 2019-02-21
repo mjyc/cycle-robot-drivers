@@ -222,7 +222,7 @@ class EyeController {
 }
 
 
-enum CommandType {
+export enum CommandType {
   EXPRESS = 'EXPRESS',
   START_BLINKING = 'START_BLINKING',
   STOP_BLINKING = 'STOP_BLINKING',
@@ -237,7 +237,7 @@ export enum ExpressCommandType {
   CONFUSED = 'confused',
 }
 
-type ExpressCommandArgs = {
+export type ExpressCommandArgs = {
   type: ExpressCommandType,
   // level: number
   duration: number,
@@ -245,11 +245,11 @@ type ExpressCommandArgs = {
   exitDuration: number,
 }
 
-type StartBlinkingCommandArgs = {
+export type StartBlinkingCommandArgs = {
   maxInterval: number,
 }
 
-type SetStateCommandArgs = {
+export type SetStateCommandArgs = {
   leftEye: {
     x: number,
     y: number,
@@ -260,7 +260,7 @@ type SetStateCommandArgs = {
   },
 }
 
-type Command = {
+export type TabletFaceCommand = {
   type: CommandType,
   value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
@@ -398,7 +398,7 @@ export function makeTabletFaceDriver(options: {
     let animations = {};
     const animationFinish$$: Stream<Stream<any[]>> = xs.create();
     xs.fromObservable(command$).addListener({
-      next: function(command: Command) {
+      next: function(command: TabletFaceCommand) {
         if (!command) {
           Object.keys(animations).map((key) => {
             animations[key].cancel();

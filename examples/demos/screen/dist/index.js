@@ -5,8 +5,10 @@ var types_1 = require("./types");
 exports.Status = types_1.Status;
 var utils_1 = require("./utils");
 exports.generateGoalID = utils_1.generateGoalID;
+exports.generateGoalStatus = utils_1.generateGoalStatus;
+exports.generateResult = utils_1.generateResult;
 exports.initGoal = utils_1.initGoal;
-exports.isEqual = utils_1.isEqual;
+exports.isEqualGoalID = utils_1.isEqualGoalID;
 exports.isEqualGoal = utils_1.isEqualGoal;
 exports.isEqualGoalStatus = utils_1.isEqualGoalStatus;
 exports.isEqualResult = utils_1.isEqualResult;
@@ -35,6 +37,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var types_1 = require("./types");
 function generateGoalID() {
     var now = new Date();
     return {
@@ -43,6 +46,25 @@ function generateGoalID() {
     };
 }
 exports.generateGoalID = generateGoalID;
+function generateGoalStatus(options) {
+    if (!options)
+        options = {};
+    return {
+        goal_id: generateGoalID(),
+        status: typeof options.status !== 'undefined'
+            ? options.status : types_1.Status.SUCCEEDED,
+    };
+}
+exports.generateGoalStatus = generateGoalStatus;
+function generateResult(options) {
+    if (!options)
+        options = {};
+    return {
+        status: generateGoalStatus(options.status),
+        result: typeof options.result !== 'undefined' ? options.result : null,
+    };
+}
+exports.generateResult = generateResult;
 function initGoal(goal, isGoal) {
     if (isGoal === void 0) { isGoal = function (g) {
         return typeof g === 'object' && g !== null && !!g.goal_id;
@@ -53,13 +75,13 @@ function initGoal(goal, isGoal) {
     };
 }
 exports.initGoal = initGoal;
-function isEqual(first, second) {
+function isEqualGoalID(first, second) {
     if (!first || !second) {
         return false;
     }
     return (first.stamp === second.stamp && first.id === second.id);
 }
-exports.isEqual = isEqual;
+exports.isEqualGoalID = isEqualGoalID;
 function isEqualGoal(first, second) {
     if (first === null && second === null) {
         return true;
@@ -67,11 +89,11 @@ function isEqualGoal(first, second) {
     if (!first || !second) {
         return false;
     }
-    return isEqual(first.goal_id, second.goal_id);
+    return isEqualGoalID(first.goal_id, second.goal_id);
 }
 exports.isEqualGoal = isEqualGoal;
 function isEqualGoalStatus(first, second) {
-    return (isEqual(first.goal_id, second.goal_id)
+    return (isEqualGoalID(first.goal_id, second.goal_id)
         && first.status === second.status);
 }
 exports.isEqualGoalStatus = isEqualGoalStatus;
@@ -95,7 +117,7 @@ function powerup(main, connect) {
 }
 exports.powerup = powerup;
 
-},{}],4:[function(require,module,exports){
+},{"./types":2}],4:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var xstream_1 = require("xstream");
