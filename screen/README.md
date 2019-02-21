@@ -88,13 +88,7 @@ TwoSpeechbubbles, Robot and Human, action component.
 #### Params:
 
 * *options* possible key includes 
-  * styles {object} A group of optional face style parameters:
-    * faceColor {string} (default: 'whitesmoke')
-    * faceHeight {string} (default: '100vh')
-    * faceWidth {string} (default: '100vw')
-    * eyeColor {string} (default: 'black')
-    * eyeSize {string} (default: '33.33vmin')
-    * eyelidColor {string} (default: 'whitesmoke')
+  * styles {object} A group of optional style parameters
 
 #### Return:
 
