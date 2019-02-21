@@ -3,7 +3,6 @@ import dropRepeats from 'xstream/extra/dropRepeats';
 import {Stream} from 'xstream';
 import isolate from '@cycle/isolate';
 import {span, button, DOMSource, VNode} from '@cycle/dom';
-import isolate from '@cycle/isolate';
 import {
   GoalID, Goal, Status, GoalStatus, Result,
   ActionSources, ActionSinks,
@@ -273,7 +272,7 @@ export function makeSpeechbubbleAction(options = {}) {
   return function SpeechbubbleAction(sources: Sources): Sinks {
     const input$ = input(
       sources.goal,
-      sources.cancel,
+      sources.cancel || xs.never(),
       sources.DOM.select('.choice').events('click'),
     );
     const reducer = transitionReducer(input$);;
@@ -308,24 +307,6 @@ export function makeSpeechbubbleAction(options = {}) {
  *
  */
 export let SpeechbubbleAction = makeSpeechbubbleAction();
-
-export function IsolatedSpeechbubbleAction(sources) {
-  return isolate(SpeechbubbleAction)(sources);
-export function SpeechbubbleAction(sources: Sources): Sinks {
-  const input$ = input(
-    sources.goal,
-    sources.cancel || xs.never(),
-    sources.DOM.select('.choice').events('click'),
-  );
-  const reducer = transitionReducer(input$);;
-  const status$ = status(sources.state.stream);
-  const outputs = output(sources.state.stream);
-  return {
-    state: reducer,
-    status: status$,
-    ...outputs
-  };
-}
 
 export function IsolatedSpeechbubbleAction(sources) {
   return isolate(SpeechbubbleAction)(sources);
