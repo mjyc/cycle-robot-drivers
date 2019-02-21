@@ -27,7 +27,8 @@ function main(sources) {
         } else if (result.result === 'Bad') {
           return {goal_id: `${new Date().getTime()}`, goal: 'Sorry to hear that...'};
         }
-      }),
+      })
+      .filter(g => !!g),
   );
   const speechbubbleAction = isolate(SpeechbubbleAction)({
     state: sources.state,
@@ -63,10 +64,11 @@ function main(sources) {
   const reducer = xs.merge(
     speechbubbleAction.state,
     facialExpressionAction.state,
+    xs.never(),
   );
   return {
     DOM: vdom$,
-    TabletFace: facialExpressionAction.TabletFace.debug(),
+    // TabletFace: facialExpressionAction.TabletFace.debug(),
     state: reducer,
   };
 }
