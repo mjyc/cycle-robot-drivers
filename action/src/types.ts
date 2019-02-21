@@ -32,7 +32,7 @@ export type Result = {
 export interface ActionSources {
   state: StateSource<any>,  // Stream<any>
   goal: Stream<Goal>,
-  cancel: Stream<GoalID>,
+  cancel?: Stream<GoalID>,
 }
 
 export interface ActionSinks {
