@@ -4,7 +4,6 @@ import isolate from '@cycle/isolate';
 import {run} from '@cycle/run';
 import {withState} from '@cycle/state';
 import {div, label, input, br, button, makeDOMDriver} from '@cycle/dom';
-import {Status} from '@cycle-robot-drivers/action';
 import {
   makeSpeechSynthesisDriver,
   SpeechSynthesisAction,
@@ -23,7 +22,7 @@ function main(sources) {
     .startWith('');
   const synthGoal$ = say$.compose(sampleCombine(inputText$))
     .filter(([_, text]) => !!text)
-    .map(([_, text]) => ({goal_id: `${new Date().getTime()}`, goal: text}));
+    .map(([_, text]) => ({goal_id: {goal_id: Date.now(), id: 'ss'}, goal: text}));
   const speechSynthesisAction = isolate(SpeechSynthesisAction)({
     state: sources.state,
     SpeechSynthesis: sources.SpeechSynthesis,
@@ -35,7 +34,7 @@ function main(sources) {
 
   // speech recognition
   const recogGoal$ = sources.DOM.select('#listen').events('click')
-    .mapTo({goal_id: `${new Date().getTime()}`, goal: {}});
+    .mapTo({goal_id: {goal_id: Date.now(), id: 'sr'}, goal: {}});
   const speechRecognitionAction = isolate(SpeechRecognitionAction)({
     state: sources.state,
     goal: recogGoal$,
@@ -48,7 +47,7 @@ function main(sources) {
 
   // UI
   const vdom$ = speechRecognitionAction.result
-    .filter(r => r.status.status === Status.SUCCEEDED)
+    .filter(r => r.status.status === 'SUCCEEDED')
     .startWith({result: ''})
     .map(r => div([
       button('.say', 'say'),

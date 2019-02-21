@@ -11,23 +11,23 @@ import {
 } from '@cycle-robot-drivers/screen';
 
 function main(sources) {
-  sources.state.stream.addListener({next: s => console.log('reducer state', s)});
+  sources.state.stream.addListener({next: s => console.debug('reducer state', s)});
 
   const speechbubbleActionResult = xs.create();
   const speechbubbles$ = xs.merge(
-    xs.of({goal_id: `${new Date().getTime()}`, goal: 'Hello there!'})
+    xs.of({goal_id: {stamp: Date.now(), id: `sb`}, goal: 'Hello there!'})
       .compose(delay(1000)),
-    xs.of({goal_id: `${new Date().getTime()}`, goal: ['Hello!', 'Bye']})
+    xs.of({goal_id: {stamp: Date.now(), id: `sb`}, goal: ['Hello!', 'Bye']})
       .compose(delay(2000)),
     speechbubbleActionResult
       .filter(result => !!result.result)
       .map(result => {
         if (result.result === 'Hello!') {
-          return {goal_id: `${new Date().getTime()}`, goal: ['Hello?', 'Bye']};
+          return {goal_id: {stamp: Date.now(), id: `sb`}, goal: ['Hello?', 'Bye']};
         } else if (result.result === 'Hello?') {
-            return {goal_id: `${new Date().getTime()}`, goal: ['Hello!', 'Bye']};
+            return {goal_id: {stamp: Date.now(), id: `sb`}, goal: ['Hello!', 'Bye']};
         } else if (result.result === 'Bye') {
-          return {goal_id: `${new Date().getTime()}`, goal: 'Bye now'};
+          return {goal_id: {stamp: Date.now(), id: `sb`}, goal: 'Bye now'};
         }
       })
       .filter(g => !!g),
@@ -38,16 +38,18 @@ function main(sources) {
     goal: speechbubbles$,
   });
   speechbubbleActionResult.imitate(speechbubbleAction.result);
+  speechbubbleAction.status.addListener({next: s =>
+    console.log('SpeechbubbleAction status', s)});
 
   const expression$ = speechbubbleActionResult
     .filter(result => !!result.result)
     .map((result) => {
       if (result.result === 'Hello!') {
-        return {goal_id: `${new Date().getTime()}`, goal: 'happy'};
+        return {goal_id: {stamp: Date.now(), id: `fe`}, goal: 'happy'};
       } else if (result.result === 'Hello?') {
-          return {goal_id: `${new Date().getTime()}`, goal: 'confused'};
+          return {goal_id: {stamp: Date.now(), id: `fe`}, goal: 'confused'};
       } else if (result.result === 'Bye') {
-        return {goal_id: `${new Date().getTime()}`, goal: 'sad'};
+        return {goal_id: {stamp: Date.now(), id: `fe`}, goal: 'sad'};
       }
     })
     .filter(g => !!g);
@@ -56,6 +58,8 @@ function main(sources) {
     TabletFace: sources.TabletFace,
     goal: expression$,
   });
+  facialExpressionAction.status.addListener({next: s =>
+    console.log('FacialExpressionAction status', s)});
 
 
   // UI
@@ -67,7 +71,6 @@ function main(sources) {
   const reducer = xs.merge(
     speechbubbleAction.state,
     facialExpressionAction.state,
-    xs.never(),
   );
   return {
     DOM: vdom$,

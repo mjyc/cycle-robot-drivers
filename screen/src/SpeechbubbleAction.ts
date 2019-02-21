@@ -6,7 +6,7 @@ import isolate from '@cycle/isolate';
 import {
   GoalID, Goal, Status, GoalStatus, Result,
   ActionSources, ActionSinks,
-  isEqualGoalStatus
+  generateGoalStatus, isEqualGoalStatus
 } from '@cycle-robot-drivers/action';
 
 
@@ -239,10 +239,7 @@ function status(reducerState$): Stream<GoalStatus> {
   const done$: Stream<GoalStatus> = reducerState$
     .filter(rs => !!rs.result)
     .map(rs => rs.result.status);
-  const initGoalStatus: GoalStatus = {
-    goal_id: null,
-    status: Status.SUCCEEDED,
-  };
+  const initGoalStatus = generateGoalStatus({status: Status.SUCCEEDED});
   return xs.merge(active$, done$)
     .compose(dropRepeats(isEqualGoalStatus))
     .startWith(initGoalStatus);
