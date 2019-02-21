@@ -1,6 +1,7 @@
 import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {Stream} from 'xstream';
+import isolate from '@cycle/isolate';
 import {span, button, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {
@@ -324,4 +325,8 @@ export function SpeechbubbleAction(sources: Sources): Sinks {
     status: status$,
     ...outputs
   };
+}
+
+export function IsolatedSpeechbubbleAction(sources) {
+  return isolate(SpeechbubbleAction)(sources);
 }

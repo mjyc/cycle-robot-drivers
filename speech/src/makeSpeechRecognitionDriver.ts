@@ -37,6 +37,7 @@ export function makeSpeechRecognitionDriver(): Driver<
   any,
   EventSource
 > {
+  const {webkitSpeechRecognition} = (window as any);
   const recognition: SpeechRecognition = new webkitSpeechRecognition();
 
   return function(sink$) {
