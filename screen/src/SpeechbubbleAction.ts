@@ -12,8 +12,8 @@ import {
 
 
 enum State {
-  RUNNING = 'RUNNING',
-  DONE = 'DONE',
+  RUN = 'RUN',
+  WAIT = 'WAIT',
 }
 
 type Variables = {
@@ -113,9 +113,9 @@ function createTransition(options: {
     },
   }
   const transitionTable = {
-    [State.DONE]: {
+    [State.WAIT]: {
       [InputType.GOAL]: (variables, inputValue) => ({
-        state: State.RUNNING,
+        state: State.RUN,
         variables: {
           goal_id: inputValue.goal_id,
           goal: inputValue.goal,
@@ -133,9 +133,9 @@ function createTransition(options: {
         },
       }),
     },
-    [State.RUNNING]: {
+    [State.RUN]: {
       [InputType.GOAL]: (variables, inputValue) => ({
-        state: State.RUNNING,
+        state: State.RUN,
         variables: {
           goal_id: inputValue.goal_id,
           goal: inputValue.goal,
@@ -159,7 +159,7 @@ function createTransition(options: {
         },
       }),
       [InputType.CANCEL]: (variables, inputValue) => ({
-        state: State.DONE,
+        state: State.WAIT,
         variables: {
           goal_id: null,
           goal: null,
@@ -179,7 +179,7 @@ function createTransition(options: {
       [InputType.CLICK]: (variables, inputValue) =>
         variables.goal.type === SpeechbubbleType.CHOICE
         ? {
-          state: State.DONE,
+          state: State.WAIT,
           variables: {
             goal_id: null,
             goal: inputValue.goal,
@@ -213,7 +213,7 @@ function transitionReducer(input$: Stream<Input>, options = {}): Stream<Reducer>
   const initReducer$: Stream<Reducer> = xs.of(
     function initReducer(prev: ReducerState): ReducerState {
       return {
-        state: State.DONE,
+        state: State.WAIT,
         variables: {
           goal_id: null,
           goal: null,
@@ -234,14 +234,14 @@ function transitionReducer(input$: Stream<Input>, options = {}): Stream<Reducer>
 }
 
 function status(reducerState$): Stream<GoalStatus> {
-  const active$: Stream<GoalStatus> = reducerState$
-    .filter(rs => rs.state === State.RUNNING)
-    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
   const done$: Stream<GoalStatus> = reducerState$
-    .filter(rs => !!rs.result)
-    .map(rs => rs.result.status);
+    .filter(rs => !!rs.outputs && !!rs.outputs.result)
+    .map(rs => rs.outputs.result.status);
+  const active$: Stream<GoalStatus> = reducerState$
+    .filter(rs => rs.state === State.RUN)
+    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
   const initGoalStatus = generateGoalStatus({status: Status.SUCCEEDED});
-  return xs.merge(active$, done$)
+  return xs.merge(done$, active$)
     .compose(dropRepeats(isEqualGoalStatus))
     .startWith(initGoalStatus);
 }

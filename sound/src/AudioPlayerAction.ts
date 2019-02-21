@@ -35,7 +35,7 @@ enum InputType {
   GOAL = 'GOAL',
   CANCEL = 'CANCEL',
   ENDED = 'ENDED',
-  PAUSED = 'PAUSED',
+  PAUSE = 'PAUSE',
 }
 
 type Input = {
@@ -64,7 +64,7 @@ function input(
       value: null,
     }),
     audioPlayerPausedEvent$.mapTo({
-      type: InputType.PAUSED,
+      type: InputType.PAUSE,
       value: null,
     }),
   );
@@ -120,7 +120,7 @@ function transition(prev: ReducerState, input: Input): ReducerState {
       };
     }
   } else if (prev.state === State.PREEMPT) {
-    if (input.type === InputType.ENDED || input.type === InputType.PAUSED) {
+    if (input.type === InputType.ENDED || input.type === InputType.PAUSE) {
       const newGoal = prev.variables.newGoal;
       return {
         ...prev,
@@ -168,14 +168,14 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 }
 
 function status(reducerState$): Stream<GoalStatus> {
-  const active$: Stream<GoalStatus> = reducerState$
-    .filter(rs => rs.state === State.RUN)
-    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
   const done$: Stream<GoalStatus> = reducerState$
     .filter(rs => !!rs.outputs && !!rs.outputs.result)
     .map(rs => rs.outputs.result.status);
+  const active$: Stream<GoalStatus> = reducerState$
+    .filter(rs => rs.state === State.RUN)
+    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
   const initGoalStatus = generateGoalStatus({status: Status.SUCCEEDED});
-  return xs.merge(active$, done$)
+  return xs.merge(done$, active$)
     .compose(dropRepeats(isEqualGoalStatus))
     .startWith(initGoalStatus);
 }

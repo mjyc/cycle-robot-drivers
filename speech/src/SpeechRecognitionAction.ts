@@ -223,14 +223,14 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
 }
 
 function status(reducerState$): Stream<GoalStatus> {
-  const active$: Stream<GoalStatus> = reducerState$
-    .filter(rs => rs.state === State.RUN)
-    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
   const done$: Stream<GoalStatus> = reducerState$
     .filter(rs => !!rs.outputs && !!rs.outputs.result)
     .map(rs => rs.outputs.result.status);
+  const active$: Stream<GoalStatus> = reducerState$
+    .filter(rs => rs.state === State.RUN)
+    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
   const initGoalStatus = generateGoalStatus({status: Status.SUCCEEDED});
-  return xs.merge(active$, done$)
+  return xs.merge(done$, active$)
     .compose(dropRepeats(isEqualGoalStatus))
     .startWith(initGoalStatus);
 }
