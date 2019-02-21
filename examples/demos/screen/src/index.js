@@ -17,15 +17,17 @@ function main(sources) {
   const speechbubbles$ = xs.merge(
     xs.of({goal_id: `${new Date().getTime()}`, goal: 'Hello there!'})
       .compose(delay(1000)),
-    xs.of({goal_id: `${new Date().getTime()}`, goal: ['Good', 'Bad']})
+    xs.of({goal_id: `${new Date().getTime()}`, goal: ['Hello!', 'Bye']})
       .compose(delay(2000)),
     speechbubbleActionResult
       .filter(result => !!result.result)
       .map(result => {
-        if (result.result === 'Good') {
-          return {goal_id: `${new Date().getTime()}`, goal: ['Great', 'Bad']};
-        } else if (result.result === 'Bad') {
-          return {goal_id: `${new Date().getTime()}`, goal: 'Sorry to hear that...'};
+        if (result.result === 'Hello!') {
+          return {goal_id: `${new Date().getTime()}`, goal: ['Hello?', 'Bye']};
+        } else if (result.result === 'Hello?') {
+            return {goal_id: `${new Date().getTime()}`, goal: ['Hello!', 'Bye']};
+        } else if (result.result === 'Bye') {
+          return {goal_id: `${new Date().getTime()}`, goal: 'Bye now'};
         }
       })
       .filter(g => !!g),
@@ -34,24 +36,25 @@ function main(sources) {
     state: sources.state,
     DOM: sources.DOM,
     goal: speechbubbles$,
-    cancel: xs.never(),
   });
   speechbubbleActionResult.imitate(speechbubbleAction.result);
 
   const expression$ = speechbubbleActionResult
     .filter(result => !!result.result)
     .map((result) => {
-      if (result.result === 'Good') {
+      if (result.result === 'Hello!') {
         return {goal_id: `${new Date().getTime()}`, goal: 'happy'};
-      } else if (result.result === 'Bad') {
+      } else if (result.result === 'Hello?') {
+          return {goal_id: `${new Date().getTime()}`, goal: 'confused'};
+      } else if (result.result === 'Bye') {
         return {goal_id: `${new Date().getTime()}`, goal: 'sad'};
       }
-    });
+    })
+    .filter(g => !!g);
   const facialExpressionAction = isolate(FacialExpressionAction)({
     state: sources.state,
     TabletFace: sources.TabletFace,
     goal: expression$,
-    cancel: xs.never(),
   });
 
 
@@ -68,7 +71,7 @@ function main(sources) {
   );
   return {
     DOM: vdom$,
-    // TabletFace: facialExpressionAction.TabletFace.debug(),
+    TabletFace: facialExpressionAction.TabletFace.debug(),
     state: reducer,
   };
 }
