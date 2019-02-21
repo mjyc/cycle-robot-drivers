@@ -195,11 +195,11 @@ function output(reducerState$) {
 };
 
 export interface Sources extends ActionSources {
-  AudioPlayer: any,
+  AudioPlayer: EventSource,
 }
 
 export interface Sinks extends ActionSinks {
-  AudioPlayer: EventSource,
+  AudioPlayer: any,
 }
 
 /**
@@ -217,7 +217,7 @@ export interface Sinks extends ActionSinks {
  *   * state: a reducer stream.
  *   * status: a stream of action status.
  *   * result: a stream of action results.
- *   * SpeechSynthesis: a stream for `AudioPlayer` driver input.
+ *   * AudioPlayer: a stream for `AudioPlayer` driver input.
  *
  */
 export function AudioPlayerAction(sources: Sources): Sinks {
