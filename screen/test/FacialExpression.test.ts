@@ -1,83 +1,86 @@
-// import xs from 'xstream'
-// import {mockTimeSource} from '@cycle/time';
-// import {
-//   GoalID, GoalStatus, Status,
-//   generateGoalID,
-// } from '@cycle-robot-drivers/action'
-// import {FacialExpressionAction} from '../src/FacialExpressionAction';
+import xs from 'xstream'
+import {mockTimeSource} from '@cycle/time';
+import {withState} from '@cycle/state';
+import {
+  GoalID, GoalStatus, Status,
+  generateGoalID,
+} from '@cycle-robot-drivers/action'
+import {FacialExpressionAction as Action} from '../src/FacialExpressionAction';
 
 
-// console.debug = jest.fn();  // hide debug outputs
+console.debug = jest.fn();  // hide debug outputs
 
-// function createToStatus(goal_id: GoalID) {
-//   return function (str: string): GoalStatus {
-//     switch (str) {
-//       case 'a':
-//         return {
-//           goal_id,
-//           status: Status.ACTIVE,
-//         };
-//       case 'p':
-//         return {
-//           goal_id,
-//           status: Status.PREEMPTED,
-//         };
-//       case 's':
-//         return {
-//           goal_id,
-//           status: Status.SUCCEEDED,
-//         };
-//     }
-//   };
-// };
+function createToStatus(goal_id: GoalID) {
+  return function (str: string): GoalStatus {
+    switch (str) {
+      case 'a':
+        return {
+          goal_id,
+          status: Status.ACTIVE,
+        };
+      case 'p':
+        return {
+          goal_id,
+          status: Status.PREEMPTED,
+        };
+      case 's':
+        return {
+          goal_id,
+          status: Status.SUCCEEDED,
+        };
+    }
+  };
+};
 
 
-// describe('FacialExpressionAction', () => {
-//   it('walks through "happy path"', (done) => {
-//     const Time = mockTimeSource();
+describe('FacialExpressionAction', () => {
+  it('walks through "happy path"', (done) => {
+    const Time = mockTimeSource();
 
-//     // Create test input streams with time
-//     const goalMark$ =           Time.diagram(`-x--|`);
-//     const animationFinish$ =    Time.diagram(`--x-|`);
-//     const expectedOutputMark$ = Time.diagram(`-x--|`);
-//     const expectedResultMark$ = Time.diagram(`--s-|`);
+    // Create test input streams
+    const goalMark$ =           Time.diagram(`-x--|`);
+    const animationFinish$ =    Time.diagram(`--x-|`);
+    const expectedOutputMark$ = Time.diagram(`-x`);
+    const expectedResultMark$ = Time.diagram(`--s`);
 
-//     // Create the action to test
-//     const goal = 'happy';
-//     const goal_id = generateGoalID();
-//     const goal$ = goalMark$.mapTo({
-//       goal_id,
-//       goal,
-//     });
-//     const actionComponent = FacialExpressionAction({
-//       goal: goal$,
-//       TabletFace: {
-//         animationFinish: animationFinish$,
-//       }
-//     });
+    // Create the action to test
+    const goal = 'happy';
+    const goal_id = generateGoalID();
+    const goal$ = goalMark$.mapTo({
+      goal_id,
+      goal,
+    });
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
+      goal: goal$,
+      TabletFace: {
+        animationFinish: animationFinish$,
+      }
+    });
 
-//     // Prepare expected values
-//     const toStatus = createToStatus(goal_id);
-//     const expectedOutput$ = expectedOutputMark$.mapTo({
-//       type: 'EXPRESS',
-//       value: {type: goal},
-//     });
-//     const expectedResult$ = expectedResultMark$.map(str => ({
-//       status: toStatus(str),
-//       result: null,
-//     }));
+    // Prepare expected values
+    const toStatus = createToStatus(goal_id);
+    const expectedOutput$ = expectedOutputMark$.mapTo({
+      type: 'EXPRESS',
+      value: {type: goal},
+    });
+    const expectedResult$ = expectedResultMark$.map(str => ({
+      status: toStatus(str),
+      result: null,
+    }));
 
-//     // Run test
-//     Time.assertEqual(actionComponent.output, expectedOutput$);
-//     Time.assertEqual(actionComponent.result, expectedResult$);
+    // Run test
+    Time.assertEqual(sinks.TabletFace, expectedOutput$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
-//     Time.run(done);
-//   });
+    Time.run(done);
+  });
 
 //   it('cancels a running goal on cancel', (done) => {
 //     const Time = mockTimeSource();
 
-//     // Create test input streams with time
+//     // Create test input streams
 //     const goalMark$ =           Time.diagram(`-0-1-|`);
 //     const animationFinish$ =    Time.diagram(`-----|`);
 //     const expectedOutputMark$ = Time.diagram(`-0-1-|`);
@@ -117,7 +120,7 @@
 //   it('does nothing on initial cancel', (done) => {
 //     const Time = mockTimeSource();
 
-//     // Create test input streams with time
+//     // Create test input streams
 //     const goalMark$ =        Time.diagram(`-x-|`);
 //     const animationFinish$ = Time.diagram(`---|`);
 //     const expectedOutput$ =  Time.diagram(`---|`);
@@ -142,7 +145,7 @@
 //   it('does nothing on cancel after succeeded', (done) => {
 //     const Time = mockTimeSource();
 
-//     // Create test input streams with time
+//     // Create test input streams
 //     const goalMark$ =           Time.diagram(`-0--1-|`);
 //     const animationFinish$ =    Time.diagram(`---1--|`);
 //     const expectedOutputMark$ = Time.diagram(`-0----|`);
@@ -182,7 +185,7 @@
 //   it('does nothing on cancel after preempted', (done) => {
 //     const Time = mockTimeSource();
 
-//     // Create test input streams with time
+//     // Create test input streams
 //     const goalMark$ =           Time.diagram(`-0-1-1-|`);
 //     const animationFinish$ =    Time.diagram(`-------|`);
 //     const expectedOutputMark$ = Time.diagram(`-0-1---|`);
@@ -222,7 +225,7 @@
 //   it('cancels the first goal on receiving a second goal', (done) => {
 //     const Time = mockTimeSource();
 
-//     // Create test input streams with time
+//     // Create test input streams
 //     const goalMark$ =          Time.diagram(`-0--1----|`);
 //     const animationFinish$ =   Time.diagram(`-------x-|`);
 //     const expecteds = [{
@@ -268,4 +271,4 @@
 
 //     Time.run(done);
 //   });
-// });
+});
