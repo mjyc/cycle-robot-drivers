@@ -252,7 +252,7 @@ export interface Sinks extends ActionSinks {
 export function SpeechSynthesisAction(sources: Sources): Sinks {
   const input$ = input(
     sources.goal,
-    sources.cancel,
+    sources.cancel || xs.never(),
     sources.SpeechSynthesis.events('start'),
     sources.SpeechSynthesis.events('end'),
   );

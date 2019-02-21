@@ -156,7 +156,7 @@ function transition(
           newGoal: null,
         },
         outputs: {
-          SpeechRecognition: !!newGoal ? newGoal.goal : null,
+          SpeechRecognition: !!newGoal ? newGoal.goal : undefined,
           result: {
             status: {
               goal_id: prevVariables.goal_id,
@@ -244,6 +244,7 @@ function output(reducerState$) {
       .filter(o => !!o.result)
       .map(o => o.result),
     SpeechRecognition: outputs$
+      .filter(o => typeof o.SpeechRecognition !== 'undefined')
       .map(o => o.SpeechRecognition)
   };
 };
@@ -278,7 +279,7 @@ export interface Sinks extends ActionSinks {
 export function SpeechRecognitionAction(sources: Sources): any {
   const input$ = input(
     sources.goal,
-    sources.cancel,
+    sources.cancel || xs.never(),
     sources.SpeechRecognition.events('start'),
     sources.SpeechRecognition.events('end'),
     sources.SpeechRecognition.events('error'),
