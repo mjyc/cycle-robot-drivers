@@ -34,7 +34,9 @@ export function SpeakWithScreenAction(sources: Sources): Sinks {
       goal_id: g.goal_id,
       goal: {
         TwoSpeechbubblesAction: g.goal,
-        SpeechSynthesisAction: g.goal,
+        SpeechSynthesisAction: typeof g.goal === 'string'
+          ? g.goal
+          : g.goal.message
       },
     }));
   const RaceAction = makeConcurrentAction(
