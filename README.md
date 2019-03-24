@@ -21,6 +21,15 @@ To get your hands dirty, check out our [examples](./examples).
 1. [Programming a social robot with Cycle.js](./docs/programming_socialrobot_with_cyclejs.md)
 2. [Implementing a finite state machine in Cycle.js](./docs/programming_socialrobot_with_fsm.md)
 
+## Slides
+
+* [Reactive Programming for Robot Applications, ROS Seattle Meetup, 2019/03/27](./slides/20190327_rosseattlemeetup/slides.md)
+
+## Misc.
+
+* [cycle-robot-drivers-app](https://github.com/mjyc/cycle-robot-drivers-app): a starter template for cycle-robot-drivers apps
+* [cycle-ros-example](https://github.com/mjyc/cycle-ros-example): A Cycle.js app with an experimental ROS driver
+
 ## Thank you
 
 * [Maya Cakmak](https://github.com/mayacakmak) for her support
