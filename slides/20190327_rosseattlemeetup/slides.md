@@ -98,14 +98,14 @@ I propose using a web development framework based called Cycle.js with ROS for b
 
 ## What is [Cycle.js](http://cycle.js.org)?
 
-* [functional reactive programming](http://conal.net/papers/icfp97/) framework in JavaScript
+* [functional and reactive programming](http://conal.net/papers/icfp97/) framework in JavaScript
 * abstraction that separates [side-effect](https://bit.ly/2dSGoZF) producing code from the main business logic code so the main code remains [pure](https://en.wikipedia.org/wiki/Pure_function) and predictable.
 
 
 Note:
 
 What is Cycle.js?
-It is a functional reactive programming framework in JavaScript that allows programmers to express system behaviors as orchestrations of dataflow instead of imperative flows of controls.
+It is a functional and reactive programming framework in JavaScript that allows programmers to express system behaviors as orchestrations of dataflow instead of imperative flows of controls.
 The framework also enforces programmers to separate side-effect producing code from the main business logic code to keep the main code pure and hence more predictable.
 
 ---
@@ -163,88 +163,54 @@ Then running an application means setting up cyclic dependencies between two gro
 
 ---
 
-<img width="70%" data-src="./figs/dialogue_diagram.png" style="background:none; border:none; box-shadow:none; margin: 0px;">
-
-<!-- .element: style="margin: 0px" -->
-
-* Notification code in [`Driver`](https://cycle.js.org/drivers.html)
-* Event definition and coordination logic code in `main` using stream operators, e.g., [`map`](https://github.com/staltz/xstream#map), [`filter`](https://github.com/staltz/xstream#filter), [`combine`](https://github.com/staltz/xstream#combine), [`merge`](https://github.com/staltz/xstream#merge), [`delay`](https://github.com/staltz/xstream#delay), etc.
-
-
-Note:
-
-For our running example, this means placing new side-effect making code in drivers, e.g., notification code, and implement the desired behaviors using stream operators on input data streams in the `main` function, as if we are arranging dataflow.
-For example, we could define a notification trigger condition using stream operators on relevant input data and return a data stream of signals that command the Notification driver to send a notification.
-
----
-
-<iframe width="100%" height="600px" src="https://stackblitz.com/edit/ros-seattle-meetup-20190328?embed=1&file=index.js&view=editor"></iframe>
-
-
-Note:
-
-Let's look at an example.
-Let's see what the robot is supposed to be doing.
-_{go through code}_
-We'll make a simple screen robot face do something.
-_{demo implementing a new behavior}_
-
-Ideas:
-
-* overall code structure; import, main, driver, and run
-* the main function
-  * the main business logic that defines robot behavior
-  * wiring data streams which carry values over time, like topics
-* demo
-  * displaying "hello"
-  * displaying "hello" only when a person is visible
+## ROS APIs as Cycle.js Drivers
 
 ```
-var face$ = xs.periodic(2000)
-  .mapTo({type: 'EXPRESS', value: {type: 'happy'}});
-```
-
----
-
-<iframe width="100%" height="600px" src="https://stackblitz.com/edit/ros-seattle-meetup-20190328?embed=1&file=makeSpeechSynthesisDriver.js&view=editor"></iframe>
-
-
-Note:
-
-You might be wondering how the side-effects are produced in drivers.
-Let's take a look at one driver implementation.
-
----
-
-Check out [cycle-robot-drivers](https://github.com/mjyc/cycle-robot-drivers) github repo for more drivers and example applications!
-
-
-Note:
-
----
-
-## ROS API as Cycle.js Driver
-
-```
-{publishedTopics} = ROSNodeDriver({subscribedTopics});
-
-{result, feedback, status} = ROSActionDriver({goal, cancel});
+{subscribedTopics} = ROSTopicDriver({publishedTopics});
 
 {response} = ROSServiceDriver({request});
 
 {latestValue1, ...} = ROSParamDriver({newValue1, ...});
 ```
-<!-- .element: style="font-size: 0.5em" -->
+<!-- .element: style="font-size: 0.55em" -->
 
 See [cycle-ros-example](https://github.com/mjyc/cycle-ros-example) github repo for details.
 
 
 Note:
 
-So far we have not seen how we can integrate ROS into the Cycle.js framework.
-Since ROS is also a network data streams, it fits naturally with the paradigms enforced by Cycle.js.
-Specifically, the example code I linked here demonstrates a way to bridge the ROS topics and parameters with the data streams used in Cycle.js and exposing the service API as a Cycle.js' driver that takes request and response data streams.
-In addition, the side-effect producing component separation suggested by Cycle.js is naturally enforced as ROS nodes that produce side-effects are only accessible via drivers.
+Let's see how we can use ROS inside of a Cycle.js application.
+I propose exposing ROS APIs, topics, services, and params, as Cycle.js drivers. For the topic API, we can a Cycle.js driver that takes data streams and returns data streams, which are corresponding to published and subscribed from a Cycle.js application.
+For the service API, we can a Cycle.js driver that takes data streams of service requests and returns data streams of service responses.
+
+I believe exposing ROS APIs as Cycle.js drivers is a natural way of bridging the two frameworks since ROS is already using data streams for communication purposes and accessing ROS via Cycle.js' drivers fits the Cycle.js' pattern as many ROS nodes make side effects.
+
+---
+
+<iframe width="100%" height="600px" src="https://stackblitz.com/edit/ros-seattle-meetup-20190328?embed=1&file=proactiveGreetingsApp.js&view=editor"></iframe>
+
+
+Note:
+
+Let's implement the proactive greeting application I mentioned earlier in pseudo code as a demo.
+
+_Cover_
+1. the overall structure
+2. the main function
+3. the extended examples, e.g., using faceId
+
+Imagine how you would implement this behavior in ROS.
+
+---
+
+Check out [cycle-robot-drivers](https://github.com/mjyc/cycle-robot-drivers) github repo for more drivers and example applications!
+
+<iframe width="100%" height="400px" src="https://stackblitz.com/edit/ros-seattle-meetup-20190328?embed=1&file=index.js"></iframe>
+
+
+Note:
+
+_Demo the eye following app and mention that they can try it using online IDE; no need to install libraries on your computer_
 
 ---
 
@@ -257,12 +223,14 @@ In addition, the side-effect producing component separation suggested by Cycle.j
 
 Note:
 
+Reducing fractions to creating interactive application opens door to making a wide range of robot application more interactive.
+
 ---
 
 ## Related Work
 
-* [Functional Reactive Animation](http://conal.net/papers/icfp97/)
-* [Yampa](https://wiki.haskell.org/Yampa)
+* [Functional Reactive Animation - ICFP97](http://conal.net/papers/icfp97/)
+* [Yampa - 2002](https://wiki.haskell.org/Yampa)
 * ["Reactive ROS" topic in ROS discourse](https://discourse.ros.org/t/reactive-ros/)
 * [Playful](https://playful.is.tuebingen.mpg.de)
 
