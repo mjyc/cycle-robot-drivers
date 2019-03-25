@@ -122,8 +122,8 @@ For example, ...
 
 ```mermaid
 graph TD
-A( /greeting_behavior ) -->| /move_base/goal, <br> /sound_play/SoundRequest| B
-B( /move_base, /leg_detector, /sound_play ) -->| /move_base/result <br> /leg_tracker_measurements | A
+A( /proactive_greeting ) -->| /say/goal <br> /shimmy/goal <br> /say/SayRequest| B
+B( /say, /shimmy, /leg_detector ) -->| /say/result <br> /shimmy/result <br> /leg_tracker_measurements | A
 
 {
   "theme": "forest"
@@ -214,19 +214,6 @@ _Demo the eye following app and mention that they can try it using online IDE; n
 
 ---
 
-## Potential Applications
-
-* Interactive manipulation <!-- .element: class="fragment" -->
-* Environment-aware navigation <!-- .element: class="fragment" -->
-* Social robot behaviors <!-- .element: class="fragment" -->
-
-
-Note:
-
-Reducing fractions to creating interactive application opens door to making a wide range of robot application more interactive.
-
----
-
 ## Related Work
 
 * [Functional Reactive Animation - ICFP97](http://conal.net/papers/icfp97/)
@@ -238,6 +225,10 @@ Reducing fractions to creating interactive application opens door to making a wi
 Note:
 
 Taking a reactive programming approach to implementing interactive application has a long history.
+One of the first work goes back to 1997.
+Yampa demonstrates the idea of separating side effect components from the main component.
+Playful is another framework that takes a reactive programming approach for creating interactive robot applications developed from Max Planck.
+...
 
 ---
 
@@ -250,15 +241,14 @@ Taking a reactive programming approach to implementing interactive application h
 Note:
 
 Encourage ROS users to try reactive programming.
-Encourage web developers to program robots / use ROS.
+Encourage web developers to program robots/use ROS. as I'd like to see web developers and roboticists working closer since both communities have a lot to learn from each other.
 
 ---
 
 ## Conclusion
 
 * Cycle.js + ROS as a reactive programming solution for robot applications
-* Use-case demonstrations
-* Try reactive programming in your next project!
+* The [functional reactive programming](http://conal.net/papers/icfp97/) and side-effect separation (i.e., [ports and adapters pattern](http://wiki.c2.com/?PortsAndAdaptersArchitecture)) can be applied without using Cycle.js
 
 ---
 
