@@ -166,22 +166,22 @@ Then running an application means setting up cyclic dependencies between two gro
 ## ROS APIs as Cycle.js Drivers
 
 ```
-{subscribedTopics} = ROSTopicDriver({publishedTopics});
+{subTopics} = ROSTopicDriver({pubTopics});
 
-{response} = ROSServiceDriver({request});
+{resps} = ROSServiceDriver({reqs});
 
-{latestValue1, ...} = ROSParamDriver({newValue1, ...});
+{latestVals} = ROSParamDriver({newVals});
 ```
-<!-- .element: style="font-size: 0.55em" -->
+<!-- .element: style="font-size: 0.74em" -->
 
 See [cycle-ros-example](https://github.com/mjyc/cycle-ros-example) github repo for details.
 
 
 Note:
 
-Let's see how we can use ROS inside of a Cycle.js application.
-I propose exposing ROS APIs, topics, services, and params, as Cycle.js drivers. For the topic API, we can a Cycle.js driver that takes data streams and returns data streams, which are corresponding to published and subscribed from a Cycle.js application.
-For the service API, we can a Cycle.js driver that takes data streams of service requests and returns data streams of service responses.
+Let's see how we can use ROS in a Cycle.js application.
+I propose exposing ROS APIs--topics, services, and params--as Cycle.js drivers. For the topic API, we can create a Cycle.js driver that takes data streams and returns data streams, which are corresponding to published and subscribed from a Cycle.js application.
+For the service API, we can create a Cycle.js driver that takes data streams of service requests and returns data streams of service responses.
 
 I believe exposing ROS APIs as Cycle.js drivers is a natural way of bridging the two frameworks since ROS is already using data streams for communication purposes and accessing ROS via Cycle.js' drivers fits the Cycle.js' pattern as many ROS nodes make side effects.
 
@@ -198,6 +198,7 @@ _Cover_
 1. the overall structure
 2. the main function
 3. the extended examples, e.g., using faceId
+4. explain why components that makes side effects need to be separated (ports and adapter pattern)
 
 Imagine how you would implement this behavior in ROS.
 
@@ -232,23 +233,16 @@ Playful is another framework that takes a reactive programming approach for crea
 
 ---
 
-## Future Work
-
-* Adapting the pattern in python or cpp via [ReactiveX](http://reactivex.io/)
-* More robotics tool supports for web developers, e.g., [recording](https://codesandbox.io/s/9lyowx5q0y) and [replaying](https://codesandbox.io/s/48oozw2qz7) data
-
-
-Note:
-
-Encourage ROS users to try reactive programming.
-Encourage web developers to program robots/use ROS. as I'd like to see web developers and roboticists working closer since both communities have a lot to learn from each other.
-
----
-
 ## Conclusion
 
 * Cycle.js + ROS as a reactive programming solution for robot applications
-* The [functional reactive programming](http://conal.net/papers/icfp97/) and side-effect separation (i.e., [ports and adapters pattern](http://wiki.c2.com/?PortsAndAdaptersArchitecture)) can be applied without using Cycle.js
+* The [functional reactive programming](http://conal.net/papers/icfp97/) and the side-effect separation (i.e., [ports and adapters pattern](http://wiki.c2.com/?PortsAndAdaptersArchitecture)) can be applied without Cycle.js
+* Hope to see the ROS users adapting the patterns in python or cpp via [RxPY](https://github.com/ReactiveX/RxPY) or [RxCpp](https://github.com/ReactiveX/RxCpp)
+
+Note:
+
+I believe it is time for roboticists to create interactive robot applications to make robots in human-environment more useful.
+I believe the two patterns used in Cycle.js lower friction for creating interactive application.
 
 ---
 
