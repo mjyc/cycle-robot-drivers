@@ -202,6 +202,9 @@ _Cover_
 
 Imagine how you would implement this behavior in ROS.
 
+https://github.com/staltz/xstream#combine
+https://github.com/staltz/xstream#merge
+
 ---
 
 Check out [cycle-robot-drivers](https://github.com/mjyc/cycle-robot-drivers) github repo for more drivers and example applications!
