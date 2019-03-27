@@ -23,7 +23,7 @@ To get your hands dirty, check out our [examples](./examples).
 
 ## Slides
 
-* [Reactive Programming for Robot Applications, ROS Seattle Meetup, 2019/03/27](./slides/20190327_rosseattlemeetup/export/slides.pdf)
+* [Reactive Programming for Robot Applications, ROS Seattle Meetup, 2019/03/27](./slides/20190327_rosseattlemeetup/export/slides.pdf) ([source](./slides/20190327_rosseattlemeetup/export/slides.md))
 
 ## Misc.
 
