@@ -1,5 +1,5 @@
 ---
-controls: false
+controls: true
 progress: false
 theme : "white"
 transition: "slides"
@@ -110,45 +110,6 @@ The framework also enforces programmers to separate side-effect producing code f
 
 ---
 
-<img data-src="./figs/dialogue_diagram_ros.png" style="background:none; border:none; box-shadow:none;">
-
-
-Note:
-
-Let's try to understand what that means from what we know; creating a program in ROS.
-Imagine how you would program a greeting robot behavior that proactively greets a person depends on distance-to-person in ROS.
-I would write a new ROS node that implements the desired behavior by subscribing to topics from existing perception nodes and publishing topics to the existing control nodes.
-For example, ...
-
-```mermaid
-graph TD
-A( /proactive_greeting ) -->| /say/goal <br> /shimmy/goal <br> /say/SayRequest| B
-B( /say, /shimmy, /leg_detector ) -->| /say/result <br> /shimmy/result <br> /leg_tracker_measurements | A
-
-{
-  "theme": "forest"
-}
-```
-
-https://mermaidjs.github.io/mermaid-live-editor/
-
----
-
-New specifications:
-
-* notify the server on certain events
-* coordinate text-to-speech and base-movement
-
-
-Note:
-
-The concurrency issues I pointed out earlier usually occur in the behavior node as soon as the desired behavior becomes more complex.
-Let's say we have additional specifications such as the robot needs to notify to the central control system for logging purpose or the robot needs to coordinate text-to-speech and base movement to make its internal state more transparent.
-Now you are facing nontrivial decisions to make such as where to place notification trigger and trigger event definition location, e.g., in a new node vs. in the behavior node, and a way to synchronize speech and movement related logic.
-In addition, due to the increased number of the system's concurrent inputs and outputs, we are also likely to have race-condition related bugs in our code.
-
----
-
 <img width="70%" data-src="./figs/dialogue_diagram.png" style="background:none; border:none; box-shadow:none;">
 
 `sinks = main(sources)` <!-- .element: class="fragment" data-fragment-index="1" -->
@@ -179,11 +140,55 @@ See [cycle-ros-example](https://github.com/mjyc/cycle-ros-example) github repo f
 
 Note:
 
-Let's see how we can use ROS in a Cycle.js application.
-I propose exposing ROS APIs--topics, services, and params--as Cycle.js drivers. For the topic API, we can create a Cycle.js driver that takes data streams and returns data streams, which are corresponding to published and subscribed from a Cycle.js application.
+To use ROS with Cycle.js, I propose exposing ROS APIs--topics, services, and params--as Cycle.js drivers. For the topic API, we can create a Cycle.js driver that takes data streams and returns data streams, which are corresponding to published and subscribed from a Cycle.js application.
 For the service API, we can create a Cycle.js driver that takes data streams of service requests and returns data streams of service responses.
 
 I believe exposing ROS APIs as Cycle.js drivers is a natural way of bridging the two frameworks since ROS is already using data streams for communication purposes and accessing ROS via Cycle.js' drivers fits the Cycle.js' pattern as many ROS nodes make side effects.
+
+
+---
+
+<img data-src="./figs/dialogue_diagram_ros.png" style="background:none; border:none; box-shadow:none;">
+
+
+Note:
+
+To illustrate how Cycle.js + ROS architecture can help with creating interactive robot applications, let's imagine how you would program a greeting robot behavior that proactively greets a person depends on distance-to-person in ROS.
+I would write a new ROS node that implements the desired behavior by subscribing to topics from existing perception nodes and publishing topics to the existing control nodes.
+For example, ...
+
+```mermaid
+graph TD
+A( /proactive_greeting ) -->| /say/goal <br> /shimmy/goal <br> /say/SayRequest| B
+B( /say, /shimmy, /leg_detector ) -->| /say/result <br> /shimmy/result <br> /leg_tracker_measurements | A
+
+{
+  "theme": "forest"
+}
+```
+
+https://mermaidjs.github.io/mermaid-live-editor/
+
+---
+
+New specifications:
+
+* coordinate text-to-speech and base-movement
+* notify the server on certain events
+
+
+Note:
+
+The concurrency issues I pointed out earlier usually occur in the behavior node as soon as the desired behavior becomes more complex.
+Let's say we have additional specifications such as the robot needs to notify to the central control system for logging purpose or the robot needs to coordinate text-to-speech and base movement to make its internal state more transparent.
+Now you are facing nontrivial decisions to make such as where to place notification trigger and trigger event definition location, e.g., in a new node vs. in the behavior node, and a way to synchronize speech and movement related logic.
+In addition, due to the increased number of the system's concurrent inputs and outputs, we are also likely to have race-condition related bugs in our code.
+
+_More details about specifications_
+* if a person is detected, say "hello" and wave and then when both actions are finished, smile
+* notify the server whenever the robot finished interacting with a person is standing within 1m
+
+_explain why it is hard to implement a behavior that meets the above specifications_
 
 ---
 
@@ -205,16 +210,26 @@ Imagine how you would implement this behavior in ROS.
 https://github.com/staltz/xstream#combine
 https://github.com/staltz/xstream#merge
 
+_TODO_
+
+Update example based on the updated specifications
+
 ---
 
 Check out [cycle-robot-drivers](https://github.com/mjyc/cycle-robot-drivers) github repo for more drivers and example applications!
-
-<iframe width="100%" height="400px" src="https://stackblitz.com/edit/ros-seattle-meetup-20190328?embed=1&file=index.js"></iframe>
 
 
 Note:
 
 _Demo the eye following app and mention that they can try it using online IDE; no need to install libraries on your computer_
+
+---
+
+## Potential Applications
+
+* Interactive manipulation <!-- .element: class="fragment" -->
+* Environment-aware navigation <!-- .element: class="fragment" -->
+* Social robot behaviors <!-- .element: class="fragment" -->
 
 ---
 
