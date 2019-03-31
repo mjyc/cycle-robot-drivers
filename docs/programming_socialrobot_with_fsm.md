@@ -1,5 +1,9 @@
 # Implementing a finite state machine in Cycle.js
 
+> _**Note:** Check out other posts on programming a social robot using Cycle.js too:_
+> 1. [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)
+> 2. [Implementing a finite state machine in Cycle.js](./programming_socialrobot_with_fsm.md)
+
 In this post, I'll show you how to implement a reactive social robot program as a [finite state machine](https://en.wikipedia.org/wiki/Finite-state_machine).
 We'll continue from where we left off in the previous post [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)--so check it out if you haven't already!
 If you are in a hurry, here is the [demo and complete code](https://stackblitz.com/edit/cycle-robot-drivers-tutorials-02-fsm) of what we are building in this post.
@@ -72,7 +76,7 @@ This is because we define the states based on distinct actions each state is per
 You may have wondered why we did not create each state in the [travel quiz flowchart](http://www.nomadwallet.com/afford-travel-quiz-personality/) as an individual state, e.g., `ASK_CAREER_QUESTION`, `ASK_WORKING_ABROAD_QUESTION`, `ASK_FAMILY_QUESTION`, etc.
 This is because representing the states that behave the same except the sentence the robot says with a single `SAY` state with a variable `currentSentence` (not shown in the diagram) yields the simpler, more maintainable FSM.
 
-The inputs can be considered as the events that could occur in each state and 
+The inputs can be considered as the events that could occur in each state and
 are originated from actions, e.g., `SAY_DONE`, sensors, e.g., `DETECTED_FACE`, or external systems, e.g. `START`.
 We represent an input as a type-value pair.
 For example, the `VALID_RESPONSE` type input is paired with a value "yes" or "no", which is used to determine the transition between `LISTEN` to `SAY` (input values are not shown in the graph).
@@ -123,7 +127,7 @@ function transition(state, variables, input) {  // a dummy transition function
 /**
  * // Example state, variables, input, and outputs
  * const state = State.PEND;
- * const variables = {  
+ * const variables = {
  *   sentence: 'You are a vacationer!',
  * };
  * const input = {
@@ -197,7 +201,7 @@ function output(machine$) {  // a dummy output function
   };
 }
 
-function main(sources) { 
+function main(sources) {
   const input$ = input(
     sources.TabletFace.load,
     sources.SpeechSynthesisAction.result,
@@ -228,7 +232,7 @@ If you run the application, it should load a robot face that still does nothing 
 The most important thing to notice here is that we divide the `main` function into three functions; `input`, `transition`, and `output`.
 The `input` function takes incoming streams in `sources` and returns a stream that emits the FSM's input values.
 We then use the [`fold`](https://github.com/staltz/xstream#fold) xstream operator on the returned stream (`$input`) to trigger the FSM's `transition` function.
-Note that the `fold` operator is like `Array.prototype.reduce` for streams; it takes 
+Note that the `fold` operator is like `Array.prototype.reduce` for streams; it takes
 
 1. an accumulator function that takes an emitted value (e.g., an FSM input value, `input`) and a previous output of the accumulator function (e.g., the latest FSM status, `machine`) or a seed value and
 2. an initial output of the accumulator function (e.g., the initial FSM status, `defaultMachine`).
