@@ -1,8 +1,8 @@
 # Programming a social robot using Cycle.js
 
 > _**Note:** Check out other posts on programming a social robot using Cycle.js too:_
-> 1. [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)
-> 2. [Implementing a finite state machine in Cycle.js](./programming_socialrobot_with_fsm.md)
+> _1. [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)_
+> _2. [Implementing a finite state machine in Cycle.js](./programming_socialrobot_with_fsm.md)_
 
 In this post, I'll show you how to program a social robot using [Cycle.js](https://cycle.js.org/).
 I assume you are familiar with reactive programming.

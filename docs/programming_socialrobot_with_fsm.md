@@ -1,8 +1,8 @@
 # Implementing a finite state machine in Cycle.js
 
 > _**Note:** Check out other posts on programming a social robot using Cycle.js too:_
-> 1. [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)
-> 2. [Implementing a finite state machine in Cycle.js](./programming_socialrobot_with_fsm.md)
+> _1. [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)_
+> _2. [Implementing a finite state machine in Cycle.js](./programming_socialrobot_with_fsm.md)_
 
 In this post, I'll show you how to implement a reactive social robot program as a [finite state machine](https://en.wikipedia.org/wiki/Finite-state_machine).
 We'll continue from where we left off in the previous post [Programming a social robot using Cycle.js](./programming_socialrobot_with_cyclejs.md)--so check it out if you haven't already!
