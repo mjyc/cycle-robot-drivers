@@ -77,28 +77,25 @@ function input(
   );
 }
 
-function createTransition(options: {
+function f({callback: {name = "cbFunction", params = "123"} = {}} = {}) {
+  console.log(name);
+  console.log(params);
+}
+
+function createTransition({
+  styles = {}
+}: {
   styles?: {
     message?: object,
     button?: object,
-  },
+  }
 } = {}) {
-  if (!options.styles) {
-    options.styles = {};
-  }
-  if (!options.styles.message) {
-    options.styles.message = {};
-  }
-  if (!options.styles.button) {
-    options.styles.button = {};
-  }
-
-  const styles = {
+  styles = {
     message: {
       fontFamily: 'helvetica',
       fontSize: '12.5vmin',
       fontWeight: 'lighter',
-      ...options.styles.message,
+      ...styles.message,
     },
     button: {
       margin: '0 0.25em 0.25em 0.25em',
@@ -108,9 +105,10 @@ function createTransition(options: {
       fontFamily: 'helvetica',
       fontSize: '10vmin',
       fontWeight: 'lighter',
-      ...options.styles.button,
-    },
-  }
+      ...styles.message,
+    }
+  };
+
   const transitionTable = {
     [State.WAIT]: {
       [InputType.GOAL]: (variables, inputValue) => ({
