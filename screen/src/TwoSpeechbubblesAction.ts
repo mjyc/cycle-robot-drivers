@@ -1,14 +1,14 @@
-<<<<<<< HEAD
-import xs from 'xstream';
-import {Stream} from 'xstream';
-import {adapt} from '@cycle/run/lib/adapt';
-import isolate from '@cycle/isolate';
-import {div, span, DOMSource} from '@cycle/dom';
-import {
-  GoalID, Goal, Status, Result, ActionSinks, initGoal, isEqual,
-} from '@cycle-robot-drivers/action';
-import {makeSpeechbubbleAction} from './SpeechbubbleAction';
-=======
+// <<<<<<< HEAD
+// import xs from 'xstream';
+// import {Stream} from 'xstream';
+// import {adapt} from '@cycle/run/lib/adapt';
+// import isolate from '@cycle/isolate';
+// import {div, span, DOMSource} from '@cycle/dom';
+// import {
+//   GoalID, Goal, Status, Result, ActionSinks, initGoal, isEqual,
+// } from '@cycle-robot-drivers/action';
+// import {makeSpeechbubbleAction} from './SpeechbubbleAction';
+// =======
 // import xs from 'xstream';
 // import {Stream} from 'xstream';
 // import {adapt} from '@cycle/run/lib/adapt';
@@ -18,7 +18,7 @@ import {makeSpeechbubbleAction} from './SpeechbubbleAction';
 //   GoalID, Goal, Status, Result, ActionSinks, initGoal, isEqual,
 // } from '@cycle-robot-drivers/action';
 // import {IsolatedSpeechbubbleAction} from './SpeechbubbleAction';
->>>>>>> WIP: initial SpeechbubbleAction refactoring!
+// >>>>>>> WIP: initial SpeechbubbleAction refactoring!
 
 
 // enum State {
@@ -437,60 +437,60 @@ export function makeTwoSpeechbubblesAction(options: {
 //         ]);
 //       }
 //     });
->>>>>>> WIP: initial SpeechbubbleAction refactoring!
+// >>>>>>> WIP: initial SpeechbubbleAction refactoring!
 
-    const vdom$ = xs.combine(robotSpeechbubble.DOM, humanSpeechbubble.DOM)
-      .map(([robotVTree, humanVTree]) => {
-        if (robotVTree === "" &&  humanVTree === "") {
-          return "";
-        } else if (robotVTree !== "" &&  humanVTree === "") {
-          return div({style: styles.outer},
-            div({style: styles.bubble}, span(robotVTree))
-          );
-        } else  if (robotVTree !== "" &&  humanVTree === "") {
-          return div({style: styles.outer},
-            div({style: styles.bubble}, span(humanVTree))
-          );
-        } else {
-          return div({style: styles.outer}, [
-            div({style: styles.bubble}, [span(robotVTree)]),
-            div({style: styles.bubble}, [span(humanVTree)]),
-          ]);
-        }
-      });
+//     const vdom$ = xs.combine(robotSpeechbubble.DOM, humanSpeechbubble.DOM)
+//       .map(([robotVTree, humanVTree]) => {
+//         if (robotVTree === "" &&  humanVTree === "") {
+//           return "";
+//         } else if (robotVTree !== "" &&  humanVTree === "") {
+//           return div({style: styles.outer},
+//             div({style: styles.bubble}, span(robotVTree))
+//           );
+//         } else  if (robotVTree !== "" &&  humanVTree === "") {
+//           return div({style: styles.outer},
+//             div({style: styles.bubble}, span(humanVTree))
+//           );
+//         } else {
+//           return div({style: styles.outer}, [
+//             div({style: styles.bubble}, [span(robotVTree)]),
+//             div({style: styles.bubble}, [span(humanVTree)]),
+//           ]);
+//         }
+//       });
 
-<<<<<<< HEAD
+// <<<<<<< HEAD
 
-    return {
-      DOM: vdom$,
-      result,
-    };
-  }
-}
+//     return {
+//       DOM: vdom$,
+//       result,
+//     };
+//   }
+// }
 
-/**
- * TwoSpeechbubbles, Robot and Human, action component.
- *
- * @param sources
- *
- *   * goal: a stream of `null` (as "cancel"),
- *     `{type: 'SET_MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
- *     "set message"), or `{type: 'ASK_QUESTION', message: 'Blue pill or
- *     red pill?', choices: ['Blue', 'Red']}` (as "ask multiple choice").
- *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
- *
- * @return sinks
- *
- *   * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
- *   * result: a stream of action results.
- *
- */
-export let TwoSpeechbubblesAction = makeTwoSpeechbubblesAction();
+// /**
+//  * TwoSpeechbubbles, Robot and Human, action component.
+//  *
+//  * @param sources
+//  *
+//  *   * goal: a stream of `null` (as "cancel"),
+//  *     `{type: 'SET_MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
+//  *     "set message"), or `{type: 'ASK_QUESTION', message: 'Blue pill or
+//  *     red pill?', choices: ['Blue', 'Red']}` (as "ask multiple choice").
+//  *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
+//  *
+//  * @return sinks
+//  *
+//  *   * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
+//  *   * result: a stream of action results.
+//  *
+//  */
+// export let TwoSpeechbubblesAction = makeTwoSpeechbubblesAction();
 
-export function IsolatedTwoSpeechbubblesAction(sources) {
-  return isolate(TwoSpeechbubblesAction)(sources);
-}
-=======
+// export function IsolatedTwoSpeechbubblesAction(sources) {
+//   return isolate(TwoSpeechbubblesAction)(sources);
+// }
+// =======
 //   return {
 //     DOM: vdom$,
 //     result,
@@ -500,4 +500,4 @@ export function IsolatedTwoSpeechbubblesAction(sources) {
 // export function IsolatedTwoSpeechbubblesAction(sources) {
 //   return isolate(TwoSpeechbubblesAction)(sources);
 // }
->>>>>>> WIP: initial SpeechbubbleAction refactoring!
+// >>>>>>> WIP: initial SpeechbubbleAction refactoring!

@@ -2,10 +2,10 @@ import xs, {Stream} from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {
   GoalID, Goal, GoalStatus, Status, Result,
-  ActionSources, ActionSinks,
+  ActionSources, ActionSinks, EventSource,
   generateGoalStatus, isEqualGoalStatus,
 } from '@cycle-robot-drivers/action';
-import {TabletFaceCommand, TabletFaceSource} from './makeTabletFaceDriver';
+import {TabletFaceCommand} from './makeTabletFaceDriver';
 
 enum State {
   WAIT = 'WAIT',
@@ -194,7 +194,7 @@ function output(reducerState$) {
 };
 
 export interface Sources extends ActionSources {
-  TabletFace: TabletFaceSource,
+  TabletFace: EventSource,
 }
 
 export interface Sinks extends ActionSinks {
@@ -222,7 +222,7 @@ export function FacialExpressionAction(sources: Sources): Sinks {
   const input$ = input(
     sources.goal,
     sources.cancel || xs.never(),
-    sources.TabletFace.animationFinish,
+    sources.TabletFace.events('animationfinish'),
   );
   const reducer = transitionReducer(input$);;
   const status$ = status(sources.state.stream);

@@ -6,6 +6,7 @@ import {adapt} from '@cycle/run/lib/adapt';
 import {EventSource} from '@cycle-robot-drivers/action';
 
 
+
 // adapted from
 //   https://github.com/mjyc/tablet-robot-face/blob/709b731dff04033c08cf045adc4e038eefa750a2/index.js#L3-L184
 class EyeController {
@@ -223,6 +224,36 @@ class EyeController {
   }
 }
 
+export let createPoseDetectionVdom = (styles: {
+  face?: object,
+  eye?: object,
+  eyelid?: object,
+  upper?: object,
+  lower?: object,
+  left?: object,
+  right?: object,
+} = {}) => div(`.face`, {style: styles.face}, [
+  div('.eye.left', {
+    style: (Object as any).assign({}, styles.eye, styles.left),
+  }, [
+    div('.eyelid.upper', {
+      style: (Object as any).assign({}, styles.eyelid, styles.upper),
+    }),
+    div('.eyelid.lower', {
+      style: (Object as any).assign({}, styles.eyelid, styles.lower),
+    }),
+  ]),
+  div('.eye.right', {
+    style: (Object as any).assign({}, styles.eye, styles.right),
+  }, [
+    div('.eyelid.upper', {
+      style: (Object as any).assign({}, styles.eyelid, styles.upper),
+    }),
+    div('.eyelid.lower', {
+      style: (Object as any).assign({}, styles.eyelid, styles.lower),
+    }),
+  ]),
+]);
 
 export enum CommandType {
   EXPRESS = 'EXPRESS',
@@ -447,40 +478,17 @@ export function makeTabletFaceDriver(options: {
       }
     });
 
-    const vdom$ = xs.of(
-      div(`.face`, {style: styles.face}, [
-        div('.eye.left', {
-          style: (Object as any).assign({}, styles.eye, styles.left),
-        }, [
-          div('.eyelid.upper', {
-            style: (Object as any).assign({}, styles.eyelid, styles.upper),
-          }),
-          div('.eyelid.lower', {
-            style: (Object as any).assign({}, styles.eyelid, styles.lower),
-          }),
-        ]),
-        div('.eye.right', {
-          style: (Object as any).assign({}, styles.eye, styles.right),
-        }, [
-          div('.eyelid.upper', {
-            style: (Object as any).assign({}, styles.eyelid, styles.upper),
-          }),
-          div('.eyelid.lower', {
-            style: (Object as any).assign({}, styles.eyelid, styles.lower),
-          }),
-        ]),
-      ])
-    ).remember();
+    const vdom$ = xs.of(createPoseDetectionVdom(styles)).remember();
 
     const eventSource: EventSource = {
       events: (eventName: string) => {
         switch (eventName) {
-          case 'dom':
-            return adapt(vdom$);
-          case 'animationfinish':
-            return adapt(animationFinish$$.flatten());
           case 'load':
             return adapt(load$);
+          case 'animationfinish':
+            return adapt(animationFinish$$.flatten());
+          case 'dom':
+            return adapt(vdom$);
           default:
             console.warn(`Unknown event name ${eventName}; returning a stream that does nothing`);
             return xs.never();
