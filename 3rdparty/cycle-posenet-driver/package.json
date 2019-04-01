@@ -10,7 +10,6 @@
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "@cycle-robot-drivers/action": "../../action",
     "@cycle/dom": "22.3.0",
     "@cycle/run": "5.2.0",
     "@tensorflow-models/posenet": "0.2.3",

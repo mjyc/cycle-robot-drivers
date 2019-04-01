@@ -120,12 +120,6 @@ export type PoseNetParameters = {
   stopRequested: boolean,
 };
 
-export type PoseDetectionSource = {
-  DOM: any,
-  animationFinish: any,
-  load: any,
-};
-
 /**
  * [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet)
  * driver factory.
@@ -152,7 +146,7 @@ export function makePoseDetectionDriver({
   flipHorizontal?: boolean,
 } = {}): Driver<
   any,
-  PoseDetectionSource
+  any
 > {
   const divClass = `posenet`;
   const videoClass = `posenet-video`;
@@ -352,11 +346,20 @@ export function makePoseDetectionDriver({
         video(`.${videoClass}`, {style: {display: 'none'}, autoPlay: ''}),
         canvas(`.${canvasClass}`),
       ])
-    );
+    ).remember();
 
     return {
-      DOM: adapt(vdom$),
-      poses: adapt(poses$),
+      events: (eventName: string) => {
+        switch (eventName) {
+          case 'poses':
+            return adapt(poses$);
+          case 'dom':
+            return adapt(vdom$);
+          default:
+            console.warn(`Unknown event name ${eventName}; returning a stream that oes nothing`);
+            return xs.never();
+        }
+      }
     };
   }
 }
