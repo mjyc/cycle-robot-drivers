@@ -14,7 +14,7 @@ All packages were tested with Chrome browser (>= 65.0.3325.181) only.
 
 To build all packages, simply run `make` from the root directory of this repository.
 
-To get your hands dirty, check out our [examples](./examples).
+To get your hands dirty, check out our [examples](./examples) or try building an app using [cycle-robot-drivers-app](https://github.com/mjyc/cycle-robot-drivers-app).
 
 ## Tutorials
 
@@ -29,6 +29,7 @@ To get your hands dirty, check out our [examples](./examples).
 
 * [cycle-robot-drivers-app](https://github.com/mjyc/cycle-robot-drivers-app): a starter template for cycle-robot-drivers apps
 * [cycle-ros-example](https://github.com/mjyc/cycle-ros-example): A Cycle.js app with an experimental ROS driver
+* [@mjyc/cycle-time-travel](https://github.com/mjyc/cycle-time-travel): A time traveling debugger for Cycle.js apps originally developed by [Widdershin](https://github.com/cyclejs/cycle-time-travel) ([demo](https://codesandbox.io/s/24olxr7k50) | [robot-app-demo](https://codesandbox.io/s/48oozw2qz7))
 
 ## Thank you
 
