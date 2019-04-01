@@ -77,7 +77,7 @@ class EyeController {
     };
 
     switch (type) {
-      case 'happy':
+      case 'HAPPY':
         return {
           lowerLeftEyelid: this._lowerLeftEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * -2 / 3)`,
@@ -93,7 +93,7 @@ class EyeController {
           }), options),
         };
 
-      case 'sad':
+      case 'SAD':
         return {
           upperLeftEyelid: this._upperLeftEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
@@ -109,7 +109,7 @@ class EyeController {
           }), options),
         };
 
-      case 'angry':
+      case 'ANGRY':
         return {
           upperLeftEyelid: this._upperLeftEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * 1 / 4)`,
@@ -125,7 +125,7 @@ class EyeController {
           }), options),
         };
 
-      case 'focused':
+      case 'FOCUSED':
         return {
           upperLeftEyelid: this._upperLeftEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
@@ -149,7 +149,7 @@ class EyeController {
           }), options),
         }
 
-      case 'confused':
+      case 'CONFUSED':
         return {
           upperRightEyelid: this._upperRightEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
@@ -224,37 +224,6 @@ class EyeController {
   }
 }
 
-export let createPoseDetectionVdom = (styles: {
-  face?: object,
-  eye?: object,
-  eyelid?: object,
-  upper?: object,
-  lower?: object,
-  left?: object,
-  right?: object,
-} = {}) => div(`.face`, {style: styles.face}, [
-  div('.eye.left', {
-    style: (Object as any).assign({}, styles.eye, styles.left),
-  }, [
-    div('.eyelid.upper', {
-      style: (Object as any).assign({}, styles.eyelid, styles.upper),
-    }),
-    div('.eyelid.lower', {
-      style: (Object as any).assign({}, styles.eyelid, styles.lower),
-    }),
-  ]),
-  div('.eye.right', {
-    style: (Object as any).assign({}, styles.eye, styles.right),
-  }, [
-    div('.eyelid.upper', {
-      style: (Object as any).assign({}, styles.eyelid, styles.upper),
-    }),
-    div('.eyelid.lower', {
-      style: (Object as any).assign({}, styles.eyelid, styles.lower),
-    }),
-  ]),
-]);
-
 export enum CommandType {
   EXPRESS = 'EXPRESS',
   START_BLINKING = 'START_BLINKING',
@@ -263,11 +232,11 @@ export enum CommandType {
 }
 
 export enum ExpressCommandType {
-  HAPPY = 'happy',
-  SAD = 'sad',
-  ANGRY = 'angry',
-  FOCUSED = 'focused',
-  CONFUSED = 'confused',
+  HAPPY = 'HAPPY',
+  SAD = 'SAD',
+  ANGRY = 'ANGRY',
+  FOCUSED = 'FOCUSED',
+  CONFUSED = 'CONFUSED',
 }
 
 export type ExpressCommandArgs = {
@@ -297,12 +266,6 @@ export type TabletFaceCommand = {
   type: CommandType,
   value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
-
-export type TabletFaceSource = {
-  DOM: any,
-  animationFinish: any,
-  load: any,
-};
 
 /**
  * [TabletFace](https://github.com/mjyc/tablet-robot-face) driver factory.
@@ -434,7 +397,7 @@ export function makeTabletFaceDriver(options: {
         lowerRightEyelid: element.querySelector('.right .eyelid.lower'),
       });
 
-      load$.shamefullySendNext(true);
+      load$.shamefullySendNext({});
     }, 1000);
 
     let animations = {};
@@ -478,7 +441,28 @@ export function makeTabletFaceDriver(options: {
       }
     });
 
-    const vdom$ = xs.of(createPoseDetectionVdom(styles)).remember();
+    const vdom$ = xs.of(div(`.face`, {style: styles.face}, [
+      div('.eye.left', {
+        style: (Object as any).assign({}, styles.eye, styles.left),
+      }, [
+        div('.eyelid.upper', {
+          style: (Object as any).assign({}, styles.eyelid, styles.upper),
+        }),
+        div('.eyelid.lower', {
+          style: (Object as any).assign({}, styles.eyelid, styles.lower),
+        }),
+      ]),
+      div('.eye.right', {
+        style: (Object as any).assign({}, styles.eye, styles.right),
+      }, [
+        div('.eyelid.upper', {
+          style: (Object as any).assign({}, styles.eyelid, styles.upper),
+        }),
+        div('.eyelid.lower', {
+          style: (Object as any).assign({}, styles.eyelid, styles.lower),
+        }),
+      ]),
+    ])).remember();
 
     const eventSource: EventSource = {
       events: (eventName: string) => {
@@ -490,7 +474,7 @@ export function makeTabletFaceDriver(options: {
           case 'dom':
             return adapt(vdom$);
           default:
-            console.warn(`Unknown event name ${eventName}; returning a stream that does nothing`);
+            console.warn(`Unknown event name ${eventName}; returning a stream that oes nothing`);
             return xs.never();
         }
       }

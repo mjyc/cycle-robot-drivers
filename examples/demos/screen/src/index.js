@@ -45,11 +45,11 @@ function main(sources) {
     .filter(result => !!result.result)
     .map((result) => {
       if (result.result === 'Hello!') {
-        return {goal_id: {stamp: Date.now(), id: `fe`}, goal: 'happy'};
+        return {goal_id: {stamp: Date.now(), id: `fe`}, goal: 'HAPPY'};
       } else if (result.result === 'Hello?') {
-          return {goal_id: {stamp: Date.now(), id: `fe`}, goal: 'confused'};
+          return {goal_id: {stamp: Date.now(), id: `fe`}, goal: 'CONFUSED'};
       } else if (result.result === 'Bye') {
-        return {goal_id: {stamp: Date.now(), id: `fe`}, goal: 'sad'};
+        return {goal_id: {stamp: Date.now(), id: `fe`}, goal: 'SAD'};
       }
     })
     .filter(g => !!g);

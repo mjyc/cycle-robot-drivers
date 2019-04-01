@@ -2,7 +2,6 @@ import {Driver} from '@cycle/run';
 import {makeDOMDriver, DOMSource} from '@cycle/dom';
 import {EventSource} from '@cycle-robot-drivers/action';
 import {makeTabletFaceDriver} from '@cycle-robot-drivers/screen';
-// import {makeTabletFaceDriver, TabletFaceSource} from '@cycle-robot-drivers/screen';
 import {makeAudioPlayerDriver} from '@cycle-robot-drivers/sound';
 import {
   makeSpeechSynthesisDriver,
