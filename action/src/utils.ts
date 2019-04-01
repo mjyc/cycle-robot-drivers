@@ -1,10 +1,11 @@
 import {GoalID, Goal, Status, GoalStatus, Result} from './types'
 
-export function generateGoalID(): GoalID {
+export function generateGoalID({stamp = undefined, id = undefined} = {}): GoalID {
   const now = new Date();
   return {
-    stamp: now,
-    id: `${Math.random().toString(36).substring(2)}-${now.getTime()}`,
+    stamp: typeof stamp === 'undefined' ? now : stamp,
+    id: typeof id === 'undefined'
+      ? `${Math.random().toString(36).substring(2)}-${now.getTime()}` : id,
   };
 }
 
