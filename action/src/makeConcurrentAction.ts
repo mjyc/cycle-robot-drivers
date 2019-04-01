@@ -39,6 +39,7 @@ export function makeConcurrentAction(
 ) {
   const input = (
     goal$: Stream<any>,
+    // cancel$: Stream<any>,
     results: Stream<Result>[],
   ) => {
     const results$: Stream<Result[]>

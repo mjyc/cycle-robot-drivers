@@ -9,20 +9,47 @@ import {
   SpeechbubbleAction,
 } from '@cycle-robot-drivers/screen';
 
+import {makeConccurentAction} from '@cycle-robot-drivers/action';
+
+const RaceAction = makeConcurrentAction(
+  ['RobotSpeechbubblesAction', 'HumanSpeechbubblesAction'],
+  true,
+);
+
 function main(sources) {
   sources.state.stream.addListener({next: s => console.debug('reducer state', s)});
+
+  const goal$ = xs.of(initGoal({
+    goal_id: {goal_id: {stamp: Date.now(), id: `xxx`}, goal: 'ROBOT'},
+    goal: {
+      RobotSpeechbubblesAction: g.goal,
+      HumanSpeechbubblesAction: {
+        message: g.goal.question,
+        choices: g.goal.answers
+      },
+    },
+  }));
+  const raceSinks = isolate(RaceAction, 'RaceAction')({
+    goal: goal$,
+    RobotSpeechbubblesAction: sources.state.stream
+      .compose(selectActionResult('RobotSpeechbubblesAction')),
+    HumanSpeechbubblesAction: sources.state.stream
+      .compose(selectActionResult('HumanSpeechbubblesAction')),
+    state: sources.state,
+  });
 
   const robotSpeechbubbleAction = isolate(SpeechbubbleAction, 'RobotSpeechbubbleAction')({
     state: sources.state,
     DOM: sources.DOM,
-    goal: xs.of({goal_id: {stamp: Date.now(), id: `hsb`}, goal: 'ROBOT'}).compose(delay(1000)),
+    // goal: xs.of({goal_id: {stamp: Date.now(), id: `hsb`}, goal: 'ROBOT'}).compose(delay(1000)),
+    goal: raceSinks.RobotSpeechbubblesAction,
   });
   const humanSpeechbubbleAction = isolate(SpeechbubbleAction, 'HumanSpeechbubbleAction')({
     state: sources.state,
     DOM: sources.DOM,
-    goal: xs.of({goal_id: {stamp: Date.now(), id: `hsb`}, goal: 'HUMAN'}).compose(delay(1000)),
+    // goal: xs.of({goal_id: {stamp: Date.now(), id: `hsb`}, goal: 'HUMAN'}).compose(delay(1000)),
+    goal: raceSinks.HumanSpeechbubblesAction,
   });
-
 
   // UI
   const vdom$ = xs.combine(
