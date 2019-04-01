@@ -3,6 +3,7 @@ import {Stream} from 'xstream';
 import {div} from '@cycle/dom';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
+import {EventSource} from '@cycle-robot-drivers/action';
 
 
 // adapted from
@@ -300,7 +301,7 @@ export function makeTabletFaceDriver(options: {
   },
 } = {}): Driver<
   any,
-  TabletFaceSource
+  EventSource
 > {
   if (!options.styles) {
     options.styles = {};
@@ -469,12 +470,23 @@ export function makeTabletFaceDriver(options: {
           }),
         ]),
       ])
-    );
+    ).remember();
 
-    return {
-      DOM: adapt(vdom$),
-      animationFinish: adapt(animationFinish$$.flatten()),
-      load: adapt(load$),
-    }
+    const eventSource: EventSource = {
+      events: (eventName: string) => {
+        switch (eventName) {
+          case 'dom':
+            return adapt(vdom$);
+          case 'animationfinish':
+            return adapt(animationFinish$$.flatten());
+          case 'load':
+            return adapt(load$);
+          default:
+            console.warn(`Unknown event name ${eventName}; returning a stream that does nothing`);
+            return xs.never();
+        }
+      }
+    };
+    return eventSource;
   }
 }

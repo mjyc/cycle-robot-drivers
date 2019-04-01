@@ -65,7 +65,7 @@ function main(sources) {
   // UI
   const vdom$ = xs.combine(
     speechbubbleAction.DOM.startWith(''),
-    sources.TabletFace.DOM.startWith(''),
+    sources.TabletFace.events('dom').startWith(''),
   ).map(vdoms => div(vdoms));
 
   const reducer = xs.merge(

@@ -13,8 +13,7 @@ import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
 export function initializeDrivers(): {
   DOM: Driver<any, DOMSource>,
-  // TabletFace: Driver<any, TabletFaceSource>,
-  TabletFace: Driver<any, any>,
+  TabletFace: Driver<any, EventSource>,
   AudioPlayer: Driver<any, EventSource>,
   SpeechSynthesis: Driver<any, EventSource>,
   SpeechRecognition: Driver<any, EventSource>,
