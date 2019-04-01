@@ -9,7 +9,7 @@ import {
   SpeechbubbleAction,
 } from '@cycle-robot-drivers/screen';
 
-import {makeConccurentAction} from '@cycle-robot-drivers/action';
+import {makeConcurrentAction, initGoal} from '@cycle-robot-drivers/action';
 
 const RaceAction = makeConcurrentAction(
   ['RobotSpeechbubblesAction', 'HumanSpeechbubblesAction'],
