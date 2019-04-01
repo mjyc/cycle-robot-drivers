@@ -67,27 +67,3 @@ export function isEqualResult(first: Result, second: Result) {
   // doesn't compare .result yet
   return isEqualGoalStatus(first.status, second.status);
 }
-
-export function powerup(
-  main: (sources: {
-    proxies: {
-      [proxyName: string]: any
-    },
-    [sourceName: string]: any,
-  }) => {
-    targets: {
-      [targetName: string]: any,
-    },
-    [sinkName: string]: any,
-  },
-  connect: (proxy: any, target: any) => any
-) {
-  return (sources) => {
-    const sinks = main(sources);
-    Object.keys(sources.proxies).map(key => {
-      connect(sources.proxies[key], sinks.targets[key]);
-    });
-    const {targets, ...sinksWithoutTargets} = sinks;
-    return sinksWithoutTargets;
-  };
-}

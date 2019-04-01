@@ -18,5 +18,4 @@ export {
   isEqualGoal,
   isEqualGoalStatus,
   isEqualResult,
-  powerup,
 } from './utils';
