@@ -18,8 +18,8 @@ export {
   isEqualGoal,
   isEqualGoalStatus,
   isEqualResult,
+  selectActionResult,
 } from './utils';
-
 
 export {
   makeConcurrentAction

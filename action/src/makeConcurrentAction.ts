@@ -48,7 +48,7 @@ export function makeConcurrentAction(
       goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
         ? ({type: SIGType.CANCEL, value: null})
         : ({type: SIGType.GOAL, value: initGoal(g)})),
-      cancel$.mapTo({type: SIGType.CANCEL, value: null}),
+      cancel$.map(val => ({type: SIGType.CANCEL, value: val})),
       results$.map(r => ({type: SIGType.RESULTS, value: r})),
     );
   }
@@ -111,7 +111,7 @@ export function makeConcurrentAction(
         };
       } else if (prev.state === S.RUN && input.type === SIGType.CANCEL) {
         const outputs = prev.variables.activeActionNames.reduce((acc, x) => {
-          acc[x] = {goal: null};
+          acc[x] = {cancel: prev.variables.goal_id};
           return acc;
         }, {});
         return {
@@ -205,9 +205,14 @@ export function makeConcurrentAction(
       .map(m => m.outputs);
 
     return actionNames.reduce((acc, x) => {
-      acc[x] = outputs$
-        .filter(o => !!o[x])
-        .map(o => o[x].goal);
+      acc[x] = {
+        goal: outputs$
+          .filter(o => !!o[x] && !!o[x].goal)
+          .map(o => o[x].goal),
+        cancel: outputs$
+          .filter(o => !!o[x] && !!o[x].cancel)
+          .map(o => o[x].cancel),
+      };
       return acc;
     }, {
       result: outputs$
