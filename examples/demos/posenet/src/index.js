@@ -5,11 +5,6 @@ import {makePoseDetectionDriver} from 'cycle-posenet-driver';
 
 
 function main(sources) {
-  sources.proxies = {  // will be connected to "targets"
-    PoseDetection: xs.create(),
-  };
-
-  // main logic
   const params$ = xs.of({
     algorithm: 'single-pose',
     singlePoseDetection: {minPoseConfidence: 0.2},
