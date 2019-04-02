@@ -8,16 +8,14 @@ import {
   makeSpeechRecognitionDriver,
 } from '@cycle-robot-drivers/speech';
 import {makePoseDetectionDriver} from 'cycle-posenet-driver';
-// import {makePoseDetectionDriver, PoseDetectionSource} from 'cycle-posenet-driver';
 
-export function initializeDrivers(): {
+export function initializeTabletFaceRobotDrivers(): {
   DOM: Driver<any, DOMSource>,
   TabletFace: Driver<any, EventSource>,
   AudioPlayer: Driver<any, EventSource>,
   SpeechSynthesis: Driver<any, EventSource>,
   SpeechRecognition: Driver<any, EventSource>,
-  // PoseDetection: Driver<any, PoseDetectionSource>,
-  PoseDetection: Driver<any, any>,
+  PoseDetection: Driver<any, EventSource>,
 } {
   if (document.body.getElementsByTagName('div').length === 0) {
     throw 'Cannot find a child of body with div tag; please create the DOM driver yourself';

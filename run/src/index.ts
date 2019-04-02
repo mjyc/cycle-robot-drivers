@@ -1,32 +1,26 @@
 import xs from 'xstream';
-import {Stream} from 'xstream';
-import dropRepeats from "xstream/extra/dropRepeats";
 import {div} from '@cycle/dom';
 import {withState} from '@cycle/state';
+import isolate from '@cycle/isolate';
 import {run} from '@cycle/run';
-import {Result, isEqualResult} from '@cycle-robot-drivers/action';
+import {selectActionResult} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
-  makeTwoSpeechbubblesAction,
+  // makeTwoSpeechbubblesAction,
 } from '@cycle-robot-drivers/screen';
 import {AudioPlayerAction} from '@cycle-robot-drivers/sound';
 import {
   SpeechSynthesisAction,
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
-import {initializeDrivers} from './initializeDrivers';
-export {initializeDrivers} from './initializeDrivers';
+import {
+  initializeTabletFaceRobotDrivers
+} from './initializeTabletFaceRobotDrivers';
+export {
+  initializeTabletFaceRobotDrivers
+} from './initializeTabletFaceRobotDrivers';
 
-const selectActionResult = (actionName: string) =>
-  (in$: Stream<any>): Stream<Result> => in$
-    .filter(s => !!s
-      && !!s[actionName]
-      && !!s[actionName].outputs
-      && !!s[actionName].outputs.result)
-    .map(s => s[actionName].outputs.result)
-    .compose(dropRepeats(isEqualResult));
-
-export function withRobotActions(
+export function withTabletFaceRobotActions(
   main,
   options?: {
     hidePoseViz?: boolean,
@@ -44,8 +38,8 @@ export function withRobotActions(
     const state$ = sources.state.stream;
     const facialExpressionResult$ = state$
       .compose(selectActionResult('FacialExpression'));
-    const twoSpeechbubblesResult$ = state$
-      .compose(selectActionResult('TwoSpeechbubblesAction'));
+    // const twoSpeechbubblesResult$ = state$
+    //   .compose(selectActionResult('TwoSpeechbubblesAction'));
     const audioPlayerResult$ = state$
       .compose(selectActionResult('AudioPlayer'));
     const speechSynthesisResult$ = state$
@@ -57,7 +51,7 @@ export function withRobotActions(
     const mainSinks: any = main({
       ...sources,
       FacialExpressionAction: {result: facialExpressionResult$},
-      TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
+      // TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
       AudioPlayerAction: {result: audioPlayerResult$},
       SpeechSynthesisAction: {result: speechSynthesisResult$},
       SpeechRecognitionAction: {result: speechRecognitionResult$},
@@ -65,83 +59,80 @@ export function withRobotActions(
     });
 
     // Define actions
-    const TwoSpeechbubblesAction = makeTwoSpeechbubblesAction(
-      !!options.speechbubbles ? options.speechbubbles : {}
-    );
-    const facialExpressionAction: any = FacialExpressionAction({
-      goal: mainSinks.FacialExpressionAction || xs.never(),
+    // const TwoSpeechbubblesAction = makeTwoSpeechbubblesAction(
+    //   !!options.speechbubbles ? options.speechbubbles : {}
+    // );
+    const facialExpressionAction: any = isolate(
+      FacialExpressionAction, 'FacialExpressionAction'
+    )({
+      ...mainSinks.FacialExpressionAction || xs.never(),
       TabletFace: sources.TabletFace,
     });
-    const twoSpeechbubblesAction: any = TwoSpeechbubblesAction({
-      goal: mainSinks.TwoSpeechbubblesAction || xs.never(),
-      DOM: sources.DOM,
-    });
-    const audioPlayerAction: any = AudioPlayerAction({
-      goal: mainSinks.AudioPlayerAction || xs.never(),
+    // const twoSpeechbubblesAction: any = isolate(
+    //   TwoSpeechbubblesAction, 'TwoSpeechbubblesAction'
+    // )({
+    //   ...mainSinks.TwoSpeechbubblesAction || xs.never(),
+    //   DOM: sources.DOM,
+    // });
+    const audioPlayerAction: any = isolate(
+      AudioPlayerAction, 'AudioPlayerAction'
+    )({
+      ...mainSinks.AudioPlayerAction || xs.never(),
       AudioPlayer: sources.AudioPlayer,
     });
-    const speechSynthesisAction: any = SpeechSynthesisAction({
-      goal: mainSinks.SpeechSynthesisAction || xs.never(),
+    const speechSynthesisAction: any = isolate(
+      SpeechSynthesisAction, 'SpeechSynthesisAction'
+    )({
+      ...mainSinks.SpeechSynthesisAction || xs.never(),
       SpeechSynthesis: sources.SpeechSynthesis,
     });
-    const speechRecognitionAction: any = SpeechRecognitionAction({
-      goal: mainSinks.SpeechRecognitionAction || xs.never(),
+    const speechRecognitionAction: any = isolate(
+      SpeechRecognitionAction, 'SpeechRecognitionAction'
+    )({
+      ...mainSinks.SpeechRecognitionAction || xs.never(),
       SpeechRecognition: sources.SpeechRecognition,
     });
 
-    // Define reducers
-    const parentReducer$: any = xs.merge(
-      facialExpressionAction.result.map(result =>
-        prev => ({...prev, FacialExpressionAction: {outputs: {result}}})),
-      twoSpeechbubblesAction.result.map(result =>
-        prev => ({...prev, TwoSpeechbubblesAction: {outputs: {result}}})),
-      audioPlayerAction.result.map(result =>
-        prev => ({...prev, AudioPlayerAction: {outputs: {result}}})),
-      speechSynthesisAction.result.map(result =>
-        prev => ({...prev, SpeechSynthesisAction: {outputs: {result}}})),
-      speechRecognitionAction.result.map(result =>
-        prev => ({...prev, SpeechRecognitionAction: {outputs: {result}}})),
-    );
-    const childReducer$: any = mainSinks.state || xs.never();
-    const reducer$ = xs.merge(parentReducer$, childReducer$);
 
     // Define sinks
     const vdom$ = !!mainSinks.DOM
       ? mainSinks.DOM
       : xs.combine(
-          twoSpeechbubblesAction.DOM,
+          // twoSpeechbubblesAction.DOM,
           sources.TabletFace.DOM,
           sources.PoseDetection.DOM
-        ).map(([speechbubbles, face, poseDetectionViz]) => {
-          (poseDetectionViz as any).data.style.display = options.hidePoseViz
+        ).map((vdoms) => {
+          (vdoms[1] as any).data.style.display = options.hidePoseViz
             ? 'none' : 'block';
           return div({
             style: {position: 'relative'}
-          }, [speechbubbles, face, poseDetectionViz] as any);
+          }, vdoms as any);
         });
-    const tablet$ = !!mainSinks.TabletFace
+    const tabletFace$ = !!mainSinks.TabletFace
       ? mainSinks.TabletFace
       : xs.merge(
         sources.TabletFace.load.mapTo({
           type: 'START_BLINKING',
           value: {maxInterval: 10000}
         }),
-        facialExpressionAction.output,
+        facialExpressionAction.TabletFace,
       );
-    const audio$ = !!mainSinks.AudioPlayer
-      ? mainSinks.AudioPlayer : audioPlayerAction.output;
-    const synth$ = !!mainSinks.SpeechSynthesis
-      ? mainSinks.SpeechSynthesis : speechSynthesisAction.output;
-    const recog$ = !!mainSinks.SpeechRecognition
-      ? mainSinks.SpeechRecognition : speechRecognitionAction.output;
+    // define reducer stream
+    const reducer$: any = xs.merge(
+      facialExpressionAction.state,
+      audioPlayerAction.state,
+      speechSynthesisAction.state,
+      speechRecognitionAction.state,
+      mainSinks.state || xs.never(),
+    );
 
     return {
-      ...mainSinks,
       DOM: vdom$,
-      TabletFace: tablet$,
-      AudioPlayer: audio$,
-      SpeechSynthesis: synth$,
-      SpeechRecognition: recog$,
+      TabletFace: tabletFace$,
+      AudioPlayer: audioPlayerAction.AudioPlayer,
+      SpeechSynthesis: speechSynthesisAction.SpeechSynthesis,
+      SpeechRecognition: speechRecognitionAction.SpeechRecognition,
+      ...mainSinks,
       state: reducer$,
     };
   }
@@ -158,7 +149,7 @@ export function withRobotActions(
  *
  *     * [FacialExpressionAction](../screen)
  *     * [AudioPlayerAction](../sound)
- *     * [TwoSpeechbubblesAction](../screen)
+ *     * [SpeechbubblesAction](../screen)
  *     * [SpeechSynthesisAction](../speech)
  *     * [SpeechRecognitionAction](../speech)
  *
@@ -173,13 +164,13 @@ export function withRobotActions(
  *     * [DOM](https://cycle.js.org/api/dom.html)
  *     * [TabletFace](../screen)
  *     * [AudioPlayer](../sound)
- *     * [SpeechSynthesis](../speech#)
+ *     * [SpeechSynthesis](../speech)
  *     * [SpeechRecognition](../speech)
  *     * [PoseDetection](../3rdparty/cycle-posenet-driver)
  *
  *   drivers.
  */
-export function runRobotProgram(
+export function runTabletFaceRobotApp(
   main,
   drivers?,
   options?,
@@ -189,9 +180,9 @@ export function runRobotProgram(
   }
 
   return run(
-    withState(withRobotActions(main, options) as any),
+    withState(withTabletFaceRobotActions(main, options) as any),
     {
-      ...initializeDrivers(),
+      ...initializeTabletFaceRobotDrivers(),
       ...drivers,
     },
   );
