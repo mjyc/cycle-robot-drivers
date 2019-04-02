@@ -1,16 +1,18 @@
-import xs from 'xstream';
-import {div, makeDOMDriver} from '@cycle/dom';
+import {div, h4, pre, makeDOMDriver} from '@cycle/dom';
 import {run} from '@cycle/run';
 import {makeMeydaDriver} from 'cycle-meyda-driver';
 
 function main(sources) {
   sources.Meyda.addListener({next: f => console.log(f)});
 
-  const vdom$ = sources.Meyda.map(features => div(
-    Object.keys(features).map(
-      key => div(`${key}: ${JSON.stringify(features[key])}`
-    ))
-  ));
+  const vdom$ = sources.Meyda.map(features => div('', [
+    h4('Meyda Audio Features'),
+    pre(
+      Object.keys(features).map(
+        key => `${key}: ${JSON.stringify(features[key])}\n`
+      )
+    )
+  ]));
   return {
     DOM: vdom$,
   };

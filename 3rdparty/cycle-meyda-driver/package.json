@@ -12,7 +12,7 @@
   "dependencies": {
     "@cycle/run": "5.2.0",
     "meyda": "4.2.0",
-    "xstream": "11.7.0"
+    "xstream": "11.10.0"
   },
   "scripts": {
     "build:cjs": "../../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
