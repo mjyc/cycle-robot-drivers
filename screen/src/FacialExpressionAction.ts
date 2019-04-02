@@ -3,7 +3,7 @@ import dropRepeats from 'xstream/extra/dropRepeats';
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   ActionSources, ActionSinks, EventSource,
-  generateGoalStatus, isEqualGoalStatus,
+  generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
 } from '@cycle-robot-drivers/action';
 import {TabletFaceCommand} from './makeTabletFaceDriver';
 
@@ -39,7 +39,7 @@ enum InputType {
 
 type Input = {
   type: InputType,
-  value: Goal | string,
+  value: Goal | GoalID | string,
 };
 
 
@@ -61,7 +61,7 @@ function input(
         },
       } : goal,
     })),
-    cancel$.mapTo({type: InputType.CANCEL, value: null}),
+    cancel$.map(val => ({type: InputType.CANCEL, value: val})),
     animationFinishEvent$.mapTo({
       type: InputType.END,
       value: null,
@@ -86,7 +86,9 @@ function transition(prev: ReducerState, input: Input): ReducerState {
       };
     }
   } else if (prev.state === State.RUN) {
-    if (input.type === InputType.GOAL || input.type === InputType.CANCEL) {
+    if (input.type === InputType.GOAL || input.type === InputType.CANCEL
+        && (input.value === null ||
+            isEqualGoalID(input.value as GoalID, prev.variables.goal_id))) {
       return {
         ...prev,
         state: State.PREEMPT,

@@ -55,7 +55,8 @@ describe('FacialExpressionAction', () => {
     })({
       goal: goal$,
       TabletFace: {
-        animationFinish: animationFinish$,
+        events: (eventName) => eventName === 'animationfinish'
+          ? animationFinish$ : xs.never(),
       }
     });
 
@@ -98,9 +99,10 @@ describe('FacialExpressionAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       TabletFace: {
-        animationFinish: animationFinish$,
+        events: (eventName) => eventName === 'animationfinish'
+          ? animationFinish$ : xs.never(),
       }
     });
 
@@ -137,9 +139,10 @@ describe('FacialExpressionAction', () => {
       return Action(sources);
     })({
       goal: xs.never(),
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       TabletFace: {
-        animationFinish: animationFinish$,
+        events: (eventName) => eventName === 'animationfinish'
+          ? animationFinish$ : xs.never(),
       }
     });
 
@@ -171,9 +174,10 @@ describe('FacialExpressionAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       TabletFace: {
-        animationFinish: animationFinish$,
+        events: (eventName) => eventName === 'animationfinish'
+          ? animationFinish$ : xs.never(),
       }
     });
 
@@ -217,9 +221,10 @@ describe('FacialExpressionAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       TabletFace: {
-        animationFinish: animationFinish$,
+        events: (eventName) => eventName === 'animationfinish'
+          ? animationFinish$ : xs.never(),
       }
     });
 
@@ -268,7 +273,8 @@ describe('FacialExpressionAction', () => {
     })({
       goal: goal$,
       TabletFace: {
-        animationFinish: animationFinish$,
+        events: (eventName) => eventName === 'animationfinish'
+          ? animationFinish$ : xs.never(),
       }
     });
 
