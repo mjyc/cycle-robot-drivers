@@ -22,7 +22,7 @@ function main(sources) {
     .startWith('');
   const synthGoal$ = say$.compose(sampleCombine(inputText$))
     .filter(([_, text]) => !!text)
-    .map(([_, text]) => ({goal_id: {goal_id: Date.now(), id: 'ss'}, goal: text}));
+    .map(([_, text]) => ({goal_id: {stamp: Date.now(), id: 'ss'}, goal: text}));
   const speechSynthesisAction = isolate(SpeechSynthesisAction)({
     state: sources.state,
     SpeechSynthesis: sources.SpeechSynthesis,
@@ -34,7 +34,7 @@ function main(sources) {
 
   // speech recognition
   const recogGoal$ = sources.DOM.select('#listen').events('click')
-    .mapTo({goal_id: {goal_id: Date.now(), id: 'sr'}, goal: {}});
+    .mapTo({goal_id: {stamp: Date.now(), id: 'sr'}, goal: {}});
   const speechRecognitionAction = isolate(SpeechRecognitionAction)({
     state: sources.state,
     goal: recogGoal$,

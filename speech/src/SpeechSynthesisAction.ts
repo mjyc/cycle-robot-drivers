@@ -5,7 +5,7 @@ import {
   GoalID, Goal, Status, GoalStatus, Result,
   ActionSources, ActionSinks,
   EventSource,
-  generateGoalStatus, isEqualGoalStatus
+  generateGoalStatus, isEqualGoalStatus, isEqualGoalID
 } from '@cycle-robot-drivers/action';
 import {UtteranceArg} from './makeSpeechSynthesisDriver';
 
@@ -43,7 +43,7 @@ enum InputType {
 
 type Input = {
   type: InputType,
-  value: Goal,
+  value: Goal | GoalID,
 };
 
 function input(
@@ -63,7 +63,7 @@ function input(
           } : goal,
       };
     }),
-    cancel$.mapTo({type: InputType.CANCEL, value: null}),
+    cancel$.map(v => ({type: InputType.CANCEL, value: v})),
     startEvent$.mapTo({type: InputType.START, value: null}),
     endEvent$.mapTo({type: InputType.END, value: null}),
   );
@@ -101,7 +101,7 @@ function transition(
 
   if (prevState === State.WAIT && state === State.RUN) {
     // Start a new goal
-    const goal = input.value;
+    const goal = input.value as Goal;
     return {
       state,
       variables: {
@@ -140,7 +140,9 @@ function transition(
     (prevState === State.RUN || prevState === State.PREEMPT)
     && state === State.PREEMPT
   ) {
-    if (input.type === InputType.GOAL || input.type === InputType.CANCEL) {
+    if (input.type === InputType.GOAL || input.type === InputType.CANCEL
+        && (input.value === null ||
+            isEqualGoalID(input.value as GoalID, prevVariables.goal_id))) {
       // Start stopping the current goal and queue a new goal if received one
       return {
         state,
