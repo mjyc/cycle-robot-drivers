@@ -63,7 +63,7 @@ function input(
           } : goal,
       };
     }),
-    cancel$.map(v => ({type: InputType.CANCEL, value: v})),
+    cancel$.map(val => ({type: InputType.CANCEL, value: val})),
     startEvent$.mapTo({type: InputType.START, value: null}),
     endEvent$.mapTo({type: InputType.END, value: null}),
   );

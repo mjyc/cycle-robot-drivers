@@ -115,7 +115,7 @@ describe('SpeechRecognitionAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
@@ -169,7 +169,7 @@ describe('SpeechRecognitionAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
@@ -223,7 +223,7 @@ describe('SpeechRecognitionAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];

@@ -103,7 +103,7 @@ describe('SpeechSynthesisAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       SpeechSynthesis: {
         events: (eventName) => {
           return events[eventName];
@@ -144,7 +144,7 @@ describe('SpeechSynthesisAction', () => {
       return Action(sources);
     })({
       goal: xs.never(),
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       SpeechSynthesis: {
         events: (eventName) => {
           return events[eventName];
@@ -183,7 +183,7 @@ describe('SpeechSynthesisAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       SpeechSynthesis: {
         events: (eventName) => {
           return events[eventName];
@@ -231,7 +231,7 @@ describe('SpeechSynthesisAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       SpeechSynthesis: {
         events: (eventName) => {
           return events[eventName];
