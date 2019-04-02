@@ -88,7 +88,7 @@ describe('SpeechbubbleAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       DOM: mockDOMSource({}),
     });
 
@@ -117,7 +117,7 @@ describe('SpeechbubbleAction', () => {
       return Action(sources);
     })({
       goal: xs.never(),
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       DOM: mockDOMSource({}),
     });
 
@@ -146,7 +146,7 @@ describe('SpeechbubbleAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       DOM: mockDOMSource({}),
     });
 

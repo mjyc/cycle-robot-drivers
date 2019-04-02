@@ -6,7 +6,7 @@ import {span, button, DOMSource, VNode} from '@cycle/dom';
 import {
   GoalID, Goal, Status, GoalStatus, Result,
   ActionSources, ActionSinks,
-  generateGoalStatus, isEqualGoalStatus
+  generateGoalStatus, isEqualGoalStatus, isEqualGoalID
 } from '@cycle-robot-drivers/action';
 
 
@@ -42,7 +42,7 @@ enum InputType {
 
 type Input = {
   type: InputType,
-  value: Goal | string,
+  value: Goal | GoalID | string,
 };
 
 export enum SpeechbubbleType {
@@ -69,7 +69,7 @@ function input(
             goal: {type: SpeechbubbleType.CHOICE, value: goal.goal},
           } : goal.goal,  // {type: string, value: string | [string]}
       })),
-    cancel$.mapTo({type: InputType.CANCEL, value: null}),
+    cancel$.map(val => ({type: InputType.CANCEL, value: null})),
     clickEvent$.map(event => ({
       type: InputType.CLICK,
       value: (event.target as HTMLButtonElement).textContent
@@ -155,24 +155,31 @@ function createTransition({
           }
         },
       }),
-      [InputType.CANCEL]: (variables, inputValue) => ({
-        state: State.WAIT,
-        variables: {
-          goal_id: null,
-          goal: null,
-          newGoal: null,
+      [InputType.CANCEL]: (variables, inputValue) => (
+          inputValue === null
+          || isEqualGoalID(inputValue as GoalID, variables.goal_id)
+        ) ? {
+          state: State.WAIT,
+          variables: {
+            goal_id: null,
+            goal: null,
+            newGoal: null,
+          },
+          outputs: {
+            DOM: '',
+            result: {
+              status: {
+                goal_id: variables.goal_id,
+                status: Status.PREEMPTED,
+              },
+              result: null,
+            }
+          },
+        } : {
+          state: State.RUN,
+          variables,
+          output: null,
         },
-        outputs: {
-          DOM: '',
-          result: {
-            status: {
-              goal_id: variables.goal_id,
-              status: Status.PREEMPTED,
-            },
-            result: null,
-          }
-        },
-      }),
       [InputType.CLICK]: (variables, inputValue) =>
         variables.goal.type === SpeechbubbleType.CHOICE
         ? {
