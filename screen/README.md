@@ -59,23 +59,6 @@ Speechbubble action component.
 
 <!-- Start src/TwoSpeechbubblesAction.ts -->
 
-TwoSpeechbubbles, Robot and Human, action component.
-
-#### Params:
-
-* *sources* 
-  * goal: a stream of `null` (as "cancel"),
-    `{type: 'SET_MESSAGE', value: 'Hello world'}` or `'Hello world'` (as
-    "set message"), or `{type: 'ASK_QUESTION', message: 'Blue pill or
-    red pill?', choices: ['Blue', 'Red']}` (as "ask multiple choice").
-  * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
-
-#### Return:
-
-* sinks 
-  * DOM: a stream of virtual DOM objects, i.e, [Snabbdom “VNode” objects](https://github.com/snabbdom/snabbdom).
-  * result: a stream of action results.
-
 <!-- End src/TwoSpeechbubblesAction.ts -->
 
 <!-- Start src/index.ts -->

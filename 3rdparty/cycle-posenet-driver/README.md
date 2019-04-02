@@ -14,7 +14,7 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 <!-- End src/index.ts -->
 
-<!-- Start src/makePoseDetectionDriver.tsx -->
+<!-- Start src/makePoseDetectionDriver.ts -->
 
 ### makePoseDetectionDriver(options)
 
@@ -29,12 +29,13 @@ driver factory.
   * flipHorizontal {boolean} An optional flag for horizontally flipping the
     video (default: true).
 
-#### Return:
+the PoseNet Cycle.js driver function. It takes a stream of [`PoseNetParameters`](./src/makePoseDetectionDriver.ts) and returns `EventSource`:
 
-* **Driver** the PoseNet Cycle.js driver function. It takes a stream   of [`PoseNetParameters`](./src/makePoseDetectionDriver.tsx) and returns a stream of
-  [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm).
+  * `EventSource.events(eventName)` takes `poses` or `dom` which returns
+    [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm)
+    or a required virtual dom element, respectively.
 
-<!-- End src/makePoseDetectionDriver.tsx -->
+<!-- End src/makePoseDetectionDriver.ts -->
 
 <!-- Start src/utils.ts -->
 

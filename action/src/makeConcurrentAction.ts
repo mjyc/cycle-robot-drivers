@@ -39,7 +39,7 @@ export function makeConcurrentAction(
 ) {
   const input = (
     goal$: Stream<any>,
-    // cancel$: Stream<any>,
+    cancel$: Stream<any>,
     results: Stream<Result>[],
   ) => {
     const results$: Stream<Result[]>
@@ -48,6 +48,7 @@ export function makeConcurrentAction(
       goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
         ? ({type: SIGType.CANCEL, value: null})
         : ({type: SIGType.GOAL, value: initGoal(g)})),
+      cancel$.mapTo({type: SIGType.CANCEL, value: null}),
       results$.map(r => ({type: SIGType.RESULTS, value: r})),
     );
   }
@@ -226,7 +227,7 @@ export function makeConcurrentAction(
     });
     const results = actionNames
       .map(x => sources[x].result.startWith(createDummyResult()));
-    const input$ = input(sources.goal, results);
+    const input$ = input(sources.goal, sources.cancel, results);
     const reducer$: Stream<Reducer<State>> = reducer(input$);
     const outputs = output(reducerState$)
     return {

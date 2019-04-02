@@ -275,7 +275,11 @@ export type TabletFaceCommand = {
  *   * styles {object} A group of optional style parameters
  *
  * @return {Driver} the TabletFace Cycle.js driver function. It takes a stream
- *   of `Command` and returns `DOM`, animationFinish`, and `load` streams.
+ *   of `Command` and returns returns `EventSource`:
+ *
+ *   * `EventSource.events(eventName)` takes `'load'`, `'animationfinish'`, or
+ *     `dom` and returns corresponding event streams respectively.
+ *
  */
 export function makeTabletFaceDriver(options: {
   styles?: {
@@ -474,7 +478,7 @@ export function makeTabletFaceDriver(options: {
           case 'dom':
             return adapt(vdom$);
           default:
-            console.warn(`Unknown event name ${eventName}; returning a stream that oes nothing`);
+            console.warn(`Unknown event name ${eventName}; returning a stream that does nothing`);
             return xs.never();
         }
       }

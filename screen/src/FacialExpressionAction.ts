@@ -208,14 +208,14 @@ export interface Sinks extends ActionSinks {
  *
  *   * goal: a stream of `TabletFaceCommand`s.
  *   * cancel: a stream of `GoalID`.
- *   * TabletFace: `TabletFace` source.
+ *   * TabletFace: the `TabletFace` driver output.
  *
  * @return sinks
  *
  *   * state: a reducer stream.
  *   * status: a stream of action status.
  *   * result: a stream of action results.
- *   * TabletFace: a stream for `TabletFace` driver input.
+ *   * TabletFace: a stream for the `TabletFace` driver input.
  *
  */
 export function FacialExpressionAction(sources: Sources): Sinks {

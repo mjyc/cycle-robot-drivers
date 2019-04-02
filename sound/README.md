@@ -19,7 +19,7 @@ AudioPlayerAction action component.
 #### Params:
 
 * *sources* 
-  * goal: a stream of `null` (as "cancel") or `{src: string}` (as HTML audio
+  * goal: a stream of `{src: string}` (as HTML audio
     [src](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#attr-src))
     or a string (as a value of `src`).
   * AudioPlayer: `EventSource` for `ended` and `pause` events.
@@ -27,9 +27,10 @@ AudioPlayerAction action component.
 #### Return:
 
 * sinks 
-  * output: a stream for the AudioPlayer driver.
-  * status: depreciated.
-  * result: a stream of action results. `result.result` is always `null`.
+  * state: a reducer stream.
+  * status: a stream of action status.
+  * result: a stream of action results.
+  * AudioPlayer: a stream for `AudioPlayer` driver input.
 
 <!-- End src/AudioPlayerAction.ts -->
 
