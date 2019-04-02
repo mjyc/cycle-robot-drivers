@@ -1,3 +1,4 @@
+import dropRepeats from 'xstream/extra/dropRepeats';
 import {GoalID, Goal, Status, GoalStatus, Result} from './types'
 
 export function generateGoalID({stamp = undefined, id = undefined} = {}): GoalID {
@@ -67,4 +68,14 @@ export function isEqualResult(first: Result, second: Result) {
   }
   // doesn't compare .result yet
   return isEqualGoalStatus(first.status, second.status);
+}
+
+export function selectActionResult(actionName) {
+  return (in$) => in$
+    .filter(s => !!s
+      && !!s[actionName]
+      && !!s[actionName].outputs
+      && !!s[actionName].outputs.result)
+    .map(s => s[actionName].outputs.result)
+    .compose(dropRepeats(isEqualResult));
 }
