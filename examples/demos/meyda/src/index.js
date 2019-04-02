@@ -5,7 +5,7 @@ import {makeMeydaDriver} from 'cycle-meyda-driver';
 function main(sources) {
   sources.Meyda.addListener({next: f => console.log(f)});
 
-  const vdom$ = sources.Meyda.map(features => div('', [
+  const vdom$ = sources.Meyda.map(features => div([
     h4('Meyda Audio Features'),
     pre(
       Object.keys(features).map(
