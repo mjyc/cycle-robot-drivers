@@ -4,7 +4,7 @@ import {
   GoalID, Goal, GoalStatus, Status, Result,
   ActionSources, ActionSinks,
   EventSource,
-  generateGoalStatus, isEqualGoalStatus,
+  generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
 } from '@cycle-robot-drivers/action';
 
 enum State {
@@ -40,7 +40,7 @@ enum InputType {
 
 type Input = {
   type: InputType,
-  value: Goal | string,
+  value: Goal | GoalID | string,
 };
 
 
@@ -58,7 +58,7 @@ function input(
         goal: {src: goal.goal},
       } : goal,
     })),
-    cancel$.mapTo({type: InputType.CANCEL, value: null}),
+    cancel$.map(val => ({type: InputType.CANCEL, value: val})),
     audioPlayerEndedEvent$.mapTo({
       type: InputType.ENDED,
       value: null,
@@ -87,7 +87,9 @@ function transition(prev: ReducerState, input: Input): ReducerState {
       };
     }
   } else if (prev.state === State.RUN) {
-    if (input.type === InputType.GOAL || input.type === InputType.CANCEL) {
+    if (input.type === InputType.GOAL || input.type === InputType.CANCEL
+        && (input.value === null ||
+            isEqualGoalID(input.value as GoalID, prev.variables.goal_id))) {
       return {
         ...prev,
         state: State.PREEMPT,

@@ -107,7 +107,7 @@ describe('AudioPlayerAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       AudioPlayer: {
         events: (eventName) => {
           return events[eventName];
@@ -151,7 +151,7 @@ describe('AudioPlayerAction', () => {
       return Action(sources);
     })({
       goal: xs.never(),
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       AudioPlayer: {
         events: (eventName) => {
           return events[eventName];
@@ -192,7 +192,7 @@ describe('AudioPlayerAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       AudioPlayer: {
         events: (eventName) => {
           return events[eventName];
@@ -243,7 +243,7 @@ describe('AudioPlayerAction', () => {
       return Action(sources);
     })({
       goal: goal$,
-      cancel: cancel$,
+      cancel: cancel$.mapTo(null),
       AudioPlayer: {
         events: (eventName) => {
           return events[eventName];
