@@ -77,11 +77,6 @@ function input(
   );
 }
 
-function f({callback: {name = "cbFunction", params = "123"} = {}} = {}) {
-  console.log(name);
-  console.log(params);
-}
-
 function createTransition({
   styles = {}
 }: {
