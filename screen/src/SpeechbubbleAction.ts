@@ -71,7 +71,7 @@ function input(
               goal: {type: SpeechbubbleType.CHOICE, value: goal.goal},
             } : goal.goal,  // {type: string, value: string | [string]}
         })),
-    cancel$.map(val => ({type: InputType.CANCEL, value: null})),
+    cancel$.map(val => ({type: InputType.CANCEL, value: val})),
     clickEvent$.map(event => ({
       type: InputType.CLICK,
       value: (event.target as HTMLButtonElement).textContent
