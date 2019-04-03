@@ -1,8 +1,10 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {Reducer} from '@cycle/state';
+import {Reducer, isolateSink, StateSource} from '@cycle/state';
 import {GoalID, Status, Result} from './types';
-import {initGoal, isEqualGoalID, generateGoalID} from './utils';
+import {
+  initGoal, isEqualGoalID, generateGoalID, selectActionResult
+} from './utils';
 
 // FSM types
 export enum S {
@@ -232,6 +234,7 @@ export function makeConcurrentAction(
     });
     const results = actionNames
       .map(x => sources[x].result.startWith(createDummyResult()));
+
     const input$ = input(sources.goal, sources.cancel, results);
     const reducer$: Stream<Reducer<State>> = reducer(input$);
     const outputs = output(reducerState$)

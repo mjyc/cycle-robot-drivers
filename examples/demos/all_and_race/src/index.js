@@ -18,14 +18,6 @@ import {
 function main(sources) {
   sources.state.stream.addListener({next: s => console.debug('reducer state', s)})
 
-  // Process state stream
-  const state$ = sources.state.stream;
-  const facialExpressionResult$ = state$
-    .compose(selectActionResult('FacialExpressionAction'));
-  const speechbubbleResult$ = state$
-    .compose(selectActionResult('SpeechbubbleAction'));
-
-
   // "main" component
   const AllAction = makeConcurrentAction(
     ['FacialExpressionAction', 'SpeechbubbleAction'],
@@ -43,8 +35,10 @@ function main(sources) {
       SpeechbubbleAction: ['Hello'],
     }).compose(delay(1000)),
     cancel: xs.never(),
-    FacialExpressionAction: {result: facialExpressionResult$},
-    SpeechbubbleAction: {result: speechbubbleResult$},
+    FacialExpressionAction: {result: sources.state.stream
+        .compose(selectActionResult('FacialExpressionAction'))},
+    SpeechbubbleAction: {result: sources.state.stream
+        .compose(selectActionResult('SpeechbubbleAction'))},
   });
 
   childSinks.result.addListener({next: r => console.log('result', r)});
@@ -58,8 +52,6 @@ function main(sources) {
   });
   const speechbubbleAction = isolate(SpeechbubbleAction, 'SpeechbubbleAction')({
     ...childSinks.SpeechbubbleAction,
-    // goal: childSinks.SpeechbubbleAction.goal,
-    // cancel: childSinks.SpeechbubbleAction.cancel.debug().filter(v => !!v),
     state: sources.state,
     DOM: sources.DOM,
   });
