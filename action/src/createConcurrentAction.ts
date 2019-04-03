@@ -35,7 +35,7 @@ export interface State {
   },
 }
 
-export function makeConcurrentAction(
+export function createConcurrentAction(
   actionNames: string[] = [],
   isRace: boolean = false,
 ) {

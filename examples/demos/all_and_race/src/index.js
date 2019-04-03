@@ -11,7 +11,7 @@ import {
 } from '@cycle-robot-drivers/screen';
 
 import {
-  makeConcurrentAction, selectActionResult
+  createConcurrentAction, selectActionResult
 } from '@cycle-robot-drivers/action';
 
 
@@ -19,7 +19,7 @@ function main(sources) {
   sources.state.stream.addListener({next: s => console.debug('reducer state', s)})
 
   // "main" component
-  const AllAction = makeConcurrentAction(
+  const AllAction = createConcurrentAction(
     ['FacialExpressionAction', 'SpeechbubbleAction'],
     false,
   );

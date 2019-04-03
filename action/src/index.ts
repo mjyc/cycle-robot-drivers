@@ -22,5 +22,5 @@ export {
 } from './utils';
 
 export {
-  makeConcurrentAction
-} from './makeConcurrentAction';
+  createConcurrentAction,
+} from './createConcurrentAction';
