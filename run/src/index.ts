@@ -35,31 +35,31 @@ export function withTabletFaceRobotActions(
   }
 
   const mainWithRobotActions = (sources) => {
-    const state$ = sources.state.stream;
-    const facialExpressionResult$ = state$
-      .compose(selectActionResult('FacialExpression'));
-    const robotSpeechbubbleResult$ = state$
-      .compose(selectActionResult('RobotSpeechbubbleAction'));
-    const humanSpeechbubbleResult$ = state$
-      .compose(selectActionResult('HumanSpeechbubbleAction'));
-    const audioPlayerResult$ = state$
-      .compose(selectActionResult('AudioPlayer'));
-    const speechSynthesisResult$ = state$
-      .compose(selectActionResult('SpeechSynthesisAction'));
-    const speechRecognitionResult$ = state$
-      .compose(selectActionResult('SpeechRecognitionAction'));
-
     // Call main
+    const state$ = sources.state.stream;
     const mainSinks: any = main({
       ...sources,
-      FacialExpressionAction: {result: facialExpressionResult$},
-      RobotSpeechbubbleAction: {result: robotSpeechbubbleResult$},
-      HumanSpeechbubbleAction: {result: humanSpeechbubbleResult$},
-      AudioPlayerAction: {result: audioPlayerResult$},
-      SpeechSynthesisAction: {result: speechSynthesisResult$},
-      SpeechRecognitionAction: {result: speechRecognitionResult$},
+      FacialExpressionAction: {
+        result: state$.compose(selectActionResult('FacialExpression'))
+      },
+      RobotSpeechbubbleAction: {
+        result: state$.compose(selectActionResult('RobotSpeechbubbleAction'))
+      },
+      HumanSpeechbubbleAction: {
+        result: state$.compose(selectActionResult('HumanSpeechbubbleAction'))
+      },
+      AudioPlayerAction: {
+        result: state$.compose(selectActionResult('AudioPlayer'))
+      },
+      SpeechSynthesisAction: {
+        result: state$.compose(selectActionResult('SpeechSynthesisAction'))
+      },
+      SpeechRecognitionAction: {
+        result: state$.compose(selectActionResult('SpeechRecognitionAction'))
+      },
       state: sources.state,
     });
+
 
     // Define actions
     const SpeechbubbleAction = makeSpeechbubbleAction(speechbubbles);
@@ -76,7 +76,7 @@ export function withTabletFaceRobotActions(
       state: sources.state,
       TabletFace: sources.TabletFace,
     });
-    const robotSpeechbubbleAction = isolate(
+    const robotSpeechbubbleAction: any = isolate(
       SpeechbubbleAction, 'RobotSpeechbubbleAction'
     )({
       ...defaultActionInputStreams,
@@ -84,7 +84,7 @@ export function withTabletFaceRobotActions(
       state: sources.state,
       DOM: sources.DOM,
     });
-    const humanSpeechbubbleAction = isolate(
+    const humanSpeechbubbleAction: any = isolate(
       SpeechbubbleAction, 'HumanSpeechbubbleAction'
     )({
       ...defaultActionInputStreams,
@@ -122,12 +122,12 @@ export function withTabletFaceRobotActions(
     const vdom$ = !!mainSinks.DOM
       ? mainSinks.DOM
       : xs.combine(
-          // robotSpeechbubbleAction.DOM,
-          // humanSpeechbubbleAction.DOM,
+          robotSpeechbubbleAction.DOM.startWith(''),
+          humanSpeechbubbleAction.DOM.startWith(''),
           sources.TabletFace.events('dom'),  // .startWith('')
           sources.PoseDetection.events('dom'),  // .startWith('')
         ).map((vdoms) => {
-          (vdoms[1] as any).data.style.display = hidePoseViz
+          (vdoms[2] as any).data.style.display = hidePoseViz
             ? 'none' : 'block';
           return div({
             style: {position: 'relative'}
@@ -145,6 +145,8 @@ export function withTabletFaceRobotActions(
     // define reducer stream
     const reducer$: any = xs.merge(
       facialExpressionAction.state,
+      robotSpeechbubbleAction.state,
+      humanSpeechbubbleAction.state,
       audioPlayerAction.state,
       speechSynthesisAction.state,
       speechRecognitionAction.state,
