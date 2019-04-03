@@ -62,16 +62,11 @@ export function withTabletFaceRobotActions(
 
 
     // Define actions
-    const SpeechbubbleAction = makeSpeechbubbleAction(speechbubbles);
-    const defaultActionInputStreams = {
-      goal: xs.never(),
-      cancel: xs.never(),
-    };
+    const SpeechbubbleAction = makeSpeechbubbleAction(speechbubbles);;
 
     const facialExpressionAction: any = isolate(
       FacialExpressionAction, 'FacialExpressionAction'
     )({
-      ...defaultActionInputStreams,
       ...mainSinks.FacialExpressionAction,
       state: sources.state,
       TabletFace: sources.TabletFace,
@@ -79,7 +74,6 @@ export function withTabletFaceRobotActions(
     const robotSpeechbubbleAction: any = isolate(
       SpeechbubbleAction, 'RobotSpeechbubbleAction'
     )({
-      ...defaultActionInputStreams,
       ...mainSinks.RobotSpeechbubbleAction,
       state: sources.state,
       DOM: sources.DOM,
@@ -87,7 +81,6 @@ export function withTabletFaceRobotActions(
     const humanSpeechbubbleAction: any = isolate(
       SpeechbubbleAction, 'HumanSpeechbubbleAction'
     )({
-      ...defaultActionInputStreams,
       ...mainSinks.HumanSpeechbubbleAction,
       state: sources.state,
       DOM: sources.DOM,
@@ -95,7 +88,6 @@ export function withTabletFaceRobotActions(
     const audioPlayerAction: any = isolate(
       AudioPlayerAction, 'AudioPlayerAction'
     )({
-      ...defaultActionInputStreams,
       ...mainSinks.AudioPlayerAction,
       state: sources.state,
       AudioPlayer: sources.AudioPlayer,
@@ -103,7 +95,6 @@ export function withTabletFaceRobotActions(
     const speechSynthesisAction: any = isolate(
       SpeechSynthesisAction, 'SpeechSynthesisAction'
     )({
-      ...defaultActionInputStreams,
       ...mainSinks.SpeechSynthesisAction,
       state: sources.state,
       SpeechSynthesis: sources.SpeechSynthesis,
@@ -111,7 +102,6 @@ export function withTabletFaceRobotActions(
     const speechRecognitionAction: any = isolate(
       SpeechRecognitionAction, 'SpeechRecognitionAction'
     )({
-      ...defaultActionInputStreams,
       ...mainSinks.SpeechRecognitionAction,
       state: sources.state,
       SpeechRecognition: sources.SpeechRecognition,
