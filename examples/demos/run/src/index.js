@@ -31,27 +31,21 @@ function main(sources) {
   return {
     FacialExpressionAction: {
       goal: goals$.map(goals => goals.face),
-      cancel: xs.never(),
     },
     RobotSpeechbubbleAction: {
       goal: goals$.map(goals => goals.robotSpeechbubble),
-      cancel: xs.never(),
     },
     HumanSpeechbubbleAction: {
       goal: goals$.map(goals => goals.humanSpeechbubble),
-      cancel: xs.never(),
     },
     AudioPlayerAction: {
       goal: goals$.map(goals => goals.sound),
-      cancel: xs.never(),
     },
     SpeechSynthesisAction: {
       goal: goals$.map(goals => goals.synthesis),
-      cancel: xs.never(),
     },
     SpeechRecognitionAction: {
       goal: goals$.map(goals => goals.recognition),
-      cancel: xs.never(),
     },
     PoseDetection: xs.of({
       algorithm: 'single-pose',

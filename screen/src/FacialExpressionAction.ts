@@ -221,7 +221,7 @@ export interface Sinks extends ActionSinks {
  */
 export function FacialExpressionAction(sources: Sources): Sinks {
   const input$ = input(
-    sources.goal,
+    sources.goal || xs.never(),
     sources.cancel || xs.never(),
     sources.TabletFace.events('animationfinish'),
   );

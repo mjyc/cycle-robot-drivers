@@ -271,7 +271,7 @@ export interface Sinks extends ActionSinks {
 export function makeSpeechbubbleAction(options = {}) {
   return function SpeechbubbleAction(sources: Sources): Sinks {
     const input$ = input(
-      sources.goal,
+      sources.goal || xs.never(),
       sources.cancel || xs.never(),
       sources.DOM.select('.choice').events('click'),
     );

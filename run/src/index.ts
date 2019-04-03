@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import {div} from '@cycle/dom';
+import {div, span} from '@cycle/dom';
 import {withState} from '@cycle/state';
 import isolate from '@cycle/isolate';
 import {run} from '@cycle/run';
@@ -24,17 +24,44 @@ export function withTabletFaceRobotActions(
   main,
   {
     hidePoseViz = false,
-    speechbubbles = {},
+    styles = {},
   }: {
     hidePoseViz?: boolean,
-    speechbubbles?: object,
+    styles?: {
+      speechbubblesOuter?: object,
+      speechbubbleOuter?: object,
+      robotSpeechbubble?: object,
+      humanSpeechbubble?: object,
+    },
   } = {},
 ) {
   if (!main) {
     throw new Error('Must pass the argument main');
   }
 
+  styles = {
+    speechbubblesOuter: {
+      position: 'absolute',
+      width: '96vw',
+      zIndex: 3,  // eyelid has zIndex of 2
+      margin: '2vw',
+      backgroundColor: 'white',
+      border: '0.2vmin solid lightgray',
+      borderRadius: '3vmin 3vmin 3vmin 3vmin',
+      ...styles.speechbubblesOuter,
+    },
+    speechbubbleOuter: {
+      margin: 0,
+      padding: '1em',
+      maxWidth: '100%',
+      textAlign: 'center',
+      ...styles.speechbubbleOuter,
+    },
+  }
+
+
   const mainWithRobotActions = (sources) => {
+
     // Call main
     const state$ = sources.state.stream;
     const mainSinks: any = main({
@@ -62,7 +89,8 @@ export function withTabletFaceRobotActions(
 
 
     // Define actions
-    const SpeechbubbleAction = makeSpeechbubbleAction(speechbubbles);;
+    const RobotSpeechbubbleAction = makeSpeechbubbleAction(styles.robotSpeechbubble);
+    const HumanSpeechbubbleAction = makeSpeechbubbleAction(styles.humanSpeechbubble);
 
     const facialExpressionAction: any = isolate(
       FacialExpressionAction, 'FacialExpressionAction'
@@ -72,14 +100,14 @@ export function withTabletFaceRobotActions(
       TabletFace: sources.TabletFace,
     });
     const robotSpeechbubbleAction: any = isolate(
-      SpeechbubbleAction, 'RobotSpeechbubbleAction'
+      RobotSpeechbubbleAction, 'RobotSpeechbubbleAction'
     )({
       ...mainSinks.RobotSpeechbubbleAction,
       state: sources.state,
       DOM: sources.DOM,
     });
     const humanSpeechbubbleAction: any = isolate(
-      SpeechbubbleAction, 'HumanSpeechbubbleAction'
+      HumanSpeechbubbleAction, 'HumanSpeechbubbleAction'
     )({
       ...mainSinks.HumanSpeechbubbleAction,
       state: sources.state,
@@ -109,16 +137,37 @@ export function withTabletFaceRobotActions(
 
 
     // Define sinks
+    const speechbubblesVdom$ = xs.combine(
+      robotSpeechbubbleAction.DOM.startWith(''),
+      humanSpeechbubbleAction.DOM.startWith(''),
+    ).map(([robotVTree, humanVTree]) =>
+      (robotVTree === '' &&  humanVTree === '')
+      ? ''
+      : (robotVTree !== '' &&  humanVTree === '')
+      ? div({style: styles.speechbubblesOuter}, [
+        div({style: styles.speechbubbleOuter}, [span(robotVTree)])
+      ])
+      : (robotVTree !== '' &&  humanVTree === '')
+      ? div({style: styles.speechbubblesOuter}, [
+        div({style: styles.speechbubbleOuter}, [span(humanVTree)])
+      ])
+      : div({style: styles.speechbubblesOuter}, [
+        div({style: styles.speechbubbleOuter}, [span(robotVTree)]),
+        div({style: styles.speechbubbleOuter}, [span(humanVTree)]),
+      ])
+    );
+
     const vdom$ = !!mainSinks.DOM
       ? mainSinks.DOM
       : xs.combine(
-          robotSpeechbubbleAction.DOM.startWith(''),
-          humanSpeechbubbleAction.DOM.startWith(''),
-          sources.TabletFace.events('dom'),  // .startWith('')
-          sources.PoseDetection.events('dom'),  // .startWith('')
+          speechbubblesVdom$.startWith(''),
+          sources.TabletFace.events('dom').startWith(''),
+          sources.PoseDetection.events('dom').startWith(''),
         ).map((vdoms) => {
-          (vdoms[2] as any).data.style.display = hidePoseViz
+          if (vdoms[2] !== '') {
+            (vdoms[2] as any).data.style.display = hidePoseViz
             ? 'none' : 'block';
+          }
           return div({
             style: {position: 'relative'}
           }, vdoms as any);
