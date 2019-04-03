@@ -6,7 +6,7 @@ import {run} from '@cycle/run';
 import {selectActionResult} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
-  // makeTwoSpeechbubblesAction,
+  makeSpeechbubbleAction,
 } from '@cycle-robot-drivers/screen';
 import {AudioPlayerAction} from '@cycle-robot-drivers/sound';
 import {
@@ -22,24 +22,26 @@ export {
 
 export function withTabletFaceRobotActions(
   main,
-  options?: {
+  {
+    hidePoseViz = false,
+    speechbubbles = {},
+  }: {
     hidePoseViz?: boolean,
     speechbubbles?: object,
-  }
+  } = {},
 ) {
   if (!main) {
     throw new Error('Must pass the argument main');
-  }
-  if (!options) {
-    options = {};
   }
 
   const mainWithRobotActions = (sources) => {
     const state$ = sources.state.stream;
     const facialExpressionResult$ = state$
       .compose(selectActionResult('FacialExpression'));
-    // const twoSpeechbubblesResult$ = state$
-    //   .compose(selectActionResult('TwoSpeechbubblesAction'));
+    const robotSpeechbubbleResult$ = state$
+      .compose(selectActionResult('RobotSpeechbubbleAction'));
+    const humanSpeechbubbleResult$ = state$
+      .compose(selectActionResult('HumanSpeechbubbleAction'));
     const audioPlayerResult$ = state$
       .compose(selectActionResult('AudioPlayer'));
     const speechSynthesisResult$ = state$
@@ -51,7 +53,8 @@ export function withTabletFaceRobotActions(
     const mainSinks: any = main({
       ...sources,
       FacialExpressionAction: {result: facialExpressionResult$},
-      // TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
+      RobotSpeechbubbleAction: {result: robotSpeechbubbleResult$},
+      HumanSpeechbubbleAction: {result: humanSpeechbubbleResult$},
       AudioPlayerAction: {result: audioPlayerResult$},
       SpeechSynthesisAction: {result: speechSynthesisResult$},
       SpeechRecognitionAction: {result: speechRecognitionResult$},
@@ -59,37 +62,58 @@ export function withTabletFaceRobotActions(
     });
 
     // Define actions
-    // const TwoSpeechbubblesAction = makeTwoSpeechbubblesAction(
-    //   !!options.speechbubbles ? options.speechbubbles : {}
-    // );
+    const SpeechbubbleAction = makeSpeechbubbleAction(speechbubbles);
+    const defaultActionInputStreams = {
+      goal: xs.never(),
+      cancel: xs.never(),
+    };
+
     const facialExpressionAction: any = isolate(
       FacialExpressionAction, 'FacialExpressionAction'
     )({
-      ...mainSinks.FacialExpressionAction || xs.never(),
+      ...defaultActionInputStreams,
+      ...mainSinks.FacialExpressionAction,
+      state: sources.state,
       TabletFace: sources.TabletFace,
     });
-    // const twoSpeechbubblesAction: any = isolate(
-    //   TwoSpeechbubblesAction, 'TwoSpeechbubblesAction'
-    // )({
-    //   ...mainSinks.TwoSpeechbubblesAction || xs.never(),
-    //   DOM: sources.DOM,
-    // });
+    const robotSpeechbubbleAction = isolate(
+      SpeechbubbleAction, 'RobotSpeechbubbleAction'
+    )({
+      ...defaultActionInputStreams,
+      ...mainSinks.RobotSpeechbubbleAction,
+      state: sources.state,
+      DOM: sources.DOM,
+    });
+    const humanSpeechbubbleAction = isolate(
+      SpeechbubbleAction, 'HumanSpeechbubbleAction'
+    )({
+      ...defaultActionInputStreams,
+      ...mainSinks.HumanSpeechbubbleAction,
+      state: sources.state,
+      DOM: sources.DOM,
+    });
     const audioPlayerAction: any = isolate(
       AudioPlayerAction, 'AudioPlayerAction'
     )({
-      ...mainSinks.AudioPlayerAction || xs.never(),
+      ...defaultActionInputStreams,
+      ...mainSinks.AudioPlayerAction,
+      state: sources.state,
       AudioPlayer: sources.AudioPlayer,
     });
     const speechSynthesisAction: any = isolate(
       SpeechSynthesisAction, 'SpeechSynthesisAction'
     )({
-      ...mainSinks.SpeechSynthesisAction || xs.never(),
+      ...defaultActionInputStreams,
+      ...mainSinks.SpeechSynthesisAction,
+      state: sources.state,
       SpeechSynthesis: sources.SpeechSynthesis,
     });
     const speechRecognitionAction: any = isolate(
       SpeechRecognitionAction, 'SpeechRecognitionAction'
     )({
-      ...mainSinks.SpeechRecognitionAction || xs.never(),
+      ...defaultActionInputStreams,
+      ...mainSinks.SpeechRecognitionAction,
+      state: sources.state,
       SpeechRecognition: sources.SpeechRecognition,
     });
 
@@ -98,11 +122,12 @@ export function withTabletFaceRobotActions(
     const vdom$ = !!mainSinks.DOM
       ? mainSinks.DOM
       : xs.combine(
-          // twoSpeechbubblesAction.DOM,
+          robotSpeechbubbleAction.DOM,
+          humanSpeechbubbleAction.DOM,
           sources.TabletFace.DOM,
           sources.PoseDetection.DOM
         ).map((vdoms) => {
-          (vdoms[1] as any).data.style.display = options.hidePoseViz
+          (vdoms[1] as any).data.style.display = hidePoseViz
             ? 'none' : 'block';
           return div({
             style: {position: 'relative'}
@@ -111,7 +136,7 @@ export function withTabletFaceRobotActions(
     const tabletFace$ = !!mainSinks.TabletFace
       ? mainSinks.TabletFace
       : xs.merge(
-        sources.TabletFace.load.mapTo({
+        sources.TabletFace.events('load').mapTo({
           type: 'START_BLINKING',
           value: {maxInterval: 10000}
         }),
@@ -149,7 +174,7 @@ export function withTabletFaceRobotActions(
  *
  *     * [FacialExpressionAction](../screen)
  *     * [AudioPlayerAction](../sound)
- *     * [SpeechbubblesAction](../screen)
+ *     * [SpeechbubbleAction](../screen)
  *     * [SpeechSynthesisAction](../speech)
  *     * [SpeechRecognitionAction](../speech)
  *
