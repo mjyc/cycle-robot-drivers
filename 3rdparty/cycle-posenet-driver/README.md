@@ -31,7 +31,7 @@ driver factory.
 
 the PoseNet Cycle.js driver function. It takes a stream of [`PoseNetParameters`](./src/makePoseDetectionDriver.ts) and returns `EventSource`:
 
-  * `EventSource.events(eventName)` takes `poses` or `dom` which returns
+  * `EventSource.events(eventName)` takes `'poses'` or `'dom'` that returns
     [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm)
     or a required virtual dom element, respectively.
 
