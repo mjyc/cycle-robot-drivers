@@ -16,7 +16,7 @@ import {
 
 
 function main(sources) {
-  sources.state.stream.addListener({next: s => console.debug('reducer state', s)})
+  sources.state.stream.addListener({next: s => console.debug('reducer state', s)});
 
   // "main" component
   const AllAction = createConcurrentAction(
