@@ -2,18 +2,18 @@ import xs from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
 import {Stream} from 'xstream';
 import {TimeSource} from '@cycle/time';
-// import {
-//   GoalID, Goal, Status, GoalStatus, Result,
-//   ActionSources, ActionSinks,
-//   initGoal, generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
-// } from '@cycle-robot-drivers/action';
 import {
   GoalID, Goal, Status, GoalStatus, Result,
   ActionSources, ActionSinks,
-} from './types';
-import {
   initGoal, generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
-} from './utils';
+} from '@cycle-robot-drivers/action';
+// import {
+//   GoalID, Goal, Status, GoalStatus, Result,
+//   ActionSources, ActionSinks,
+// } from './types';
+// import {
+//   initGoal, generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
+// } from './utils';
 
 
 enum State {
@@ -25,13 +25,18 @@ type Variables = {
   goal_id: GoalID,
 };
 
-type Time = {
+type SleepInput = {
   goal_id: GoalID,
   duration: number,
 }
 
+type SleepOutput = {
+  goal_id: GoalID,
+  targetTime: number,
+}
+
 type Outputs = {
-  Time?: Time,
+  Time?: SleepInput,
   result?: Result,
 };
 
@@ -51,13 +56,13 @@ enum InputType {
 
 type Input = {
   type: InputType,
-  value: Goal | GoalID,
+  value: Goal | GoalID | SleepOutput,
 };
 
 function input(
   goal$: Stream<Goal | number>,
   cancel$: Stream<GoalID>,
-  sleepDone$: Stream<{goal_id: GoalID, targetTime: number}>,
+  sleepDone$: Stream<SleepOutput>,
 ) {
   return xs.merge(
     goal$.filter(g => typeof g !== 'undefined' && g !== null).map(g => {
@@ -67,7 +72,7 @@ function input(
         value: typeof goal.goal === 'number'
           ? {
             goal_id: goal.goal_id,
-            goal: {duration: goal.goal} as Time,
+            goal: {goal_id: goal.goal_id, duration: goal.goal},
           } : goal,
       };
     }),
@@ -108,7 +113,8 @@ function transition(prev: ReducerState, input: Input): ReducerState {
       };
     } else if (
       input.type === InputType.SLEEP_DONE
-      && isEqualGoalID(input.value as GoalID, prev.variables.goal_id)
+      && isEqualGoalID(
+          (input.value as SleepOutput).goal_id, prev.variables.goal_id)
     ) {
       return {
         ...prev,
@@ -192,11 +198,10 @@ function sleep(timeSource) {
         const {schedule, currentTime} = timeSource.createOperator();
 
         sourceListener = stream.addListener({
-          next({goal_id, durationMs}) {
-
-            schedule.next(listener, currentTime() + durationMs, {
+          next({goal_id, duration}) {
+            schedule.next(listener, currentTime() + duration, {
               goal_id,
-              targetTime: currentTime() + durationMs,
+              targetTime: currentTime() + duration,
             });
           },
 
@@ -224,7 +229,7 @@ export function SleepAction(sources: Sources): ActionSinks {
   const input$ = input(
     sources.goal || xs.never(),
     sources.cancel || xs.never(),
-    outputs.Time.compose(sleep),
+    outputs.Time.compose(sleep(sources.Time)),
   );
   const reducer = transitionReducer(input$);
 
