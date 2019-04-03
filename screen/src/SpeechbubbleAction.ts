@@ -268,7 +268,7 @@ export interface Sinks extends ActionSinks {
   DOM: Stream<VNode>,
 }
 
-export function makeSpeechbubbleAction(options = {}) {
+export function createSpeechbubbleAction(options = {}) {
   return function SpeechbubbleAction(sources: Sources): Sinks {
     const input$ = input(
       sources.goal || xs.never(),
@@ -306,7 +306,7 @@ export function makeSpeechbubbleAction(options = {}) {
  *   * DOM: a stream of virtual DOM objects, i.e, [Snabbdom "VNode" objects](https://github.com/snabbdom/snabbdom).
  *
  */
-export let SpeechbubbleAction = makeSpeechbubbleAction();
+export let SpeechbubbleAction = createSpeechbubbleAction();
 
 export function IsolatedSpeechbubbleAction(sources) {
   return isolate(SpeechbubbleAction)(sources);

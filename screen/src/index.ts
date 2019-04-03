@@ -13,14 +13,7 @@ export {
   Sources as SpeechbubbleActionSources,
   Sinks as SpeechbubbleActionSinks,
   SpeechbubbleType,
-  makeSpeechbubbleAction,
+  createSpeechbubbleAction,
   SpeechbubbleAction,
   IsolatedSpeechbubbleAction,
 } from './SpeechbubbleAction';
-// export {
-//   Sources as TwoSpeechbubblesActionSources,
-//   Sinks as TwoSpeechbubblesActionSinks,
-//   TwoSpeechbubblesType,
-//   TwoSpeechbubblesAction,
-//   IsolatedTwoSpeechbubblesAction,
-// } from './TwoSpeechbubblesAction';

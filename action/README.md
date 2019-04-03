@@ -5,13 +5,13 @@
 [Type definitions](./src/types.ts) and [utility functions](./src/utils.ts) for [cycle-robot-drivers](../).
 
 
+<!-- Start src/createConcurrentAction.ts -->
+
+<!-- End src/createConcurrentAction.ts -->
+
 <!-- Start src/index.ts -->
 
 <!-- End src/index.ts -->
-
-<!-- Start src/makeConcurrentAction.ts -->
-
-<!-- End src/makeConcurrentAction.ts -->
 
 <!-- Start src/types.ts -->
 

@@ -21,7 +21,7 @@ FacialExpression action component.
 * *sources* 
   * goal: a stream of `TabletFaceCommand`s.
   * cancel: a stream of `GoalID`.
-  * TabletFace: `TabletFace` source.
+  * TabletFace: the `TabletFace` driver output.
 
 #### Return:
 
@@ -29,7 +29,7 @@ FacialExpression action component.
   * state: a reducer stream.
   * status: a stream of action status.
   * result: a stream of action results.
-  * TabletFace: a stream for `TabletFace` driver input.
+  * TabletFace: a stream for the `TabletFace` driver input.
 
 <!-- End src/FacialExpressionAction.ts -->
 
@@ -57,10 +57,6 @@ Speechbubble action component.
 
 <!-- End src/SpeechbubbleAction.ts -->
 
-<!-- Start src/TwoSpeechbubblesAction.ts -->
-
-<!-- End src/TwoSpeechbubblesAction.ts -->
-
 <!-- Start src/index.ts -->
 
 <!-- End src/index.ts -->
@@ -78,7 +74,10 @@ Speechbubble action component.
 
 #### Return:
 
-* **Driver** the TabletFace Cycle.js driver function. It takes a stream   of `Command` and returns `DOM`, animationFinish`, and `load` streams.
+* **Driver** the TabletFace Cycle.js driver function. It takes a stream   of `Command` and returns returns `EventSource`:
+
+  * `EventSource.events(eventName)` takes `'load'`, `'animationfinish'`, or
+    `dom` and returns corresponding event streams respectively.
 
 <!-- End src/makeTabletFaceDriver.ts -->
 

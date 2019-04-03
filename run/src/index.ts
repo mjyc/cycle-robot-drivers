@@ -6,7 +6,7 @@ import {run} from '@cycle/run';
 import {selectActionResult} from '@cycle-robot-drivers/action';
 import {
   FacialExpressionAction,
-  makeSpeechbubbleAction,
+  createSpeechbubbleAction,
 } from '@cycle-robot-drivers/screen';
 import {AudioPlayerAction} from '@cycle-robot-drivers/sound';
 import {
@@ -89,8 +89,8 @@ export function withTabletFaceRobotActions(
 
 
     // Define actions
-    const RobotSpeechbubbleAction = makeSpeechbubbleAction(styles.robotSpeechbubble);
-    const HumanSpeechbubbleAction = makeSpeechbubbleAction(styles.humanSpeechbubble);
+    const RobotSpeechbubbleAction = createSpeechbubbleAction(styles.robotSpeechbubble);
+    const HumanSpeechbubbleAction = createSpeechbubbleAction(styles.humanSpeechbubble);
 
     const facialExpressionAction: any = isolate(
       FacialExpressionAction, 'FacialExpressionAction'
@@ -207,8 +207,7 @@ export function withTabletFaceRobotActions(
 }
 
 /**
- * A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers)
- *   function for Tabletface robot.
+ * A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers) function for Tabletface robot.
  *
  * @param main A function that takes incoming streams as `sources` and returns
  *   outgoing streams as sinks. By default, the following action components
@@ -221,8 +220,7 @@ export function withTabletFaceRobotActions(
  *
  *   are can used used like drivers, i.e., catch incoming message via
  *   `sources.FacialExpressionAction` and send outgoing message via
- *   `return { FacialExpressionAction: xs.of(null) };`, as well as six drivers
- *   listed below.
+ *   `return { FacialExpressionAction: {goal: xs.of({...}), cancel: xs.never()} };`, as well as six drivers listed below.
  *
  * @param drivers A collection of [Cycle.js drivers](). By default, `drivers` is
  *   set to an object containing:
