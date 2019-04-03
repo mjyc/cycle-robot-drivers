@@ -4,22 +4,14 @@ import delay from 'xstream/extra/delay';
 import {div, DOMSource, VNode} from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {StateSource, Reducer} from '@cycle/state';
-import {Result, EventSource} from '@cycle-robot-drivers/action';
 import {
-  TwoSpeechbubblesAction,
+  Result, EventSource,
+  selectActionResult
+} from '@cycle-robot-drivers/action';
+import {
+  SpeechbubbleAction,
+  SpeechbubbleActionSinks,
 } from '@cycle-robot-drivers/screen';
-import {
-  SpeechSynthesisAction,
-  SpeechRecognitionAction,
-} from '@cycle-robot-drivers/speech';
-import {
-  selectActionResult, QuestionAnswerAction, QAWithScreenAction
-} from '@cycle-robot-drivers/actionbank';
-import {
-  TwoSpeechbuttonsActionSinks as TWASinks,
-  SpeechSynthesisActionSinks as SSSinks,
-  SpeechRecogntionActionSinks as SRSinks,
-} from './types';
 
 export interface State {
   FacialExpressionAction: {result: Result},
@@ -43,90 +35,64 @@ export interface Sinks {
   state: Stream<Reducer<State>>,
 }
 
-export default function Robot(sources: Sources): Sinks {
-  // sources.state.stream.addListener({next: v => console.log('state$', v)})
+function QuestionAnswerAction(sources) {
 
-  // Process state stream
-  const state$ = sources.state.stream;
-  const twoSpeechbubblesResult$ = state$
-    .compose(selectActionResult('TwoSpeechbubblesAction'));
-  const speechSynthesisResult$ = state$
-    .compose(selectActionResult('SpeechSynthesisAction'));
-  const speechRecognitionResult$ = state$
-    .compose(selectActionResult('SpeechRecognitionAction'));
+}
+
+export default function Robot(sources: Sources): Sinks {
+  sources.state.stream.addListener({next: s => console.debug('reducer state', s)});
 
   // "main" component
-  // const childSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
-  //   goal: xs.merge(
-  //     xs.of({
-  //       question: 'How are you?',
-  //       answers: ['good', 'bad'],
-  //     }).compose(delay(1000)),
-  //     xs.of({
-  //       question: 'How was today?',
-  //       answers: ['Great', 'Okay'],
-  //     }).compose(delay(2000))
-  //   ),
-  //   SpeechSynthesisAction: {result: speechSynthesisResult$},
-  //   SpeechRecognitionAction: {result: speechRecognitionResult$},
-  //   state: sources.state,
-  // });
-  const childSinks: any = isolate(QAWithScreenAction)({
-    goal: xs.of({
-      question: 'How are you?',
-      answers: ['Good', 'Bad'],
-    }).compose(delay(1000)),
-    TwoSpeechbubblesAction: {result: twoSpeechbubblesResult$},
-    SpeechSynthesisAction: {result: speechSynthesisResult$},
-    SpeechRecognitionAction: {result: speechRecognitionResult$},
+  const childSinks: any = isolate(QuestionAnswerAction, 'QuestionAnswerAction')({
+    goal: xs.merge(
+      xs.of({
+        message: 'How are you?',
+        choices: ['good', 'bad'],
+      }).compose(delay(1000)),
+      xs.of({
+        message: 'How was today?',
+        choices: ['Great', 'Okay'],
+      }).compose(delay(2000))
+    ),
+    RobotSpeechbubbleAction: {result: sources.state.stream
+        .compose(selectActionResult('RobotSpeechbubbleAction'))},
+    HumanSpeechbubbleAction: {result: sources.state.stream
+        .compose(selectActionResult('HumanSpeechbubbleAction'))},
     state: sources.state,
-  })
-
+  });
   childSinks.result.addListener({next: r => console.log('result', r)});
 
 
   // Define Actions
-  const twoSpeechbubblesAction: TWASinks = TwoSpeechbubblesAction({
-    goal: childSinks.TwoSpeechbubblesAction || xs.never(),
-    DOM: sources.DOM,
-  });
-  const speechSynthesisAction: SSSinks = SpeechSynthesisAction({
-    goal: childSinks.SpeechSynthesisAction || xs.never(),
-    SpeechSynthesis: sources.SpeechSynthesis,
-  });
-  const speechRecognitionAction: SRSinks = SpeechRecognitionAction({
-    goal: childSinks.SpeechRecognitionAction || xs.never(),
-    SpeechRecognition: sources.SpeechRecognition,
-  });
-
-
-  // Define Reducers
-  const parentReducer$: Stream<Reducer<State>> = xs.merge(
-    twoSpeechbubblesAction.result.map(result =>
-      prev => ({...prev, TwoSpeechbubblesAction: {outputs: {result}}})),
-    speechSynthesisAction.result.map(result =>
-      prev => ({...prev, SpeechSynthesisAction: {outputs: {result}}})),
-    speechRecognitionAction.result.map(result =>
-      prev => ({...prev, SpeechRecognitionAction: {outputs: {result}}})),
-  );
-  const childReducer$: Stream<Reducer<State>> = childSinks.state;
-  const reducer$ = xs.merge(parentReducer$, childReducer$);
+  const robotSpeechbubbleAction: SpeechbubbleActionSinks =
+      isolate(SpeechbubbleAction, 'RobotSpeechbubbleAction')({
+        ...childSinks.RobotSpeechbubbleAction,
+        DOM: sources.DOM,
+      });
+  const humanSpeechbubbleAction: SpeechbubbleActionSinks =
+      isolate(SpeechbubbleAction, 'HUmanSpeechbubbleAction')({
+        ...childSinks.HumanSpeechbubbleAction,
+        DOM: sources.DOM,
+      });
 
 
   // Define Sinks
   const vdom$ = xs.combine(
     twoSpeechbubblesAction.DOM,
     sources.TabletFace.DOM,
-  ).map(([speechbubbles, face]) =>
+  ).map((vdoms) =>
     div({
       style: {position: 'relative'}
-    }, [speechbubbles, face])
+    }, vdoms)
+  );
+  const reducer$ = xs.merge(
+    robotSpeechbubbleAction.state,
+    humanSpeechbubbleAction.state,
+    childSinks.state,
   );
 
   return {
     DOM: vdom$,
-    SpeechSynthesis: speechSynthesisAction.output,
-    SpeechRecognition: speechRecognitionAction.output,
     state: reducer$,
   };
 }

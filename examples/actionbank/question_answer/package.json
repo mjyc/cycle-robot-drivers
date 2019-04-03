@@ -11,7 +11,6 @@
     "@cycle-robot-drivers/action": "file:../../../action",
     "@cycle-robot-drivers/actionbank": "file:../../../actionbank",
     "@cycle-robot-drivers/screen": "file:../../../screen",
-    "@cycle-robot-drivers/speech": "file:../../../speech",
     "@cycle/dom": "22.3.0",
     "@cycle/isolate": "5.0.0",
     "@cycle/state": "1.2.0",
