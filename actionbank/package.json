@@ -10,7 +10,10 @@
   "module": "lib/es6/index.ts",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "@cycle-robot-drivers/action": "../action",
+    "@cycle-robot-drivers/action": "file:../action",
+    "@cycle-robot-drivers/screen": "file:../screen",
+    "@cycle/dom": "22.3.0",
+    "@cycle/isolate": "5.0.0",
     "@cycle/state": "1.2.0",
     "xstream": "11.10.0"
   },
