@@ -122,10 +122,10 @@ export function withTabletFaceRobotActions(
     const vdom$ = !!mainSinks.DOM
       ? mainSinks.DOM
       : xs.combine(
-          robotSpeechbubbleAction.DOM,
-          humanSpeechbubbleAction.DOM,
-          sources.TabletFace.DOM,
-          sources.PoseDetection.DOM
+          // robotSpeechbubbleAction.DOM,
+          // humanSpeechbubbleAction.DOM,
+          sources.TabletFace.events('dom'),  // .startWith('')
+          sources.PoseDetection.events('dom'),  // .startWith('')
         ).map((vdoms) => {
           (vdoms[1] as any).data.style.display = hidePoseViz
             ? 'none' : 'block';
