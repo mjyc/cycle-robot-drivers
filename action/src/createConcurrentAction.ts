@@ -1,9 +1,9 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {Reducer, isolateSink, StateSource} from '@cycle/state';
+import {Reducer} from '@cycle/state';
 import {GoalID, Status, Result} from './types';
 import {
-  initGoal, isEqualGoalID, generateGoalID, selectActionResult
+  initGoal, isEqualGoalID, generateGoalID
 } from './utils';
 
 // FSM types
@@ -47,9 +47,8 @@ export function createConcurrentAction(
     const results$: Stream<Result[]>
       = xs.combine.apply(null, results);
     return xs.merge(
-      goal$.filter(g => typeof g !== 'undefined').map(g => (g === null)
-        ? ({type: SIGType.CANCEL, value: null})
-        : ({type: SIGType.GOAL, value: initGoal(g)})),
+      goal$.filter(g => typeof g !== 'undefined' && g !== null).map(g =>
+          ({type: SIGType.GOAL, value: initGoal(g)})),
       cancel$.map(val => ({type: SIGType.CANCEL, value: val})),
       results$.map(r => ({type: SIGType.RESULTS, value: r})),
     );

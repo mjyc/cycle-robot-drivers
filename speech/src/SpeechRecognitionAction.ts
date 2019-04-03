@@ -59,7 +59,7 @@ function input(
   resultEvent$: Stream<any>
 ) {
   return xs.merge(
-    goal$.map(goal => ({
+    goal$.filter(g => typeof g !== 'undefined' && g !== null).map(goal => ({
       type: InputType.GOAL,
       value: goal,
     })),

@@ -5,7 +5,7 @@ import {
   GoalID, Goal, Status, GoalStatus, Result,
   ActionSources, ActionSinks,
   EventSource,
-  generateGoalStatus, isEqualGoalStatus, isEqualGoalID
+  generateGoalStatus, isEqualGoalStatus, isEqualGoalID, initGoal
 } from '@cycle-robot-drivers/action';
 import {UtteranceArg} from './makeSpeechSynthesisDriver';
 
@@ -47,13 +47,14 @@ type Input = {
 };
 
 function input(
-  goal$: Stream<Goal>,
+  goal$: Stream<Goal | string>,
   cancel$: Stream<GoalID>,
   startEvent$: Stream<any>,
   endEvent$: Stream<any>,
 ) {
   return xs.merge(
-    goal$.map(goal => {
+    goal$.filter(g => typeof g !== 'undefined' && g !== null).map(g => {
+      const goal: Goal = initGoal(g);
       return {
         type: InputType.GOAL,
         value: typeof goal.goal === 'string'

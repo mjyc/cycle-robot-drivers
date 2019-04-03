@@ -4,7 +4,7 @@ import {
   GoalID, Goal, GoalStatus, Status, Result,
   ActionSources, ActionSinks,
   EventSource,
-  generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
+  initGoal, generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
 } from '@cycle-robot-drivers/action';
 
 enum State {
@@ -45,19 +45,21 @@ type Input = {
 
 
 function input(
-  goal$: Stream<Goal>,
+  goal$: Stream<Goal | string>,
   cancel$: Stream<GoalID>,
   audioPlayerEndedEvent$: Stream<GoalID>,
   audioPlayerPausedEvent$: Stream<GoalID>,
 ): Stream<Input> {
   return xs.merge(
-    goal$.map(goal => ({
-      type: InputType.GOAL,
-      value: typeof goal.goal === 'string' ? {
-        goal_id: goal.goal_id,
-        goal: {src: goal.goal},
-      } : goal,
-    })),
+    goal$.filter(g => typeof g !== 'undefined' && g !== null)
+      .map(g => initGoal(g))
+      .map(goal => ({
+        type: InputType.GOAL,
+        value: typeof goal.goal === 'string' ? {
+          goal_id: goal.goal_id,
+          goal: {src: goal.goal},
+        } : goal,
+      })),
     cancel$.map(val => ({type: InputType.CANCEL, value: val})),
     audioPlayerEndedEvent$.mapTo({
       type: InputType.ENDED,

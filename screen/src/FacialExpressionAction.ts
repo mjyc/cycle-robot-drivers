@@ -3,7 +3,7 @@ import dropRepeats from 'xstream/extra/dropRepeats';
 import {
   GoalID, Goal, GoalStatus, Status, Result,
   ActionSources, ActionSinks, EventSource,
-  generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
+  initGoal, generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
 } from '@cycle-robot-drivers/action';
 import {TabletFaceCommand} from './makeTabletFaceDriver';
 
@@ -44,23 +44,25 @@ type Input = {
 
 
 function input(
-  goal$: Stream<Goal>,
+  goal$: Stream<Goal | string>,
   cancel$: Stream<GoalID>,
   animationFinishEvent$: Stream<any>,
 ): Stream<Input> {
   return xs.merge(
-    goal$.map(goal => ({
-      type: InputType.GOAL,
-      value: typeof goal.goal === 'string' ? {
-        goal_id: goal.goal_id,
-        goal: {
-          type: 'EXPRESS',
-          value: {
-            type: goal.goal,
+    goal$.filter(g => typeof g !== 'undefined' && g !== null)
+      .map(g => initGoal(g))
+      .map(goal => ({
+        type: InputType.GOAL,
+        value: typeof goal.goal === 'string' ? {
+          goal_id: goal.goal_id,
+          goal: {
+            type: 'EXPRESS',
+            value: {
+              type: goal.goal,
+            },
           },
-        },
-      } : goal,
-    })),
+        } : goal,
+      })),
     cancel$.map(val => ({type: InputType.CANCEL, value: val})),
     animationFinishEvent$.mapTo({
       type: InputType.END,

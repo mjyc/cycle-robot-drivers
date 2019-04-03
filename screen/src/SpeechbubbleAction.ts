@@ -6,7 +6,7 @@ import {span, button, DOMSource, VNode} from '@cycle/dom';
 import {
   GoalID, Goal, Status, GoalStatus, Result,
   ActionSources, ActionSinks,
-  generateGoalStatus, isEqualGoalStatus, isEqualGoalID
+  initGoal, generateGoalStatus, isEqualGoalStatus, isEqualGoalID
 } from '@cycle-robot-drivers/action';
 
 
@@ -52,23 +52,25 @@ export enum SpeechbubbleType {
 
 
 function input(
-  goal$: Stream<Goal>,
+  goal$: Stream<Goal | string | [string]>,
   cancel$: Stream<GoalID>,
   clickEvent$: Stream<Event>,
 ): Stream<Input> {
   return xs.merge(
-    goal$.map(goal => ({
-      type: InputType.GOAL,
-      value: typeof goal.goal === 'string'
-        ? {
-          goal_id: goal.goal_id,
-          goal: {type: SpeechbubbleType.MESSAGE, value: goal.goal},
-        } : Array.isArray(goal.goal)
+    goal$.filter(g => typeof g !== 'undefined' && g !== null)
+      .map(g => initGoal(g))
+      .map(goal => ({
+        type: InputType.GOAL,
+        value: typeof goal.goal === 'string'
           ? {
             goal_id: goal.goal_id,
-            goal: {type: SpeechbubbleType.CHOICE, value: goal.goal},
-          } : goal.goal,  // {type: string, value: string | [string]}
-      })),
+            goal: {type: SpeechbubbleType.MESSAGE, value: goal.goal},
+          } : Array.isArray(goal.goal)
+            ? {
+              goal_id: goal.goal_id,
+              goal: {type: SpeechbubbleType.CHOICE, value: goal.goal},
+            } : goal.goal,  // {type: string, value: string | [string]}
+        })),
     cancel$.map(val => ({type: InputType.CANCEL, value: null})),
     clickEvent$.map(event => ({
       type: InputType.CLICK,
