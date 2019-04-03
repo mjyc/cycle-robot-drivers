@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/actionbank",
-  "version": "0.0.7",
+  "version": "1.0.0",
   "description": "Premade cycle-robot-driver actions",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
