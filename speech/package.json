@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/speech",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cycle.js drivers for speech synthesis and recognition using Web Speech API",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -10,7 +10,7 @@
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "@cycle-robot-drivers/action": "file:../action",
+    "@cycle-robot-drivers/action": "^1.0.0",
     "@cycle/run": "5.2.0",
     "xstream": "11.10.0"
   },
