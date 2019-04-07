@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/screen",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Cycle.js drivers for rendering a robot face",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -10,7 +10,7 @@
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "@cycle-robot-drivers/action": "file:../action",
+    "@cycle-robot-drivers/action": "^1.0.0",
     "@cycle/dom": "22.3.0",
     "@cycle/isolate": "5.0.0",
     "@cycle/run": "5.2.0",
