@@ -4,7 +4,6 @@ import {withState} from '@cycle/state';
 import {run} from '@cycle/run';
 import {timeDriver} from '@cycle/time';
 import {SleepAction} from './SleepAction';
-import {selectActionResult} from '@cycle-robot-drivers/action';
 
 
 function main(sources) {
