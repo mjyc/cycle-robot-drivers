@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/run",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Cycle.js run() wrapper, runRobotProgram, for Tabletface robot",
   "author": "Michael Jae-Yoon Chung",
   "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",
@@ -10,10 +10,10 @@
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "@cycle-robot-drivers/action": "file:../action",
-    "@cycle-robot-drivers/screen": "file:../screen",
-    "@cycle-robot-drivers/sound": "file:../sound",
-    "@cycle-robot-drivers/speech": "file:../speech",
+    "@cycle-robot-drivers/action": "^1.0.0",
+    "@cycle-robot-drivers/screen": "^1.0.0",
+    "@cycle-robot-drivers/sound": "^1.0.0",
+    "@cycle-robot-drivers/speech": "^1.0.0",
     "@cycle/dom": "22.3.0",
     "@cycle/isolate": "5.0.0",
     "@cycle/run": "5.2.0",
