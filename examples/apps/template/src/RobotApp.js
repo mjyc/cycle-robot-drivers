@@ -13,6 +13,7 @@ function input({
   SpeechRecognitionAction,
   PoseDetection,
 }) {
+  const command$ = command;  // no change intended
   const inputD$ = xs.merge(
     FacialExpressionAction.result.map(r => ({
       type: 'FacialExpressionAction',
@@ -70,100 +71,104 @@ function input({
   );
 }
 
-function transition(prev, input) {
-  return prev;
-}
-
 function transitionReducer(input$) {
-  const initReducer$ = xs.of(
-    function initReducer(prev) {
+  const initReducer$ = xs.of((prev) => {
+    return {
+      fsm: null,
+      outputs: null,
+    };
+  });
+
+  const inputReducer$ = input$.map(input => (prev) => {
+    console.log('prev input', prev, input);
+    if (input.type === 'LOAD_FSM') {
       return {
-        state: State.WAIT,
-        variables: {
-          goal_id: null,
-          newGoal: null,
+        ...prev,
+        fsm: {
+          state: input.value.S0,
+          transition: input.value.T,
+          emission: input.value.G,
         },
-        outputs: null,
-      }
+      };
+    } else if (input.type === 'START_FSM') {
+      return {
+        ...prev,
+        fsm: {
+          ...prev.fsm,
+          state: prev.fsm.transition(prev.fsm.state, {type: 'START'}),
+        },
+        outputs: prev.fsm.emission(prev.fsm.state, input),
+      };
+    } else {
+      return {
+        ...prev,
+        fsm: {
+          ...prev.fsm,
+          state: prev.fsm.transition(prev.fsm.state, input),
+        },
+        outputs: prev.fsm.emission(prev.fsm.state, input),
+      };
     }
-  );
-
-  const inputReducer$ = input$
-    .map(input => function inputReducer(prev) {
-
-      // if (input.type === 'FSM') {
-      //   return {
-      //     ...prev,
-      //     fsm: input.value,
-      //   };
-      // }
-
-      // return {
-      //   ...prev,
-      //   fsm: {
-      //     ...prev.fsm,
-      //     state: prev.transition(prev.fsm.state, input),
-      //   },
-      // };
-
-      return prev;
-    });
+  });
 
   return xs.merge(initReducer$, inputReducer$);
 }
 
 export function RobotApp(sources) {
-  input(sources).addListener({next: v => console.debug(v)});
-  // const reducer = transitionReducer(input$);
-
-
-
-  // TODO: remove the code below
-  const goals$ = sources.TabletFace.events('load').mapTo({
-    face: initGoal('HAPPY'),
-    sound: initGoal('https://raw.githubusercontent.com/aramadia/willow-sound/master/G/G15.ogg'),
-    robotSpeechbubble: initGoal('How are you?'),
-    humanSpeechbubble: initGoal(['Good', 'Bad']),
-    synthesis: initGoal('How are you?'),
-    recognition: initGoal({}),
-  });
-
-  sources.HumanSpeechbubbleAction.result
-    .addListener({next: result => {
-      if (result.status.status === 'SUCCEEDED') {
-        console.log(`I received "${result.result}"`);
-      }
-    }});
-  sources.SpeechRecognitionAction.result
-    .addListener({next: result => {
-      if (result.status.status === 'SUCCEEDED') {
-        console.log(`I heard "${result.result}"`);
-      }
-    }});
-  sources.PoseDetection.events('poses').addListener({next: () => {}});
+  const input$ = input(sources);
+  // input(sources).addListener({next: v => console.log(v)});
+  const reducer = transitionReducer(input$);
+  reducer.addListener({next: v => console.log(v)});
 
   return {
-    FacialExpressionAction: {
-      goal: goals$.map(goals => goals.face),
-    },
-    RobotSpeechbubbleAction: {
-      goal: goals$.map(goals => goals.robotSpeechbubble),
-    },
-    HumanSpeechbubbleAction: {
-      goal: goals$.map(goals => goals.humanSpeechbubble),
-    },
-    AudioPlayerAction: {
-      goal: goals$.map(goals => goals.sound),
-    },
-    SpeechSynthesisAction: {
-      goal: goals$.map(goals => goals.synthesis),
-    },
-    SpeechRecognitionAction: {
-      goal: goals$.map(goals => goals.recognition),
-    },
-    PoseDetection: xs.of({
-      algorithm: 'single-pose',
-      singlePoseDetection: {minPoseConfidence: 0.2},
-    }),
-  }
+    state: reducer,
+  };
+  // // TODO: remove the code below
+  // const goals$ = sources.TabletFace.events('load').mapTo({
+  //   face: initGoal('HAPPY'),
+  //   sound: initGoal('https://raw.githubusercontent.com/aramadia/willow-sound/master/G/G15.ogg'),
+  //   robotSpeechbubble: initGoal('How are you?'),
+  //   humanSpeechbubble: initGoal(['Good', 'Bad']),
+  //   synthesis: initGoal('How are you?'),
+  //   recognition: initGoal({}),
+  // });
+
+  // sources.HumanSpeechbubbleAction.result
+  //   .addListener({next: result => {
+  //     if (result.status.status === 'SUCCEEDED') {
+  //       console.log(`I received "${result.result}"`);
+  //     }
+  //   }});
+  // sources.SpeechRecognitionAction.result
+  //   .addListener({next: result => {
+  //     if (result.status.status === 'SUCCEEDED') {
+  //       console.log(`I heard "${result.result}"`);
+  //     }
+  //   }});
+  // sources.PoseDetection.events('poses').addListener({next: () => {}});
+
+  // return {
+  //   FacialExpressionAction: {
+  //     goal: goals$.map(goals => goals.face),
+  //   },
+  //   RobotSpeechbubbleAction: {
+  //     goal: goals$.map(goals => goals.robotSpeechbubble),
+  //   },
+  //   HumanSpeechbubbleAction: {
+  //     goal: goals$.map(goals => goals.humanSpeechbubble),
+  //   },
+  //   AudioPlayerAction: {
+  //     goal: goals$.map(goals => goals.sound),
+  //   },
+  //   SpeechSynthesisAction: {
+  //     goal: goals$.map(goals => goals.synthesis),
+  //   },
+  //   SpeechRecognitionAction: {
+  //     goal: goals$.map(goals => goals.recognition),
+  //   },
+  //   PoseDetection: xs.of({
+  //     algorithm: 'single-pose',
+  //     singlePoseDetection: {minPoseConfidence: 0.2},
+  //   }),
+  // }
 }

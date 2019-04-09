@@ -1,5 +1,5 @@
 export function transition(state, input) {
-  if (state === 'S0' && input.type === 'STARTED') {
+  if (state === 'S0' && input.type === 'START') {
     return {
       state: 'S1',
       output: {

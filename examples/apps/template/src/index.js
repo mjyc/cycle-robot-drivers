@@ -5,24 +5,20 @@ import {RobotApp} from './RobotApp';
 
 
 function main(sources) {
-  // const FSM = xs.of({
-  //   S0: `S0`,
-  //   T: transition,
-  // });
-
+  const S0 = 'S0';
+  const T = (state, input) => transition(state, input).state;
+  const G = (state, input) => transition(state, input).outputs;
   const command$ = xs.merge(
     xs.of({
       type: 'LOAD_FSM',
-    }).compose(delay(0)),
+      value: {S0, T, G},
+    }),
     xs.of({
       type: 'START_FSM',
-    }).compose(delay(0)),
-  );
-
-  command$.addListener({next: v => console.log(v)});
+    }).compose(delay(0)),  // send this data after the above
+  ).compose(delay(1000));
 
   return RobotApp({
-    // srsm: srsm$,
     command: command$,
     ...sources,
   });

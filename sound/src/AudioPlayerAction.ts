@@ -225,7 +225,7 @@ export interface Sinks extends ActionSinks {
  */
 export function AudioPlayerAction(sources: Sources): Sinks {
   const input$ = input(
-    sources.goal,
+    sources.goal || xs.never(),
     sources.cancel || xs.never(),
     sources.AudioPlayer.events('ended'),
     sources.AudioPlayer.events('pause'),
