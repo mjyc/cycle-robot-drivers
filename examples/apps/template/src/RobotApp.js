@@ -4,6 +4,7 @@ import {initGoal} from '@cycle-robot-drivers/action';
 
 
 function input({
+  command,
   FacialExpressionAction,
   RobotSpeechbubbleAction,
   HumanSpeechbubbleAction,
@@ -38,6 +39,8 @@ function input({
       ...r,
     })),
   );
+
+
   // TODO: update this using the example below
   const inputC$ = PoseDetection.events('poses').mapTo({
     val1: 0,
@@ -61,6 +64,7 @@ function input({
   //   .map(delta => ({type: InputType.MOVED_FACE, value: delta}));
 
   return xs.merge(
+    command$,
     inputD$.map(val => ({type: 'DISCRETE_INPUT', value: val})),
     inputC$.map(val => ({type: 'CONTINUOUS_INPUT', value: val})),
   );
@@ -86,15 +90,32 @@ function transitionReducer(input$) {
 
   const inputReducer$ = input$
     .map(input => function inputReducer(prev) {
-      return transition(prev, input);
+
+      // if (input.type === 'FSM') {
+      //   return {
+      //     ...prev,
+      //     fsm: input.value,
+      //   };
+      // }
+
+      // return {
+      //   ...prev,
+      //   fsm: {
+      //     ...prev.fsm,
+      //     state: prev.transition(prev.fsm.state, input),
+      //   },
+      // };
+
+      return prev;
     });
 
   return xs.merge(initReducer$, inputReducer$);
 }
 
 export function RobotApp(sources) {
-  // input(sources)[0].addListener({next: v => console.debug(v)});
+  input(sources).addListener({next: v => console.debug(v)});
   // const reducer = transitionReducer(input$);
+
 
 
   // TODO: remove the code below

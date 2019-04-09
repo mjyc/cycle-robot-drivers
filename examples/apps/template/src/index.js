@@ -1,23 +1,29 @@
 import xs from 'xstream';
+import delay from 'xstream/extra/delay';
 import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
 import {RobotApp} from './RobotApp';
 
-const S0 = `S0`;
-
-const T = `
-function transition(state, inputD, inputC) {
-  if (state === 'START' && inputD === '') {
-
-  }
-}
-`;
 
 function main(sources) {
-  const srsm$ = xs.of({
-    S0: ``,
-    T: ``
-  })
+  // const FSM = xs.of({
+  //   S0: `S0`,
+  //   T: transition,
+  // });
+
+  const command$ = xs.merge(
+    xs.of({
+      type: 'LOAD_FSM',
+    }).compose(delay(0)),
+    xs.of({
+      type: 'START_FSM',
+    }).compose(delay(0)),
+  );
+
+  command$.addListener({next: v => console.log(v)});
+
   return RobotApp({
+    // srsm: srsm$,
+    command: command$,
     ...sources,
   });
 }
