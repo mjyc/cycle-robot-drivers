@@ -74,6 +74,7 @@ function input({
 function transitionReducer(input$) {
   const initReducer$ = xs.of((prev) => {
     return {
+      ...prev,
       fsm: null,
       outputs: null,
     };
@@ -97,7 +98,7 @@ function transitionReducer(input$) {
           ...prev.fsm,
           state: prev.fsm.transition(prev.fsm.state, {type: 'START'}),
         },
-        outputs: prev.fsm.emission(prev.fsm.state, input),
+        outputs: prev.fsm.emission(prev.fsm.state, {type: 'START'}),
       };
     } else {
       return {
@@ -114,14 +115,37 @@ function transitionReducer(input$) {
   return xs.merge(initReducer$, inputReducer$);
 }
 
+function output(reducerState$) {
+  const outputs$ = reducerState$.debug()
+    .filter(rs => !!rs.outputs)
+    .map(rs => rs.outputs);
+  return {
+    // result: outputs$
+    //   .filter(o => !!o.result)
+    //   .map(o => o.result),
+    HumanSpeechbubbleAction: {goal: outputs$
+      .filter(o => typeof o.HumanSpeechbubbleAction !== 'undefined')
+      .map(o => o.HumanSpeechbubbleAction).debug()},
+    RobotSpeechbubbleAction: {goal: outputs$
+      .filter(o => typeof o.RobotSpeechbubbleAction !== 'undefined')
+      .map(o => o.RobotSpeechbubbleAction).debug()},
+  };
+};
+
 export function RobotApp(sources) {
   const input$ = input(sources);
   // input(sources).addListener({next: v => console.log(v)});
   const reducer = transitionReducer(input$);
-  reducer.addListener({next: v => console.log(v)});
+  // reducer.addListener({next: v => ''});
+
+  const out = output(sources.state.stream);
+  // out.RobotSpeechbubbleAction.addListener({next: o => console.log(o)});
+  // out.HumanSpeechbubbleAction.addListener({next: o => console.log(o)});
 
   return {
     state: reducer,
+    // ...output(reducer),
+    ...out,
   };
   // // TODO: remove the code below
   // const goals$ = sources.TabletFace.events('load').mapTo({
