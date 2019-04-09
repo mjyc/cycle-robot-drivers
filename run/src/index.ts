@@ -67,7 +67,7 @@ export function withTabletFaceRobotActions(
     const mainSinks: any = main({
       ...sources,
       FacialExpressionAction: {
-        result: state$.compose(selectActionResult('FacialExpression'))
+        result: state$.compose(selectActionResult('FacialExpressionAction'))
       },
       RobotSpeechbubbleAction: {
         result: state$.compose(selectActionResult('RobotSpeechbubbleAction'))
