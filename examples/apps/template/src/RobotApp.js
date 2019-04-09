@@ -1,5 +1,4 @@
 import xs from 'xstream';
-import delay from 'xstream/extra/delay';
 import {initGoal} from '@cycle-robot-drivers/action';
 
 
@@ -11,43 +10,50 @@ function input({
   AudioPlayerAction,
   SpeechSynthesisAction,
   SpeechRecognitionAction,
-  PoseDetection,
+  // PoseDetection,
 }) {
   const command$ = command;  // no change intended
   const inputD$ = xs.merge(
     FacialExpressionAction.result.map(r => ({
       type: 'FacialExpressionAction',
-      ...r,
+      status: r.status.status,
+      result: r.result,
     })),
     RobotSpeechbubbleAction.result.map(r => ({
       type: 'RobotSpeechbubbleAction',
-      ...r,
+      status: r.status.status,
+      result: r.result,
     })),
     HumanSpeechbubbleAction.result.map(r => ({
       type: 'HumanSpeechbubbleAction',
-      ...r,
+      status: r.status.status,
+      result: r.result,
     })),
     AudioPlayerAction.result.map(r => ({
       type: 'AudioPlayerAction',
-      ...r,
+      status: r.status.status,
+      result: r.result,
     })),
     SpeechSynthesisAction.result.map(r => ({
       type: 'SpeechSynthesisAction',
-      ...r,
+      status: r.status.status,
+      result: r.result,
     })),
     SpeechRecognitionAction.result.map(r => ({
       type: 'SpeechRecognitionAction',
-      ...r,
+      status: r.status.status,
+      result: r.result,
     })),
   );
 
 
   // TODO: update this using the example below
-  const inputC$ = PoseDetection.events('poses').mapTo({
-    val1: 0,
-    val2: 0,
-    val3: 0,
-  });
+  const inputC$ = xs.never();
+  // PoseDetection.events('poses').mapTo({
+  //   val1: 0,
+  //   val2: 0,
+  //   val3: 0,
+  // });
   // const inputC$ = PoseDetection.events('poses').filter(poses =>
   //     posses.length === 1
   //     && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
@@ -80,8 +86,15 @@ function transitionReducer(input$) {
     };
   });
 
+  const wrapOutputs(outputs) {
+    let outputs = prev.fsm.emission(prev.fsm.state, input.value);
+    return outputs !== null ? Object.keys(outputs).reduce((prev, name) => ({
+      ...prev,
+      [name]: initGoal(outputs[name]),
+    }), {}) : outputs;
+  }
+
   const inputReducer$ = input$.map(input => (prev) => {
-    console.log('prev input', prev, input);
     if (input.type === 'LOAD_FSM') {
       return {
         ...prev,
@@ -90,6 +103,7 @@ function transitionReducer(input$) {
           transition: input.value.T,
           emission: input.value.G,
         },
+        outputs: null,
       };
     } else if (input.type === 'START_FSM') {
       return {
@@ -99,6 +113,16 @@ function transitionReducer(input$) {
           state: prev.fsm.transition(prev.fsm.state, {type: 'START'}),
         },
         outputs: prev.fsm.emission(prev.fsm.state, {type: 'START'}),
+      };
+    } else if (input.type === 'DISCRETE_INPUT') {
+
+      return {
+        ...prev,
+        fsm: {
+          ...prev.fsm,
+          state: prev.fsm.transition(prev.fsm.state, input.value),
+        },
+        outputs,
       };
     } else {
       return {
@@ -116,83 +140,41 @@ function transitionReducer(input$) {
 }
 
 function output(reducerState$) {
-  const outputs$ = reducerState$.debug()
+  const outputs$ = reducerState$
     .filter(rs => !!rs.outputs)
     .map(rs => rs.outputs);
   return {
-    // result: outputs$
-    //   .filter(o => !!o.result)
-    //   .map(o => o.result),
-    HumanSpeechbubbleAction: {goal: outputs$
-      .filter(o => typeof o.HumanSpeechbubbleAction !== 'undefined')
-      .map(o => o.HumanSpeechbubbleAction).debug()},
-    RobotSpeechbubbleAction: {goal: outputs$
-      .filter(o => typeof o.RobotSpeechbubbleAction !== 'undefined')
-      .map(o => o.RobotSpeechbubbleAction).debug()},
+    result: outputs$
+      .filter(o => !!o.result)
+      .map(o => o.result),
+    FacialExpressionAction: {
+      goal: outputs$.map(o => o.FacialExpressionAction),
+    },
+    RobotSpeechbubbleAction: {
+      goal: outputs$.map(o => o.RobotSpeechbubbleAction),
+    },
+    HumanSpeechbubbleAction: {
+      goal: outputs$.map(o => o.HumanSpeechbubbleAction),
+    },
+    AudioPlayerAction: {
+      goal: outputs$.map(o => o.AudioPlayerAction),
+    },
+    SpeechSynthesisAction: {
+      goal: outputs$.map(o => o.SpeechSynthesisAction),
+    },
+    SpeechRecognitionAction: {
+      goal: outputs$.map(o => o.SpeechRecognitionAction),
+    },
   };
 };
 
 export function RobotApp(sources) {
   const input$ = input(sources);
-  // input(sources).addListener({next: v => console.log(v)});
   const reducer = transitionReducer(input$);
-  // reducer.addListener({next: v => ''});
-
-  const out = output(sources.state.stream);
-  // out.RobotSpeechbubbleAction.addListener({next: o => console.log(o)});
-  // out.HumanSpeechbubbleAction.addListener({next: o => console.log(o)});
+  const outputs = output(sources.state.stream);
 
   return {
     state: reducer,
-    // ...output(reducer),
-    ...out,
+    ...outputs,
   };
-  // // TODO: remove the code below
-  // const goals$ = sources.TabletFace.events('load').mapTo({
-  //   face: initGoal('HAPPY'),
-  //   sound: initGoal('https://raw.githubusercontent.com/aramadia/willow-sound/master/G/G15.ogg'),
-  //   robotSpeechbubble: initGoal('How are you?'),
-  //   humanSpeechbubble: initGoal(['Good', 'Bad']),
-  //   synthesis: initGoal('How are you?'),
-  //   recognition: initGoal({}),
-  // });
-
-  // sources.HumanSpeechbubbleAction.result
-  //   .addListener({next: result => {
-  //     if (result.status.status === 'SUCCEEDED') {
-  //       console.log(`I received "${result.result}"`);
-  //     }
-  //   }});
-  // sources.SpeechRecognitionAction.result
-  //   .addListener({next: result => {
-  //     if (result.status.status === 'SUCCEEDED') {
-  //       console.log(`I heard "${result.result}"`);
-  //     }
-  //   }});
-  // sources.PoseDetection.events('poses').addListener({next: () => {}});
-
-  // return {
-  //   FacialExpressionAction: {
-  //     goal: goals$.map(goals => goals.face),
-  //   },
-  //   RobotSpeechbubbleAction: {
-  //     goal: goals$.map(goals => goals.robotSpeechbubble),
-  //   },
-  //   HumanSpeechbubbleAction: {
-  //     goal: goals$.map(goals => goals.humanSpeechbubble),
-  //   },
-  //   AudioPlayerAction: {
-  //     goal: goals$.map(goals => goals.sound),
-  //   },
-  //   SpeechSynthesisAction: {
-  //     goal: goals$.map(goals => goals.synthesis),
-  //   },
-  //   SpeechRecognitionAction: {
-  //     goal: goals$.map(goals => goals.recognition),
-  //   },
-  //   PoseDetection: xs.of({
-  //     algorithm: 'single-pose',
-  //     singlePoseDetection: {minPoseConfidence: 0.2},
-  //   }),
-  // }
 }
