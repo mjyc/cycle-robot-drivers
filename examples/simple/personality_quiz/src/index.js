@@ -75,7 +75,7 @@ function main(sources) {
     SpeechSynthesisAction: {goal: question$},
     SpeechRecognitionAction: {
       goal: xs.merge(
-        sources.SpeechSynthesisAction.result.debug(),
+        sources.SpeechSynthesisAction.result,
         sources.SpeechRecognitionAction.result.filter(result =>
           result.status.status !== 'SUCCEEDED'
           || (result.result !== 'yes' && result.result !== 'no')
