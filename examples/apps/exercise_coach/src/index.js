@@ -2,7 +2,7 @@ import xs from 'xstream';
 import delay from 'xstream/extra/delay';
 import throttle from 'xstream/extra/throttle';
 import pairwise from 'xstream/extra/pairwise';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
+import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
 
 const State = {
   PEND: 'PEND',
@@ -205,9 +205,9 @@ function update(prevState, prevVariables, input) {
 
 function main(sources) {
   const input$ = input(
-    sources.TabletFace.load.mapTo({}),
+    sources.TabletFace.events('load').mapTo({}),
     sources.SpeechSynthesisAction,
-    sources.PoseDetection.poses,
+    sources.PoseDetection.events('poses'),
   );
 
   const defaultMachine = {
@@ -227,13 +227,13 @@ function main(sources) {
     .map(machine => machine.outputs);
 
   return {
-    SpeechSynthesisAction: outputs$
+    SpeechSynthesisAction: {goal: outputs$
       .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(output => output.SpeechSynthesisAction.goal),
-    AudioPlayerAction: outputs$
+      .map(output => output.SpeechSynthesisAction.goal)},
+    AudioPlayerAction: {goal: outputs$
       .filter(outputs => !!outputs.AudioPlayerAction)
-      .map(output => output.AudioPlayerAction.goal),
+      .map(output => output.AudioPlayerAction.goal)},
   };
 }
 
-runRobotProgram(main);
+runTabletFaceRobotApp(main);
