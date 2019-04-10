@@ -43,6 +43,7 @@ export function transition(state, input) {
       outputs: {
         RobotSpeechbubbleAction: 'Tap "Resume" when you are ready',
         HumanSpeechbubbleAction: ['Resume'],
+        SpeechSynthesisAction: ' ',
       },
     };
   } else if (state === 'S3' && input.type === 'HumanSpeechbubbleAction' && input.status === 'SUCCEEDED' && input.result === 'Pause') {
@@ -51,6 +52,7 @@ export function transition(state, input) {
       outputs: {
         RobotSpeechbubbleAction: 'Tap "Resume" when you are ready',
         HumanSpeechbubbleAction: ['Resume'],
+        SpeechSynthesisAction: ' ',
       },
     };
   } else if (state === 'S4' && input.type === 'HumanSpeechbubbleAction' && input.status === 'SUCCEEDED' && input.result === 'Pause') {

@@ -86,13 +86,13 @@ function transitionReducer(input$) {
     };
   });
 
-  const wrapOutputs(outputs) {
-    let outputs = prev.fsm.emission(prev.fsm.state, input.value);
-    return outputs !== null ? Object.keys(outputs).reduce((prev, name) => ({
-      ...prev,
-      [name]: initGoal(outputs[name]),
-    }), {}) : outputs;
-  }
+  // const wrapOutputs(outputs) {
+  //   let outputs = prev.fsm.emission(prev.fsm.state, input.value);
+  //   return outputs !== null ? Object.keys(outputs).reduce((prev, name) => ({
+  //     ...prev,
+  //     [name]: initGoal(outputs[name]),
+  //   }), {}) : outputs;
+  // }
 
   const inputReducer$ = input$.map(input => (prev) => {
     if (input.type === 'LOAD_FSM') {
@@ -115,7 +115,11 @@ function transitionReducer(input$) {
         outputs: prev.fsm.emission(prev.fsm.state, {type: 'START'}),
       };
     } else if (input.type === 'DISCRETE_INPUT') {
-
+      let outputs = prev.fsm.emission(prev.fsm.state, input.value);
+      outputs !== null ? Object.keys(outputs).reduce((prev, name) => ({
+        ...prev,
+        [name]: initGoal(outputs[name]),
+      }), {}) : outputs;
       return {
         ...prev,
         fsm: {
