@@ -1,28 +1,32 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
+import isolate from '@cycle/isolate';
 import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
 import {RobotApp} from './RobotApp';
 import {transition} from './transition.js';
 
 
 function main(sources) {
+  // sources.state.stream.addListener({next: s => console.debug('reducer state', s)});
+
   const S0 = 'S0';
   const T = (s, input) => transition(s, input).state;
   const G = (state, input) => transition(state, input).outputs;
   const command$ = xs.merge(
-    xs.of({  // condition this on tabletloaded
+    sources.TabletFace.events('load').mapTo({
       type: 'LOAD_FSM',
       value: {S0, T, G},
     }),
-    xs.of({  // condition this on FSM ready
+    sources.TabletFace.events('load').compose(delay(0)).mapTo({
       type: 'START_FSM',
-    }).compose(delay(0)),  // send this data after the above
-  ).compose(delay(1500));
+    }),
+  );
 
-  return RobotApp({
+  const robotSinks = isolate(RobotApp, 'RobotApp')({
     command: command$,
     ...sources,
   });
+  return robotSinks;
 }
 
 runTabletFaceRobotApp(main);

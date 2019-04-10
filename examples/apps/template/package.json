@@ -10,6 +10,7 @@
   "dependencies": {
     "@cycle-robot-drivers/action": "file:../../../action",
     "@cycle-robot-drivers/run": "file:../../../run",
+    "@cycle/isolate": "5.0.0",
     "xstream": "11.10.0"
   },
   "devDependencies": {

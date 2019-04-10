@@ -12,7 +12,12 @@ function input({
   SpeechRecognitionAction,
   // PoseDetection,
 }) {
-  const command$ = command;  // no change intended
+  const command$ = command.map(cmd => cmd.type === 'START_FSM'
+    ? ({
+      ...cmd,
+      value: {type: 'START'},
+    }) : cmd
+  );
   const inputD$ = xs.merge(
     FacialExpressionAction.result.map(r => ({
       type: 'FacialExpressionAction',
@@ -80,19 +85,28 @@ function input({
 function transitionReducer(input$) {
   const initReducer$ = xs.of((prev) => {
     return {
-      ...prev,
       fsm: null,
       outputs: null,
     };
   });
 
-  // const wrapOutputs(outputs) {
-  //   let outputs = prev.fsm.emission(prev.fsm.state, input.value);
-  //   return outputs !== null ? Object.keys(outputs).reduce((prev, name) => ({
-  //     ...prev,
-  //     [name]: initGoal(outputs[name]),
-  //   }), {}) : outputs;
-  // }
+  const wrapOutputs = (outputs = {}) => {
+    return outputs !== null
+      ? Object.keys(outputs).reduce((prev, name) => ({
+        ...prev,
+        [name]: (
+            outputs[name].hasOwnProperty('goal')
+            && outputs[name].hasOwnProperty('cancel')
+          ) ? {
+            ...outputs[name],
+            goal: initGoal(outputs[name].goal),
+          } : {
+            goal: initGoal(outputs[name]),
+            // no cancel
+          },
+      }), {})
+      : outputs;
+  };
 
   const inputReducer$ = input$.map(input => (prev) => {
     if (input.type === 'LOAD_FSM') {
@@ -105,21 +119,8 @@ function transitionReducer(input$) {
         },
         outputs: null,
       };
-    } else if (input.type === 'START_FSM') {
-      return {
-        ...prev,
-        fsm: {
-          ...prev.fsm,
-          state: prev.fsm.transition(prev.fsm.state, {type: 'START'}),
-        },
-        outputs: prev.fsm.emission(prev.fsm.state, {type: 'START'}),
-      };
-    } else if (input.type === 'DISCRETE_INPUT') {
-      let outputs = prev.fsm.emission(prev.fsm.state, input.value);
-      outputs !== null ? Object.keys(outputs).reduce((prev, name) => ({
-        ...prev,
-        [name]: initGoal(outputs[name]),
-      }), {}) : outputs;
+    } else if (input.type === 'START_FSM' || input.type === 'DISCRETE_INPUT') {
+      let outputs = wrapOutputs(prev.fsm.emission(prev.fsm.state, input.value));
       return {
         ...prev,
         fsm: {
@@ -129,13 +130,14 @@ function transitionReducer(input$) {
         outputs,
       };
     } else {
+      // TODO: update the return value
       return {
         ...prev,
         fsm: {
           ...prev.fsm,
-          state: prev.fsm.transition(prev.fsm.state, input),
+          state: 'S0',
         },
-        outputs: prev.fsm.emission(prev.fsm.state, input),
+        outputs: null,
       };
     }
   });
@@ -152,22 +154,53 @@ function output(reducerState$) {
       .filter(o => !!o.result)
       .map(o => o.result),
     FacialExpressionAction: {
-      goal: outputs$.map(o => o.FacialExpressionAction),
+      goal: outputs$
+        .filter(o => !!o.FacialExpressionAction && !!o.FacialExpressionAction.goal)
+        .map(o => o.FacialExpressionAction.goal),
+      cancel: outputs$
+        .filter(o => !!o.FacialExpressionAction && !!o.FacialExpressionAction.cancel)
+        .map(o => o.FacialExpressionAction.cancel),
     },
     RobotSpeechbubbleAction: {
-      goal: outputs$.map(o => o.RobotSpeechbubbleAction),
+      goal: outputs$
+        .filter(o => !!o.RobotSpeechbubbleAction && !!o.RobotSpeechbubbleAction.goal)
+        .map(o => o.RobotSpeechbubbleAction.goal),
+      cancel: outputs$
+        .filter(o => !!o.RobotSpeechbubbleAction && !!o.RobotSpeechbubbleAction.cancel)
+        .map(o => o.RobotSpeechbubbleAction.cancel),
     },
     HumanSpeechbubbleAction: {
-      goal: outputs$.map(o => o.HumanSpeechbubbleAction),
+      goal: outputs$
+        .filter(o => !!o.HumanSpeechbubbleAction && !!o.HumanSpeechbubbleAction.goal)
+        .map(o => o.HumanSpeechbubbleAction.goal),
+      cancel: outputs$
+        .filter(o => !!o.HumanSpeechbubbleAction && !!o.HumanSpeechbubbleAction.cancel)
+        .map(o => o.HumanSpeechbubbleAction.cancel),
     },
     AudioPlayerAction: {
-      goal: outputs$.map(o => o.AudioPlayerAction),
+      goal: outputs$
+        .filter(o => !!o.AudioPlayerAction && !!o.AudioPlayerAction.gal)
+        .map(o => o.AudioPlayerAction.goal),
+      cancel: outputs$
+        .filter(o => !!o.AudioPlayerAction && !!o.AudioPlayerAction.canel)
+        .map(o => o.AudioPlayerAction.cancel),
     },
     SpeechSynthesisAction: {
-      goal: outputs$.map(o => o.SpeechSynthesisAction),
+      goal: outputs$
+        .filter(o => !!o.SpeechSynthesisAction && !!o.SpeechSynthesisAction.goal)
+        .map(o => o.SpeechSynthesisAction.goal),
+      cancel: outputs$
+        .filter(o => !!o.SpeechSynthesisAction
+            && !!o.SpeechSynthesisAction.cancel)
+        .map(o => o.SpeechSynthesisAction.cancel),
     },
     SpeechRecognitionAction: {
-      goal: outputs$.map(o => o.SpeechRecognitionAction),
+      goal: outputs$
+        .filter(o => !!o.SpeechRecognitionAction && !!o.SpeechRecognitionAction.goal)
+        .map(o => o.SpeechRecognitionAction.goal),
+      cancel: outputs$
+        .filter(o => !!o.SpeechRecognitionAction && !!o.SpeechRecognitionAction.cancel)
+        .map(o => o.SpeechRecognitionAction.cancel),
     },
   };
 };
