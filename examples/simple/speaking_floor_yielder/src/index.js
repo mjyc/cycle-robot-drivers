@@ -9,16 +9,14 @@ function main(sources) {
   );
   const speechstart$ = sources.SpeechRecognition.events('speechstart');
 
-  const sayOrStop$ = xs.merge(
-    start$.mapTo(
-      'You can interrupt me by saying something while I\'m speaking.'
-    ),
-    speechstart$.mapTo(null),
+  const say$ = start$.mapTo(
+    'You can interrupt me by saying something while I\'m speaking.'
   );
+  const stop$ = speechstart$.mapTo(null);
   const listen$ = start$.mapTo({});
 
   return {
-    SpeechSynthesisAction: {goal: sayOrStop$},
+    SpeechSynthesisAction: {goal: say$, cancel: stop$},
     SpeechRecognitionAction: {goal: listen$},
   };
 }
