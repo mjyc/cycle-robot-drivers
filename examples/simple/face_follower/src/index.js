@@ -1,13 +1,12 @@
 import xs from 'xstream';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
-import {makePoseDetectionDriver} from 'cycle-posenet-driver';
+import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
 
 const videoWidth = 640;
 const videoHeight = 480;
 
 function main(sources) {
-  const face$ = sources.PoseDetection.poses
-    .filter(poses => 
+  const face$ = sources.PoseDetection.events('poses')
+    .filter(poses =>
       poses.length === 1
       && poses[0].keypoints.filter(kpt => kpt.part === 'nose').length === 1
     ).map(poses => {
@@ -24,7 +23,7 @@ function main(sources) {
         }
       };
     });
-  
+
   return {
     TabletFace: face$,
     PoseDetection: xs.of({
@@ -34,6 +33,4 @@ function main(sources) {
   };
 }
 
-runRobotProgram(main, {
-  PoseDetection: makePoseDetectionDriver({videoWidth, videoHeight}),
-});
+runTabletFaceRobotApp(main);
