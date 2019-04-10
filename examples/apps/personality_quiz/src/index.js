@@ -1,7 +1,7 @@
 import xs from 'xstream';
 import pairwise from 'xstream/extra/pairwise';
 import delay from 'xstream/extra/delay';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
+import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run'
 
 const State = {
   PEND: 'PEND',
@@ -24,7 +24,7 @@ const InputType = {
 /**
  * // Example state, variables, input, and outputs
  * const state = State.PEND;
- * const variables = {  
+ * const variables = {
  *   sentence: 'You are a vacationer!',
  * };
  * const input = {
@@ -275,7 +275,7 @@ function createTransition() {
   };
 
   return function(prevState, prevVariables, prevInput) {
-    (prevInput.type !== "DETECTED_FACE") && 
+    (prevInput.type !== "DETECTED_FACE") &&
       console.log(prevState, prevVariables, prevInput);
     // excuse me for abusing ternary
     return !transitionTable[prevState]
@@ -294,12 +294,12 @@ function output(machine$) {
     .map(machine => machine.outputs);
 
   return {
-    SpeechSynthesisAction: outputs$
+    SpeechSynthesisAction: {goal: outputs$
       .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(output => output.SpeechSynthesisAction.goal),
-    SpeechRecognitionAction: outputs$
+      .map(output => output.SpeechSynthesisAction.goal)},
+    SpeechRecognitionAction: {goal: outputs$
       .filter(outputs => !!outputs.SpeechRecognitionAction)
-      .map(output => output.SpeechRecognitionAction.goal),
+      .map(output => output.SpeechRecognitionAction.goal)},
     TabletFace: outputs$
       .filter(outputs => !!outputs.TabletFace)
       .map(output => output.TabletFace.goal),
@@ -308,10 +308,10 @@ function output(machine$) {
 
 function main(sources) {
   const input$ = input(
-    sources.TabletFace.load,
+    sources.TabletFace.events('load'),
     sources.SpeechRecognitionAction.result,
     sources.SpeechSynthesisAction.result,
-    sources.PoseDetection.poses,
+    sources.PoseDetection.events('poses'),
   );
 
   const defaultMachine = {
@@ -329,4 +329,4 @@ function main(sources) {
   return sinks;
 }
 
-runRobotProgram(main);
+runTabletFaceRobotApp(main);
