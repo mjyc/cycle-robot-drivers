@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
+import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
 
 const Question = {
   CAREER: 'Is it important that you reach your full career potential?',
@@ -57,7 +57,7 @@ function main(sources) {
   });
   const lastQuestion$ = xs.create();
   const question$ = xs.merge(
-    sources.TabletFace.load.mapTo(Question.CAREER),
+    sources.TabletFace.events('load').mapTo(Question.CAREER),
     sources.SpeechRecognitionAction.result.filter(result =>
       result.status.status === 'SUCCEEDED'  // must succeed
       && (result.result === 'yes' || result.result === 'no') // only yes or no
@@ -72,16 +72,18 @@ function main(sources) {
   lastQuestion$.imitate(question$);
 
   const sinks = {
-    SpeechSynthesisAction: question$,
-    SpeechRecognitionAction: xs.merge(
-      sources.SpeechSynthesisAction.result,
-      sources.SpeechRecognitionAction.result.filter(result =>
-        result.status.status !== 'SUCCEEDED'
-        || (result.result !== 'yes' && result.result !== 'no')
-      )
-    ).mapTo({})
+    SpeechSynthesisAction: {goal: question$},
+    SpeechRecognitionAction: {
+      goal: xs.merge(
+        sources.SpeechSynthesisAction.result.debug(),
+        sources.SpeechRecognitionAction.result.filter(result =>
+          result.status.status !== 'SUCCEEDED'
+          || (result.result !== 'yes' && result.result !== 'no')
+        )
+      ).mapTo({}),
+    }
   };
   return sinks;
 }
 
-runRobotProgram(main);
+runTabletFaceRobotApp(main);

@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
+import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
 
 function main(sources) {
   const start$ = xs.merge(
@@ -16,11 +16,11 @@ function main(sources) {
     speechstart$.mapTo(null),
   );
   const listen$ = start$.mapTo({});
-  
+
   return {
-    SpeechSynthesisAction: sayOrStop$,
-    SpeechRecognitionAction: listen$,
+    SpeechSynthesisAction: {goal: sayOrStop$},
+    SpeechRecognitionAction: {goal: listen$},
   };
 }
 
-runRobotProgram(main);
+runTabletFaceRobotApp(main);
