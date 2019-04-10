@@ -1,10 +1,9 @@
-import xs from 'xstream';
 import {makeHTTPDriver} from '@cycle/http';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
+import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
 
 function main(sources) {
-  const apiKey = '';  // News API (https://newsapi.org) API key
-  const request$ = sources.TabletFace.load.mapTo({
+  const apiKey = '7840d9042b3b4b50b3017c4d849fff9d';  // News API (https://newsapi.org) API key
+  const request$ = sources.TabletFace.events('load').mapTo({
     url: `https://newsapi.org/v2/top-headlines?country=us&apiKey=${apiKey}`,
     category: 'newsapi',
   });
@@ -12,7 +11,7 @@ function main(sources) {
   const maxArticle = 5;
   const goal$ = sources.HTTP.select('newsapi')
     .flatten()
-    .filter(response => 
+    .filter(response =>
       response.statusText === 'OK'
       && JSON.parse(response.text).articles.length > 0
     ).map(response => {
@@ -26,11 +25,11 @@ function main(sources) {
     });
 
   return {
-    SpeechSynthesisAction: goal$,
+    SpeechSynthesisAction: {goal: goal$},
     HTTP: request$,
   };
 }
 
-runRobotProgram(main, {
+runTabletFaceRobotApp(main, {
   HTTP: makeHTTPDriver(),
 });
