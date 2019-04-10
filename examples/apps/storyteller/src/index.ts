@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
-import {runRobotProgram} from '@cycle-robot-drivers/run';
+import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
 
 enum State {
   PEND = 'PEND',
@@ -143,12 +143,12 @@ function main(sources) {
     .drop(1);  // drop "null"
   const outputs$ = state$.map(state => state.outputs)
     .filter(outputs => !!outputs);
-  
+
   return {
-    SpeechSynthesisAction: outputs$
+    SpeechSynthesisAction: {goal: outputs$
       .filter(outputs => !!outputs.SpeechSynthesisAction)
-      .map(outputs => outputs.SpeechSynthesisAction.goal),
+      .map(outputs => outputs.SpeechSynthesisAction.goal)},
   };
 }
 
-runRobotProgram(main);
+runTabletFaceRobotApp(main);
