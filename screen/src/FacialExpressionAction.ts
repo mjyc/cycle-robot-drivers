@@ -1,182 +1,238 @@
-import xs from 'xstream';
+import xs, {Stream} from 'xstream';
 import dropRepeats from 'xstream/extra/dropRepeats';
-import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, GoalStatus, Status, Result, ActionSinks,
-  generateGoalID, initGoal, isEqual,
+  GoalID, Goal, GoalStatus, Status, Result,
+  ActionSources, ActionSinks, EventSource,
+  initGoal, generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
 } from '@cycle-robot-drivers/action';
+import {TabletFaceCommand} from './makeTabletFaceDriver';
 
-export interface Sources {
-  goal: any,
-  TabletFace: any
+enum State {
+  WAIT = 'WAIT',
+  RUN = 'RUN',
+  PREEMPT = 'PREEMPT',
 }
 
-export interface Sinks extends ActionSinks {
-  output: any,
+type Variables = {
+  goal_id: GoalID,
+  newGoal: Goal,
 };
 
-/**
- * FacialExpression action component.
- * 
- * @param sources
- * 
- *   * goal: a stream of `null` (as "cancel") or a string '`happy'`, '`sad'`,
- *     '`angry'`, '`focused'`, or '`confused'` (as the TabletFace driver's
- *     `EXPRESS` type command value).
- *   * DOM: Cycle.js [DOMSource](https://cycle.js.org/api/dom.html).
- * 
- * @return sinks
- * 
- *   * output: a stream for the TabletFace driver.
- *   * status: depreciated.
- *   * result: a stream of action results. `result.result` is always `null`.
- * 
- */
-export function FacialExpressionAction(sources: Sources): Sinks {
-  // Create action stream
-  type Action = {
-    type: string,
-    value: Goal,
-  };
+type Outputs = {
+  TabletFace?: TabletFaceCommand,
+  result?: Result,
+};
 
-  const goal$ = xs.fromObservable(
-    sources.goal
-  ).filter(goal => typeof goal !== 'undefined').map(goal => {
-    if (goal === null) {
-      return {
-        type: 'CANCEL',
-        value: null,
-      };
-    } else {
-      const value = !!(goal as any).goal_id ? goal as any : initGoal(goal);
-      return {
-        type: 'GOAL',
-        value: typeof value.goal === 'string' ? {
-          goal_id: value.goal_id,
+type ReducerState = {
+  state: State,
+  variables: Variables,
+  outputs: Outputs,
+};
+
+type Reducer = (prev?: ReducerState) => ReducerState | undefined;
+
+enum InputType {
+  GOAL = 'GOAL',
+  CANCEL = 'CANCEL',
+  END = 'END',
+}
+
+type Input = {
+  type: InputType,
+  value: Goal | GoalID | string,
+};
+
+
+function input(
+  goal$: Stream<Goal | string>,
+  cancel$: Stream<GoalID>,
+  animationFinishEvent$: Stream<any>,
+): Stream<Input> {
+  return xs.merge(
+    goal$.filter(g => typeof g !== 'undefined' && g !== null)
+      .map(g => initGoal(g))
+      .map(goal => ({
+        type: InputType.GOAL,
+        value: typeof goal.goal === 'string' ? {
+          goal_id: goal.goal_id,
           goal: {
-            type: value.goal,
-          }
-        } : value,
-      };
-    }
-  });
-
-  const action$ = xs.merge(
-    goal$,
-    sources.TabletFace.animationFinish.mapTo({
-      type: 'END',
+            type: 'EXPRESS',
+            value: {
+              type: goal.goal,
+            },
+          },
+        } : goal,
+      })),
+    cancel$.map(val => ({type: InputType.CANCEL, value: val})),
+    animationFinishEvent$.mapTo({
+      type: InputType.END,
       value: null,
     }),
   );
+}
 
-  // Create state stream
-  type State = {
-    goal_id: GoalID,
-    goal: any,
-    status: Status,
-    result: any,
-  };
-
-  const initialState: State = {
-    goal: null,
-    goal_id: generateGoalID(),
-    status: Status.SUCCEEDED,
-    result: null,
-  };
-
-  const state$ = action$.fold((state: State, action: Action): State => {
-    // console.debug('state', state, 'action', action);
-    if (state.status === Status.SUCCEEDED
-        || state.status === Status.PREEMPTED
-        || state.status === Status.ABORTED) {
-      if (action.type === 'GOAL') {
-        const goal = (action.value as Goal);
-        return {
+function transition(prev: ReducerState, input: Input): ReducerState {
+  if (prev.state === State.WAIT) {
+    if (input.type === InputType.GOAL) {
+      const goal = (input.value as Goal);
+      return {
+        ...prev,
+        state: State.RUN,
+        variables: {
           goal_id: goal.goal_id,
-          goal: goal.goal,
-          status: Status.ACTIVE,
-          result: null,
-        };
-      } else if (action.type === 'CANCEL') {
-        console.debug('Ignore CANCEL in DONE states');
-        return state;
-      }
-    } else if (state.status === Status.ACTIVE) {
-      if (action.type === 'GOAL') {
-        state$.shamefullySendNext({
-          ...state,
-          goal: null,
-          status: Status.PREEMPTED,
-        });
-        const goal = (action.value as Goal);
-        return {
-          goal_id: goal.goal_id,
-          goal: goal.goal,
-          status: Status.ACTIVE,
-          result: null,
-        };
-      } else if (action.type === 'END') {
-        return {
-          ...state,
-          status: Status.SUCCEEDED,
-          result: action.value,
-        };
-      } else if (action.type === 'CANCEL') {
-        return {
-          ...state,
-          goal: null,
-          status: Status.PREEMPTED,
-        };
+          newGoal: null,
+        },
+        outputs: {
+          TabletFace: goal.goal,
+        },
+      };
+    }
+  } else if (prev.state === State.RUN) {
+    if (input.type === InputType.GOAL || input.type === InputType.CANCEL
+        && (input.value === null ||
+            isEqualGoalID(input.value as GoalID, prev.variables.goal_id))) {
+      return {
+        ...prev,
+        state: State.PREEMPT,
+        variables: {
+          ...prev.variables,
+          newGoal: input.type === InputType.GOAL ? (input.value as Goal) : null,
+        },
+        outputs: {
+          TabletFace: null,
+        },
+      };
+    } else if (input.type === InputType.END) {
+      return {
+        ...prev,
+        state: State.WAIT,
+        variables: {
+          goal_id: null,
+          newGoal: null,
+        },
+        outputs: {
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.SUCCEEDED,
+            },
+            result: input.value,
+          },
+        },
+      };
+    }
+  } else if (prev.state === State.PREEMPT) {
+    if (input.type === InputType.END) {
+      const newGoal = prev.variables.newGoal;
+      return {
+        ...prev,
+        state: !!newGoal ? State.RUN : State.WAIT,
+        variables: {
+          goal_id: !!newGoal ? newGoal.goal_id : null,
+          newGoal: null,
+        },
+        outputs: {
+          TabletFace: !!newGoal ? newGoal.goal : undefined,
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.PREEMPTED,
+            },
+            result: input.value,
+          },
+        },
+      };
+    }
+  }
+  return prev;
+}
+
+function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
+  const initReducer$: Stream<Reducer> = xs.of(
+    function initReducer(prev: ReducerState): ReducerState {
+      return {
+        state: State.WAIT,
+        variables: {
+          goal_id: null,
+          newGoal: null,
+        },
+        outputs: null,
       }
     }
-    console.debug(
-      `Unhandled state.status ${state.status} action.type ${action.type}`
-    );
-    return state;
-  }, initialState);
+  );
 
-  const stateStatusChanged$ = state$
-    .compose(dropRepeats(
-      (x, y) => (x.status === y.status && isEqual(x.goal_id, y.goal_id))));
-
-  const value$ = stateStatusChanged$
-    .filter(state =>
-      state.status === Status.ACTIVE || state.status === Status.PREEMPTED)
-    .map(state => {
-      if (state.status === Status.ACTIVE) {
-        return {
-          type: 'EXPRESS',
-          value: state.goal,
-        };
-      } else {  // state.status === Status.PREEMPTED
-        return null;
-      }
+  const inputReducer$: Stream<Reducer> = input$
+    .map(input => function inputReducer(prev: ReducerState): ReducerState {
+      return transition(prev, input);
     });
-  const status$ = stateStatusChanged$
-    .map(state => ({
-      goal_id: state.goal_id,
-      status: state.status,
-    } as GoalStatus));
 
-  const result$ = stateStatusChanged$
-    .filter(state => (state.status === Status.SUCCEEDED
-        || state.status === Status.PREEMPTED
-        || state.status === Status.ABORTED))
-    .map(state => ({
-      status: {
-        goal_id: state.goal_id,
-        status: state.status,
-      },
-      result: state.result,
-    } as Result));
+  return xs.merge(initReducer$, inputReducer$);
+}
 
-  // IMPORTANT!! empty the streams manually; otherwise it emits the first
-  //   "SUCCEEDED" result
-  value$.addListener({next: () => {}});
+function status(reducerState$): Stream<GoalStatus> {
+  const done$: Stream<GoalStatus> = reducerState$
+    .filter(rs => !!rs.outputs && !!rs.outputs.result)
+    .map(rs => rs.outputs.result.status);
+  const active$: Stream<GoalStatus> = reducerState$
+    .filter(rs => rs.state === State.RUN)
+    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
+  const initGoalStatus = generateGoalStatus({status: Status.SUCCEEDED});
+  return xs.merge(done$, active$)
+    .compose(dropRepeats(isEqualGoalStatus))
+    .startWith(initGoalStatus);
+}
 
+function output(reducerState$) {
+  const outputs$ = reducerState$
+    .filter(rs => !!rs.outputs)
+    .map(rs => rs.outputs);
   return {
-    output: adapt(value$),
-    status: adapt(status$),
-    result: adapt(result$),
+    result: outputs$
+      .filter(o => !!o.result)
+      .map(o => o.result),
+    TabletFace: outputs$
+      .filter(o => typeof o.TabletFace !== 'undefined')
+      .map(o => o.TabletFace),
+  };
+};
+
+export interface Sources extends ActionSources {
+  TabletFace: EventSource,
+}
+
+export interface Sinks extends ActionSinks {
+  TabletFace: Stream<TabletFaceCommand>,
+}
+
+/**
+ * FacialExpression action component.
+ *
+ * @param sources
+ *
+ *   * goal: a stream of `TabletFaceCommand`s.
+ *   * cancel: a stream of `GoalID`.
+ *   * TabletFace: the `TabletFace` driver output.
+ *
+ * @return sinks
+ *
+ *   * state: a reducer stream.
+ *   * status: a stream of action status.
+ *   * result: a stream of action results.
+ *   * TabletFace: a stream for the `TabletFace` driver input.
+ *
+ */
+export function FacialExpressionAction(sources: Sources): Sinks {
+  const input$ = input(
+    sources.goal || xs.never(),
+    sources.cancel || xs.never(),
+    sources.TabletFace.events('animationfinish'),
+  );
+  const reducer = transitionReducer(input$);;
+  const status$ = status(sources.state.stream);
+  const outputs = output(sources.state.stream);
+  return {
+    state: reducer,
+    status: status$,
+    ...outputs
   };
 }

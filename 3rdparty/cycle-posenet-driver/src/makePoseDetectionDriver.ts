@@ -131,9 +131,11 @@ export type PoseNetParameters = {
  *   * flipHorizontal {boolean} An optional flag for horizontally flipping the
  *     video (default: true).
  *
- * @return {Driver} the PoseNet Cycle.js driver function. It takes a stream
- *   of [`PoseNetParameters`](./src/makePoseDetectionDriver.tsx) and returns a stream of
- *   [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm).
+ * the PoseNet Cycle.js driver function. It takes a stream of [`PoseNetParameters`](./src/makePoseDetectionDriver.ts) and returns `EventSource`:
+ *
+ *   * `EventSource.events(eventName)` takes `'poses'` or `'dom'` that returns
+ *     [`Pose` arrays](https://github.com/tensorflow/tfjs-models/tree/master/posenet#via-npm)
+ *     or a required virtual dom element, respectively.
  *
  */
 export function makePoseDetectionDriver({
@@ -146,7 +148,7 @@ export function makePoseDetectionDriver({
   flipHorizontal?: boolean,
 } = {}): Driver<
   any,
-  {DOM: any, poses: any}
+  any
 > {
   const divClass = `posenet`;
   const videoClass = `posenet-video`;
@@ -346,11 +348,20 @@ export function makePoseDetectionDriver({
         video(`.${videoClass}`, {style: {display: 'none'}, autoPlay: ''}),
         canvas(`.${canvasClass}`),
       ])
-    );
+    ).remember();
 
     return {
-      DOM: adapt(vdom$),
-      poses: adapt(poses$),
+      events: (eventName: string) => {
+        switch (eventName) {
+          case 'poses':
+            return adapt(poses$);
+          case 'dom':
+            return adapt(vdom$);
+          default:
+            console.warn(`Unknown event name ${eventName}; returning a stream that does nothing`);
+            return xs.never();
+        }
+      }
     };
   }
 }

@@ -12,10 +12,9 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 <!-- Start src/index.ts -->
 
-### runRobotProgram(main, drivers)
+### runTabletFaceRobotApp(main, drivers)
 
-A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers)
-  function for Tabletface robot.
+A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers) function for Tabletface robot.
 
 #### Params:
 
@@ -23,20 +22,19 @@ A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runma
 
     * [FacialExpressionAction](../screen)
     * [AudioPlayerAction](../sound)
-    * [TwoSpeechbubblesAction](../screen)
+    * [SpeechbubbleAction](../screen)
     * [SpeechSynthesisAction](../speech)
     * [SpeechRecognitionAction](../speech)
 
   are can used used like drivers, i.e., catch incoming message via
   `sources.FacialExpressionAction` and send outgoing message via
-  `return { FacialExpressionAction: xs.of(null) };`, as well as six drivers
-  listed below.
+  `return { FacialExpressionAction: {goal: xs.of({...}), cancel: xs.never()} };`, as well as six drivers listed below.
 * *drivers* A collection of [Cycle.js drivers](). By default, `drivers` is   set to an object containing:
 
     * [DOM](https://cycle.js.org/api/dom.html)
     * [TabletFace](../screen)
     * [AudioPlayer](../sound)
-    * [SpeechSynthesis](../speech#)
+    * [SpeechSynthesis](../speech)
     * [SpeechRecognition](../speech)
     * [PoseDetection](../3rdparty/cycle-posenet-driver)
 
@@ -44,7 +42,7 @@ A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runma
 
 <!-- End src/index.ts -->
 
-<!-- Start src/initializeDrivers.ts -->
+<!-- Start src/initializeTabletFaceRobotDrivers.ts -->
 
-<!-- End src/initializeDrivers.ts -->
+<!-- End src/initializeTabletFaceRobotDrivers.ts -->
 

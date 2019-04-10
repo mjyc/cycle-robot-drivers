@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/action",
-  "version": "0.0.19",
+  "version": "1.0.1",
   "description": "Utilities for cycle-robot-drivers packages",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -9,6 +9,10 @@
   "main": "lib/cjs/index.js",
   "module": "lib/es6/index.js",
   "types": "lib/cjs/index.d.ts",
+  "dependencies": {
+    "@cycle/state": "1.2.0",
+    "xstream": "11.10.0"
+  },
   "scripts": {
     "build:cjs": "../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
     "build:es6": "../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",

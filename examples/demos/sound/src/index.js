@@ -1,38 +1,39 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
+import {div, button, makeDOMDriver} from '@cycle/dom';
+import {withState} from '@cycle/state';
 import {run} from '@cycle/run';
-import {powerup} from '@cycle-robot-drivers/action';
 import {
   makeAudioPlayerDriver,
   AudioPlayerAction,
 } from '@cycle-robot-drivers/sound';
 
-
 function main(sources) {
-  sources.proxies = {  // will be connected to "targets"
-  AudioPlayerAction: xs.create(),
-  };
-  // create action components
-  sources.AudioPlayerAction = AudioPlayerAction({
-    goal: sources.proxies.AudioPlayerAction,
+  sources.state.stream.addListener({next: s => console.debug('reducer state', s)});
+
+  const goal$ = sources.DOM.select('button').events('click')
+    .mapTo({
+      goal_id: {stamp: Date.now(), goal_id: 'ap'},
+      goal: 'https://raw.githubusercontent.com/aramadia/willow-sound/master/E/E01.ogg',
+    });
+  const audioPlayerAction = AudioPlayerAction({
+    state: sources.state,
+    goal: goal$,
     AudioPlayer: sources.AudioPlayer,
   });
+  audioPlayerAction.status.addListener({next: s =>
+    console.log('AudioPlayerAction status', s)});
 
+  const $vdom = xs.of(div([button('Play Sound')]));
 
-  // main logic
-  const goal$ = xs.of(
-    'https://raw.githubusercontent.com/aramadia/willow-sound/master/E/E01.ogg'
-  ).compose(delay(1000));
-
-  
   return {
-    AudioPlayer: sources.AudioPlayerAction.output,
-    targets: {  // will be imitating "proxies"
-      AudioPlayerAction: goal$,
-    }
-  }
+    AudioPlayer: audioPlayerAction.AudioPlayer,
+    DOM: $vdom,
+    state: audioPlayerAction.state,
+  };
 }
 
-run(powerup(main, (proxy, target) => proxy.imitate(target)), {
+run(withState(main), {
   AudioPlayer: makeAudioPlayerDriver(),
+  DOM: makeDOMDriver('#app'),
 });

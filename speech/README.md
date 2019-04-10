@@ -20,14 +20,15 @@ action component.
 #### Params:
 
 * *sources* 
-  * goal: a stream of `null` (as "cancel") or `SpeechRecognition`
-    properties (as "goal").
+  * goal: a stream `SpeechRecognition` properties.
+  * cancel: a stream of `GoalID`.
   * SpeechSynthesis: `EventSource` for `start`, `end`, `error`, `result`
     events.
 
 #### Return:
 
 * sinks 
+  * state: a reducer stream.
   * output: a stream for the SpeechRecognition driver input.
   * result: a stream of action results. `result.result` is a transcript from
     the recognition; it will be `''` for non-speech inputs.
@@ -44,15 +45,17 @@ action component.
 #### Params:
 
 * *sources* 
-  * goal: a stream of `null` (as "cancel") or `SpeechSynthesisUtterance`
-    properties (as "goal").
+  * goal: a stream of `SpeechSynthesisUtterance` properties.
+  * cancel: a stream of `GoalID`.
   * SpeechSynthesis: `EventSource` for `start` and `end` events.
 
 #### Return:
 
 * sinks 
-  * output: a stream for the SpeechSynthesis driver input.
+  * state: a reducer stream.
+  * status: a stream of action status.
   * result: a stream of action results. `result.result` is always `null`.
+  * SpeechSynthesis: a stream for the SpeechSynthesis driver input.
 
 <!-- End src/SpeechSynthesisAction.ts -->
 

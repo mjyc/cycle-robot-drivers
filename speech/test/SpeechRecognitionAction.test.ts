@@ -1,10 +1,11 @@
 import xs from 'xstream'
 import {mockTimeSource} from '@cycle/time';
+import {withState} from '@cycle/state';
 import {
   GoalID, GoalStatus, Status,
   generateGoalID,
 } from '@cycle-robot-drivers/action'
-import {SpeechRecognitionAction} from '../src/SpeechRecognitionAction';
+import {SpeechRecognitionAction as Action} from '../src/SpeechRecognitionAction';
 
 
 console.debug = jest.fn();  // hide debug outputs
@@ -36,7 +37,7 @@ describe('SpeechRecognitionAction', () => {
   it('walks through "happy path"', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
+    // Create test input streams
     const goalMark$ =           Time.diagram(`-x----|`);
     const events = {
       start:                    Time.diagram(`--x---|`),
@@ -44,8 +45,8 @@ describe('SpeechRecognitionAction', () => {
       result:                   Time.diagram(`---x--|`),
       error:                    Time.diagram(`------|`),
     }
-    const expectedOutputMark$ = Time.diagram(`-x----|`);
-    const expectedResultMark$ = Time.diagram(`----s-|`);
+    const expectedOutputMark$ = Time.diagram(`-x`);
+    const expectedResultMark$ = Time.diagram(`----s`);
 
     // Create the action to test
     const goal = {};
@@ -58,7 +59,9 @@ describe('SpeechRecognitionAction', () => {
     events.result = events.result.map(r => ({
       results: [[{transcript}]],
     }));
-    const speechRecognitionAction = SpeechRecognitionAction({
+    const sinks = withState((sources: any) => {
+        return Action(sources);
+      })({
       goal: goal$,
       SpeechRecognition: {
         events: (eventName) => {
@@ -76,8 +79,8 @@ describe('SpeechRecognitionAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
-    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
+    Time.assertEqual(sinks.SpeechRecognition, expectedOutput$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -85,28 +88,34 @@ describe('SpeechRecognitionAction', () => {
   it('cancels a running goal on cancel', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
-    const goalMark$ =           Time.diagram(`-0-1---|`);
+    // Create test input streams
+    const goalMark$ =           Time.diagram(`-x-----|`);
+    const cancel$ =             Time.diagram(`---x---|`);
     const events = {
       start:                    Time.diagram(`--x----|`),
       end:                      Time.diagram(`-----x-|`),
       result:                   Time.diagram(`-------|`),
       error:                    Time.diagram(`----x--|`),
     }
-    const expectedOutputMark$ = Time.diagram(`-0-1---|`);
-    const expectedResultMark$ = Time.diagram(`-----p-|`);
+    const expectedOutputMark$ = Time.diagram(`-0-1`);
+    const expectedResultMark$ = Time.diagram(`-----p`);
 
     // Create the action to test
     const goal = {};
     const goal_id = generateGoalID();
-    const goals = [{goal, goal_id}, null];
-    const goal$ = goalMark$.map(i => goals[i]);
+    const goal$ = goalMark$.map(i => ({
+      goal_id,
+      goal,
+    }));
     const transcript = 'Jello there?';
     events.result = events.result.map(r => ({
       results: [[{transcript}]],
     }));
-    const speechRecognitionAction = SpeechRecognitionAction({
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
+      cancel: cancel$.mapTo(null),
       SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
@@ -124,8 +133,8 @@ describe('SpeechRecognitionAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
-    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
+    Time.assertEqual(sinks.SpeechRecognition, expectedOutput$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -133,28 +142,34 @@ describe('SpeechRecognitionAction', () => {
   it('does nothing on cancel after succeeded', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
-    const goalMark$ =           Time.diagram(`-0---1-|`);
+    // Create test input streams
+    const goalMark$ =           Time.diagram(`-x-----|`);
+    const cancel$ =             Time.diagram(`-----x-|`);
     const events = {
       start:                    Time.diagram(`--x----|`),
       end:                      Time.diagram(`----x--|`),
       result:                   Time.diagram(`---x---|`),
       error:                    Time.diagram(`-------|`),
     }
-    const expectedOutputMark$ = Time.diagram(`-0-----|`);
-    const expectedResultMark$ = Time.diagram(`----s--|`);
+    const expectedOutputMark$ = Time.diagram(`-0`);
+    const expectedResultMark$ = Time.diagram(`----s`);
 
     // Create the action to test
     const goal = {};
     const goal_id = generateGoalID();
-    const goals = [{goal, goal_id}, null];
-    const goal$ = goalMark$.map(i => goals[i]);
+    const goal$ = goalMark$.mapTo({
+      goal_id,
+      goal,
+    });
     const transcript = 'Yellow there!';
     events.result = events.result.map(r => ({
       results: [[{transcript}]],
     }));
-    const speechRecognitionAction = SpeechRecognitionAction({
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
+      cancel: cancel$.mapTo(null),
       SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
@@ -172,8 +187,8 @@ describe('SpeechRecognitionAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
-    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
+    Time.assertEqual(sinks.SpeechRecognition, expectedOutput$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -181,28 +196,34 @@ describe('SpeechRecognitionAction', () => {
   it('does nothing on cancel after preempted', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
-    const goalMark$ =           Time.diagram(`-0-1--1-|`);
+    // Create test input streams
+    const goalMark$ =           Time.diagram(`-x------|`);
+    const cancel$ =             Time.diagram(`---x--x-|`);
     const events = {
       start:                    Time.diagram(`--x-----|`),
       end:                      Time.diagram(`-----x--|`),
       result:                   Time.diagram(`--------|`),
       error:                    Time.diagram(`----x---|`),
     }
-    const expectedOutputMark$ = Time.diagram(`-0-1----|`);
-    const expectedResultMark$ = Time.diagram(`-----p--|`);
+    const expectedOutputMark$ = Time.diagram(`-0-1`);
+    const expectedResultMark$ = Time.diagram(`-----p`);
 
     // Create the action to test
     const goal = {};
     const goal_id = generateGoalID();
-    const goals = [{goal, goal_id}, null];
-    const goal$ = goalMark$.map(i => goals[i]);
+    const goal$ = goalMark$.mapTo({
+      goal_id,
+      goal,
+    });
     const transcript = 'Fellow there%';
     events.result = events.result.map(r => ({
       results: [[{transcript}]],
     }));
-    const speechRecognitionAction = SpeechRecognitionAction({
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
+      cancel: cancel$.mapTo(null),
       SpeechRecognition: {
         events: (eventName) => {
           return events[eventName];
@@ -220,8 +241,8 @@ describe('SpeechRecognitionAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
-    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
+    Time.assertEqual(sinks.SpeechRecognition, expectedOutput$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -229,7 +250,7 @@ describe('SpeechRecognitionAction', () => {
   it('cancels the first goal on receiving a second goal', (done) => {
     const Time = mockTimeSource();
 
-    // Create test input streams with time
+    // Create test input streams
     const goalMark$ =          Time.diagram(`-0--1-------|`);
     const events = {
       start:                   Time.diagram(`--x-----x---|`),
@@ -241,8 +262,8 @@ describe('SpeechRecognitionAction', () => {
       output:                  Time.diagram(`-0--x-------|`),
       result:                  Time.diagram(`------p-----|`),
     }, {
-      output:                  Time.diagram(`------1-----|`),
-      result:                  Time.diagram(`----------s-|`),
+      output:                  Time.diagram(`------1`),
+      result:                  Time.diagram(`----------s`),
     }];
 
     // Create the action to test
@@ -256,7 +277,9 @@ describe('SpeechRecognitionAction', () => {
     events.result = events.result.map(r => ({
       results: [[{transcript}]],
     }));
-    const speechRecognitionAction = SpeechRecognitionAction({
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
       SpeechRecognition: {
         events: (eventName) => {
@@ -278,8 +301,8 @@ describe('SpeechRecognitionAction', () => {
     const expectedResult$ = xs.merge(expecteds[0].result, expecteds[1].result);
 
     // Run test
-    Time.assertEqual(speechRecognitionAction.output, expectedOutput$);
-    Time.assertEqual(speechRecognitionAction.result, expectedResult$);
+    Time.assertEqual(sinks.SpeechRecognition, expectedOutput$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });

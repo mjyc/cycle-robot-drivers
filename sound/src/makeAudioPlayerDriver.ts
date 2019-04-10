@@ -1,4 +1,4 @@
-import {Stream} from 'xstream';
+import xs from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {adapt} from '@cycle/run/lib/adapt';
 import {EventSource} from '@cycle-robot-drivers/action';
@@ -7,11 +7,11 @@ import {EventSource} from '@cycle-robot-drivers/action';
 /**
  * [HTML Audio](https://www.w3schools.com/tags/ref_av_dom.asp)
  * driver factory.
- * 
+ *
  * @return {Driver} the HTML Audio Cycle.js driver function. It takes a
  *   stream of objects containing `[src](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/audio#attr-src).org/en-US/docs/Web/API/SpeechSynthesisUtterance#Properties)`
  *   fieldand returns a `EventSource`:
- * 
+ *
  *   * `EventSource.events(eventName)` returns a stream of  `eventName`
  *     events from [`HTML Audio/Video Events`](https://www.w3schools.com/tags/ref_av_dom.asp).
  */
@@ -29,7 +29,7 @@ export function makeAudioPlayerDriver() {
   const audio = new Audio();
 
   return function audioPlayerDriver(sink$) {
-    sink$.addListener({
+    xs.fromObservable(sink$).addListener({
       next: (args) => {
         if (!args) {
           audio.pause();

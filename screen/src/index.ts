@@ -1,5 +1,7 @@
 export {
+  CommandType as TabletFaceCommandType,
   ExpressCommandType,
+  TabletFaceCommand,
   makeTabletFaceDriver,
 } from './makeTabletFaceDriver';
 export {
@@ -11,15 +13,7 @@ export {
   Sources as SpeechbubbleActionSources,
   Sinks as SpeechbubbleActionSinks,
   SpeechbubbleType,
-  makeSpeechbubbleAction,
+  createSpeechbubbleAction,
   SpeechbubbleAction,
   IsolatedSpeechbubbleAction,
 } from './SpeechbubbleAction';
-export {
-  Sources as TwoSpeechbubblesActionSources,
-  Sinks as TwoSpeechbubblesActionSinks,
-  TwoSpeechbubblesType,
-  makeTwoSpeechbubblesAction,
-  TwoSpeechbubblesAction,
-  IsolatedTwoSpeechbubblesAction,
-} from './TwoSpeechbubblesAction';

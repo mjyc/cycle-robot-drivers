@@ -1,0 +1,25 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "mkdirp dist && browserify src/index.ts -p tsify --outfile dist/index.js -dv",
+    "watch": "mkdirp dist && watchify src/index.ts -p tsify --outfile dist/index.js -dv",
+    "start": "concurrently \"npm run watch\" \"live-server\""
+  },
+  "author": "Michael Jae-Yoon Chung",
+  "license": "MIT",
+  "dependencies": {
+    "@cycle-robot-drivers/action": "file:../../../action",
+    "@cycle/time": "0.19.0",
+    "@cycle/state": "1.2.0",
+    "@cycle/run": "5.2.0",
+    "xstream": "11.10.0"
+  },
+  "devDependencies": {
+    "browserify": "^16.2.2",
+    "concurrently": "^4.0.1",
+    "live-server": "^1.2.0",
+    "mkdirp": "~0.5.0",
+    "tsify": "^4.0.0",
+    "watchify": "^3.11.0"
+  }
+}

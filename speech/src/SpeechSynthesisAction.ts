@@ -1,15 +1,19 @@
 import xs from 'xstream';
+import dropRepeats from 'xstream/extra/dropRepeats';
 import {Stream} from 'xstream';
-import {adapt} from '@cycle/run/lib/adapt';
 import {
-  GoalID, Goal, Status, Result, ActionSinks, EventSource, initGoal,
+  GoalID, Goal, Status, GoalStatus, Result,
+  ActionSources, ActionSinks,
+  EventSource,
+  generateGoalStatus, isEqualGoalStatus, isEqualGoalID, initGoal
 } from '@cycle-robot-drivers/action';
+import {UtteranceArg} from './makeSpeechSynthesisDriver';
 
 
 enum State {
-  RUNNING = 'RUNNING',
-  DONE = 'DONE',
-  PREEMPTING = 'PREEMPTING',
+  RUN = 'RUN',
+  WAIT = 'WAIT',
+  PREEMPT = 'PREEMPT',
 }
 
 type Variables = {
@@ -18,14 +22,14 @@ type Variables = {
 };
 
 type Outputs = {
-  args: any,
+  SpeechSynthesis: UtteranceArg,
+  result: Result,
 };
 
 type ReducerState = {
   state: State,
   variables: Variables,
   outputs: Outputs,
-  result: Result,
 };
 
 type Reducer = (prev?: ReducerState) => ReducerState | undefined;
@@ -39,58 +43,45 @@ enum InputType {
 
 type Input = {
   type: InputType,
-  value: Goal,
+  value: Goal | GoalID,
 };
-
-export interface Sources {
-  goal: any,
-  SpeechSynthesis: EventSource,
-}
-
-export interface Sinks extends ActionSinks {
-  output: any,
-};
-
 
 function input(
-  goal$: Stream<any>, startEvent$: Stream<any>, endEvent$: Stream<any>
+  goal$: Stream<Goal | string>,
+  cancel$: Stream<GoalID>,
+  startEvent$: Stream<any>,
+  endEvent$: Stream<any>,
 ) {
   return xs.merge(
-    goal$.filter(goal => typeof goal !== 'undefined').map(goal => {
-      if (goal === null) {
-        return {
-          type: InputType.CANCEL,
-          value: null,  // means "cancel"
-        };
-      } else {
-        const value = !!(goal as any).goal_id ? goal : initGoal(goal);
-        return {
-          type: InputType.GOAL,
-          value: typeof value.goal === 'string'
-            ? {
-              goal_id: value.goal_id,
-              goal: {text: value.goal},
-            } : value,
-        };
-      }
+    goal$.filter(g => typeof g !== 'undefined' && g !== null).map(g => {
+      const goal: Goal = initGoal(g);
+      return {
+        type: InputType.GOAL,
+        value: typeof goal.goal === 'string'
+          ? {
+            goal_id: goal.goal_id,
+            goal: {text: goal.goal},
+          } : goal,
+      };
     }),
+    cancel$.map(val => ({type: InputType.CANCEL, value: val})),
     startEvent$.mapTo({type: InputType.START, value: null}),
     endEvent$.mapTo({type: InputType.END, value: null}),
   );
 }
 
 const transitionTable = {
-  [State.DONE]: {
-    [InputType.GOAL]: State.RUNNING,
+  [State.WAIT]: {
+    [InputType.GOAL]: State.RUN,
   },
-  [State.RUNNING]: {
-    [InputType.GOAL]: State.PREEMPTING,
-    [InputType.CANCEL]: State.PREEMPTING,
-    [InputType.START]: State.RUNNING,
-    [InputType.END]: State.DONE,
+  [State.RUN]: {
+    [InputType.GOAL]: State.PREEMPT,
+    [InputType.CANCEL]: State.PREEMPT,
+    [InputType.START]: State.RUN,
+    [InputType.END]: State.WAIT,
   },
-  [State.PREEMPTING]: {
-    [InputType.END]: State.DONE,
+  [State.PREEMPT]: {
+    [InputType.END]: State.WAIT,
   }
 };
 
@@ -109,9 +100,9 @@ function transition(
     state = prevState;
   }
 
-  if (prevState === State.DONE && state === State.RUNNING) {
+  if (prevState === State.WAIT && state === State.RUN) {
     // Start a new goal
-    const goal = input.value;
+    const goal = input.value as Goal;
     return {
       state,
       variables: {
@@ -119,38 +110,40 @@ function transition(
         newGoal: null,
       },
       outputs: {
-        args: goal.goal
+        SpeechSynthesis: goal.goal,
+        result: null,
       },
-      result: null,
     };
-  } else if (state === State.DONE) {
-    if (prevState === State.RUNNING || prevState === State.PREEMPTING) {
+  } else if (state === State.WAIT) {
+    if (prevState === State.RUN || prevState === State.PREEMPT) {
       // Stop the current goal and start the queued new goal
       const newGoal = prevVariables.newGoal;
       return {
-        state: !!newGoal ? State.RUNNING : state,
+        state: !!newGoal ? State.RUN : state,
         variables: {
           goal_id: !!newGoal ? newGoal.goal_id : null,
           newGoal: null,
         },
-        outputs: !!newGoal ? {
-          args: newGoal.goal,
-        } : null,
-        result: {
-          status: {
-            goal_id: prevVariables.goal_id,
-            status: prevState === State.RUNNING
-              ? Status.SUCCEEDED : Status.PREEMPTED,
+        outputs: {
+          SpeechSynthesis: !!newGoal ? newGoal.goal : undefined,
+          result: {
+            status: {
+              goal_id: prevVariables.goal_id,
+              status: prevState === State.RUN
+                ? Status.SUCCEEDED : Status.PREEMPTED,
+            },
+            result: null,
           },
-          result: null,
         },
       };
     }
   } else if (
-    (prevState === State.RUNNING || prevState === State.PREEMPTING)
-    && state === State.PREEMPTING
+    (prevState === State.RUN || prevState === State.PREEMPT)
+    && state === State.PREEMPT
   ) {
-    if (input.type === InputType.GOAL || input.type === InputType.CANCEL) {
+    if (input.type === InputType.GOAL || input.type === InputType.CANCEL
+        && (input.value === null ||
+            isEqualGoalID(input.value as GoalID, prevVariables.goal_id))) {
       // Start stopping the current goal and queue a new goal if received one
       return {
         state,
@@ -159,9 +152,9 @@ function transition(
           newGoal: input.type === InputType.GOAL ? input.value as Goal : null,
         },
         outputs: {
-          args: null,
-        },
-        result: null,
+          SpeechSynthesis: null,
+          result: null,
+        }
       }
     }
     if (input.type === InputType.START) {
@@ -169,9 +162,9 @@ function transition(
         state: state,
         variables: prevVariables,
         outputs: {
-          args: null,
+          SpeechSynthesis: null,
+          result: null,
         },
-        result: null,
       };
     }
   }
@@ -180,7 +173,6 @@ function transition(
     state: prevState,
     variables: prevVariables,
     outputs: null,
-    result: null,
   };
 }
 
@@ -188,13 +180,12 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   const initReducer$ = xs.of(
     function initReducer(prev) {
       return {
-        state: State.DONE,
+        state: State.WAIT,
         variables: {
           goal_id: null,
           newGoal: null,
         },
         outputs: null,
-        result: null,
       }
     }
   );
@@ -207,38 +198,74 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   return xs.merge(initReducer$, inputReducer$);
 }
 
+function status(reducerState$): Stream<GoalStatus> {
+  const done$: Stream<GoalStatus> = reducerState$
+    .filter(rs => !!rs.outputs && !!rs.outputs.result)
+    .map(rs => rs.outputs.result.status);
+  const active$: Stream<GoalStatus> = reducerState$
+    .filter(rs => rs.state === State.RUN)
+    .map(rs => ({goal_id: rs.variables.goal_id, status: Status.ACTIVE}));
+  const initGoalStatus = generateGoalStatus({status: Status.SUCCEEDED});
+  return xs.merge(done$, active$)
+    .compose(dropRepeats(isEqualGoalStatus))
+    .startWith(initGoalStatus);
+}
+
+function output(reducerState$) {
+  const outputs$ = reducerState$
+    .filter(rs => !!rs.outputs)
+    .map(rs => rs.outputs);
+  return {
+    result: outputs$
+      .filter(o => !!o.result)
+      .map(o => o.result),
+    SpeechSynthesis: outputs$
+      .filter(o => typeof o.SpeechSynthesis !== 'undefined')
+      .map(o => o.SpeechSynthesis),
+  };
+};
+
+export interface Sources extends ActionSources {
+  SpeechSynthesis: EventSource,
+}
+
+export interface Sinks extends ActionSinks {
+  SpeechSynthesis: Stream<UtteranceArg>,
+}
+
 /**
  * Web Speech API's [SpeechSynthesis](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis)
  * action component.
- * 
+ *
  * @param sources
- * 
- *   * goal: a stream of `null` (as "cancel") or `SpeechSynthesisUtterance`
- *     properties (as "goal").
+ *
+ *   * goal: a stream of `SpeechSynthesisUtterance` properties.
+ *   * cancel: a stream of `GoalID`.
  *   * SpeechSynthesis: `EventSource` for `start` and `end` events.
- * 
+ *
  * @return sinks
- * 
- *   * output: a stream for the SpeechSynthesis driver input.
+ *
+ *   * state: a reducer stream.
+ *   * status: a stream of action status.
  *   * result: a stream of action results. `result.result` is always `null`.
- * 
+ *   * SpeechSynthesis: a stream for the SpeechSynthesis driver input.
+ *
  */
+
 export function SpeechSynthesisAction(sources: Sources): Sinks {
   const input$ = input(
-    xs.fromObservable(sources.goal),
-    xs.fromObservable(sources.SpeechSynthesis.events('start')),
-    xs.fromObservable(sources.SpeechSynthesis.events('end')),
+    sources.goal || xs.never(),
+    sources.cancel || xs.never(),
+    sources.SpeechSynthesis.events('start'),
+    sources.SpeechSynthesis.events('end'),
   );
+  const reducer = transitionReducer(input$);
 
-  const state$ = transitionReducer(input$)
-    .fold((state: ReducerState, reducer: Reducer) => reducer(state), null)
-    .drop(1);  // drop "null"
-  const outputs$ = state$.map(state => state.outputs)
-    .filter(outputs => !!outputs);
-  const result$ = state$.map(state => state.result).filter(result => !!result);
-
+  const status$ = status(sources.state.stream);
+  const outputs = output(sources.state.stream);
   return {
-    output: adapt(outputs$.map(outputs => outputs.args)),
-    result: adapt(result$),
+    state: reducer,
+    status: status$,
+    ...outputs
   };
 }

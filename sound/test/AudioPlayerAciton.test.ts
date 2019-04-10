@@ -1,10 +1,11 @@
 import xs from 'xstream'
 import {mockTimeSource} from '@cycle/time';
+import {withState} from '@cycle/state';
 import {
   GoalID, GoalStatus, Status,
   generateGoalID,
 } from '@cycle-robot-drivers/action'
-import {AudioPlayerAction} from '../src/AudioPlayerAction';
+import {AudioPlayerAction as Action} from '../src/AudioPlayerAction';
 
 
 console.debug = jest.fn();  // hide debug outputs
@@ -42,9 +43,9 @@ describe('AudioPlayerAction', () => {
       ended:                   Time.diagram(`---x-|`),
       pause:                   Time.diagram(`-----|`),
     }
-    const expectedValueStr$ =  Time.diagram(`-x---|`);
-    const expectedStatusStr$ = Time.diagram(`-a-s-|`);
-    const expectedResultStr$ = Time.diagram(`---s-|`);
+    const expectedValueStr$ =  Time.diagram(`-x`);
+    const expectedStatusStr$ = Time.diagram(`-a-s`);
+    const expectedResultStr$ = Time.diagram(`---s`);
 
     // Create the action to test
     const goal = {src: 'dummy.ogg'};
@@ -53,7 +54,9 @@ describe('AudioPlayerAction', () => {
       goal_id,
       goal,
     });
-    const audioPlayerAction = AudioPlayerAction({
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
       AudioPlayer: {
         events: (eventName) => {
@@ -72,9 +75,9 @@ describe('AudioPlayerAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(audioPlayerAction.output, expectedValue$);
-    Time.assertEqual(audioPlayerAction.status, expectedStatus$);
-    Time.assertEqual(audioPlayerAction.result, expectedResult$);
+    Time.assertEqual(sinks.AudioPlayer, expectedValue$);
+    Time.assertEqual(sinks.status.drop(1), expectedStatus$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -83,24 +86,28 @@ describe('AudioPlayerAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalNum$ =           Time.diagram(`-0-1--|`);
+    const goalMark$ =          Time.diagram(`-x----|`);
+    const cancel$ =            Time.diagram(`---x--|`);
     const events = {
       ended:                   Time.diagram(`----x-|`),
       pause:                   Time.diagram(`------|`),
     }
-    const expectedValueNum$ =  Time.diagram(`-0-1--|`);
-    const expectedStatusStr$ = Time.diagram(`-a--p-|`);
-    const expectedResultStr$ = Time.diagram(`----p-|`);
+    const expectedValueNum$ =  Time.diagram(`-0-1`);
+    const expectedStatusStr$ = Time.diagram(`-a--p`);
+    const expectedResultStr$ = Time.diagram(`----p`);
 
     // update strings to proper inputs
     const goal = {src: 'dummy.ogg'};
     const goal_id = generateGoalID();
-    const goals = [{goal, goal_id}, null];
-    const goal$ = goalNum$.map(i => goals[i]);
-
-    // Create the action to test
-    const audioPlayerAction = AudioPlayerAction({
+    const goal$ = goalMark$.mapTo({
+      goal_id,
+      goal,
+    });
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
+      cancel: cancel$.mapTo(null),
       AudioPlayer: {
         events: (eventName) => {
           return events[eventName];
@@ -119,9 +126,9 @@ describe('AudioPlayerAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(audioPlayerAction.output, expectedValue$);
-    Time.assertEqual(audioPlayerAction.status, expectedStatus$);
-    Time.assertEqual(audioPlayerAction.result, expectedResult$);
+    Time.assertEqual(sinks.AudioPlayer, expectedValue$);
+    Time.assertEqual(sinks.status.drop(1), expectedStatus$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -130,19 +137,21 @@ describe('AudioPlayerAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalStr$ =        Time.diagram(`-x-|`);
+    const cancel$ =        Time.diagram(`-x-|`);
     const events = {
       ended:                Time.diagram(`---|`),
       pause:                Time.diagram(`---|`),
     }
-    const expectedValue$ =  Time.diagram(`---|`);
-    const expectedStatus$ = Time.diagram(`---|`);
-    const expectedResult$ = Time.diagram(`---|`);
+    const expectedValue$ =  Time.diagram(``);
+    const expectedStatus$ = Time.diagram(``);
+    const expectedResult$ = Time.diagram(``);
 
     // Create the action to test
-    const goal$ = goalStr$.mapTo(null);
-    const audioPlayerAction = AudioPlayerAction({
-      goal: goal$,
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
+      goal: xs.never(),
+      cancel: cancel$.mapTo(null),
       AudioPlayer: {
         events: (eventName) => {
           return events[eventName];
@@ -151,9 +160,9 @@ describe('AudioPlayerAction', () => {
     });
 
     // Run test
-    Time.assertEqual(audioPlayerAction.output, expectedValue$);
-    Time.assertEqual(audioPlayerAction.status, expectedStatus$);
-    Time.assertEqual(audioPlayerAction.result, expectedResult$);
+    Time.assertEqual(sinks.AudioPlayer, expectedValue$);
+    Time.assertEqual(sinks.status.drop(1), expectedStatus$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -162,22 +171,28 @@ describe('AudioPlayerAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalNum$ =           Time.diagram(`-0--1-|`);
+    const goalMark$ =          Time.diagram(`-x----|`);
+    const cancel$ =            Time.diagram(`----x-|`);
     const events = {
       ended:                   Time.diagram(`---x--|`),
       pause:                   Time.diagram(`------|`),
     }
-    const expectedValueNum$ =  Time.diagram(`-0----|`);
-    const expectedStatusStr$ = Time.diagram(`-a-s--|`);
-    const expectedResultStr$ = Time.diagram(`---s--|`);
+    const expectedValueNum$ =  Time.diagram(`-0`);
+    const expectedStatusStr$ = Time.diagram(`-a-s`);
+    const expectedResultStr$ = Time.diagram(`---s`);
 
     // Create the action to test
     const goal = {src: 'dummy.ogg'};
     const goal_id = generateGoalID();
-    const goals = [{goal, goal_id}, null];
-    const goal$ = goalNum$.map(i => goals[i]);
-    const audioPlayerAction = AudioPlayerAction({
+    const goal$ = goalMark$.mapTo({
+      goal_id,
+      goal,
+    });
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
+      cancel: cancel$.mapTo(null),
       AudioPlayer: {
         events: (eventName) => {
           return events[eventName];
@@ -196,9 +211,9 @@ describe('AudioPlayerAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(audioPlayerAction.output, expectedValue$);
-    Time.assertEqual(audioPlayerAction.status, expectedStatus$);
-    Time.assertEqual(audioPlayerAction.result, expectedResult$);
+    Time.assertEqual(sinks.AudioPlayer, expectedValue$);
+    Time.assertEqual(sinks.status.drop(1), expectedStatus$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -207,22 +222,28 @@ describe('AudioPlayerAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalNum$ =           Time.diagram(`-0-1-1-|`);
+    const goalMark$ =          Time.diagram(`-x-----|`);
+    const cancel$ =            Time.diagram(`---x-x-|`);
     const events = {
       ended:                   Time.diagram(`----x--|`),
       pause:                   Time.diagram(`-------|`),
     }
-    const expectedValueNum$ =  Time.diagram(`-0-1---|`);
-    const expectedStatusStr$ = Time.diagram(`-a--p--|`);
-    const expectedResultStr$ = Time.diagram(`----p--|`);
+    const expectedValueNum$ =  Time.diagram(`-0-1`);
+    const expectedStatusStr$ = Time.diagram(`-a--p`);
+    const expectedResultStr$ = Time.diagram(`----p`);
 
     // Create the action to test
     const goal = {src: 'dummy.ogg'};
     const goal_id = generateGoalID();
-    const goals = [{goal, goal_id}, null];
-    const goal$ = goalNum$.map(i => goals[i]);
-    const audioPlayerAction = AudioPlayerAction({
+    const goal$ = goalMark$.mapTo({
+      goal_id,
+      goal,
+    });
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
+      cancel: cancel$.mapTo(null),
       AudioPlayer: {
         events: (eventName) => {
           return events[eventName];
@@ -241,9 +262,9 @@ describe('AudioPlayerAction', () => {
     }));
 
     // Run test
-    Time.assertEqual(audioPlayerAction.output, expectedValue$);
-    Time.assertEqual(audioPlayerAction.status, expectedStatus$);
-    Time.assertEqual(audioPlayerAction.result, expectedResult$);
+    Time.assertEqual(sinks.AudioPlayer, expectedValue$);
+    Time.assertEqual(sinks.status.drop(1), expectedStatus$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });
@@ -252,29 +273,31 @@ describe('AudioPlayerAction', () => {
     const Time = mockTimeSource();
 
     // Create test input streams with time
-    const goalNum$ =           Time.diagram(`-0--1----|`);
+    const goalMark$ =          Time.diagram(`-0--1----|`);
     const events = {
       ended:                   Time.diagram(`-------x-|`),
       pause:                   Time.diagram(`-----x---|`),
     };
     const expecteds = [{
-      value:                   Time.diagram(`-0--x----|`),
-      status:                  Time.diagram(`-a---p---|`),
-      result:                  Time.diagram(`-----p---|`),
+      value:                   Time.diagram(`-0--x`),
+      status:                  Time.diagram(`-a---p`),
+      result:                  Time.diagram(`-----p`),
     }, {
-      value:                   Time.diagram(`-----1---|`),
-      status:                  Time.diagram(`-----a-s-|`),
-      result:                  Time.diagram(`-------s-|`),
+      value:                   Time.diagram(`-----1`),
+      status:                  Time.diagram(`-----a-s`),
+      result:                  Time.diagram(`-------s`),
     }];
 
     // Create the action to test
     const goal_ids = [generateGoalID(), generateGoalID()];
     const goals = [{src: 'dummy.org'}, {text: 'genius.ogg'}];
-    const goal$ = goalNum$.map(i => ({
+    const goal$ = goalMark$.map(i => ({
       goal_id: goal_ids[i],
       goal: goals[i],
     }));
-    const audioPlayerAction = AudioPlayerAction({
+    const sinks = withState((sources: any) => {
+      return Action(sources);
+    })({
       goal: goal$,
       AudioPlayer: {
         events: (eventName) => {
@@ -298,9 +321,9 @@ describe('AudioPlayerAction', () => {
     const expectedResult$ = xs.merge(expecteds[0].result, expecteds[1].result);
 
     // Run test
-    Time.assertEqual(audioPlayerAction.output, expectedValue$);
-    Time.assertEqual(audioPlayerAction.status, expectedStatus$);
-    Time.assertEqual(audioPlayerAction.result, expectedResult$);
+    Time.assertEqual(sinks.AudioPlayer, expectedValue$);
+    Time.assertEqual(sinks.status.drop(1), expectedStatus$);
+    Time.assertEqual(sinks.result, expectedResult$);
 
     Time.run(done);
   });

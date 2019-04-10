@@ -1,4 +1,4 @@
-import {Stream} from 'xstream';
+import xs from 'xstream';
 import fromEvent from 'xstream/extra/fromEvent';
 import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
@@ -14,14 +14,22 @@ class RecognitionSource implements EventSource {
   }
 }
 
+export type SpeechRecognitionArg = {
+  lang?: string,
+  continuous?: boolean,
+  interimResults?: boolean,
+  maxAlternatives?: number,
+  serviceURI?: string,
+};
+
 /**
  * Web Speech API's [SpeechRecognition](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
  * driver factory.
- * 
+ *
  * @return {Driver} the SpeechRecognition Cycle.js driver function. It takes a
  *   stream of objects containing [`SpeechRecognition` properties](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Properties)
  *   and returns a `EventSource`:
- * 
+ *
  *   * `EventSource.events(eventName)` returns a stream of `eventName`
  *     events from [`SpeechRecognition`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Event_handlers).
  */
@@ -29,10 +37,11 @@ export function makeSpeechRecognitionDriver(): Driver<
   any,
   EventSource
 > {
+  const {webkitSpeechRecognition} = (window as any);
   const recognition: SpeechRecognition = new webkitSpeechRecognition();
 
   return function(sink$) {
-    sink$.addListener({
+    xs.fromObservable(sink$).addListener({
       next: (args) => {
         // array values are SpeechSynthesisUtterance properties that are not
         //   event handlers; see

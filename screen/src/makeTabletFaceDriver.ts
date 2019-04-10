@@ -1,7 +1,10 @@
 import xs from 'xstream';
 import {Stream} from 'xstream';
 import {div} from '@cycle/dom';
+import {Driver} from '@cycle/run';
 import {adapt} from '@cycle/run/lib/adapt';
+import {EventSource} from '@cycle-robot-drivers/action';
+
 
 
 // adapted from
@@ -74,7 +77,7 @@ class EyeController {
     };
 
     switch (type) {
-      case 'happy':
+      case 'HAPPY':
         return {
           lowerLeftEyelid: this._lowerLeftEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * -2 / 3)`,
@@ -90,7 +93,7 @@ class EyeController {
           }), options),
         };
 
-      case 'sad':
+      case 'SAD':
         return {
           upperLeftEyelid: this._upperLeftEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
@@ -106,7 +109,7 @@ class EyeController {
           }), options),
         };
 
-      case 'angry':
+      case 'ANGRY':
         return {
           upperLeftEyelid: this._upperLeftEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * 1 / 4)`,
@@ -122,7 +125,7 @@ class EyeController {
           }), options),
         };
 
-      case 'focused':
+      case 'FOCUSED':
         return {
           upperLeftEyelid: this._upperLeftEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
@@ -146,7 +149,7 @@ class EyeController {
           }), options),
         }
 
-      case 'confused':
+      case 'CONFUSED':
         return {
           upperRightEyelid: this._upperRightEyelid.animate(this._createKeyframes({
             tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
@@ -221,8 +224,7 @@ class EyeController {
   }
 }
 
-
-enum CommandType {
+export enum CommandType {
   EXPRESS = 'EXPRESS',
   START_BLINKING = 'START_BLINKING',
   STOP_BLINKING = 'STOP_BLINKING',
@@ -230,14 +232,14 @@ enum CommandType {
 }
 
 export enum ExpressCommandType {
-  HAPPY = 'happy',
-  SAD = 'sad',
-  ANGRY = 'angry',
-  FOCUSED = 'focused',
-  CONFUSED = 'confused',
+  HAPPY = 'HAPPY',
+  SAD = 'SAD',
+  ANGRY = 'ANGRY',
+  FOCUSED = 'FOCUSED',
+  CONFUSED = 'CONFUSED',
 }
 
-type ExpressCommandArgs = {
+export type ExpressCommandArgs = {
   type: ExpressCommandType,
   // level: number
   duration: number,
@@ -245,11 +247,11 @@ type ExpressCommandArgs = {
   exitDuration: number,
 }
 
-type StartBlinkingCommandArgs = {
+export type StartBlinkingCommandArgs = {
   maxInterval: number,
 }
 
-type SetStateCommandArgs = {
+export type SetStateCommandArgs = {
   leftEye: {
     x: number,
     y: number,
@@ -260,7 +262,7 @@ type SetStateCommandArgs = {
   },
 }
 
-type Command = {
+export type TabletFaceCommand = {
   type: CommandType,
   value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
 }
@@ -273,7 +275,11 @@ type Command = {
  *   * styles {object} A group of optional style parameters
  *
  * @return {Driver} the TabletFace Cycle.js driver function. It takes a stream
- *   of `Command` and returns `DOM`, animationFinish`, and `load` streams.
+ *   of `Command` and returns returns `EventSource`:
+ *
+ *   * `EventSource.events(eventName)` takes `'load'`, `'animationfinish'`, or
+ *     `dom` and returns corresponding event streams respectively.
+ *
  */
 export function makeTabletFaceDriver(options: {
   styles?: {
@@ -291,7 +297,10 @@ export function makeTabletFaceDriver(options: {
     upper?: object,
     lower?: object,
   },
-} = {}) {
+} = {}): Driver<
+  any,
+  EventSource
+> {
   if (!options.styles) {
     options.styles = {};
   }
@@ -392,16 +401,17 @@ export function makeTabletFaceDriver(options: {
         lowerRightEyelid: element.querySelector('.right .eyelid.lower'),
       });
 
-      load$.shamefullySendNext(true);
+      load$.shamefullySendNext({});
     }, 1000);
 
     let animations = {};
     const animationFinish$$: Stream<Stream<any[]>> = xs.create();
     xs.fromObservable(command$).addListener({
-      next: function(command: Command) {
+      next: function(command: TabletFaceCommand) {
         if (!command) {
           Object.keys(animations).map((key) => {
             animations[key].cancel();
+            animations[key].onfinish();
           });
           return;
         }
@@ -435,35 +445,44 @@ export function makeTabletFaceDriver(options: {
       }
     });
 
-    const vdom$ = xs.of(
-      div(`.face`, {style: styles.face}, [
-        div('.eye.left', {
-          style: (Object as any).assign({}, styles.eye, styles.left),
-        }, [
-          div('.eyelid.upper', {
-            style: (Object as any).assign({}, styles.eyelid, styles.upper),
-          }),
-          div('.eyelid.lower', {
-            style: (Object as any).assign({}, styles.eyelid, styles.lower),
-          }),
-        ]),
-        div('.eye.right', {
-          style: (Object as any).assign({}, styles.eye, styles.right),
-        }, [
-          div('.eyelid.upper', {
-            style: (Object as any).assign({}, styles.eyelid, styles.upper),
-          }),
-          div('.eyelid.lower', {
-            style: (Object as any).assign({}, styles.eyelid, styles.lower),
-          }),
-        ]),
-      ])
-    );
+    const vdom$ = xs.of(div(`.face`, {style: styles.face}, [
+      div('.eye.left', {
+        style: (Object as any).assign({}, styles.eye, styles.left),
+      }, [
+        div('.eyelid.upper', {
+          style: (Object as any).assign({}, styles.eyelid, styles.upper),
+        }),
+        div('.eyelid.lower', {
+          style: (Object as any).assign({}, styles.eyelid, styles.lower),
+        }),
+      ]),
+      div('.eye.right', {
+        style: (Object as any).assign({}, styles.eye, styles.right),
+      }, [
+        div('.eyelid.upper', {
+          style: (Object as any).assign({}, styles.eyelid, styles.upper),
+        }),
+        div('.eyelid.lower', {
+          style: (Object as any).assign({}, styles.eyelid, styles.lower),
+        }),
+      ]),
+    ])).remember();
 
-    return {
-      DOM: adapt(vdom$),
-      animationFinish: adapt(animationFinish$$.flatten()),
-      load: adapt(load$),
-    }
+    const eventSource: EventSource = {
+      events: (eventName: string) => {
+        switch (eventName) {
+          case 'load':
+            return adapt(load$);
+          case 'animationfinish':
+            return adapt(animationFinish$$.flatten());
+          case 'dom':
+            return adapt(vdom$);
+          default:
+            console.warn(`Unknown event name ${eventName}; returning a stream that does nothing`);
+            return xs.never();
+        }
+      }
+    };
+    return eventSource;
   }
 }

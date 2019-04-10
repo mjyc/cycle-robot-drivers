@@ -4,15 +4,23 @@ export {
   Status,
   GoalStatus,
   Result,
+  ActionSources,
   ActionSinks,
   EventSource,
 } from './types';
 
 export {
   generateGoalID,
+  generateGoalStatus,
+  generateResult,
   initGoal,
-  isEqual,
+  isEqualGoalID,
   isEqualGoal,
+  isEqualGoalStatus,
   isEqualResult,
-  powerup,
+  selectActionResult,
 } from './utils';
+
+export {
+  createConcurrentAction,
+} from './createConcurrentAction';

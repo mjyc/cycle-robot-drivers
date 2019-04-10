@@ -1,16 +1,19 @@
 {
-  "name": "example",
-  "version": "0.0.0",
-  "description": "",
-  "repository": "",
+  "private": true,
+  "scripts": {
+    "build": "browserify src/index.js -t babelify --outfile dist/index.js -dv",
+    "watch": "mkdirp dist && watchify src/index.js -t babelify --outfile dist/index.js -dv",
+    "start": "concurrently \"npm run watch\" \"live-server --watch=./dist/index.js,./index.html\""
+  },
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "dependencies": {
-    "@cycle-robot-drivers/action": "file:../../../action",
-    "@cycle-robot-drivers/screen": "file:../../../screen",
-    "@cycle/dom": "20.4.0",
-    "@cycle/run": "4.4.0",
-    "xstream": "11.7.0"
+    "@cycle-robot-drivers/screen": "../../../screen",
+    "@cycle/dom": "22.3.0",
+    "@cycle/isolate": "5.0.0",
+    "@cycle/run": "5.2.0",
+    "@cycle/state": "1.2.0",
+    "xstream": "11.10.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
@@ -22,10 +25,5 @@
     "live-server": "^1.2.0",
     "mkdirp": "~0.5.0",
     "watchify": "^3.11.0"
-  },
-  "scripts": {
-    "build": "browserify src/index.js -t babelify --outfile dist/index.js -dv",
-    "watch": "mkdirp dist && watchify src/index.js -t babelify --outfile dist/index.js -dv",
-    "start": "concurrently \"npm run watch\" \"live-server\""
   }
 }

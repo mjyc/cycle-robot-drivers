@@ -1,7 +1,9 @@
 import xs from 'xstream';
-import delay from 'xstream/extra/delay';
+import sampleCombine from 'xstream/extra/sampleCombine';
+import isolate from '@cycle/isolate';
 import {run} from '@cycle/run';
-import {powerup} from '@cycle-robot-drivers/action';
+import {withState} from '@cycle/state';
+import {div, label, input, br, button, makeDOMDriver} from '@cycle/dom';
 import {
   makeSpeechSynthesisDriver,
   SpeechSynthesisAction,
@@ -9,53 +11,63 @@ import {
   SpeechRecognitionAction,
 } from '@cycle-robot-drivers/speech';
 
-
 function main(sources) {
-  sources.proxies = {  // will be connected to "targets"
-    SpeechSynthesisAction: xs.create(),
-    SpeechRecognitionAction: xs.create(),
-  };
-  // create action components
-  sources.SpeechSynthesisAction = SpeechSynthesisAction({
-    goal: sources.proxies.SpeechSynthesisAction,
+  sources.state.stream.addListener({next: s => console.debug('reducer state', s)});
+
+  // speech synthesis
+  const say$ = sources.DOM.select('.say').events('click');
+  const inputText$ = sources.DOM
+    .select('.inputtext').events('input')
+    .map(ev => ev.target.value)
+    .startWith('');
+  const synthGoal$ = say$.compose(sampleCombine(inputText$))
+    .filter(([_, text]) => !!text)
+    .map(([_, text]) => ({goal_id: {stamp: Date.now(), id: 'ss'}, goal: text}));
+  const speechSynthesisAction = isolate(SpeechSynthesisAction)({
+    state: sources.state,
     SpeechSynthesis: sources.SpeechSynthesis,
+    goal: synthGoal$,
+    cancel: xs.never(),
   });
-  sources.SpeechRecognitionAction = SpeechRecognitionAction({
-    goal: sources.proxies.SpeechRecognitionAction,
+  speechSynthesisAction.status.addListener({next: s =>
+    console.log('SpeechSynthesisAction status', s)});
+
+  // speech recognition
+  const recogGoal$ = sources.DOM.select('#listen').events('click')
+    .mapTo({goal_id: {stamp: Date.now(), id: 'sr'}, goal: {}});
+  const speechRecognitionAction = isolate(SpeechRecognitionAction)({
+    state: sources.state,
+    goal: recogGoal$,
+    cancel: xs.never(),
     SpeechRecognition: sources.SpeechRecognition,
   });
+  speechRecognitionAction.status.addListener({next: s =>
+    console.log('SpeechRecognitionAction status', s)});
 
-  
-  // main logic
-  const synthGoal$ = xs.of('Hello there!').compose(delay(1000));
-  const recogGoal$ = sources.SpeechSynthesisAction.result.mapTo({});
 
-  sources.SpeechRecognitionAction.output.addListener({
-    next: () => console.log(`Listening...`)
-  });
-  sources.SpeechRecognitionAction.result
-    .addListener({
-      next: (result) => {
-        if (result.status.status === 'SUCCEEDED') {
-          console.log(`Heard "${result.result}"`);
-        } else {
-          console.log(`I didn't hear anything.`);
-        }
-      }
-    });
+  // UI
+  const vdom$ = speechRecognitionAction.result
+    .filter(r => r.status.status === 'SUCCEEDED')
+    .startWith({result: ''})
+    .map(r => div([
+      button('.say', 'say'),
+      input('.inputtext', {attrs: {type: 'text'}}),
+      br(),
+      button('#listen', 'listen'),
+      r.result === '' ? null : label(`heard: ${r.result}`)
+    ]));
 
-  
+  const reducer = xs.merge(speechSynthesisAction.state, speechRecognitionAction.state);
   return {
-    SpeechSynthesis: sources.SpeechSynthesisAction.output,
-    SpeechRecognition: sources.SpeechRecognitionAction.output,
-    targets: {  // will be imitating "proxies"
-      SpeechSynthesisAction: synthGoal$,
-      SpeechRecognitionAction: recogGoal$,
-    }
-  }
+    DOM: vdom$,
+    SpeechSynthesis: speechSynthesisAction.SpeechSynthesis,
+    SpeechRecognition: speechRecognitionAction.SpeechRecognition,
+    state: reducer,
+  };
 }
 
-run(powerup(main, (proxy, target) => proxy.imitate(target)), {
+run(withState(main), {
+  DOM: makeDOMDriver('#app'),
   SpeechSynthesis: makeSpeechSynthesisDriver(),
   SpeechRecognition: makeSpeechRecognitionDriver(),
 });
