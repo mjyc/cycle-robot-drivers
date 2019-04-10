@@ -155,39 +155,48 @@ function output(reducerState$) {
       .map(o => o.result),
     FacialExpressionAction: {
       goal: outputs$
-        .filter(o => !!o.FacialExpressionAction && !!o.FacialExpressionAction.goal)
+        .filter(o => !!o.FacialExpressionAction
+            && !!o.FacialExpressionAction.goal)
         .map(o => o.FacialExpressionAction.goal),
       cancel: outputs$
-        .filter(o => !!o.FacialExpressionAction && !!o.FacialExpressionAction.cancel)
+        .filter(o => !!o.FacialExpressionAction
+            && !!o.FacialExpressionAction.cancel)
         .map(o => o.FacialExpressionAction.cancel),
     },
     RobotSpeechbubbleAction: {
       goal: outputs$
-        .filter(o => !!o.RobotSpeechbubbleAction && !!o.RobotSpeechbubbleAction.goal)
+        .filter(o => !!o.RobotSpeechbubbleAction
+            && !!o.RobotSpeechbubbleAction.goal)
         .map(o => o.RobotSpeechbubbleAction.goal),
       cancel: outputs$
-        .filter(o => !!o.RobotSpeechbubbleAction && !!o.RobotSpeechbubbleAction.cancel)
+        .filter(o => !!o.RobotSpeechbubbleAction
+            && !!o.RobotSpeechbubbleAction.cancel)
         .map(o => o.RobotSpeechbubbleAction.cancel),
     },
     HumanSpeechbubbleAction: {
       goal: outputs$
-        .filter(o => !!o.HumanSpeechbubbleAction && !!o.HumanSpeechbubbleAction.goal)
+        .filter(o => !!o.HumanSpeechbubbleAction
+            && !!o.HumanSpeechbubbleAction.goal)
         .map(o => o.HumanSpeechbubbleAction.goal),
       cancel: outputs$
-        .filter(o => !!o.HumanSpeechbubbleAction && !!o.HumanSpeechbubbleAction.cancel)
+        .filter(o => !!o.HumanSpeechbubbleAction
+            && !!o.HumanSpeechbubbleAction.cancel)
         .map(o => o.HumanSpeechbubbleAction.cancel),
     },
     AudioPlayerAction: {
       goal: outputs$
-        .filter(o => !!o.AudioPlayerAction && !!o.AudioPlayerAction.gal)
+        .filter(o => !!o.AudioPlayerAction
+            && !!o.AudioPlayerAction.gal)
         .map(o => o.AudioPlayerAction.goal),
       cancel: outputs$
-        .filter(o => !!o.AudioPlayerAction && !!o.AudioPlayerAction.canel)
+        .filter(o => !!o.AudioPlayerAction
+            && !!o.AudioPlayerAction.canel)
         .map(o => o.AudioPlayerAction.cancel),
     },
     SpeechSynthesisAction: {
       goal: outputs$
-        .filter(o => !!o.SpeechSynthesisAction && !!o.SpeechSynthesisAction.goal)
+        .filter(o => !!o.SpeechSynthesisAction
+            && !!o.SpeechSynthesisAction.goal)
         .map(o => o.SpeechSynthesisAction.goal),
       cancel: outputs$
         .filter(o => !!o.SpeechSynthesisAction
@@ -196,10 +205,12 @@ function output(reducerState$) {
     },
     SpeechRecognitionAction: {
       goal: outputs$
-        .filter(o => !!o.SpeechRecognitionAction && !!o.SpeechRecognitionAction.goal)
+        .filter(o => !!o.SpeechRecognitionAction
+            && !!o.SpeechRecognitionAction.goal)
         .map(o => o.SpeechRecognitionAction.goal),
       cancel: outputs$
-        .filter(o => !!o.SpeechRecognitionAction && !!o.SpeechRecognitionAction.cancel)
+        .filter(o => !!o.SpeechRecognitionAction
+            && !!o.SpeechRecognitionAction.cancel)
         .map(o => o.SpeechRecognitionAction.cancel),
     },
   };
