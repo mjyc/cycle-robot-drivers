@@ -44,7 +44,7 @@ describe('FacialExpressionAction', () => {
     const expectedResultMark$ = Time.diagram(`--s`);
 
     // Create the action to test
-    const goal = 'happy';
+    const goal = 'HAPPY';
     const goal_id = generateGoalID();
     const goal$ = goalMark$.mapTo({
       goal_id,
@@ -89,7 +89,7 @@ describe('FacialExpressionAction', () => {
     const expectedResultMark$ = Time.diagram(`----p`);
 
     // Create the action to test
-    const goal = 'happy';
+    const goal = 'HAPPY';
     const goal_id = generateGoalID();
     const goal$ = goalMark$.mapTo({
       goal_id,
@@ -164,7 +164,7 @@ describe('FacialExpressionAction', () => {
     const expectedResultMark$ = Time.diagram(`---s`);
 
     // Create the action to test
-    const goal = 'happy';
+    const goal = 'HAPPY';
     const goal_id = generateGoalID();
     const goal$ = goalMark$.mapTo({
       goal_id,
@@ -211,7 +211,7 @@ describe('FacialExpressionAction', () => {
     const expectedResultMark$ = Time.diagram(`----p`);
 
     // Create the action to test
-    const goal = 'happy';
+    const goal = 'HAPPY';
     const goal_id = generateGoalID();
     const goal$ = goalMark$.mapTo({
       goal_id,
@@ -263,7 +263,7 @@ describe('FacialExpressionAction', () => {
 
     // Create the action to test
     const goal_ids = [generateGoalID(), generateGoalID()];
-    const goals = ['happy', 'sad'];
+    const goals = ['HAPPY', 'SAD'];
     const goal$ = goalMark$.map(i => ({
       goal_id: goal_ids[i],
       goal: goals[i],
