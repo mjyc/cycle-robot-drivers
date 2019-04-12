@@ -2,7 +2,7 @@ import {makeHTTPDriver} from '@cycle/http';
 import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run';
 
 function main(sources) {
-  const apiKey = '7840d9042b3b4b50b3017c4d849fff9d';  // News API (https://newsapi.org) API key
+  const apiKey = '';  // News API (https://newsapi.org) API key
   const request$ = sources.TabletFace.events('load').mapTo({
     url: `https://newsapi.org/v2/top-headlines?country=us&apiKey=${apiKey}`,
     category: 'newsapi',
