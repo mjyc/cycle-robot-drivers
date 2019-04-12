@@ -12,7 +12,7 @@ Note that this package was tested with Chrome browser (>= 65.0.3325.181) only.
 
 <!-- Start src/index.ts -->
 
-### runTabletFaceRobotApp(main, drivers)
+### runTabletRobotFaceApp(main, drivers)
 
 A wrapper function of [Cycle.js run](https://cycle.js.org/api/run.html#api-runmain-drivers) function for Tabletface robot.
 
