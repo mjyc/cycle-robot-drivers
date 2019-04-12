@@ -1,7 +1,7 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
 import isolate from '@cycle/isolate';
-import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
+import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run';
 import {RobotApp} from './RobotApp';
 import {transition} from './transition.js';
 
@@ -29,4 +29,4 @@ function main(sources) {
   return robotSinks;
 }
 
-runTabletFaceRobotApp(main);
+runTabletRobotFaceApp(main);

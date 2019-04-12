@@ -234,7 +234,7 @@ export function withTabletFaceRobotActions(
  *
  *   drivers.
  */
-export function runTabletFaceRobotApp(
+export function runTabletRobotFaceApp(
   main,
   drivers?,
   options?,

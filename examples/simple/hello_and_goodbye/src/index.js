@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import pairwise from 'xstream/extra/pairwise';
-import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
+import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run';
 
 function main(sources) {
 
@@ -19,4 +19,4 @@ function main(sources) {
   };
 }
 
-runTabletFaceRobotApp(main);
+runTabletRobotFaceApp(main);

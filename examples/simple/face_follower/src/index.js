@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
+import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run';
 
 const videoWidth = 640;
 const videoHeight = 480;
@@ -33,4 +33,4 @@ function main(sources) {
   };
 }
 
-runTabletFaceRobotApp(main);
+runTabletRobotFaceApp(main);

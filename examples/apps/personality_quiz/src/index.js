@@ -1,7 +1,7 @@
 import xs from 'xstream';
 import pairwise from 'xstream/extra/pairwise';
 import delay from 'xstream/extra/delay';
-import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run'
+import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run'
 
 const State = {
   PEND: 'PEND',
@@ -329,4 +329,4 @@ function main(sources) {
   return sinks;
 }
 
-runTabletFaceRobotApp(main);
+runTabletRobotFaceApp(main);

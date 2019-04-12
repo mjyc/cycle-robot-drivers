@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
+import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run';
 
 function main(sources) {
   const face$ = xs.merge(
@@ -27,4 +27,4 @@ function main(sources) {
   };
 }
 
-runTabletFaceRobotApp(main);
+runTabletRobotFaceApp(main);

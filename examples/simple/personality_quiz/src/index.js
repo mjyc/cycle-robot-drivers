@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
-import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
+import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run';
 
 const Question = {
   CAREER: 'Is it important that you reach your full career potential?',
@@ -86,4 +86,4 @@ function main(sources) {
   return sinks;
 }
 
-runTabletFaceRobotApp(main);
+runTabletRobotFaceApp(main);

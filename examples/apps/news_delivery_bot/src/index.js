@@ -1,5 +1,5 @@
 import {makeHTTPDriver} from '@cycle/http';
-import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
+import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run';
 
 function main(sources) {
   const apiKey = '7840d9042b3b4b50b3017c4d849fff9d';  // News API (https://newsapi.org) API key
@@ -30,6 +30,6 @@ function main(sources) {
   };
 }
 
-runTabletFaceRobotApp(main, {
+runTabletRobotFaceApp(main, {
   HTTP: makeHTTPDriver(),
 });

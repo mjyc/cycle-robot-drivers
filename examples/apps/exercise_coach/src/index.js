@@ -2,7 +2,7 @@ import xs from 'xstream';
 import delay from 'xstream/extra/delay';
 import throttle from 'xstream/extra/throttle';
 import pairwise from 'xstream/extra/pairwise';
-import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
+import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run';
 
 const State = {
   PEND: 'PEND',
@@ -236,4 +236,4 @@ function main(sources) {
   };
 }
 
-runTabletFaceRobotApp(main);
+runTabletRobotFaceApp(main);

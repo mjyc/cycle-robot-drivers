@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import delay from 'xstream/extra/delay';
-import {runTabletFaceRobotApp} from '@cycle-robot-drivers/run';
+import {runTabletRobotFaceApp} from '@cycle-robot-drivers/run';
 import {initGoal} from '@cycle-robot-drivers/action';
 
 
@@ -54,4 +54,4 @@ function main(sources) {
   }
 }
 
-runTabletFaceRobotApp(main);
+runTabletRobotFaceApp(main);

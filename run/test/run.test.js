@@ -1,7 +1,7 @@
-const {runTabletFaceRobotApp} = require('../src/index.ts');
+const {runTabletRobotFaceApp} = require('../src/index.ts');
 
-describe('runTabletFaceRobotApp', () => {
+describe('runTabletRobotFaceApp', () => {
   it('throws an error if main is not given', () => {
-    expect(runTabletFaceRobotApp).toThrow();
+    expect(runTabletRobotFaceApp).toThrow();
   });
 });
