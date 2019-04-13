@@ -186,7 +186,7 @@ function output(reducerState$) {
     AudioPlayerAction: {
       goal: outputs$
         .filter(o => !!o.AudioPlayerAction
-            && !!o.AudioPlayerAction.gal)
+            && !!o.AudioPlayerAction.goal)
         .map(o => o.AudioPlayerAction.goal),
       cancel: outputs$
         .filter(o => !!o.AudioPlayerAction
