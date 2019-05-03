@@ -1,13 +1,7 @@
 {
-<<<<<<< HEAD:3rdparty/cycle-meyda-driver/package.json
   "name": "cycle-meyda-driver",
   "version": "0.0.8",
   "description": "A Cycle.js driver for audio feature extraction using Meyda.js",
-=======
-  "name": "cycle-gyronorm-driver",
-  "version": "0.0.8",
-  "description": "A Cycle.js driver for accessing accelerometer and gyroscope data using Gyronorm.js",
->>>>>>> Release 3rdparty/cycle-gyronorm-driver 0.0.8:3rdparty/cycle-gyronorm-driver/package.json
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
   "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",
