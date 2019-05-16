@@ -277,7 +277,7 @@ export function createSpeechbubbleAction(options = {}) {
       sources.cancel || xs.never(),
       sources.DOM.select('.choice').events('click'),
     );
-    const reducer = transitionReducer(input$);;
+    const reducer = transitionReducer(input$, options);
     const status$ = status(sources.state.stream);
     const outputs = output(sources.state.stream);
     return {

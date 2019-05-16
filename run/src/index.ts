@@ -40,6 +40,7 @@ export function withTabletFaceRobotActions(
   }
 
   styles = {
+    ...styles,
     speechbubblesOuter: {
       position: 'absolute',
       width: '96vw',
