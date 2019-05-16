@@ -102,7 +102,7 @@ function createTransition({
       fontFamily: 'helvetica',
       fontSize: '10vmin',
       fontWeight: 'lighter',
-      ...styles.message,
+      ...styles.button,
     }
   };
 
