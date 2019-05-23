@@ -1,13 +1,11 @@
-import xs from 'xstream';
-import fromEvent from 'xstream/extra/fromEvent';
-import {Driver} from '@cycle/run';
-import {adapt} from '@cycle/run/lib/adapt';
-import {EventSource} from '@cycle-robot-drivers/action';
+import xs from "xstream";
+import fromEvent from "xstream/extra/fromEvent";
+import { Driver } from "@cycle/run";
+import { adapt } from "@cycle/run/lib/adapt";
+import { EventSource } from "@cycle-robot-drivers/action";
 
 class RecognitionSource implements EventSource {
-  constructor(
-    private _recognition: SpeechRecognition,
-  ) {}
+  constructor(private _recognition: SpeechRecognition) {}
 
   events(eventName: string) {
     return adapt(fromEvent(this._recognition, eventName));
@@ -15,11 +13,11 @@ class RecognitionSource implements EventSource {
 }
 
 export type SpeechRecognitionArg = {
-  lang?: string,
-  continuous?: boolean,
-  interimResults?: boolean,
-  maxAlternatives?: number,
-  serviceURI?: string,
+  lang?: string;
+  continuous?: boolean;
+  interimResults?: boolean;
+  maxAlternatives?: number;
+  serviceURI?: string;
 };
 
 /**
@@ -33,26 +31,29 @@ export type SpeechRecognitionArg = {
  *   * `EventSource.events(eventName)` returns a stream of `eventName`
  *     events from [`SpeechRecognition`](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition#Event_handlers).
  */
-export function makeSpeechRecognitionDriver(): Driver<
-  any,
-  EventSource
-> {
-  const {webkitSpeechRecognition} = (window as any);
+export function makeSpeechRecognitionDriver(): Driver<any, EventSource> {
+  const { webkitSpeechRecognition } = window as any;
   const recognition: SpeechRecognition = new webkitSpeechRecognition();
 
   return function(sink$) {
     xs.fromObservable(sink$).addListener({
-      next: (args) => {
+      next: args => {
         // array values are SpeechSynthesisUtterance properties that are not
         //   event handlers; see
         //   https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition
         if (!args) {
           recognition.abort();
         } else {
-          ['lang', 'continuous', 'interimResults', 'maxAlternatives', 'serviceURI'].map((arg) => {
+          [
+            "lang",
+            "continuous",
+            "interimResults",
+            "maxAlternatives",
+            "serviceURI"
+          ].map(arg => {
             if (arg in args) {
-              recognition[arg] = args[arg]
-            };
+              recognition[arg] = args[arg];
+            }
           });
           recognition.start();
         }
@@ -60,5 +61,5 @@ export function makeSpeechRecognitionDriver(): Driver<
     });
 
     return new RecognitionSource(recognition) as EventSource;
-  }
+  };
 }

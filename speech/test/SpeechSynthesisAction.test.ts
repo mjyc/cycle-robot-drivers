@@ -1,64 +1,64 @@
-import xs from 'xstream'
-import {mockTimeSource} from '@cycle/time';
-import {withState} from '@cycle/state';
+import xs from "xstream";
+import { mockTimeSource } from "@cycle/time";
+import { withState } from "@cycle/state";
 import {
-  GoalID, GoalStatus, Status,
-  generateGoalID,
-} from '@cycle-robot-drivers/action'
-import {SpeechSynthesisAction as Action} from '../src/SpeechSynthesisAction';
+  GoalID,
+  GoalStatus,
+  Status,
+  generateGoalID
+} from "@cycle-robot-drivers/action";
+import { SpeechSynthesisAction as Action } from "../src/SpeechSynthesisAction";
 
-
-console.debug = jest.fn();  // hide debug outputs
+console.debug = jest.fn(); // hide debug outputs
 
 function createToStatus(goal_id: GoalID) {
-  return function (str: string): GoalStatus {
+  return function(str: string): GoalStatus {
     switch (str) {
-      case 'a':
+      case "a":
         return {
           goal_id,
-          status: Status.ACTIVE,
+          status: Status.ACTIVE
         };
-      case 'p':
+      case "p":
         return {
           goal_id,
-          status: Status.PREEMPTED,
+          status: Status.PREEMPTED
         };
-      case 's':
+      case "s":
         return {
           goal_id,
-          status: Status.SUCCEEDED,
+          status: Status.SUCCEEDED
         };
     }
   };
-};
+}
 
-
-describe('SpeechSynthesisAction', () => {
-  it('walks through "happy path"', (done) => {
+describe("SpeechSynthesisAction", () => {
+  it('walks through "happy path"', done => {
     const Time = mockTimeSource();
 
     // Create test input streams
-    const goalMark$ =           Time.diagram(`-x---|`);
+    const goalMark$ = Time.diagram(`-x---|`);
     const events = {
-      start:                    Time.diagram(`--x--|`),
-      end:                      Time.diagram(`---x-|`),
-    }
+      start: Time.diagram(`--x--|`),
+      end: Time.diagram(`---x-|`)
+    };
     const expectedOutputMark$ = Time.diagram(`-x`);
     const expectedResultMark$ = Time.diagram(`---s`);
 
     // Create the action to test
-    const goal = {text: 'Hello'};
+    const goal = { text: "Hello" };
     const goal_id = generateGoalID();
     const goal$ = goalMark$.mapTo({
       goal_id,
-      goal,
+      goal
     });
     const sinks = withState((sources: any) => {
       return Action(sources);
     })({
       goal: goal$,
       SpeechSynthesis: {
-        events: (eventName) => {
+        events: eventName => {
           return events[eventName];
         }
       }
@@ -69,7 +69,7 @@ describe('SpeechSynthesisAction', () => {
     const expectedOutput$ = expectedOutputMark$.mapTo(goal);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null,
+      result: null
     }));
 
     // Run test
@@ -79,25 +79,25 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-  it('cancels a running goal on cancel', (done) => {
+  it("cancels a running goal on cancel", done => {
     const Time = mockTimeSource();
 
     // Create test input streams
-    const goalMark$ =           Time.diagram(`-x----|`);
-    const cancel$ =             Time.diagram(`---x--|`);
+    const goalMark$ = Time.diagram(`-x----|`);
+    const cancel$ = Time.diagram(`---x--|`);
     const events = {
-      start:                    Time.diagram(`--x---|`),
-      end:                      Time.diagram(`----x-|`),
-    }
+      start: Time.diagram(`--x---|`),
+      end: Time.diagram(`----x-|`)
+    };
     const expectedOutputMark$ = Time.diagram(`-0-1`);
     const expectedResultMark$ = Time.diagram(`----p`);
 
     // Create the action to test
-    const goal = {text: 'Hello'};
+    const goal = { text: "Hello" };
     const goal_id = generateGoalID();
     const goal$ = goalMark$.mapTo({
       goal_id,
-      goal,
+      goal
     });
     const sinks = withState((sources: any) => {
       return Action(sources);
@@ -105,7 +105,7 @@ describe('SpeechSynthesisAction', () => {
       goal: goal$,
       cancel: cancel$.mapTo(null),
       SpeechSynthesis: {
-        events: (eventName) => {
+        events: eventName => {
           return events[eventName];
         }
       }
@@ -117,7 +117,7 @@ describe('SpeechSynthesisAction', () => {
     const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null,
+      result: null
     }));
 
     // Run test
@@ -127,15 +127,15 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-  it('does nothing on initial cancel', (done) => {
+  it("does nothing on initial cancel", done => {
     const Time = mockTimeSource();
 
     // Create test input streams
-    const cancel$ =         Time.diagram(`-x-|`);
+    const cancel$ = Time.diagram(`-x-|`);
     const events = {
-      start:                Time.diagram(`---|`),
-      end:                  Time.diagram(`---|`),
-    }
+      start: Time.diagram(`---|`),
+      end: Time.diagram(`---|`)
+    };
     const expectedOutput$ = Time.diagram(``);
     const expectedResult$ = Time.diagram(``);
 
@@ -146,7 +146,7 @@ describe('SpeechSynthesisAction', () => {
       goal: xs.never(),
       cancel: cancel$.mapTo(null),
       SpeechSynthesis: {
-        events: (eventName) => {
+        events: eventName => {
           return events[eventName];
         }
       }
@@ -159,25 +159,25 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-  it('does nothing on cancel after succeeded', (done) => {
+  it("does nothing on cancel after succeeded", done => {
     const Time = mockTimeSource();
 
     // Create test input streams
-    const goalMark$ =           Time.diagram(`-x----|`);
-    const cancel$ =             Time.diagram(`----x-|`);
+    const goalMark$ = Time.diagram(`-x----|`);
+    const cancel$ = Time.diagram(`----x-|`);
     const events = {
-      start:                    Time.diagram(`--x---|`),
-      end:                      Time.diagram(`---x--|`),
-    }
+      start: Time.diagram(`--x---|`),
+      end: Time.diagram(`---x--|`)
+    };
     const expectedOutputMark$ = Time.diagram(`-0`);
     const expectedResultMark$ = Time.diagram(`---s`);
 
     // Create the action to test
-    const goal = {text: 'Hello'};
+    const goal = { text: "Hello" };
     const goal_id = generateGoalID();
     const goal$ = goalMark$.mapTo({
       goal_id,
-      goal,
+      goal
     });
     const sinks = withState((sources: any) => {
       return Action(sources);
@@ -185,7 +185,7 @@ describe('SpeechSynthesisAction', () => {
       goal: goal$,
       cancel: cancel$.mapTo(null),
       SpeechSynthesis: {
-        events: (eventName) => {
+        events: eventName => {
           return events[eventName];
         }
       }
@@ -197,7 +197,7 @@ describe('SpeechSynthesisAction', () => {
     const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null,
+      result: null
     }));
 
     // Run test
@@ -207,25 +207,25 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-  it('does nothing on cancel after preempted', (done) => {
+  it("does nothing on cancel after preempted", done => {
     const Time = mockTimeSource();
 
     // Create test input streams
-    const goalMark$ =           Time.diagram(`-x-----|`);
-    const cancel$ =             Time.diagram(`---x-x-|`);
+    const goalMark$ = Time.diagram(`-x-----|`);
+    const cancel$ = Time.diagram(`---x-x-|`);
     const events = {
-      start:                    Time.diagram(`--x----|`),
-      end:                      Time.diagram(`----x--|`),
-    }
+      start: Time.diagram(`--x----|`),
+      end: Time.diagram(`----x--|`)
+    };
     const expectedOutputMark$ = Time.diagram(`-0-1`);
     const expectedResultMark$ = Time.diagram(`----p`);
 
     // Create the action to test
-    const goal = {text: 'Hello'};
+    const goal = { text: "Hello" };
     const goal_id = generateGoalID();
     const goal$ = goalMark$.mapTo({
       goal_id,
-      goal,
+      goal
     });
     const sinks = withState((sources: any) => {
       return Action(sources);
@@ -233,7 +233,7 @@ describe('SpeechSynthesisAction', () => {
       goal: goal$,
       cancel: cancel$.mapTo(null),
       SpeechSynthesis: {
-        events: (eventName) => {
+        events: eventName => {
           return events[eventName];
         }
       }
@@ -245,7 +245,7 @@ describe('SpeechSynthesisAction', () => {
     const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null,
+      result: null
     }));
 
     // Run test
@@ -255,36 +255,39 @@ describe('SpeechSynthesisAction', () => {
     Time.run(done);
   });
 
-  it('cancels the first goal on receiving a second goal', (done) => {
+  it("cancels the first goal on receiving a second goal", done => {
     const Time = mockTimeSource();
 
     // Create test input streams
-    const goalMark$ =          Time.diagram(`-0--1-----|`);
+    const goalMark$ = Time.diagram(`-0--1-----|`);
     const events = {
-      start:                   Time.diagram(`--x---x---|`),
-      end:                     Time.diagram(`-----x--x-|`),
+      start: Time.diagram(`--x---x---|`),
+      end: Time.diagram(`-----x--x-|`)
     };
-    const expecteds = [{
-      output:                  Time.diagram(`-0--x`),
-      result:                  Time.diagram(`-----p`),
-    }, {
-      output:                  Time.diagram(`-----1`),
-      result:                  Time.diagram(`--------s`),
-    }];
+    const expecteds = [
+      {
+        output: Time.diagram(`-0--x`),
+        result: Time.diagram(`-----p`)
+      },
+      {
+        output: Time.diagram(`-----1`),
+        result: Time.diagram(`--------s`)
+      }
+    ];
 
     // Create the action to test
     const goal_ids = [generateGoalID(), generateGoalID()];
-    const goals = [{text: 'Hello'}, {text: 'World'}];
+    const goals = [{ text: "Hello" }, { text: "World" }];
     const goal$ = goalMark$.map(i => ({
       goal_id: goal_ids[i],
-      goal: goals[i],
+      goal: goals[i]
     }));
     const sinks = withState((sources: any) => {
       return Action(sources);
     })({
       goal: goal$,
       SpeechSynthesis: {
-        events: (eventName) => {
+        events: eventName => {
           return events[eventName];
         }
       }
@@ -292,11 +295,11 @@ describe('SpeechSynthesisAction', () => {
 
     // Prepare expected values
     expecteds.map((expected, i) => {
-      expected.output = expected.output.map(j => goals[j] ? goals[j] : null);
+      expected.output = expected.output.map(j => (goals[j] ? goals[j] : null));
       const toStatus = createToStatus(goal_ids[i]);
       expected.result = expected.result.map(str => ({
         status: toStatus(str),
-        result: null,
+        result: null
       }));
     });
     const expectedOutput$ = xs.merge(expecteds[0].output, expecteds[1].output);
