@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/run",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "description": "A Cycle.js run() wrapper, runRobotProgram, for Tabletface robot",
   "author": "Michael Jae-Yoon Chung",
   "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",
