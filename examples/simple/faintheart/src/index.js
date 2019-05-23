@@ -1,12 +1,12 @@
-import xs from 'xstream';
-import {run} from '@cycle/run';
-import {div, h1, h2, makeDOMDriver} from '@cycle/dom';
-import {makeMeydaDriver} from 'cycle-meyda-driver';
+import xs from "xstream";
+import { run } from "@cycle/run";
+import { div, h1, h2, makeDOMDriver } from "@cycle/dom";
+import { makeMeydaDriver } from "cycle-meyda-driver";
 
 function makeVibrationDriver() {
-  const vibrationDriver = (sink$) => {
+  const vibrationDriver = sink$ => {
     sink$.addListener({
-      next: (pattern) => {
+      next: pattern => {
         window.navigator.vibrate(pattern);
       }
     });
@@ -21,24 +21,28 @@ function isAndroid() {
 
 function main(sources) {
   const vdom$ = !isAndroid()
-    ? xs.of(div([
-      h1("This app only works on Android devices"),
-      h2("Please try it on an an Android device")
-    ])) : sources.Meyda.map(v => div(`loudness: ${v.loudness.total}`));
+    ? xs.of(
+        div([
+          h1("This app only works on Android devices"),
+          h2("Please try it on an an Android device")
+        ])
+      )
+    : sources.Meyda.map(v => div(`loudness: ${v.loudness.total}`));
 
-  const vibration$ = sources.Meyda.filter(v => v.loudness.total > 50)
-    .mapTo(500);
+  const vibration$ = sources.Meyda.filter(v => v.loudness.total > 50).mapTo(
+    500
+  );
 
   return {
     DOM: vdom$,
-    Vibration: vibration$,
+    Vibration: vibration$
   };
 }
 
 run(main, {
-  DOM: makeDOMDriver('#app'),
+  DOM: makeDOMDriver("#app"),
   Meyda: makeMeydaDriver({
-    featureExtractors: ['loudness']
+    featureExtractors: ["loudness"]
   }),
-  Vibration: makeVibrationDriver(),
+  Vibration: makeVibrationDriver()
 });
