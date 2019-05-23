@@ -40,16 +40,17 @@ export function makeSpeechRecognitionDriver(): Driver<any, EventSource> {
     recognition = new webkitSpeechRecognition();
   } catch (err) {
     console.warn(err);
-    recognition = null;
+    recognition = new EventTarget() as SpeechRecognition;
   }
 
   return function(sink$) {
     xs.fromObservable(sink$).addListener({
       next: args => {
-        if (!recognition) {
+        if (typeof recognition.start === "undefined") {
           console.warn(
-            "SpeechRecognition interface is not available; skipping"
+            'SpeechRecognition interface is not available; displatching "end" event'
           );
+          recognition.dispatchEvent(new Event("end"));
           return;
         }
         // array values are SpeechSynthesisUtterance properties that are not
