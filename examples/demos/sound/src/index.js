@@ -13,7 +13,8 @@ function main(sources) {
     next: s => console.debug("reducer state", s)
   });
 
-  const goal$ = sources.DOM.select("button").events("click")
+  const goal$ = sources.DOM.select("button")
+    .events("click")
     .mapTo({
       goal_id: { stamp: Date.now(), goal_id: "ap" },
       goal:

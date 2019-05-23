@@ -50,6 +50,11 @@ export function makeSpeechSynthesisDriver(): Driver<any, EventSource> {
             }
           });
           synthesis.speak(utterance);
+          // https://www.chromestatus.com/feature/5687444770914304
+          if (!synthesis.speaking) {
+            console.warn('Cannot speak utterance; dispatching "ended"');
+            utterance.dispatchEvent(new Event("ended"));
+          }
         }
       }
     });
