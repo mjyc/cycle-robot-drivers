@@ -8,7 +8,9 @@ class RecognitionSource implements EventSource {
   constructor(private _recognition: SpeechRecognition) {}
 
   events(eventName: string) {
-    return adapt(fromEvent(this._recognition, eventName));
+    return adapt(
+      !!this._recognition ? fromEvent(this._recognition, eventName) : xs.never()
+    );
   }
 }
 
@@ -33,11 +35,23 @@ export type SpeechRecognitionArg = {
  */
 export function makeSpeechRecognitionDriver(): Driver<any, EventSource> {
   const { webkitSpeechRecognition } = window as any;
-  const recognition: SpeechRecognition = new webkitSpeechRecognition();
+  let recognition: SpeechRecognition;
+  try {
+    recognition = new webkitSpeechRecognition();
+  } catch (err) {
+    console.warn(err);
+    recognition = null;
+  }
 
   return function(sink$) {
     xs.fromObservable(sink$).addListener({
       next: args => {
+        if (!recognition) {
+          console.warn(
+            "SpeechRecognition interface is not available; skipping"
+          );
+          return;
+        }
         // array values are SpeechSynthesisUtterance properties that are not
         //   event handlers; see
         //   https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition
