@@ -38,7 +38,11 @@ export function makeAudioPlayerDriver() {
               audio[arg] = args[arg];
             }
           });
-          audio.play();
+          // https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+          audio.play().catch(err => {
+            console.warn("audio.play() error", err);
+            audio.dispatchEvent(new Event("ended"));
+          });
         }
       }
     });
