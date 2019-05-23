@@ -6,8 +6,8 @@ export {
   Result,
   ActionSources,
   ActionSinks,
-  EventSource,
-} from './types';
+  EventSource
+} from "./types";
 
 export {
   generateGoalID,
@@ -18,9 +18,7 @@ export {
   isEqualGoal,
   isEqualGoalStatus,
   isEqualResult,
-  selectActionResult,
-} from './utils';
+  selectActionResult
+} from "./utils";
 
-export {
-  createConcurrentAction,
-} from './createConcurrentAction';
+export { createConcurrentAction } from "./createConcurrentAction";

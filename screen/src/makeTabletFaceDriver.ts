@@ -1,11 +1,9 @@
-import xs from 'xstream';
-import {Stream} from 'xstream';
-import {div} from '@cycle/dom';
-import {Driver} from '@cycle/run';
-import {adapt} from '@cycle/run/lib/adapt';
-import {EventSource} from '@cycle-robot-drivers/action';
-
-
+import xs from "xstream";
+import { Stream } from "xstream";
+import { div } from "@cycle/dom";
+import { Driver } from "@cycle/run";
+import { adapt } from "@cycle/run/lib/adapt";
+import { EventSource } from "@cycle-robot-drivers/action";
 
 // adapted from
 //   https://github.com/mjyc/tablet-robot-face/blob/709b731dff04033c08cf045adc4e038eefa750a2/index.js#L3-L184
@@ -19,15 +17,19 @@ class EyeController {
   private _lowerLeftEyelid;
   private _lowerRightEyelid;
 
-  constructor(elements = {}, eyeSize = '33.33vmin') {
+  constructor(elements = {}, eyeSize = "33.33vmin") {
     this._eyeSize = eyeSize;
     this._blinkTimeoutID = null;
 
     this.setElements(elements);
   }
 
-  get leftEye() { return this._leftEye; }
-  get rightEye() { return this._rightEye; }
+  get leftEye() {
+    return this._leftEye;
+  }
+  get rightEye() {
+    return this._rightEye;
+  }
 
   setElements({
     leftEye,
@@ -35,7 +37,7 @@ class EyeController {
     upperLeftEyelid,
     upperRightEyelid,
     lowerLeftEyelid,
-    lowerRightEyelid,
+    lowerRightEyelid
   }: any) {
     this._leftEye = leftEye;
     this._rightEye = rightEye;
@@ -47,117 +49,157 @@ class EyeController {
   }
 
   _createKeyframes({
-    tgtTranYVal = '0px',
-    tgtRotVal = '0deg',
+    tgtTranYVal = "0px",
+    tgtRotVal = "0deg",
     enteredOffset = 0,
-    exitingOffset = 0,
+    exitingOffset = 0
   }: any) {
     return [
-      {transform: `translateY(0px) rotate(0deg)`, offset: 0.0},
-      {transform: `translateY(${tgtTranYVal}) rotate(${tgtRotVal})`, offset: enteredOffset},
-      {transform: `translateY(${tgtTranYVal}) rotate(${tgtRotVal})`, offset: exitingOffset},
-      {transform: `translateY(0px) rotate(0deg)`, offset: 1.0},
+      { transform: `translateY(0px) rotate(0deg)`, offset: 0.0 },
+      {
+        transform: `translateY(${tgtTranYVal}) rotate(${tgtRotVal})`,
+        offset: enteredOffset
+      },
+      {
+        transform: `translateY(${tgtTranYVal}) rotate(${tgtRotVal})`,
+        offset: exitingOffset
+      },
+      { transform: `translateY(0px) rotate(0deg)`, offset: 1.0 }
     ];
   }
 
   express({
-    type = '',
+    type = "",
     // level = 3,  // 1: min, 5: max
     duration = 1000,
     enterDuration = 75,
-    exitDuration = 75,
+    exitDuration = 75
   }) {
-    if (!this._leftEye) {  // assumes all elements are always set together
-      console.warn('Eye elements are not set; return;');
+    if (!this._leftEye) {
+      // assumes all elements are always set together
+      console.warn("Eye elements are not set; return;");
       return;
     }
 
     const options = {
-      duration: duration,
+      duration: duration
     };
 
     switch (type) {
-      case 'HAPPY':
+      case "HAPPY":
         return {
-          lowerLeftEyelid: this._lowerLeftEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * -2 / 3)`,
-            tgtRotVal: `30deg`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
-          lowerRightEyelid: this._lowerRightEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * -2 / 3)`,
-            tgtRotVal: `-30deg`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
+          lowerLeftEyelid: this._lowerLeftEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * -2 / 3)`,
+              tgtRotVal: `30deg`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          ),
+          lowerRightEyelid: this._lowerRightEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * -2 / 3)`,
+              tgtRotVal: `-30deg`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          )
         };
 
-      case 'SAD':
+      case "SAD":
         return {
-          upperLeftEyelid: this._upperLeftEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
-            tgtRotVal: `-20deg`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
-          upperRightEyelid: this._upperRightEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
-            tgtRotVal: `20deg`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
+          upperLeftEyelid: this._upperLeftEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
+              tgtRotVal: `-20deg`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          ),
+          upperRightEyelid: this._upperRightEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
+              tgtRotVal: `20deg`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          )
         };
 
-      case 'ANGRY':
+      case "ANGRY":
         return {
-          upperLeftEyelid: this._upperLeftEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * 1 / 4)`,
-            tgtRotVal: `30deg`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
-          upperRightEyelid: this._upperRightEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * 1 / 4)`,
-            tgtRotVal: `-30deg`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
+          upperLeftEyelid: this._upperLeftEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * 1 / 4)`,
+              tgtRotVal: `30deg`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          ),
+          upperRightEyelid: this._upperRightEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * 1 / 4)`,
+              tgtRotVal: `-30deg`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          )
         };
 
-      case 'FOCUSED':
+      case "FOCUSED":
         return {
-          upperLeftEyelid: this._upperLeftEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
-          upperRightEyelid: this._upperRightEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
-          lowerLeftEyelid: this._lowerLeftEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * -1 / 3)`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
-          lowerRightEyelid: this._lowerRightEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * -1 / 3)`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
-        }
+          upperLeftEyelid: this._upperLeftEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          ),
+          upperRightEyelid: this._upperRightEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          ),
+          lowerLeftEyelid: this._lowerLeftEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * -1 / 3)`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          ),
+          lowerRightEyelid: this._lowerRightEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * -1 / 3)`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          )
+        };
 
-      case 'CONFUSED':
+      case "CONFUSED":
         return {
-          upperRightEyelid: this._upperRightEyelid.animate(this._createKeyframes({
-            tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
-            tgtRotVal: `-10deg`,
-            enteredOffset: enterDuration / duration,
-            exitingOffset: 1 - (exitDuration / duration),
-          }), options),
-        }
+          upperRightEyelid: this._upperRightEyelid.animate(
+            this._createKeyframes({
+              tgtTranYVal: `calc(${this._eyeSize} * 1 / 3)`,
+              tgtRotVal: `-10deg`,
+              enteredOffset: enterDuration / duration,
+              exitingOffset: 1 - exitDuration / duration
+            }),
+            options
+          )
+        };
 
       default:
         console.warn(`Invalid input type=${type}`);
@@ -165,38 +207,42 @@ class EyeController {
   }
 
   blink({
-    duration = 150,  // in ms
+    duration = 150 // in ms
   } = {}) {
-    if (!this._leftEye) {  // assumes all elements are always set together
-      console.warn('Eye elements are not set; return;');
+    if (!this._leftEye) {
+      // assumes all elements are always set together
+      console.warn("Eye elements are not set; return;");
       return;
     }
 
-    [this._leftEye, this._rightEye].map((eye) => {
-      eye.animate([
-        {transform: 'rotateX(0deg)'},
-        {transform: 'rotateX(90deg)'},
-        {transform: 'rotateX(0deg)'},
-      ], {
-        duration,
-        iterations: 1,
-      });
+    [this._leftEye, this._rightEye].map(eye => {
+      eye.animate(
+        [
+          { transform: "rotateX(0deg)" },
+          { transform: "rotateX(90deg)" },
+          { transform: "rotateX(0deg)" }
+        ],
+        {
+          duration,
+          iterations: 1
+        }
+      );
     });
   }
 
-  startBlinking({
-    maxInterval = 5000
-  } = {}) {
+  startBlinking({ maxInterval = 5000 } = {}) {
     if (this._blinkTimeoutID) {
-      console.warn(`Already blinking with timeoutID=${this._blinkTimeoutID}; return;`);
+      console.warn(
+        `Already blinking with timeoutID=${this._blinkTimeoutID}; return;`
+      );
       return;
     }
-    const blinkRandomly = (timeout) => {
+    const blinkRandomly = timeout => {
       this._blinkTimeoutID = setTimeout(() => {
         this.blink();
         blinkRandomly(Math.random() * maxInterval);
       }, timeout);
-    }
+    };
     blinkRandomly(Math.random() * maxInterval);
   }
 
@@ -206,8 +252,9 @@ class EyeController {
   }
 
   setEyePosition(eyeElem, x, y, isRight = false) {
-    if (!eyeElem) {  // assumes all elements are always set together
-      console.warn('Invalid inputs ', eyeElem, x, y, '; retuning');
+    if (!eyeElem) {
+      // assumes all elements are always set together
+      console.warn("Invalid inputs ", eyeElem, x, y, "; retuning");
       return;
     }
 
@@ -215,57 +262,57 @@ class EyeController {
       if (!isRight) {
         eyeElem.style.left = `calc(${this._eyeSize} / 3 * 2 * ${x})`;
       } else {
-        eyeElem.style.right = `calc(${this._eyeSize} / 3 * 2 * ${1-x})`;
+        eyeElem.style.right = `calc(${this._eyeSize} / 3 * 2 * ${1 - x})`;
       }
     }
     if (!isNaN(y)) {
-      eyeElem.style.bottom = `calc(${this._eyeSize} / 3 * 2 * ${1-y})`;
+      eyeElem.style.bottom = `calc(${this._eyeSize} / 3 * 2 * ${1 - y})`;
     }
   }
 }
 
 export enum CommandType {
-  EXPRESS = 'EXPRESS',
-  START_BLINKING = 'START_BLINKING',
-  STOP_BLINKING = 'STOP_BLINKING',
-  SET_STATE = 'SET_STATE',
+  EXPRESS = "EXPRESS",
+  START_BLINKING = "START_BLINKING",
+  STOP_BLINKING = "STOP_BLINKING",
+  SET_STATE = "SET_STATE"
 }
 
 export enum ExpressCommandType {
-  HAPPY = 'HAPPY',
-  SAD = 'SAD',
-  ANGRY = 'ANGRY',
-  FOCUSED = 'FOCUSED',
-  CONFUSED = 'CONFUSED',
+  HAPPY = "HAPPY",
+  SAD = "SAD",
+  ANGRY = "ANGRY",
+  FOCUSED = "FOCUSED",
+  CONFUSED = "CONFUSED"
 }
 
 export type ExpressCommandArgs = {
-  type: ExpressCommandType,
+  type: ExpressCommandType;
   // level: number
-  duration: number,
-  enterDuration: number,
-  exitDuration: number,
-}
+  duration: number;
+  enterDuration: number;
+  exitDuration: number;
+};
 
 export type StartBlinkingCommandArgs = {
-  maxInterval: number,
-}
+  maxInterval: number;
+};
 
 export type SetStateCommandArgs = {
   leftEye: {
-    x: number,
-    y: number,
-  },
+    x: number;
+    y: number;
+  };
   rightEye: {
-    x: number,
-    y: number,
-  },
-}
+    x: number;
+    y: number;
+  };
+};
 
 export type TabletFaceCommand = {
-  type: CommandType,
-  value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs,
-}
+  type: CommandType;
+  value: ExpressCommandArgs | StartBlinkingCommandArgs | SetStateCommandArgs;
+};
 
 /**
  * [TabletFace](https://github.com/mjyc/tablet-robot-face) driver factory.
@@ -281,35 +328,34 @@ export type TabletFaceCommand = {
  *     `dom` and returns corresponding event streams respectively.
  *
  */
-export function makeTabletFaceDriver(options: {
-  styles?: {
-    faceColor?: string,
-    faceHeight?: string,
-    faceWidth?: string,
-    eyeColor?: string,
-    eyeSize?: string,
-    eyelidColor?: string,
-    face?: object,
-    eye?: object,
-    left?: object,
-    right?: object,
-    eyelid?: object,
-    upper?: object,
-    lower?: object,
-  },
-} = {}): Driver<
-  any,
-  EventSource
-> {
+export function makeTabletFaceDriver(
+  options: {
+    styles?: {
+      faceColor?: string;
+      faceHeight?: string;
+      faceWidth?: string;
+      eyeColor?: string;
+      eyeSize?: string;
+      eyelidColor?: string;
+      face?: object;
+      eye?: object;
+      left?: object;
+      right?: object;
+      eyelid?: object;
+      upper?: object;
+      lower?: object;
+    };
+  } = {}
+): Driver<any, EventSource> {
   if (!options.styles) {
     options.styles = {};
   }
-  const faceColor = options.styles.faceColor || 'whitesmoke';
-  const faceHeight = options.styles.faceHeight || '100vh'
-  const faceWidth = options.styles.faceWidth || '100vw'
-  const eyeColor = options.styles.eyeColor || 'black'
-  const eyeSize = options.styles.eyeSize || '33.33vmin'
-  const eyelidColor = options.styles.eyelidColor || 'whitesmoke'
+  const faceColor = options.styles.faceColor || "whitesmoke";
+  const faceHeight = options.styles.faceHeight || "100vh";
+  const faceWidth = options.styles.faceWidth || "100vw";
+  const eyeColor = options.styles.eyeColor || "black";
+  const eyeSize = options.styles.eyeSize || "33.33vmin";
+  const eyelidColor = options.styles.eyelidColor || "whitesmoke";
   if (!options.styles.face) {
     options.styles.face = {};
   }
@@ -337,48 +383,48 @@ export function makeTabletFaceDriver(options: {
       backgroundColor: faceColor,
       height: faceHeight,
       width: faceWidth,
-      position: 'relative',
-      overflow: 'hidden',
-      zIndex: 0,  // speechbubbles and eyes have zIndex === 1,
-      ...options.styles.face,
+      position: "relative",
+      overflow: "hidden",
+      zIndex: 0, // speechbubbles and eyes have zIndex === 1,
+      ...options.styles.face
     },
     eye: {
       backgroundColor: eyeColor,
-      borderRadius: '100%',
+      borderRadius: "100%",
       height: eyeSize,
       width: eyeSize,
       bottom: `calc(${eyeSize} / 3)`,
       zIndex: 1,
-      position: 'absolute',
-      ...options.styles.eye,
+      position: "absolute",
+      ...options.styles.eye
     },
     left: {
       left: `calc(${eyeSize} / 3)`,
-      ...options.styles.left,
+      ...options.styles.left
     },
     right: {
       right: `calc(${eyeSize} / 3)`,
-      ...options.styles.right,
+      ...options.styles.right
     },
     eyelid: {
       backgroundColor: eyelidColor,
       height: eyeSize,
       width: `calc(${eyeSize} * 1.75)`,
       zIndex: 2,
-      position: 'absolute',
-      ...options.styles.eyelid,
+      position: "absolute",
+      ...options.styles.eyelid
     },
     upper: {
       bottom: `calc(${eyeSize} * 1)`,
       left: `calc(${eyeSize} * -0.375)`,
-      ...options.styles.upper,
+      ...options.styles.upper
     },
     lower: {
-      borderRadius: '100%',
+      borderRadius: "100%",
       bottom: `calc(${eyeSize} * -1)`,
       left: `calc(${eyeSize} * -0.375)`,
-      ...options.styles.lower,
-    },
+      ...options.styles.lower
+    }
   };
   const eyes = new EyeController({}, eyeSize);
 
@@ -393,12 +439,12 @@ export function makeTabletFaceDriver(options: {
 
       const element = document.querySelector(`.face`);
       eyes.setElements({
-        leftEye: element.querySelector('.left.eye'),
-        rightEye: element.querySelector('.right.eye'),
-        upperLeftEyelid: element.querySelector('.left .eyelid.upper'),
-        upperRightEyelid: element.querySelector('.right .eyelid.upper'),
-        lowerLeftEyelid: element.querySelector('.left .eyelid.lower'),
-        lowerRightEyelid: element.querySelector('.right .eyelid.lower'),
+        leftEye: element.querySelector(".left.eye"),
+        rightEye: element.querySelector(".right.eye"),
+        upperLeftEyelid: element.querySelector(".left .eyelid.upper"),
+        upperRightEyelid: element.querySelector(".right .eyelid.upper"),
+        lowerLeftEyelid: element.querySelector(".left .eyelid.lower"),
+        lowerRightEyelid: element.querySelector(".right .eyelid.lower")
       });
 
       load$.shamefullySendNext({});
@@ -409,7 +455,7 @@ export function makeTabletFaceDriver(options: {
     xs.fromObservable(command$).addListener({
       next: function(command: TabletFaceCommand) {
         if (!command) {
-          Object.keys(animations).map((key) => {
+          Object.keys(animations).map(key => {
             animations[key].cancel();
             animations[key].onfinish();
           });
@@ -417,14 +463,17 @@ export function makeTabletFaceDriver(options: {
         }
         switch (command.type) {
           case CommandType.EXPRESS:
-            animations = eyes.express(command.value as ExpressCommandArgs) || {};
+            animations =
+              eyes.express(command.value as ExpressCommandArgs) || {};
             animationFinish$$.shamefullySendNext(
               xs.fromPromise(
-                Promise.all(Object.keys(animations).map((key) => {
-                  return new Promise((resolve, reject) => {
-                    animations[key].onfinish = resolve;
+                Promise.all(
+                  Object.keys(animations).map(key => {
+                    return new Promise((resolve, reject) => {
+                      animations[key].onfinish = resolve;
+                    });
                   })
-                }))
+                )
               )
             );
             break;
@@ -436,8 +485,8 @@ export function makeTabletFaceDriver(options: {
             break;
           case CommandType.SET_STATE:
             const value = command.value as SetStateCommandArgs;
-            const leftPos = value && value.leftEye || {x: null, y: null};
-            const rightPos = value && value.rightEye || {x: null, y: null};
+            const leftPos = (value && value.leftEye) || { x: null, y: null };
+            const rightPos = (value && value.rightEye) || { x: null, y: null };
             eyes.setEyePosition(eyes.leftEye, leftPos.x, leftPos.y);
             eyes.setEyePosition(eyes.rightEye, rightPos.x, rightPos.y, true);
             break;
@@ -445,44 +494,58 @@ export function makeTabletFaceDriver(options: {
       }
     });
 
-    const vdom$ = xs.of(div(`.face`, {style: styles.face}, [
-      div('.eye.left', {
-        style: (Object as any).assign({}, styles.eye, styles.left),
-      }, [
-        div('.eyelid.upper', {
-          style: (Object as any).assign({}, styles.eyelid, styles.upper),
-        }),
-        div('.eyelid.lower', {
-          style: (Object as any).assign({}, styles.eyelid, styles.lower),
-        }),
-      ]),
-      div('.eye.right', {
-        style: (Object as any).assign({}, styles.eye, styles.right),
-      }, [
-        div('.eyelid.upper', {
-          style: (Object as any).assign({}, styles.eyelid, styles.upper),
-        }),
-        div('.eyelid.lower', {
-          style: (Object as any).assign({}, styles.eyelid, styles.lower),
-        }),
-      ]),
-    ])).remember();
+    const vdom$ = xs
+      .of(
+        div(`.face`, { style: styles.face }, [
+          div(
+            ".eye.left",
+            {
+              style: (Object as any).assign({}, styles.eye, styles.left)
+            },
+            [
+              div(".eyelid.upper", {
+                style: (Object as any).assign({}, styles.eyelid, styles.upper)
+              }),
+              div(".eyelid.lower", {
+                style: (Object as any).assign({}, styles.eyelid, styles.lower)
+              })
+            ]
+          ),
+          div(
+            ".eye.right",
+            {
+              style: (Object as any).assign({}, styles.eye, styles.right)
+            },
+            [
+              div(".eyelid.upper", {
+                style: (Object as any).assign({}, styles.eyelid, styles.upper)
+              }),
+              div(".eyelid.lower", {
+                style: (Object as any).assign({}, styles.eyelid, styles.lower)
+              })
+            ]
+          )
+        ])
+      )
+      .remember();
 
     const eventSource: EventSource = {
       events: (eventName: string) => {
         switch (eventName) {
-          case 'load':
+          case "load":
             return adapt(load$);
-          case 'animationfinish':
+          case "animationfinish":
             return adapt(animationFinish$$.flatten());
-          case 'dom':
+          case "dom":
             return adapt(vdom$);
           default:
-            console.warn(`Unknown event name ${eventName}; returning a stream that does nothing`);
+            console.warn(
+              `Unknown event name ${eventName}; returning a stream that does nothing`
+            );
             return xs.never();
         }
       }
     };
     return eventSource;
-  }
+  };
 }

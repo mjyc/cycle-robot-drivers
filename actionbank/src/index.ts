@@ -1,4 +1,1 @@
-export {
-  createTwoSpeechbubbles,
-  TwoSpeechbubbles,
-} from './TwoSpeechbubbles';
+export { createTwoSpeechbubbles, TwoSpeechbubbles } from "./TwoSpeechbubbles";

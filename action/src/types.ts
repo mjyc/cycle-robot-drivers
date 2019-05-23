@@ -1,47 +1,45 @@
-import Stream from 'xstream';
-import {StateSource} from '@cycle/state';
+import Stream from "xstream";
+import { StateSource } from "@cycle/state";
 
 export type GoalID = {
-  stamp: Date | number | string,
-  id: string,
+  stamp: Date | number | string;
+  id: string;
 };
 
 export type Goal = {
-  goal_id: GoalID,
-  goal: any,
+  goal_id: GoalID;
+  goal: any;
 };
 
 export enum Status {
-  ACTIVE = 'ACTIVE',
-  PREEMPTED = 'PREEMPTED',
-  SUCCEEDED = 'SUCCEEDED',
-  ABORTED = 'ABORTED',
+  ACTIVE = "ACTIVE",
+  PREEMPTED = "PREEMPTED",
+  SUCCEEDED = "SUCCEEDED",
+  ABORTED = "ABORTED"
 }
 
 export type GoalStatus = {
-  goal_id: GoalID,
-  status: Status,
+  goal_id: GoalID;
+  status: Status;
 };
 
 export type Result = {
-  status: GoalStatus,
-  result: any,
+  status: GoalStatus;
+  result: any;
 };
 
-
 export interface ActionSources {
-  state: StateSource<any>,
-  goal: Stream<Goal>,
-  cancel?: Stream<GoalID>,
+  state: StateSource<any>;
+  goal: Stream<Goal>;
+  cancel?: Stream<GoalID>;
 }
 
 export interface ActionSinks {
-  state: Stream<any>,
-  feedback?: Stream<any>,
-  status: Stream<GoalStatus>,
-  result: Stream<Result>,
+  state: Stream<any>;
+  feedback?: Stream<any>;
+  status: Stream<GoalStatus>;
+  result: Stream<Result>;
 }
-
 
 export interface EventSource {
   events(eventType: string): any;

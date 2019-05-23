@@ -1,11 +1,11 @@
 // Canvas related; adapted from
 //   https://github.com/tensorflow/tfjs-models/blob/fc0a80d8ddbd2845fca4a61355dc5c54d1b43e0d/posenet/demos/demo_util.js#L17-L73
-import * as posenet from '@tensorflow-models/posenet';
+import * as posenet from "@tensorflow-models/posenet";
 
-const color = 'aqua';
+const color = "aqua";
 const lineWidth = 2;
 
-function toTuple({y, x}): [any, any] {
+function toTuple({ y, x }): [any, any] {
   return [y, x];
 }
 
@@ -29,11 +29,18 @@ export function drawSegment([ay, ax], [by, bx], color, scale, ctx) {
 // Draws a pose skeleton by looking up all adjacent keypoints/joints
 export function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
   const adjacentKeyPoints = posenet.getAdjacentKeyPoints(
-    keypoints, minConfidence);
+    keypoints,
+    minConfidence
+  );
 
-  adjacentKeyPoints.forEach((keypoints) => {
-    drawSegment(toTuple(keypoints[0].position),
-      toTuple(keypoints[1].position), color, scale, ctx);
+  adjacentKeyPoints.forEach(keypoints => {
+    drawSegment(
+      toTuple(keypoints[0].position),
+      toTuple(keypoints[1].position),
+      color,
+      scale,
+      ctx
+    );
   });
 }
 
@@ -46,7 +53,7 @@ export function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
       continue;
     }
 
-    const {y, x} = keypoint.position;
+    const { y, x } = keypoint.position;
     drawPoint(ctx, y * scale, x * scale, 3, color);
   }
 }
@@ -57,19 +64,19 @@ export function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
 
 export const isAndroid = () => {
   return /Android/i.test(navigator.userAgent);
-}
+};
 
 export const isiOS = () => {
   return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
+};
 
 export const isMobile = () => {
   return isAndroid() || isiOS();
-}
+};
 
 export const setupCamera = async (video, videoWidth, videoHeight) => {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    throw 'Browser API navigator.mediaDevices.getUserMedia not available';
+    throw "Browser API navigator.mediaDevices.getUserMedia not available";
   }
 
   video.width = videoWidth;
@@ -77,11 +84,12 @@ export const setupCamera = async (video, videoWidth, videoHeight) => {
 
   const mobile = isMobile();
   const stream = await navigator.mediaDevices.getUserMedia({
-    'audio': false,
-    'video': {
-      facingMode: 'user',
+    audio: false,
+    video: {
+      facingMode: "user",
       width: mobile ? undefined : videoWidth,
-      height: mobile ? undefined: videoHeight}
+      height: mobile ? undefined : videoHeight
+    }
   });
   video.srcObject = stream;
 
@@ -90,4 +98,4 @@ export const setupCamera = async (video, videoWidth, videoHeight) => {
       resolve(video);
     };
   });
-}
+};

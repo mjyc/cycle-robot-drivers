@@ -1,187 +1,199 @@
-import xs from 'xstream';
-import {div, span} from '@cycle/dom';
-import {withState} from '@cycle/state';
-import isolate from '@cycle/isolate';
-import {run} from '@cycle/run';
-import {selectActionResult} from '@cycle-robot-drivers/action';
+import xs from "xstream";
+import { div, span } from "@cycle/dom";
+import { withState } from "@cycle/state";
+import isolate from "@cycle/isolate";
+import { run } from "@cycle/run";
+import { selectActionResult } from "@cycle-robot-drivers/action";
 import {
   FacialExpressionAction,
-  createSpeechbubbleAction,
-} from '@cycle-robot-drivers/screen';
-import {AudioPlayerAction} from '@cycle-robot-drivers/sound';
+  createSpeechbubbleAction
+} from "@cycle-robot-drivers/screen";
+import { AudioPlayerAction } from "@cycle-robot-drivers/sound";
 import {
   SpeechSynthesisAction,
-  SpeechRecognitionAction,
-} from '@cycle-robot-drivers/speech';
-import {
-  initializeTabletFaceRobotDrivers
-} from './initializeTabletFaceRobotDrivers';
+  SpeechRecognitionAction
+} from "@cycle-robot-drivers/speech";
+import { initializeTabletFaceRobotDrivers } from "./initializeTabletFaceRobotDrivers";
 export {
   initializeTabletFaceRobotDrivers
-} from './initializeTabletFaceRobotDrivers';
+} from "./initializeTabletFaceRobotDrivers";
 
 export function withTabletFaceRobotActions(
   main,
   {
     hidePoseViz = false,
-    styles = {},
+    styles = {}
   }: {
-    hidePoseViz?: boolean,
+    hidePoseViz?: boolean;
     styles?: {
-      speechbubblesOuter?: object,
-      speechbubbleOuter?: object,
-      robotSpeechbubble?: object,
-      humanSpeechbubble?: object,
-    },
-  } = {},
+      speechbubblesOuter?: object;
+      speechbubbleOuter?: object;
+      robotSpeechbubble?: object;
+      humanSpeechbubble?: object;
+    };
+  } = {}
 ) {
   if (!main) {
-    throw new Error('Must pass the argument main');
+    throw new Error("Must pass the argument main");
   }
 
   styles = {
     ...styles,
     speechbubblesOuter: {
-      position: 'absolute',
-      width: '96vw',
-      zIndex: 3,  // eyelid has zIndex of 2
-      margin: '2vw',
-      backgroundColor: 'white',
-      border: '0.2vmin solid lightgray',
-      borderRadius: '3vmin 3vmin 3vmin 3vmin',
-      ...styles.speechbubblesOuter,
+      position: "absolute",
+      width: "96vw",
+      zIndex: 3, // eyelid has zIndex of 2
+      margin: "2vw",
+      backgroundColor: "white",
+      border: "0.2vmin solid lightgray",
+      borderRadius: "3vmin 3vmin 3vmin 3vmin",
+      ...styles.speechbubblesOuter
     },
     speechbubbleOuter: {
       margin: 0,
-      padding: '1em',
-      maxWidth: '100%',
-      textAlign: 'center',
-      ...styles.speechbubbleOuter,
-    },
-  }
+      padding: "1em",
+      maxWidth: "100%",
+      textAlign: "center",
+      ...styles.speechbubbleOuter
+    }
+  };
 
-
-  const mainWithRobotActions = (sources) => {
-
+  const mainWithRobotActions = sources => {
     // Call main
     const state$ = sources.state.stream;
     const mainSinks: any = main({
       ...sources,
       FacialExpressionAction: {
-        result: state$.compose(selectActionResult('FacialExpressionAction'))
+        result: state$.compose(selectActionResult("FacialExpressionAction"))
       },
       RobotSpeechbubbleAction: {
-        result: state$.compose(selectActionResult('RobotSpeechbubbleAction'))
+        result: state$.compose(selectActionResult("RobotSpeechbubbleAction"))
       },
       HumanSpeechbubbleAction: {
-        result: state$.compose(selectActionResult('HumanSpeechbubbleAction'))
+        result: state$.compose(selectActionResult("HumanSpeechbubbleAction"))
       },
       AudioPlayerAction: {
-        result: state$.compose(selectActionResult('AudioPlayer'))
+        result: state$.compose(selectActionResult("AudioPlayer"))
       },
       SpeechSynthesisAction: {
-        result: state$.compose(selectActionResult('SpeechSynthesisAction'))
+        result: state$.compose(selectActionResult("SpeechSynthesisAction"))
       },
       SpeechRecognitionAction: {
-        result: state$.compose(selectActionResult('SpeechRecognitionAction'))
+        result: state$.compose(selectActionResult("SpeechRecognitionAction"))
       },
-      state: sources.state,
+      state: sources.state
     });
 
-
     // Define actions
-    const RobotSpeechbubbleAction = createSpeechbubbleAction(styles.robotSpeechbubble);
-    const HumanSpeechbubbleAction = createSpeechbubbleAction(styles.humanSpeechbubble);
+    const RobotSpeechbubbleAction = createSpeechbubbleAction(
+      styles.robotSpeechbubble
+    );
+    const HumanSpeechbubbleAction = createSpeechbubbleAction(
+      styles.humanSpeechbubble
+    );
 
     const facialExpressionAction: any = isolate(
-      FacialExpressionAction, 'FacialExpressionAction'
+      FacialExpressionAction,
+      "FacialExpressionAction"
     )({
       ...mainSinks.FacialExpressionAction,
       state: sources.state,
-      TabletFace: sources.TabletFace,
+      TabletFace: sources.TabletFace
     });
     const robotSpeechbubbleAction: any = isolate(
-      RobotSpeechbubbleAction, 'RobotSpeechbubbleAction'
+      RobotSpeechbubbleAction,
+      "RobotSpeechbubbleAction"
     )({
       ...mainSinks.RobotSpeechbubbleAction,
       state: sources.state,
-      DOM: sources.DOM,
+      DOM: sources.DOM
     });
     const humanSpeechbubbleAction: any = isolate(
-      HumanSpeechbubbleAction, 'HumanSpeechbubbleAction'
+      HumanSpeechbubbleAction,
+      "HumanSpeechbubbleAction"
     )({
       ...mainSinks.HumanSpeechbubbleAction,
       state: sources.state,
-      DOM: sources.DOM,
+      DOM: sources.DOM
     });
     const audioPlayerAction: any = isolate(
-      AudioPlayerAction, 'AudioPlayerAction'
+      AudioPlayerAction,
+      "AudioPlayerAction"
     )({
       ...mainSinks.AudioPlayerAction,
       state: sources.state,
-      AudioPlayer: sources.AudioPlayer,
+      AudioPlayer: sources.AudioPlayer
     });
     const speechSynthesisAction: any = isolate(
-      SpeechSynthesisAction, 'SpeechSynthesisAction'
+      SpeechSynthesisAction,
+      "SpeechSynthesisAction"
     )({
       ...mainSinks.SpeechSynthesisAction,
       state: sources.state,
-      SpeechSynthesis: sources.SpeechSynthesis,
+      SpeechSynthesis: sources.SpeechSynthesis
     });
     const speechRecognitionAction: any = isolate(
-      SpeechRecognitionAction, 'SpeechRecognitionAction'
+      SpeechRecognitionAction,
+      "SpeechRecognitionAction"
     )({
       ...mainSinks.SpeechRecognitionAction,
       state: sources.state,
-      SpeechRecognition: sources.SpeechRecognition,
+      SpeechRecognition: sources.SpeechRecognition
     });
 
-
     // Define sinks
-    const speechbubblesVdom$ = xs.combine(
-      robotSpeechbubbleAction.DOM.startWith(''),
-      humanSpeechbubbleAction.DOM.startWith(''),
-    ).map(([robotVTree, humanVTree]) =>
-      (robotVTree === '' &&  humanVTree === '')
-      ? ''
-      : (robotVTree !== '' &&  humanVTree === '')
-      ? div({style: styles.speechbubblesOuter}, [
-        div({style: styles.speechbubbleOuter}, [span(robotVTree)])
-      ])
-      : (robotVTree !== '' &&  humanVTree === '')
-      ? div({style: styles.speechbubblesOuter}, [
-        div({style: styles.speechbubbleOuter}, [span(humanVTree)])
-      ])
-      : div({style: styles.speechbubblesOuter}, [
-        div({style: styles.speechbubbleOuter}, [span(robotVTree)]),
-        div({style: styles.speechbubbleOuter}, [span(humanVTree)]),
-      ])
-    );
+    const speechbubblesVdom$ = xs
+      .combine(
+        robotSpeechbubbleAction.DOM.startWith(""),
+        humanSpeechbubbleAction.DOM.startWith("")
+      )
+      .map(([robotVTree, humanVTree]) =>
+        robotVTree === "" && humanVTree === ""
+          ? ""
+          : robotVTree !== "" && humanVTree === ""
+          ? div({ style: styles.speechbubblesOuter }, [
+              div({ style: styles.speechbubbleOuter }, [span(robotVTree)])
+            ])
+          : robotVTree !== "" && humanVTree === ""
+          ? div({ style: styles.speechbubblesOuter }, [
+              div({ style: styles.speechbubbleOuter }, [span(humanVTree)])
+            ])
+          : div({ style: styles.speechbubblesOuter }, [
+              div({ style: styles.speechbubbleOuter }, [span(robotVTree)]),
+              div({ style: styles.speechbubbleOuter }, [span(humanVTree)])
+            ])
+      );
 
     const vdom$ = !!mainSinks.DOM
       ? mainSinks.DOM
-      : xs.combine(
-          speechbubblesVdom$.startWith(''),
-          sources.TabletFace.events('dom').startWith(''),
-          sources.PoseDetection.events('dom').startWith(''),
-        ).map((vdoms) => {
-          if (vdoms[2] !== '') {
-            (vdoms[2] as any).data.style.display = hidePoseViz
-            ? 'none' : 'block';
-          }
-          return div({
-            style: {position: 'relative'}
-          }, vdoms as any);
-        });
+      : xs
+          .combine(
+            speechbubblesVdom$.startWith(""),
+            sources.TabletFace.events("dom").startWith(""),
+            sources.PoseDetection.events("dom").startWith("")
+          )
+          .map(vdoms => {
+            if (vdoms[2] !== "") {
+              (vdoms[2] as any).data.style.display = hidePoseViz
+                ? "none"
+                : "block";
+            }
+            return div(
+              {
+                style: { position: "relative" }
+              },
+              vdoms as any
+            );
+          });
     const tabletFace$ = !!mainSinks.TabletFace
       ? mainSinks.TabletFace
       : xs.merge(
-        sources.TabletFace.events('load').mapTo({
-          type: 'START_BLINKING',
-          value: {maxInterval: 10000}
-        }),
-        facialExpressionAction.TabletFace,
-      );
+          sources.TabletFace.events("load").mapTo({
+            type: "START_BLINKING",
+            value: { maxInterval: 10000 }
+          }),
+          facialExpressionAction.TabletFace
+        );
     // define reducer stream
     const reducer$: any = xs.merge(
       facialExpressionAction.state,
@@ -190,7 +202,7 @@ export function withTabletFaceRobotActions(
       audioPlayerAction.state,
       speechSynthesisAction.state,
       speechRecognitionAction.state,
-      mainSinks.state || xs.never(),
+      mainSinks.state || xs.never()
     );
 
     return {
@@ -200,9 +212,9 @@ export function withTabletFaceRobotActions(
       SpeechSynthesis: speechSynthesisAction.SpeechSynthesis,
       SpeechRecognition: speechRecognitionAction.SpeechRecognition,
       ...mainSinks,
-      state: reducer$,
+      state: reducer$
     };
-  }
+  };
 
   return mainWithRobotActions;
 }
@@ -235,20 +247,13 @@ export function withTabletFaceRobotActions(
  *
  *   drivers.
  */
-export function runTabletRobotFaceApp(
-  main,
-  drivers?,
-  options?,
-) {
+export function runTabletRobotFaceApp(main, drivers?, options?) {
   if (!main) {
-    throw new Error('Must pass the argument main');
+    throw new Error("Must pass the argument main");
   }
 
-  return run(
-    withState(withTabletFaceRobotActions(main, options) as any),
-    {
-      ...initializeTabletFaceRobotDrivers(),
-      ...drivers,
-    },
-  );
-};
+  return run(withState(withTabletFaceRobotActions(main, options) as any), {
+    ...initializeTabletFaceRobotDrivers(),
+    ...drivers
+  });
+}
