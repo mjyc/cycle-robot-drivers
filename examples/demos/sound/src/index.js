@@ -13,13 +13,7 @@ function main(sources) {
     next: s => console.debug("reducer state", s)
   });
 
-  const goal$ = xs
-    .merge(
-      xs.of(1).compose(delay(10)),
-      xs.of(1).compose(delay(7010)),
-      sources.DOM.select("button").events("click")
-    )
-    .debug()
+  const goal$ = sources.DOM.select("button").events("click")
     .mapTo({
       goal_id: { stamp: Date.now(), goal_id: "ap" },
       goal:
