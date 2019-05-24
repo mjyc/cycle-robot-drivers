@@ -125,7 +125,6 @@ export type PoseNetParameters = {
   };
   net: any;
   changeToArchitecture: string;
-  fps: number;
   stopRequested: boolean;
 };
 
@@ -139,6 +138,7 @@ export type PoseNetParameters = {
  *   * videoWidth {number} An optional video width (default: 480).
  *   * flipHorizontal {boolean} An optional flag for horizontally flipping the
  *     video (default: true).
+ *   * fps {number} An optional desired frame rate per second
  *
  * the PoseNet Cycle.js driver function. It takes a stream of [`PoseNetParameters`](./src/makePoseDetectionDriver.ts) and returns `EventSource`:
  *
@@ -150,11 +150,13 @@ export type PoseNetParameters = {
 export function makePoseDetectionDriver({
   videoWidth = 640,
   videoHeight = 480,
-  flipHorizontal = true
+  flipHorizontal = true,
+  fps = isMobile() ? 5 : 10
 }: {
   videoWidth?: number;
   videoHeight?: number;
   flipHorizontal?: boolean;
+  fps?: number;
 } = {}): Driver<any, any> {
   const divClass = `posenet`;
   const videoClass = `posenet-video`;
@@ -186,7 +188,6 @@ export function makePoseDetectionDriver({
       },
       net: null,
       changeToArchitecture: null,
-      fps: isMobile() ? 5 : 10,
       stopRequested: false
     };
     xs.fromObservable(params$)
@@ -322,7 +323,7 @@ export function makePoseDetectionDriver({
 
           // Setup the main loop
           const stats = new Stats();
-          const interval = 1000 / params.fps;
+          const interval = 1000 / fps;
           let start = Date.now();
           const execute = async () => {
             const elapsed = Date.now() - start;
