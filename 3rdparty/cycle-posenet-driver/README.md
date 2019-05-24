@@ -28,6 +28,7 @@ driver factory.
   * videoWidth {number} An optional video width (default: 480).
   * flipHorizontal {boolean} An optional flag for horizontally flipping the
     video (default: true).
+  * fps {number} An optional desired frame rate per second
 
 the PoseNet Cycle.js driver function. It takes a stream of [`PoseNetParameters`](./src/makePoseDetectionDriver.ts) and returns `EventSource`:
 
