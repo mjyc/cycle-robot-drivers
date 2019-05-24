@@ -7,6 +7,8 @@ import Stats from "stats.js";
 import * as posenet from "@tensorflow-models/posenet";
 import { drawSkeleton, drawKeypoints, isMobile, setupCamera } from "./utils";
 
+const guiWidth = 300;
+
 // adapted from
 //   https://github.com/tensorflow/tfjs-models/blob/fc0a80d8ddbd2845fca4a61355dc5c54d1b43e0d/posenet/demos/camera.js#L102-L182
 // Sets up dat.gui controller on the top-right of the window
@@ -17,7 +19,7 @@ function setupGui(cameras, net, guiState) {
     guiState.camera = cameras[0].deviceId;
   }
 
-  const gui = new dat.GUI({ width: 300, autoPlace: false });
+  const gui = new dat.GUI({ width: guiWidth, autoPlace: false });
 
   // The single-pose algorithm is faster and simpler but requires only one
   // person to be in the frame or results will be innaccurate. Multi-pose works
@@ -356,7 +358,7 @@ export function makePoseDetectionDriver({
           gui.domElement.style.setProperty("top", "0px");
           gui.domElement.style.setProperty("right", "0px");
           document.querySelector(`.${divClass}`).appendChild(gui.domElement);
-          gui.closed = true;
+          // gui.closed = true;  // open GUI onstart
         }, 1000);
       },
       stop: () => {
@@ -366,10 +368,23 @@ export function makePoseDetectionDriver({
 
     const vdom$ = xs
       .of(
-        div(`.${divClass}`, { style: { position: "relative" } }, [
-          video(`.${videoClass}`, { style: { display: "none" }, autoPlay: "" }),
-          canvas(`.${canvasClass}`)
-        ])
+        div(
+          `.${divClass}`,
+          {
+            style: {
+              position: "relative",
+              margin: "auto",
+              maxWidth: `${videoWidth + guiWidth}px`
+            }
+          },
+          [
+            video(`.${videoClass}`, {
+              style: { display: "none" },
+              autoPlay: ""
+            }),
+            canvas(`.${canvasClass}`)
+          ]
+        )
       )
       .remember();
 
