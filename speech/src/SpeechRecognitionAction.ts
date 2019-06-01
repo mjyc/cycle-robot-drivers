@@ -247,7 +247,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
   return xs.merge(initReducer$, inputReducer$);
 }
 
-function status(reducerState$): Stream<GoalStatus> {
+export function status(reducerState$): Stream<GoalStatus> {
   const done$: Stream<GoalStatus> = reducerState$
     .filter(rs => !!rs.outputs && !!rs.outputs.result)
     .map(rs => rs.outputs.result.status);
@@ -261,7 +261,7 @@ function status(reducerState$): Stream<GoalStatus> {
     .startWith(initGoalStatus);
 }
 
-function output(reducerState$) {
+export function output(reducerState$) {
   const outputs$ = reducerState$
     .filter(rs => !!rs.outputs)
     .map(rs => rs.outputs);
