@@ -6,17 +6,28 @@ import { run } from "@cycle/run";
 import { selectActionResult } from "@cycle-robot-drivers/action";
 import {
   FacialExpressionAction,
-  createSpeechbubbleAction
+  createSpeechbubbleAction,
+  selectFacialExpressionActionStatus,
+  selectSpeechbubbleActionStatus
 } from "@cycle-robot-drivers/screen";
-import { AudioPlayerAction } from "@cycle-robot-drivers/sound";
+import {
+  AudioPlayerAction,
+  selectAudioPlayerActionStatus
+} from "@cycle-robot-drivers/sound";
 import {
   SpeechSynthesisAction,
-  SpeechRecognitionAction
+  SpeechRecognitionAction,
+  selectSpeechSynthesisActionStatus,
+  selectSpeechRecognitionActionStatus
 } from "@cycle-robot-drivers/speech";
 import { initializeTabletFaceRobotDrivers } from "./initializeTabletFaceRobotDrivers";
 export {
   initializeTabletFaceRobotDrivers
 } from "./initializeTabletFaceRobotDrivers";
+
+function selectAction(actionName) {
+  return in$ => in$.filter(s => !!s && !!s[actionName]).map(s => s[actionName]);
+}
 
 export function withTabletFaceRobotActions(
   main,
@@ -64,21 +75,39 @@ export function withTabletFaceRobotActions(
     const mainSinks: any = main({
       ...sources,
       FacialExpressionAction: {
+        status: state$
+          .compose(selectAction("FacialExpressionAction"))
+          .compose(selectFacialExpressionActionStatus),
         result: state$.compose(selectActionResult("FacialExpressionAction"))
       },
       RobotSpeechbubbleAction: {
+        status: state$
+          .compose(selectAction("RobotSpeechbubbleAction"))
+          .compose(selectSpeechbubbleActionStatus),
         result: state$.compose(selectActionResult("RobotSpeechbubbleAction"))
       },
       HumanSpeechbubbleAction: {
+        status: state$
+          .compose(selectAction("HumanSpeechbubbleAction"))
+          .compose(selectSpeechbubbleActionStatus),
         result: state$.compose(selectActionResult("HumanSpeechbubbleAction"))
       },
       AudioPlayerAction: {
+        status: state$
+          .compose(selectAction("AudioPlayer"))
+          .compose(selectAudioPlayerActionStatus),
         result: state$.compose(selectActionResult("AudioPlayer"))
       },
       SpeechSynthesisAction: {
+        status: state$
+          .compose(selectAction("SpeechSynthesisAction"))
+          .compose(selectSpeechSynthesisActionStatus),
         result: state$.compose(selectActionResult("SpeechSynthesisAction"))
       },
       SpeechRecognitionAction: {
+        status: state$
+          .compose(selectAction("SpeechRecognitionAction"))
+          .compose(selectSpeechRecognitionActionStatus),
         result: state$.compose(selectActionResult("SpeechRecognitionAction"))
       },
       state: sources.state

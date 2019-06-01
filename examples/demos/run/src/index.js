@@ -22,12 +22,18 @@ function main(sources) {
       }
     }
   });
+  sources.HumanSpeechbubbleAction.status.addListener({
+    next: status => console.log("HumanSpeechbubbleAction.status", status)
+  });
   sources.SpeechRecognitionAction.result.addListener({
     next: result => {
       if (result.status.status === "SUCCEEDED") {
         console.log(`I heard "${result.result}"`);
       }
     }
+  });
+  sources.SpeechRecognitionAction.status.addListener({
+    next: status => console.log("SpeechRecognitionAction.status", status)
   });
   sources.PoseDetection.events("poses").addListener({ next: () => {} });
 
