@@ -77,7 +77,10 @@ function input(
             : Array.isArray(goal.goal)
             ? {
                 goal_id: goal.goal_id,
-                goal: { type: SpeechbubbleType.CHOICE, value: goal.goal }
+                goal: {
+                  type: SpeechbubbleType.CHOICE,
+                  value: goal.goal.map(g => String(g))
+                }
               }
             : goal.goal // {type: string, value: string | [string]}
       })),
