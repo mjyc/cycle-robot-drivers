@@ -2,7 +2,7 @@ import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
 import { Stream } from "xstream";
 import isolate from "@cycle/isolate";
-import { span, button, DOMSource, VNode } from "@cycle/dom";
+import { span, button, img, DOMSource, VNode } from "@cycle/dom";
 import {
   GoalID,
   Goal,
@@ -54,7 +54,8 @@ type Input = {
 
 export enum SpeechbubbleType {
   MESSAGE = "MESSAGE",
-  CHOICE = "CHOICE"
+  CHOICE = "CHOICE",
+  IMAGE = "IMAGE"
 }
 
 function input(
@@ -82,7 +83,7 @@ function input(
                   value: goal.goal.map(g => String(g))
                 }
               }
-            : goal.goal // {type: string, value: string | [string]}
+            : goal
       })),
     cancel$.map(val => ({ type: InputType.CANCEL, value: val })),
     clickEvent$.map(event => ({
@@ -138,6 +139,8 @@ function createTransition({
                     button(".choice", { style: styles.button }, text)
                   )
                 )
+              : inputValue.goal.type === SpeechbubbleType.IMAGE
+              ? img({ attrs: { src: inputValue.goal.value, width: "80%" } })
               : ""
         }
       })
@@ -160,6 +163,8 @@ function createTransition({
                     button(".choice", { style: styles.button }, text)
                   )
                 )
+              : inputValue.goal.type === SpeechbubbleType.IMAGE
+              ? img({ attrs: { src: inputValue.goal.value, width: "80%" } })
               : "",
           result: {
             status: {
