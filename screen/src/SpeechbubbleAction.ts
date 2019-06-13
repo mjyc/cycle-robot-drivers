@@ -99,6 +99,7 @@ function createTransition({
   styles?: {
     message?: object;
     button?: object;
+    img?: object;
   };
 } = {}) {
   styles = {
@@ -117,6 +118,11 @@ function createTransition({
       fontSize: "10vmin",
       fontWeight: "lighter",
       ...styles.button
+    },
+    img: {
+      width: "auto",
+      height: "70vmin",
+      ...styles.img
     }
   };
 
@@ -140,7 +146,10 @@ function createTransition({
                   )
                 )
               : inputValue.goal.type === SpeechbubbleType.IMAGE
-              ? img({ attrs: { src: inputValue.goal.value, width: "80%" } })
+              ? img({
+                  attrs: { src: inputValue.goal.value },
+                  style: styles.img
+                })
               : ""
         }
       })
