@@ -180,16 +180,32 @@ export function withTabletFaceRobotActions(
         robotVTree === "" && humanVTree === ""
           ? ""
           : robotVTree !== "" && humanVTree === ""
-          ? div({ style: styles.speechbubblesOuter }, [
-              div({ style: styles.speechbubbleOuter }, [span(robotVTree)])
+          ? div(".speechbubblesOuter", { style: styles.speechbubblesOuter }, [
+              div(
+                ".speechbubbleOuter .robot",
+                { style: styles.speechbubbleOuter },
+                [span(robotVTree)]
+              )
             ])
-          : robotVTree !== "" && humanVTree === ""
-          ? div({ style: styles.speechbubblesOuter }, [
-              div({ style: styles.speechbubbleOuter }, [span(humanVTree)])
+          : robotVTree === "" && humanVTree !== ""
+          ? div(".speechbubblesOuter", { style: styles.speechbubblesOuter }, [
+              div(
+                ".speechbubbleOuter .human",
+                { style: styles.speechbubbleOuter },
+                [span(humanVTree)]
+              )
             ])
-          : div({ style: styles.speechbubblesOuter }, [
-              div({ style: styles.speechbubbleOuter }, [span(robotVTree)]),
-              div({ style: styles.speechbubbleOuter }, [span(humanVTree)])
+          : div(".speechbubblesOuter", { style: styles.speechbubblesOuter }, [
+              div(
+                ".speechbubbleOuter .robot",
+                { style: styles.speechbubbleOuter },
+                [span(robotVTree)]
+              ),
+              div(
+                ".speechbubbleOuter .human",
+                { style: styles.speechbubbleOuter },
+                [span(humanVTree)]
+              )
             ])
       );
 
