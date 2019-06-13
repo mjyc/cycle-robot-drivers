@@ -274,7 +274,7 @@ export function SpeechSynthesisAction(sources: Sources): Sinks {
     sources.goal || xs.never(),
     sources.cancel || xs.never(),
     sources.SpeechSynthesis.events("start"),
-    sources.SpeechSynthesis.events("end")
+    sources.SpeechSynthesis.events("delayedend")
   );
   const reducer = transitionReducer(input$);
 

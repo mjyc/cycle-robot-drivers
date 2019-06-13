@@ -27,7 +27,7 @@ function main(sources) {
     .filter(([_, text]) => !!text)
     .map(([_, text]) => ({
       goal_id: { stamp: Date.now(), id: "ss" },
-      goal: text
+      goal: { text: text, rate: 0.9, afterpauseduration: 1000 }
     }));
   const speechSynthesisAction = isolate(SpeechSynthesisAction)({
     state: sources.state,
@@ -37,6 +37,9 @@ function main(sources) {
   });
   speechSynthesisAction.status.addListener({
     next: s => console.log("SpeechSynthesisAction status", s)
+  });
+  speechSynthesisAction.result.addListener({
+    next: r => console.log("SpeechSynthesisAction result", r)
   });
 
   // speech recognition

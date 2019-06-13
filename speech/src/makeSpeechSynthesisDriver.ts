@@ -36,12 +36,17 @@ export function makeSpeechSynthesisDriver(): Driver<any, EventSource> {
   const utterance: SpeechSynthesisUtterance = new SpeechSynthesisUtterance();
 
   return function(sink$) {
+    let listener;
+    let timeoutID;
+    let afterpauseduration;
+
     xs.fromObservable(sink$).addListener({
       next: args => {
         // array values are SpeechSynthesisUtterance properties that are not
         //   event handlers; see
         //   https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance
         if (!args) {
+          afterpauseduration = 0;
           synthesis.cancel();
         } else {
           ["lang", "pitch", "rate", "text", "voice", "volume"].map(arg => {
@@ -49,11 +54,33 @@ export function makeSpeechSynthesisDriver(): Driver<any, EventSource> {
               utterance[arg] = args[arg];
             }
           });
+
+          // add a afterpauseduration param handler
+          utterance.removeEventListener("end", listener);
+          listener = evt => {
+            clearTimeout(timeoutID);
+            timeoutID = setTimeout(
+              _ =>
+                utterance.dispatchEvent(
+                  new CustomEvent("delayedend", {
+                    detail: { SpeechSynthesisEvent: evt, afterpauseduration }
+                  })
+                ),
+              afterpauseduration
+            );
+          };
+          utterance.addEventListener("end", listener);
+
+          afterpauseduration =
+            typeof args["afterpauseduration"] !== "number" ||
+            args["afterpauseduration"] < 0
+              ? 0
+              : args["afterpauseduration"];
           synthesis.speak(utterance);
           // https://www.chromestatus.com/feature/5687444770914304
           if (!synthesis.speaking) {
-            console.warn('Cannot speak utterance; dispatching "ended"');
-            utterance.dispatchEvent(new Event("ended"));
+            console.warn('Cannot speak utterance; dispatching "end"');
+            utterance.dispatchEvent(new Event("end"));
           }
         }
       }
