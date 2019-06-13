@@ -182,7 +182,7 @@ export function withTabletFaceRobotActions(
           : robotVTree !== "" && humanVTree === ""
           ? div(".speechbubblesOuter", { style: styles.speechbubblesOuter }, [
               div(
-                ".speechbubbleOuter .robot",
+                ".speechbubbleOuter.robot",
                 { style: styles.speechbubbleOuter },
                 [span(robotVTree)]
               )
@@ -190,19 +190,19 @@ export function withTabletFaceRobotActions(
           : robotVTree === "" && humanVTree !== ""
           ? div(".speechbubblesOuter", { style: styles.speechbubblesOuter }, [
               div(
-                ".speechbubbleOuter .human",
+                ".speechbubbleOuter.human",
                 { style: styles.speechbubbleOuter },
                 [span(humanVTree)]
               )
             ])
           : div(".speechbubblesOuter", { style: styles.speechbubblesOuter }, [
               div(
-                ".speechbubbleOuter .robot",
+                ".speechbubbleOuter.robot",
                 { style: styles.speechbubbleOuter },
                 [span(robotVTree)]
               ),
               div(
-                ".speechbubbleOuter .human",
+                ".speechbubbleOuter.human",
                 { style: styles.speechbubbleOuter },
                 [span(humanVTree)]
               )
