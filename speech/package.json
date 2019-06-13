@@ -12,6 +12,7 @@
   "dependencies": {
     "@cycle-robot-drivers/action": "^1.0.0",
     "@cycle/run": "5.2.0",
+    "event-target-shim": "^5.0.1",
     "xstream": "11.10.0"
   },
   "devDependencies": {

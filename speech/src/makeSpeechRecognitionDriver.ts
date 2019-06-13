@@ -1,3 +1,5 @@
+import { EventTarget } from "event-target-shim";
+
 import xs from "xstream";
 import fromEvent from "xstream/extra/fromEvent";
 import { Driver } from "@cycle/run";
