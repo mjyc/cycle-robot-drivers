@@ -41,7 +41,7 @@ describe("SpeechSynthesisAction", () => {
     const goalMark$ = Time.diagram(`-x---|`);
     const events = {
       start: Time.diagram(`--x--|`),
-      end: Time.diagram(`---x-|`)
+      delayedend: Time.diagram(`---x-|`)
     };
     const expectedOutputMark$ = Time.diagram(`-x`);
     const expectedResultMark$ = Time.diagram(`---s`);
@@ -87,7 +87,7 @@ describe("SpeechSynthesisAction", () => {
     const cancel$ = Time.diagram(`---x--|`);
     const events = {
       start: Time.diagram(`--x---|`),
-      end: Time.diagram(`----x-|`)
+      delayedend: Time.diagram(`----x-|`)
     };
     const expectedOutputMark$ = Time.diagram(`-0-1`);
     const expectedResultMark$ = Time.diagram(`----p`);
@@ -134,7 +134,7 @@ describe("SpeechSynthesisAction", () => {
     const cancel$ = Time.diagram(`-x-|`);
     const events = {
       start: Time.diagram(`---|`),
-      end: Time.diagram(`---|`)
+      delayedend: Time.diagram(`---|`)
     };
     const expectedOutput$ = Time.diagram(``);
     const expectedResult$ = Time.diagram(``);
@@ -167,7 +167,7 @@ describe("SpeechSynthesisAction", () => {
     const cancel$ = Time.diagram(`----x-|`);
     const events = {
       start: Time.diagram(`--x---|`),
-      end: Time.diagram(`---x--|`)
+      delayedend: Time.diagram(`---x--|`)
     };
     const expectedOutputMark$ = Time.diagram(`-0`);
     const expectedResultMark$ = Time.diagram(`---s`);
@@ -215,7 +215,7 @@ describe("SpeechSynthesisAction", () => {
     const cancel$ = Time.diagram(`---x-x-|`);
     const events = {
       start: Time.diagram(`--x----|`),
-      end: Time.diagram(`----x--|`)
+      delayedend: Time.diagram(`----x--|`)
     };
     const expectedOutputMark$ = Time.diagram(`-0-1`);
     const expectedResultMark$ = Time.diagram(`----p`);
@@ -262,7 +262,7 @@ describe("SpeechSynthesisAction", () => {
     const goalMark$ = Time.diagram(`-0--1-----|`);
     const events = {
       start: Time.diagram(`--x---x---|`),
-      end: Time.diagram(`-----x--x-|`)
+      delayedend: Time.diagram(`-----x--x-|`)
     };
     const expecteds = [
       {

@@ -57,7 +57,7 @@ function input(
   goal$: Stream<Goal | string>,
   cancel$: Stream<GoalID>,
   startEvent$: Stream<any>,
-  endEvent$: Stream<any>
+  delayedendEvent$: Stream<any>
 ) {
   return xs.merge(
     goal$
@@ -77,7 +77,7 @@ function input(
       }),
     cancel$.map(val => ({ type: InputType.CANCEL, value: val })),
     startEvent$.mapTo({ type: InputType.START, value: null }),
-    endEvent$.mapTo({ type: InputType.END, value: null })
+    delayedendEvent$.mapTo({ type: InputType.END, value: null })
   );
 }
 
