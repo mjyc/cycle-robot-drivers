@@ -141,6 +141,7 @@ export type PoseNetParameters = {
  *   * flipHorizontal {boolean} An optional flag for horizontally flipping the
  *     video (default: true).
  *   * fps {number} An optional desired frame rate per second
+ *   * closeGUIOnStart {boolean} An optional flag for closing GUI on start
  *
  * the PoseNet Cycle.js driver function. It takes a stream of [`PoseNetParameters`](./src/makePoseDetectionDriver.ts) and returns `EventSource`:
  *
@@ -153,12 +154,14 @@ export function makePoseDetectionDriver({
   videoWidth = 640,
   videoHeight = 480,
   flipHorizontal = true,
-  fps = isMobile() ? 5 : 10
+  fps = isMobile() ? 5 : 10,
+  closeGUIOnStart = false
 }: {
   videoWidth?: number;
   videoHeight?: number;
   flipHorizontal?: boolean;
   fps?: number;
+  closeGUIOnStart?: boolean;
 } = {}): Driver<any, any> {
   const divClass = `posenet`;
   const videoClass = `posenet-video`;
@@ -358,7 +361,8 @@ export function makePoseDetectionDriver({
           gui.domElement.style.setProperty("top", "0px");
           gui.domElement.style.setProperty("right", "0px");
           document.querySelector(`.${divClass}`).appendChild(gui.domElement);
-          // gui.closed = true;  // open GUI onstart
+
+          gui.closed = closeGUIOnStart;
         }, 1000);
       },
       stop: () => {
