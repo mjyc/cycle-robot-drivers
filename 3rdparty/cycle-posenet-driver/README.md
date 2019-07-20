@@ -29,6 +29,7 @@ driver factory.
   * flipHorizontal {boolean} An optional flag for horizontally flipping the
     video (default: true).
   * fps {number} An optional desired frame rate per second
+  * closeGUIOnStart {boolean} An optional flag for closing GUI on start
 
 the PoseNet Cycle.js driver function. It takes a stream of [`PoseNetParameters`](./src/makePoseDetectionDriver.ts) and returns `EventSource`:
 
