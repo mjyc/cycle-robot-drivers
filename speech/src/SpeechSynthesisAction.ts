@@ -24,6 +24,7 @@ enum State {
 }
 
 type Variables = {
+  goal: any;
   goal_id: GoalID;
   newGoal: Goal;
 };
@@ -121,6 +122,7 @@ function transition(
     return {
       state,
       variables: {
+        goal: goal.goal,
         goal_id: goal.goal_id,
         newGoal: null
       },
@@ -136,6 +138,7 @@ function transition(
       return {
         state: !!newGoal ? State.RUN : state,
         variables: {
+          goal: !!newGoal ? newGoal.goal : null,
           goal_id: !!newGoal ? newGoal.goal_id : null,
           newGoal: null
         },
@@ -147,7 +150,7 @@ function transition(
               status:
                 prevState === State.RUN ? Status.SUCCEEDED : Status.PREEMPTED
             },
-            result: null
+            result: prevVariables.goal
           }
         }
       };
@@ -199,6 +202,7 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
     return {
       state: State.WAIT,
       variables: {
+        goal: null,
         goal_id: null,
         newGoal: null
       },
