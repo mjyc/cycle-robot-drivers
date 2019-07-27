@@ -1,0 +1,24 @@
+{
+  "name": "cycle-handtrack-driver",
+  "version": "0.0.4",
+  "description": "A Cycle.js driver for using victordibia's handtrackjs",
+  "author": "Michael Jae-Yoon Chung",
+  "license": "MIT",
+  "bugs": "https://github.com/mjyc/cycle-robot-drivers/issues",
+  "repository": "https://github.com/mjyc/cycle-robot-drivers/tree/master/3rdparty/cycle-handtrack-driver",
+  "main": "lib/cjs/index.js",
+  "module": "lib/es6/index.js",
+  "types": "lib/cjs/index.d.ts",
+  "dependencies": {
+    "@cycle/dom": "22.3.0",
+    "@cycle/run": "5.2.0",
+    "handtrackjs": "0.0.13",
+    "xstream": "11.10.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build:cjs": "../../node_modules/.bin/tsc --project tsconfig.json --module commonjs --outdir lib/cjs",
+    "build:es6": "../../node_modules/.bin/tsc --project tsconfig.json --module es6 --outDir lib/es6",
+    "build:doc": "../../node_modules/.bin/markdox ./src/* -o api.md && sed -i '1s/^.*$/\\n# API/' api.md && sed -i 's/^#.*/#&/' api.md && cat ../../docs/readmes/${PWD##*/}.md api.md > README.md && rm api.md"
+  }
+}
