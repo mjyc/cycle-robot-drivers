@@ -69,7 +69,7 @@ describe("SpeechSynthesisAction", () => {
     const expectedOutput$ = expectedOutputMark$.mapTo(goal);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null
+      result: goal
     }));
 
     // Run test
@@ -117,7 +117,7 @@ describe("SpeechSynthesisAction", () => {
     const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null
+      result: goal
     }));
 
     // Run test
@@ -197,7 +197,7 @@ describe("SpeechSynthesisAction", () => {
     const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null
+      result: goal
     }));
 
     // Run test
@@ -245,7 +245,7 @@ describe("SpeechSynthesisAction", () => {
     const expectedOutput$ = expectedOutputMark$.map(i => values[i]);
     const expectedResult$ = expectedResultMark$.map(str => ({
       status: toStatus(str),
-      result: null
+      result: goal
     }));
 
     // Run test
@@ -299,7 +299,7 @@ describe("SpeechSynthesisAction", () => {
       const toStatus = createToStatus(goal_ids[i]);
       expected.result = expected.result.map(str => ({
         status: toStatus(str),
-        result: null
+        result: goals[i]
       }));
     });
     const expectedOutput$ = xs.merge(expecteds[0].output, expecteds[1].output);
