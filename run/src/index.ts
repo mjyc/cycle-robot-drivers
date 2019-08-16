@@ -215,7 +215,8 @@ export function withTabletFaceRobotActions(
           .combine(
             speechbubblesVdom$.startWith(""),
             sources.TabletFace.events("dom").startWith(""),
-            sources.PoseDetection.events("dom").startWith("")
+            sources.PoseDetection.events("dom").startWith(""),
+            (mainSinks.dom || xs.never()).startWith("")
           )
           .map(vdoms => {
             if (vdoms[2] !== "") {
@@ -237,7 +238,8 @@ export function withTabletFaceRobotActions(
             type: "START_BLINKING",
             value: { maxInterval: 10000 }
           }),
-          facialExpressionAction.TabletFace
+          facialExpressionAction.TabletFace,
+          mainSinks.tabletFace || xs.never()
         );
     // define reducer stream
     const reducer$: any = xs.merge(
