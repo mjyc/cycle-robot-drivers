@@ -94,9 +94,9 @@ export function withTabletFaceRobotActions(
       },
       AudioPlayerAction: {
         status: state$
-          .compose(selectAction("AudioPlayer"))
+          .compose(selectAction("AudioPlayerAction"))
           .compose(selectAudioPlayerActionStatus),
-        result: state$.compose(selectActionResult("AudioPlayer"))
+        result: state$.compose(selectActionResult("AudioPlayerAction"))
       },
       SpeechSynthesisAction: {
         status: state$
