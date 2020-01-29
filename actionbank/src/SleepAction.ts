@@ -15,13 +15,6 @@ import {
   isEqualGoalStatus,
   isEqualGoalID
 } from "@cycle-robot-drivers/action";
-// import {
-//   GoalID, Goal, Status, GoalStatus, Result,
-//   ActionSources, ActionSinks,
-// } from './types';
-// import {
-//   initGoal, generateGoalStatus, isEqualGoalStatus, isEqualGoalID,
-// } from './utils';
 
 enum State {
   RUN = "RUN",

@@ -15,6 +15,7 @@
     "@cycle/dom": "22.3.0",
     "@cycle/isolate": "5.0.0",
     "@cycle/state": "1.2.0",
+    "@cycle/time": "^0.20.0",
     "xstream": "11.10.0"
   },
   "scripts": {

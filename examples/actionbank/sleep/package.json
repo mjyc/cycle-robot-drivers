@@ -9,9 +9,11 @@
   "license": "MIT",
   "dependencies": {
     "@cycle-robot-drivers/action": "file:../../../action",
-    "@cycle/time": "0.19.0",
-    "@cycle/state": "1.2.0",
+    "@cycle-robot-drivers/actionbank": "file:../../../actionbank",
+    "@cycle/isolate": "5.2.0",
     "@cycle/run": "5.2.0",
+    "@cycle/state": "1.2.0",
+    "@cycle/time": "0.19.0",
     "xstream": "11.10.0"
   },
   "devDependencies": {
