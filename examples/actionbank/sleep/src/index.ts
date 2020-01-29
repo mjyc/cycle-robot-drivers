@@ -21,7 +21,7 @@ function main(sources) {
     state: sources.state,
     goal: xs.merge(
       xs.of(1000).compose(delay(1000)),
-      xs.of(2000).compose(delay(1000))
+      xs.of(2000).compose(delay(3000))
     ) as any,
     Time: sources.Time
   });

@@ -18,11 +18,13 @@ import {
 
 enum State {
   RUN = "RUN",
-  WAIT = "WAIT"
+  WAIT = "WAIT",
+  PREEMPT = "PREEMPT"
 }
 
 type Variables = {
   goal_id: GoalID;
+  newGoal: Goal;
 };
 
 type SleepInput = {
@@ -67,8 +69,8 @@ function input(
   return xs.merge(
     goal$
       .filter(g => typeof g !== "undefined" && g !== null)
-      .map(g => {
-        const goal: Goal = initGoal(g);
+      .map(g => initGoal(g))
+      .map(goal => {
         return {
           type: InputType.GOAL,
           value:
@@ -93,7 +95,8 @@ function transition(prev: ReducerState, input: Input): ReducerState {
         ...prev,
         state: State.RUN,
         variables: {
-          goal_id: goal.goal_id
+          goal_id: goal.goal_id,
+          newGoal: null
         },
         outputs: {
           Time: goal.goal
@@ -109,12 +112,15 @@ function transition(prev: ReducerState, input: Input): ReducerState {
     ) {
       return {
         ...prev,
-        state: input.type === InputType.GOAL ? State.RUN : State.WAIT,
+        // state: input.type === InputType.GOAL ? State.RUN : State.WAIT,
+        state: State.PREEMPT,
         variables: {
-          goal_id:
-            input.type === InputType.GOAL
-              ? (input.value as Goal).goal_id
-              : prev.variables.goal_id
+          // goal_id:
+          //   input.type === InputType.GOAL
+          //     ? (input.value as Goal).goal_id
+          //     : prev.variables.goal_id
+          ...prev.variables,
+          newGoal: input.type === InputType.GOAL ? (input.value as Goal) : null
         },
         outputs: {
           Time: (input.value as Goal).goal
@@ -131,13 +137,36 @@ function transition(prev: ReducerState, input: Input): ReducerState {
         ...prev,
         state: State.WAIT,
         variables: {
-          goal_id: null
+          goal_id: null,
+          newGoal: null
         },
         outputs: {
           result: {
             status: {
               goal_id: prev.variables.goal_id,
               status: Status.SUCCEEDED
+            },
+            result: input.value
+          }
+        }
+      };
+    }
+  } else if (prev.state === State.PREEMPT) {
+    if (input.type === InputType.SLEEP_DONE) {
+      const newGoal = prev.variables.newGoal;
+      return {
+        ...prev,
+        state: !!newGoal ? State.RUN : State.WAIT,
+        variables: {
+          goal_id: !!newGoal ? newGoal.goal_id : null,
+          newGoal: null
+        },
+        outputs: {
+          Time: !!newGoal ? newGoal.goal : undefined,
+          result: {
+            status: {
+              goal_id: prev.variables.goal_id,
+              status: Status.PREEMPTED
             },
             result: input.value
           }
@@ -155,7 +184,8 @@ function transitionReducer(input$: Stream<Input>): Stream<Reducer> {
     return {
       state: State.WAIT,
       variables: {
-        goal_id: null
+        goal_id: null,
+        newGoal: null
       },
       outputs: null
     };
