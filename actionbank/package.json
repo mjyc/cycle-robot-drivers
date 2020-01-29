@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/actionbank",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Premade cycle-robot-driver action components",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
@@ -10,12 +10,12 @@
   "module": "lib/es6/index.ts",
   "types": "lib/cjs/index.d.ts",
   "dependencies": {
-    "@cycle-robot-drivers/action": "file:../action",
-    "@cycle-robot-drivers/screen": "file:../screen",
+    "@cycle-robot-drivers/action": "1.0.1",
+    "@cycle-robot-drivers/screen": "1.1.7",
     "@cycle/dom": "22.3.0",
     "@cycle/isolate": "5.0.0",
     "@cycle/state": "1.2.0",
-    "@cycle/time": "^0.20.0",
+    "@cycle/time": "0.20.0",
     "xstream": "11.10.0"
   },
   "scripts": {
