@@ -15,36 +15,8 @@ import {
 } from "@cycle-robot-drivers/action";
 import {
   SleepAction,
-  DisplayButtonAction
+  DisplayTextAction
 } from "@cycle-robot-drivers/actionbank";
-
-function DisplayTextAction(sources) {
-  const RaceAction = createConcurrentAction(
-    ["SleepAction", "HumanSpeechbubbleAction"],
-    true
-  );
-  const raceSinks = isolate(RaceAction, "DisplayButtonAction")({
-    state: sources.state,
-    goal: sources.DisplayTextAction.goal,
-    cancel: sources.DisplayTextAction.cancel,
-    SleepAction: {
-      result: sources.state.stream
-        .compose(selectActionResult("SleepAction"))
-        .debug(r => console.warn(r))
-    },
-    HumanSpeechbubbleAction: {
-      result: sources.state.stream
-        .compose(selectActionResult("HumanSpeechbubbleAction"))
-        .debug(r => console.error(r))
-    }
-  });
-
-  return {
-    state: raceSinks.state,
-    HumanSpeechbubbleAction: raceSinks.HumanSpeechbubbleAction,
-    SleepAction: raceSinks.SleepAction
-  };
-}
 
 function main(sources) {
   const state$ = sources.state.stream;
@@ -74,7 +46,7 @@ function main(sources) {
     DisplayTextAction: {
       goal: xs
         .of({
-          HumanSpeechbubbleAction: ["Hello!"],
+          RobotSpeechbubbleAction: "Hello!",
           SleepAction: 1000
         })
         .compose(delay(1000)),
@@ -86,12 +58,12 @@ function main(sources) {
   cancelProxy$.imitate(dt.SleepAction.cancel);
 
   sources.state.stream
-    .compose(selectActionResult("DisplayButtonAction"))
+    .compose(selectActionResult("DisplayTextAction"))
     .addListener({ next: x => console.error("====", x) });
 
   return {
     state: xs.merge(sleepAction.state, dt.state),
-    HumanSpeechbubbleAction: dt.HumanSpeechbubbleAction
+    RobotSpeechbubbleAction: dt.RobotSpeechbubbleAction
   };
 }
 
