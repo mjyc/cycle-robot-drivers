@@ -28,20 +28,16 @@ function main(sources) {
     next: s => console.debug("result", s)
   });
 
-  const goalProxy$ = xs.create();
-  const cancelProxy$ = xs.create();
+  const sleepGoalProxy$ = xs.create();
+  const sleepCancelProxy$ = xs.create();
   const sleepAction = isolate(SleepAction, "SleepAction")({
     state: sources.state,
-    // goal: xs.merge(
-    //   xs.of(1000).compose(delay(1000)),
-    //   xs.of(2000).compose(delay(1000))
-    // ),
-    goal: goalProxy$,
-    cancel: cancelProxy$,
+    goal: sleepGoalProxy$,
+    cancel: sleepCancelProxy$,
     Time: sources.Time
   });
 
-  const dt = DisplayTextAction({
+  const displayText = DisplayTextAction({
     state: sources.state,
     DisplayTextAction: {
       goal: xs
@@ -54,16 +50,16 @@ function main(sources) {
     }
   });
 
-  goalProxy$.imitate(dt.SleepAction.goal);
-  cancelProxy$.imitate(dt.SleepAction.cancel);
+  sleepGoalProxy$.imitate(displayText.SleepAction.goal);
+  sleepCancelProxy$.imitate(displayText.SleepAction.cancel);
 
   sources.state.stream
     .compose(selectActionResult("DisplayTextAction"))
-    .addListener({ next: x => console.error("====", x) });
+    .addListener({ next: x => console.debug("DisplayTextAction result", x) });
 
   return {
-    state: xs.merge(sleepAction.state, dt.state),
-    RobotSpeechbubbleAction: dt.RobotSpeechbubbleAction
+    state: xs.merge(sleepAction.state, displayText.state),
+    RobotSpeechbubbleAction: displayText.RobotSpeechbubbleAction
   };
 }
 
