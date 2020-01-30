@@ -42,7 +42,7 @@ function main(sources) {
 
   const sleepGoalProxy$ = xs.create();
   const sleepCancelProxy$ = xs.create();
-  const sleepAction = isolate(SleepAction, "SleepAction")({
+  const sleepAction = isolate(SleepAction, "DisplayButtonSleepAction")({
     state: sources.state,
     goal: sleepGoalProxy$,
     cancel: sleepCancelProxy$,
@@ -55,15 +55,15 @@ function main(sources) {
       goal: xs
         .of({
           HumanSpeechbubbleAction: ["Hi", "Bye"],
-          SleepAction: 5000
+          DisplayButtonSleepAction: 3000
         })
         .compose(delay(1000)),
       cancel: xs.never()
     }
   });
 
-  sleepGoalProxy$.imitate(displayAction.SleepAction.goal);
-  sleepCancelProxy$.imitate(displayAction.SleepAction.cancel);
+  sleepGoalProxy$.imitate(displayAction.DisplayButtonSleepAction.goal);
+  sleepCancelProxy$.imitate(displayAction.DisplayButtonSleepAction.cancel);
 
   sources.state.stream
     .compose(selectActionResult("DisplayButtonAction"))

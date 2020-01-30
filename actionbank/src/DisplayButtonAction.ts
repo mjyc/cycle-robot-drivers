@@ -25,18 +25,20 @@ export function status(reducerState$) {
 
 export function DisplayButtonAction(sources) {
   const RaceAction = createConcurrentAction(
-    ["SleepAction", "HumanSpeechbubbleAction"],
+    ["DisplayButtonSleepAction", "HumanSpeechbubbleAction"],
     true
   );
   const sleepActionResult$ = sources.state.stream.compose(
-    selectActionResult("SleepAction")
+    selectActionResult("DisplayButtonSleepAction")
   );
   const raceSinks = isolate(RaceAction, "DisplayButtonAction")({
     state: sources.state,
     goal: sources.DisplayButtonAction.goal,
     cancel: sources.DisplayButtonAction.cancel,
-    SleepAction: {
-      result: sources.state.stream.compose(selectActionResult("SleepAction"))
+    DisplayButtonSleepAction: {
+      result: sources.state.stream.compose(
+        selectActionResult("DisplayButtonSleepAction")
+      )
     },
     HumanSpeechbubbleAction: {
       result: sources.state.stream.compose(
@@ -56,6 +58,6 @@ export function DisplayButtonAction(sources) {
   return {
     state: raceSinks.state,
     HumanSpeechbubbleAction,
-    SleepAction: raceSinks.SleepAction
+    DisplayButtonSleepAction: raceSinks.DisplayButtonSleepAction
   };
 }

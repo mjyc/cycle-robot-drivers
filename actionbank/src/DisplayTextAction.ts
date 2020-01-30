@@ -25,17 +25,17 @@ export function status(reducerState$) {
 
 export function DisplayTextAction(sources) {
   const RaceAction = createConcurrentAction(
-    ["SleepAction", "RobotSpeechbubbleAction"],
+    ["DisplayTextSleepAction", "RobotSpeechbubbleAction"],
     true
   );
   const sleepActionResult$ = sources.state.stream.compose(
-    selectActionResult("SleepAction")
+    selectActionResult("DisplayTextSleepAction")
   );
   const raceSinks = isolate(RaceAction, "DisplayTextAction")({
     state: sources.state,
     goal: sources.DisplayTextAction.goal,
     cancel: sources.DisplayTextAction.cancel,
-    SleepAction: {
+    DisplayTextSleepAction: {
       result: sleepActionResult$
     },
     RobotSpeechbubbleAction: {
@@ -56,6 +56,6 @@ export function DisplayTextAction(sources) {
   return {
     state: raceSinks.state,
     RobotSpeechbubbleAction,
-    SleepAction: raceSinks.SleepAction
+    DisplayTextSleepAction: raceSinks.DisplayTextSleepAction
   };
 }
