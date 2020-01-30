@@ -5,12 +5,25 @@ import { run } from "@cycle/run";
 import isolate from "@cycle/isolate";
 import { timeDriver } from "@cycle/time";
 import { selectActionResult } from "@cycle-robot-drivers/action";
-import { SleepAction } from "@cycle-robot-drivers/actionbank";
+import {
+  SleepAction,
+  selectSleepActionStatus
+} from "@cycle-robot-drivers/actionbank";
+
+function selectAction(actionName) {
+  return in$ => in$.filter(s => !!s && !!s[actionName]).map(s => s[actionName]);
+}
 
 function main(sources) {
   const state$ = sources.state.stream;
   state$.addListener({
     next: s => console.debug("reducer state", s)
+  });
+  const status$ = state$
+    .compose(selectAction("SleepAction"))
+    .compose(selectSleepActionStatus);
+  status$.addListener({
+    next: s => console.debug("status", s)
   });
   const result$ = state$.compose(selectActionResult("SleepAction"));
   result$.addListener({

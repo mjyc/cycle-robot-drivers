@@ -14,18 +14,30 @@ import {
   selectActionResult
 } from "@cycle-robot-drivers/action";
 import {
+  selectSleepActionStatus,
   SleepAction,
-  DisplayTextAction
+  selectDisplayButtonActionStatus,
+  DisplayButtonAction
 } from "@cycle-robot-drivers/actionbank";
+
+function selectAction(actionName) {
+  return in$ => in$.filter(s => !!s && !!s[actionName]).map(s => s[actionName]);
+}
 
 function main(sources) {
   const state$ = sources.state.stream;
   state$.addListener({
     next: s => console.debug("reducer state", s)
   });
-  const result$ = state$.compose(selectActionResult("SleepAction"));
+  const status$ = state$
+    .compose(selectAction("DisplayButtonAction"))
+    .compose(selectDisplayButtonActionStatus);
+  status$.addListener({
+    next: s => console.warn("status", s)
+  });
+  const result$ = state$.compose(selectActionResult("DisplayButtonAction"));
   result$.addListener({
-    next: s => console.debug("result", s)
+    next: s => console.warn("result", s)
   });
 
   const sleepGoalProxy$ = xs.create();
@@ -37,29 +49,29 @@ function main(sources) {
     Time: sources.Time
   });
 
-  const displayText = DisplayTextAction({
+  const displayAction = DisplayButtonAction({
     state: sources.state,
-    DisplayTextAction: {
+    DisplayButtonAction: {
       goal: xs
         .of({
-          RobotSpeechbubbleAction: "Hello!",
-          SleepAction: 1000
+          HumanSpeechbubbleAction: ["Hi", "Bye"],
+          SleepAction: 5000
         })
         .compose(delay(1000)),
       cancel: xs.never()
     }
   });
 
-  sleepGoalProxy$.imitate(displayText.SleepAction.goal);
-  sleepCancelProxy$.imitate(displayText.SleepAction.cancel);
+  sleepGoalProxy$.imitate(displayAction.SleepAction.goal);
+  sleepCancelProxy$.imitate(displayAction.SleepAction.cancel);
 
   sources.state.stream
-    .compose(selectActionResult("DisplayTextAction"))
-    .addListener({ next: x => console.debug("DisplayTextAction result", x) });
+    .compose(selectActionResult("DisplayButtonAction"))
+    .addListener({ next: x => console.debug("DisplayButtonAction result", x) });
 
   return {
-    state: xs.merge(sleepAction.state, displayText.state),
-    RobotSpeechbubbleAction: displayText.RobotSpeechbubbleAction
+    state: xs.merge(sleepAction.state, displayAction.state),
+    HumanSpeechbubbleAction: displayAction.HumanSpeechbubbleAction
   };
 }
 
