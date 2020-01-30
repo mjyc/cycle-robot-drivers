@@ -82,9 +82,9 @@ export function createTwoSpeechbubbles({
         )
       },
       HumanSpeechbubbleAction: {
-        result: sources.state.stream
-          .compose(selectActionResult("HumanSpeechbubbleAction"))
-          .debug(r => console.error(r))
+        result: sources.state.stream.compose(
+          selectActionResult("HumanSpeechbubbleAction")
+        )
       }
     });
 
