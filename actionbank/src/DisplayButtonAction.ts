@@ -1,3 +1,4 @@
+import xs from "xstream";
 import isolate from "@cycle/isolate";
 import {
   createConcurrentAction,
@@ -8,6 +9,9 @@ export function DisplayButtonAction(sources) {
   const RaceAction = createConcurrentAction(
     ["SleepAction", "HumanSpeechbubbleAction"],
     true
+  );
+  const sleepActionResult$ = sources.state.stream.compose(
+    selectActionResult("SleepAction")
   );
   const raceSinks = isolate(RaceAction, "DisplayButtonAction")({
     state: sources.state,
@@ -23,9 +27,20 @@ export function DisplayButtonAction(sources) {
     }
   }) as any;
 
+  const HumanSpeechbubbleAction = {
+    goal: xs.merge(
+      sleepActionResult$
+        .debug()
+        .filter(r => r.status.status === "SUCCEEDED")
+        .mapTo([]),
+      raceSinks.HumanSpeechbubbleAction.goal
+    ),
+    cancel: raceSinks.HumanSpeechbubbleAction.cancel
+  };
+
   return {
     state: raceSinks.state,
-    HumanSpeechbubbleAction: raceSinks.HumanSpeechbubbleAction,
+    HumanSpeechbubbleAction,
     SleepAction: raceSinks.SleepAction
   };
 }

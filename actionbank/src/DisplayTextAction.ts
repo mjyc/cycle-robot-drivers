@@ -29,10 +29,7 @@ export function DisplayTextAction(sources) {
 
   const RobotSpeechbubbleAction = {
     goal: xs.merge(
-      sleepActionResult$
-        .debug()
-        .filter(r => r.status.status === "SUCCEEDED")
-        .mapTo(""),
+      sleepActionResult$.filter(r => r.status.status === "SUCCEEDED").mapTo(""),
       raceSinks.RobotSpeechbubbleAction.goal
     ),
     cancel: raceSinks.RobotSpeechbubbleAction.cancel
