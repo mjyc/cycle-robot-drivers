@@ -8,7 +8,7 @@ export {
 export { createTwoSpeechbubbles, TwoSpeechbubbles } from "./TwoSpeechbubbles";
 export {
   DisplayTextAction,
-  status as selectDisplayTextAction
+  status as selectDisplayTextActionStatus
 } from "./DisplayTextAction";
 export {
   DisplayButtonAction,
