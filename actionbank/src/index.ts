@@ -1,8 +1,8 @@
 export {
-  Sources as FacialExpressionActionSources,
-  Sinks as FacialExpressionActionSinks,
-  status as selectFacialExpressionActionStatus,
-  output as selectFacialExpressionActionOutput,
+  Sources as SleepActionSources,
+  Sinks as SleepActionSinks,
+  status as selectSleepActionStatus,
+  output as selectSleepActionOutput,
   SleepAction
 } from "./SleepAction";
 export { createTwoSpeechbubbles, TwoSpeechbubbles } from "./TwoSpeechbubbles";
