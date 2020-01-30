@@ -1,6 +1,6 @@
 {
   "name": "@cycle-robot-drivers/action",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Utilities for cycle-robot-drivers packages",
   "author": "Michael Jae-Yoon Chung",
   "license": "MIT",
