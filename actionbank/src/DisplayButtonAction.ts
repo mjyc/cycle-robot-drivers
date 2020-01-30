@@ -47,10 +47,7 @@ export function DisplayButtonAction(sources) {
 
   const HumanSpeechbubbleAction = {
     goal: xs.merge(
-      sleepActionResult$
-        .debug()
-        .filter(r => r.status.status === "SUCCEEDED")
-        .mapTo([]),
+      sleepActionResult$.filter(r => r.status.status === "SUCCEEDED").mapTo([]),
       raceSinks.HumanSpeechbubbleAction.goal
     ),
     cancel: raceSinks.HumanSpeechbubbleAction.cancel
