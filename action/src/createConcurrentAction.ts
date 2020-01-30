@@ -67,7 +67,6 @@ export function createConcurrentAction(
 
     const transitionReducer$: Stream<Reducer<State>> = input$.map(
       input => (prev: State): State => {
-        console.debug("input", input, "prev", prev);
         if (prev.state === S.PEND && input.type === SIGType.GOAL) {
           const outputs = Object.keys(input.value.goal).reduce((acc, x) => {
             acc[x] = {

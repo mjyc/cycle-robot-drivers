@@ -47,10 +47,6 @@ export function createTwoSpeechbubbles({
   );
 
   const TwoSpeechbubbles = sources => {
-    sources.state.stream.addListener({
-      next: s => console.debug("reducer state", s)
-    });
-
     // Define concurrent actions
     const AllAction = createConcurrentAction(
       ["RobotSpeechbubbleAction", "HumanSpeechbubbleAction"],
