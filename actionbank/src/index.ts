@@ -6,7 +6,10 @@ export {
   SleepAction
 } from "./SleepAction";
 export { createTwoSpeechbubbles, TwoSpeechbubbles } from "./TwoSpeechbubbles";
-export { DisplayTextAction } from "./DisplayTextAction";
+export {
+  DisplayTextAction,
+  status as selectDisplayTextAction
+} from "./DisplayTextAction";
 export {
   DisplayButtonAction,
   status as selectDisplayButtonActionStatus
