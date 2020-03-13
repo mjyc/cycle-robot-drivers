@@ -4,7 +4,8 @@ export {
   Sinks as SpeechSynthesisActionSinks,
   status as selectSpeechSynthesisActionStatus,
   output as selectSpeechSynthesisActionOutput,
-  SpeechSynthesisAction
+  SpeechSynthesisAction,
+  SpeechSynthesisActionFncs
 } from "./SpeechSynthesisAction";
 export { makeSpeechRecognitionDriver } from "./makeSpeechRecognitionDriver";
 export {
@@ -12,5 +13,6 @@ export {
   Sinks as SpeechRecognitionActionSinks,
   status as selectSpeechRecognitionActionStatus,
   output as selectSpeechRecognitionActionOutput,
-  SpeechRecognitionAction
+  SpeechRecognitionAction,
+  SpeechRecognitionActionFncs
 } from "./SpeechRecognitionAction";

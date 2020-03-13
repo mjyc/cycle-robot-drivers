@@ -290,3 +290,10 @@ export function SpeechSynthesisAction(sources: Sources): Sinks {
     ...outputs
   };
 }
+
+export let SpeechSynthesisActionFncs = {
+  input,
+  transitionReducer,
+  status,
+  output
+};

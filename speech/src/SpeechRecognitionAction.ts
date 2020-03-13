@@ -318,3 +318,10 @@ export function SpeechRecognitionAction(sources: Sources): Sinks {
     ...outputs
   };
 }
+
+export let SpeechRecognitionActionFncs = {
+  input,
+  transitionReducer,
+  status,
+  output
+};
