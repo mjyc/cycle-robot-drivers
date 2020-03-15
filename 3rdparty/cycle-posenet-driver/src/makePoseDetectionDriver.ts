@@ -1,3 +1,4 @@
+const defaultsDeep = require("lodash.defaultsdeep");
 import xs from "xstream";
 import { div, canvas, video } from "@cycle/dom";
 import { Driver } from "@cycle/run";
@@ -155,13 +156,15 @@ export function makePoseDetectionDriver({
   videoHeight = 480,
   flipHorizontal = true,
   fps = isMobile() ? 5 : 10,
-  closeGUIOnStart = false
+  closeGUIOnStart = false,
+  initialParameters = {}
 }: {
   videoWidth?: number;
   videoHeight?: number;
   flipHorizontal?: boolean;
   fps?: number;
   closeGUIOnStart?: boolean;
+  initialParameters?: object;
 } = {}): Driver<any, any> {
   const divClass = `posenet`;
   const videoClass = `posenet-video`;
@@ -169,7 +172,8 @@ export function makePoseDetectionDriver({
 
   return function(params$): any {
     let params: PoseNetParameters = null;
-    const initialParams = {
+
+    const initialParams = defaultsDeep(initialParameters, {
       algorithm: "single-pose",
       input: {
         mobileNetArchitecture: isMobile() ? "0.50" : "0.75",
@@ -194,7 +198,7 @@ export function makePoseDetectionDriver({
       net: null,
       changeToArchitecture: null,
       stopRequested: false
-    };
+    });
     xs.fromObservable(params$)
       .fold((prev: PoseNetParameters, params: PoseNetParameters) => {
         Object.keys(params).map(key => {
