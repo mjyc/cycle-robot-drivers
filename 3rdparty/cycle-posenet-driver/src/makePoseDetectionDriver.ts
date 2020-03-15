@@ -346,7 +346,7 @@ export function makePoseDetectionDriver({
               timeoutId = setTimeout(execute, 0);
             } else {
               if (!timeoutId) return;
-              this._timeoutId = setTimeout(execute, interval - elapsed);
+              timeoutId = setTimeout(execute, interval - elapsed);
             }
           };
           execute();
