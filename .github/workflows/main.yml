@@ -18,6 +18,8 @@ jobs:
       - name: Build
         run: |
           rm -rf node_modules
+          npm cache clean --force
+          npm cache verify
           make all
       - name: Test
         run: make test
