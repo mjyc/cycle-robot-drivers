@@ -14,6 +14,7 @@ jobs:
       - uses: actions/setup-node@v1.4.3
         with:
           node-version: '10.16.0'
+          registry-url: https://registry.npmjs.org/
       - name: Build
         run: make all
       - name: Test
