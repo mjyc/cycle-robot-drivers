@@ -16,6 +16,8 @@ jobs:
           node-version: '10.16.0'
           registry-url: https://registry.npmjs.org/
       - name: Build
-        run: make all
+        run: |
+          rm -rf node_modules
+          make all
       - name: Test
         run: make test
