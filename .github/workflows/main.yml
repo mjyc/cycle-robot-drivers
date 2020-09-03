@@ -15,9 +15,7 @@ jobs:
         with:
           node-version: '10.16.0'
       - name: Build
-        run: |
-          npm install -g npm
-          make all
+        run: make all
         shell: bash
       - name: Test
         run: make test
