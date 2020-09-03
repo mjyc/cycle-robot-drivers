@@ -13,8 +13,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1.4.3
         with:
-          node-version: '10.16.0'
-          registry-url: https://registry.npmjs.org/
+          node-version: '12'
       - name: Build
         run: make all
         shell: bash
