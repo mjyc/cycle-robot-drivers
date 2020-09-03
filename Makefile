@@ -10,12 +10,12 @@ ARG=$(filter-out $@,$(MAKECMDGOALS))
 PACKAGES := action screen speech sound run actionbank 3rdparty/cycle-posenet-driver 3rdparty/cycle-meyda-driver
 
 all:
-	@echo "npm install"
-	@npm install
+	@echo "npm ci"
+	@npm ci
 	@echo ""
 	@for d in $(PACKAGES); do \
-		echo "$$d: npm install"; \
-		cd $$d && npm install && cd $(ROOTDIR) && \
+		echo "$$d: npm ci"; \
+		cd $$d && npm ci && cd $(ROOTDIR) && \
 		echo ""; \
 	done
 	@make lib
@@ -60,7 +60,7 @@ test:
 	fi
 
 postbump:
-	cd $(ARG) && rm -rf node_modules package-lock.json && npm install && \
+	cd $(ARG) && rm -rf node_modules package-lock.json && npm ci && \
 	cd $(ROOTDIR) && make lib $(ARG) && make doc $(ARG) && \
 	git add -A && git commit -m "Release $(ARG) $(shell cat $(ARG)/package.json | $(JASE) version)" && \
 	cd $(ROOTDIR) && cd $(ARG) && npm publish --access public;
